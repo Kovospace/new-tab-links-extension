@@ -6,34 +6,39 @@ export function qsAll<T extends Element>(selector: string, parent: Element = doc
     return Array.from(parent.querySelectorAll(selector)) as T[];
 }
 
-export function handleRendering<T>(
-    parent: HTMLElement,
-    items: readonly T[],
-    getKey: (item: T) => string,
-    create: (item: T) => HTMLElement
+export function handleRendering<DTO_TYPE, RESULT_ELEMENT_TYPE = HTMLElement>(
+    parentElement: HTMLElement,
+    dtos: readonly DTO_TYPE[],
+    getElementKeyValueFromDto: (dto: DTO_TYPE) => string,
+    createChildElement: (dto: DTO_TYPE) => RESULT_ELEMENT_TYPE,
+    elementKey?: string
 ) {
 
     // Snapshot existing elements in actual rendered HTML template
-    const existing = new Map<string, HTMLElement>(
+    if (elementKey === undefined || elementKey === null || elementKey === "") {
+        elementKey = "id";
+    }
+
+    const existing = new Map<string, RESULT_ELEMENT_TYPE>(
         Array
-            .from(parent.children)
-            .map(el => [el.id, el as HTMLElement]));
+            .from(parentElement.children)
+            .map(el => [(el as RESULT_ELEMENT_TYPE)[elementKey], el as RESULT_ELEMENT_TYPE]));
 
     // Loop over data incoming from viewModel
-    for (const item of items) {
-        const key = getKey(item);
+    for (const dto of dtos) {
+        const keyValueFromDto = getElementKeyValueFromDto(dto);
 
         // Create & render missing elements
-        if (!existing.has(key)) {
-            const el = create(item);
-            el.id = key;
-            parent.appendChild(el);
+        if (!existing.has(keyValueFromDto)) {
+            const childElement: RESULT_ELEMENT_TYPE = createChildElement(dto);
+            childElement[elementKey] = keyValueFromDto;
+            parentElement.appendChild(childElement);
         }
 
         // Mark element existing in rendered HTML template as handled
-        existing.delete(key);
+        existing.delete(keyValueFromDto);
     }
 
     // Remove leftover elements that are not part of new incoming data from HTML template
-    existing.forEach(el => el.remove());
+    existing.forEach((el: RESULT_ELEMENT_TYPE) => el.remove());
 }

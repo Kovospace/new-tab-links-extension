@@ -2,9 +2,13 @@ import {AppStateRepository} from "../../backend/repository/AppStateRepository";
 import {WorkspaceDTO, WorkspaceViewModel, GroupDTO} from "../../viewModel/workspaceViewModel";
 import {GroupComponent} from "./groupComponent";
 import {qsAll, handleRendering} from "../../utils/firstOrderMethods";
-import {ELEM_GROUP, ELEM_WORKSPACE, ELEM_WORKSPACE_BODY, ELEM_WORKSPACE_HEAD, ACT_SWITCH_WORKSPACE, ACT_ADD_GROUP} from "../../main"
+import {ELEM_GROUP, ELEM_WORKSPACE, ELEM_WORKSPACE_BODY, ELEM_WORKSPACE_HEAD, ACT_SWITCH_WORKSPACE, ACT_ADD_GROUP, ACT_EDIT_WORKSPACE, ACT_ADD_WORKSPACE} from "../../main"
+import {renderButton, renderH1, renderContainer, ICON, renderSpan} from "../../utils/elementsRendering"
+import {Logger} from "../../utils/logger";
 
 export class WorkspaceComponent extends HTMLElement {
+
+    private log: Logger = new Logger("WorkspaceComponent");
 
     private workspaceViewModel!: WorkspaceViewModel;
     private appStateRepository!: AppStateRepository;
@@ -44,7 +48,7 @@ export class WorkspaceComponent extends HTMLElement {
     }
 
     private listeners(): void {
-        this.onAddGroupButtonClick();
+        // this.onAddGroupButtonClick();
     }
 
     private callbacks(): void {
@@ -56,50 +60,87 @@ export class WorkspaceComponent extends HTMLElement {
      *
      * Parent to inflate:
      *
-     *  <header></header>
-     *
-     * Rendered content:
-     *
-     *  <button class="[[ ACT_SWITCH_WORKSPACE ]]" name="[[ WorkspaceDTO.id ]]">
-     *      [[ WorkspaceDTO.title ]]
-     *  </button>
-     *  ...
-     *  <button ...>...</button>
+     *  <header>
+     *      <div>[[ workspace switcher ]]</div>
+     *      [[ add workspace button ]]
+     *  </header>
      */
     private renderHeader(parentElem: HTMLElement, workspaces: WorkspaceDTO[]) {
-        workspaces.forEach((workspace: WorkspaceDTO) => {
-            const buttonElem: HTMLButtonElement = document.createElement("button");
-            buttonElem.title = workspace.title;
-            buttonElem.className = ACT_SWITCH_WORKSPACE;
-            buttonElem.value = workspace.id;
-            buttonElem.textContent = workspace.title;
-            parentElem.appendChild(buttonElem);
-        });
+
+        // workspaces switcher
+        handleRendering<WorkspaceDTO, HTMLButtonElement>(
+            parentElem.getElementsByTagName("div")[0],
+            workspaces,
+            workspace => workspace.id,
+            workspace => renderButton(
+                workspace.title,
+                workspace.id,
+                workspace.active ? [ACT_SWITCH_WORKSPACE, "active"] : [ACT_SWITCH_WORKSPACE],
+                null,
+                clicked => {
+                    this.log.debug("workspace switch to workspace: " + workspace.title +
+                        " with id: " + workspace.id + " clicked");
+                }
+            ),
+            "value"
+        )
+
+        // add workspace button
+        parentElem.appendChild(renderButton(
+            ICON.ADD,
+            null,
+            [ACT_ADD_WORKSPACE],
+            "Add new workspace",
+            clicked => {
+                this.log.debug("create new workspace clicked");
+            }
+        ));
     }
 
     /**
-     *  Workspace heading & top menu content
+     *  Workspace heading & workpsace top menu content
      */
     private renderWorkspaceHead(parentElem: HTMLElement, workspace: WorkspaceDTO) {
+
+        const titleSectionElem: HTMLElement = renderContainer(["workspace-head-title"]);
+        const actionsSectionElem: HTMLElement = renderContainer(["workspace-head-actions"]);
+        parentElem.appendChild(titleSectionElem);
+        parentElem.appendChild(actionsSectionElem);
 
         // ID
         this.id = workspace.id;
 
         // title
-        const titleElem: HTMLHeadingElement = document.createElement("h1");
-        titleElem.title = workspace.title;
-        titleElem.textContent = workspace.title;
-        parentElem.appendChild(titleElem);
+        titleSectionElem.appendChild(renderH1(
+            workspace.title
+        ));
 
-        //TODO edit workspace title
+        titleSectionElem.appendChild(renderSpan(
+            "TODO prirobit do tatoveho modelu workspace description"
+        ));
+
+        // edit workspace screen
+        actionsSectionElem.appendChild(renderButton(
+            ICON.EDIT,
+            workspace.id,
+            [ACT_EDIT_WORKSPACE],
+            "Opens workspaces settings dialog",
+            (event) => {
+                this.log.debug("open workspace settings clicked");
+            }
+        ));
 
         // add group
-        const addButtonElem: HTMLButtonElement = document.createElement("button");
-        addButtonElem.title = "Add new group";
-        addButtonElem.className = ACT_ADD_GROUP;
-        addButtonElem.value = workspace.id;
-        addButtonElem.textContent = " + ";
-        parentElem.appendChild(addButtonElem);
+        actionsSectionElem.appendChild(renderButton(
+            ICON.ADD,
+            workspace.id,
+            [ACT_ADD_GROUP],
+            "Add new group",
+            (event) => {
+                this.log.debug("add group clicked");
+                this.workspaceViewModel.addGroup(workspace.id, prompt("Group name?"))
+            }
+        ));
     }
 
     /**
@@ -136,12 +177,12 @@ export class WorkspaceComponent extends HTMLElement {
     //         });
     // }
 
-    private onAddGroupButtonClick() {
-        document
-            .querySelector(`.${ACT_ADD_GROUP}`)
-            ?.addEventListener(
-                "click",
-                () => this.workspaceViewModel.addGroup(this.id, prompt("Group name?")));
-    }
+    // private onAddGroupButtonClick() {
+    //     document
+    //         .querySelector(`.${ACT_ADD_GROUP}`)
+    //         ?.addEventListener(
+    //             "click",
+    //             () => this.workspaceViewModel.addGroup(this.id, prompt("Group name?")));
+    // }
 
 }

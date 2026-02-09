@@ -10,10 +10,15 @@ import {
     ELEM_GROUP_FOOT,
     ELEM_GROUP_BODY,
     ACT_SWITCH_WORKSPACE,
-    ACT_ADD_LINK, ACT_ADD_GROUP
+    ACT_ADD_LINK,
+    ACT_ADD_GROUP
 } from "../../main"
+import {renderButton, renderH1, renderContainer, ICON, renderSpan} from "../../utils/elementsRendering"
+import {Logger} from "../../utils/logger";
 
 export class GroupComponent extends HTMLElement {
+
+    private log: Logger = new Logger("GroupComponent");
 
     private groupViewModel!: GroupViewModel;
     private appStateRepository!: AppStateRepository;
@@ -73,17 +78,26 @@ export class GroupComponent extends HTMLElement {
         const parentElem: HTMLElement | null = document.getElementById(this.id);
 
         const headerElem: HTMLElement = document.createElement(ELEM_GROUP_HEAD);
+        const separatorElem: HTMLElement = document.createElement("hr");
         const bodyElem: HTMLElement = document.createElement(ELEM_GROUP_BODY);
         const footerElem: HTMLElement = document.createElement(ELEM_GROUP_FOOT);
         parentElem.appendChild(headerElem);
+        parentElem.appendChild(separatorElem);
         parentElem.appendChild(bodyElem);
         parentElem.appendChild(footerElem);
+
+        const titleSectionElem: HTMLElement = renderContainer(["group-head-title"]);
+        const actionsSectionElem: HTMLElement = renderContainer(["group-head-actions"]);
+        headerElem.appendChild(titleSectionElem);
+        headerElem.appendChild(actionsSectionElem);
 
         // group head
         const titleElem: HTMLHeadingElement = document.createElement("h2");
         titleElem.title = groupDto.title;
         titleElem.textContent = groupDto.title
-        headerElem.appendChild(titleElem);
+        titleSectionElem.appendChild(titleElem);
+
+        titleSectionElem.appendChild(renderSpan("TODO description pre každú grupu"));
 
         // group body with links and subgroups
         groupDto.groupItems.forEach((groupItem: GroupItemDTO) => {
@@ -99,13 +113,23 @@ export class GroupComponent extends HTMLElement {
             }
         });
 
-        // group foot with add button
+
         const addButtonElem: HTMLButtonElement = document.createElement("button");
         addButtonElem.title = "Add link";
         addButtonElem.className = ACT_ADD_LINK;
         addButtonElem.value = groupDto.groupId;
         addButtonElem.textContent = " + ";
-        footerElem.appendChild(addButtonElem);
+        actionsSectionElem.appendChild(addButtonElem);
+
+        actionsSectionElem.appendChild(renderButton(
+            ICON.EDIT,
+            groupDto.groupId,
+            [],
+            "Add link to group",
+            onClick => {
+                this.log.debug("edit group: " + groupDto.title + " with id: " + groupDto.groupId + " clicked");
+            }
+        ));
     }
 
     private renderLink(link: LinkDTO, parent: HTMLElement): void {
