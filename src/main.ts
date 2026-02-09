@@ -39,6 +39,9 @@ export const ELEM_LINK: string = "link-container";
  */
 
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
+export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
+export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";
+
 export const ACT_ADD_GROUP: string = "action-add-group";
 export const ACT_ADD_LINK: string = "action-add-link";
 
