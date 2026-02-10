@@ -1,3 +1,5 @@
+import {ACT_SWITCH_WORKSPACE} from "../main";
+
 export function uid(): string {
     return crypto.randomUUID();
 }
@@ -6,7 +8,7 @@ export function qsAll<T extends Element>(selector: string, parent: Element = doc
     return Array.from(parent.querySelectorAll(selector)) as T[];
 }
 
-export function handleRendering<DTO_TYPE, RESULT_ELEMENT_TYPE = HTMLElement>(
+export function handleReactiveRendering<DTO_TYPE, RESULT_ELEMENT_TYPE = HTMLElement>(
     parentElement: HTMLElement,
     dtos: readonly DTO_TYPE[],
     getElementKeyValueFromDto: (dto: DTO_TYPE) => string,
@@ -41,4 +43,21 @@ export function handleRendering<DTO_TYPE, RESULT_ELEMENT_TYPE = HTMLElement>(
 
     // Remove leftover elements that are not part of new incoming data from HTML template
     existing.forEach((el: RESULT_ELEMENT_TYPE) => el.remove());
+}
+
+export function toggleActiveClassOnEvent(event: Event, elementsCollectionCommonClass: string) {
+    Array.from(document.getElementsByClassName(elementsCollectionCommonClass))
+        .forEach((element: HTMLElement) => element.classList.remove("active"));
+    (event.currentTarget as HTMLButtonElement).classList.add("active");
+}
+
+export function toggleActiveClassOnSpecificAttribute<ELEMENT_TYPE>(attribute: string, value: string | number, elementsCollectionCommonClass: string) {
+    Array.from(document.getElementsByClassName(elementsCollectionCommonClass))
+        .forEach((element: ELEMENT_TYPE) => {
+            element.classList.remove("active");
+            if (element[attribute] === value) {
+                element.classList.add("active");
+            }
+        });
+
 }

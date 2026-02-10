@@ -23,7 +23,7 @@ export class AppStateRepository {
         return this.save();
     }
 
-    private async save() {
+    private async save(): Promise<AppState> {
         // console.log("AppStateRepository - save(): this.state before datasource save: " + Object.values(this.state.groups).length);
         // console.log("AppStateRepository - save(): this.$state.get() before datasource save: " + Object.values(this.state$.get().groups).length);
         await this.datasource.save(STORAGE_KEY, this.state);
@@ -32,6 +32,7 @@ export class AppStateRepository {
         this.state$.set(this.state);
         // console.log("AppStateRepository - save(): this.state after state set: " + Object.values(this.state.groups).length);
         // console.log("AppStateRepository - save(): this.$state.get() after state set: " + Object.values(this.state$.get().groups).length);
+        return this.state;
     }
 
     public getCurrentEnvironment(): Environment {
@@ -59,6 +60,49 @@ export class AppStateRepository {
     }
 
     /* ================== CRUD ================== */
+
+    addWorkspace(title: string): Promise<AppState> {
+        const id = uid();
+        this.state = {
+            ...this.state,
+            activeEnvironmentId: id,
+            environments: {
+                ...this.state.environments,
+                [id]: {
+                    id: id,
+                    name: title,
+                    createdAt: Date.now(),
+                    order: 0
+                } satisfies Environment
+            }
+        };
+        return this.save();
+    }
+
+    setWorkspaceDefault(id: string): Promise<AppState> {
+        this.state = {
+            ...this.state,
+            activeEnvironmentId: id
+        };
+        return this.save();
+    }
+
+    renameWorkspace(id: string, newTitle: string) {
+        this.state = {
+            ...this.state,
+            environments: {
+                ...this.state.environments,
+                [id]: {
+                    ...this.state.environments[id],
+                    name: title,
+                } satisfies Environment
+            }
+        };
+    }
+
+    deleteWorksapce(id: string) {
+
+    }
 
     createGroup(title: string, environmentId: string): Promise<void> {
         const id = uid();
