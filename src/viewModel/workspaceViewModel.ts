@@ -37,10 +37,11 @@ export class WorkspaceViewModel {
             this.log.debug('subscriptions', "triggered");
             this.log.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
 
-            // top menu with workspaces (environments)
+            // top menu with workspaces (environments) - workspace switcher
             this.workspacesObservable.set(
                 Object
                     .values(state.environments)
+                    .sort((a, b) => a.createdAt - b.createdAt)
                     .map(environment => ({
                         id: environment.id,
                         title: environment.name,
@@ -60,6 +61,20 @@ export class WorkspaceViewModel {
                     .values(state.groups)
                     .map(this.toGroupDTO));
         });
+    }
+
+    public addWorkspace(title: string) {
+        this.log.debug("addWorkspace", title);
+        if (!title) {
+            this.log.debug("addWorkspace", "User did not provided a title");
+            return;
+        }
+        this.repo.addWorkspace(title);
+    }
+
+    public setCurrentWorkspace(id: string) {
+        this.log.debug("setCurrentWorkspace", id);
+        this.repo.setWorkspaceDefault(id);
     }
 
     public addGroup(workspaceId: string, title: string | null) {

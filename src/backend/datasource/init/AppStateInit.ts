@@ -15,6 +15,8 @@ export const appStateInit: AppState = {
         "env-1": {
             id: "env-1",
             name: "Default",
+            createdAt: 0,
+            order: 0
         }
     },
     groups: {
