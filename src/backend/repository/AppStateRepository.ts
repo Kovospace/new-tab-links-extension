@@ -11,7 +11,6 @@ export class AppStateRepository {
 
     private state!: AppState;
     readonly state$ = new ObservableValue<AppState>(appStateInit);
-
     private datasource = new ChromeStorageWrapper()
     //private repositoryUtils!: AppStateRepositoryUtils;
 
@@ -35,28 +34,34 @@ export class AppStateRepository {
         return this.state;
     }
 
-    public getCurrentEnvironment(): Environment {
-        const environmentId: string = this.state.activeEnvironmentId;
-        if (!environmentId) throw new Error(
-            "Environment ID does not exists in AppState data model");
-        const environment: Environment = this.state.environments[environmentId];
-        if (!environment) throw new Error(
-            "Environment with ID " + environmentId + " does not exists in app state");
-        return environment;
-    }
+    // public getCurrentEnvironment(): Environment {
+    //     const environmentId: string = this.state.activeEnvironmentId;
+    //     if (!environmentId) throw new Error(
+    //         "Environment ID does not exists in AppState data model");
+    //     const environment: Environment = this.state.environments[environmentId];
+    //     if (!environment) throw new Error(
+    //         "Environment with ID " + environmentId + " does not exists in app state");
+    //     return environment;
+    // }
+    //
+    // public getGroup(groupId: string): Group {
+    //     const group = this.state.groups[groupId];
+    //     if (!group) throw new Error(
+    //         "Group with group ID " + groupId + " does not exists in AppState data model");
+    //     return group;
+    // }
+    //
+    // public getLink(linkId: string) {
+    //     const link: Link = this.state.links[linkId];
+    //     if (!link) throw new Error(
+    //         "Link with link ID " + linkId + " does not exists in AppState data model");
+    //     return link;
+    // }
 
-    public getGroup(groupId: string): Group {
-        const group = this.state.groups[groupId];
-        if (!group) throw new Error(
-            "Group with group ID " + groupId + " does not exists in AppState data model");
-        return group;
-    }
-
-    public getLink(linkId: string) {
-        const link: Link = this.state.links[linkId];
-        if (!link) throw new Error(
-            "Link with link ID " + linkId + " does not exists in AppState data model");
-        return link;
+    getGroups(workspaceId: string) {
+        return Object
+            .values(this.state.groups)
+            .filter((group: Group) => group.environmentId === workspaceId);
     }
 
     /* ================== CRUD ================== */

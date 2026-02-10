@@ -43,6 +43,8 @@ export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";
 
 export const ACT_ADD_GROUP: string = "action-add-group";
+export const ACT_EDIT_GROUP: string = "action-edit-group";
+
 export const ACT_ADD_LINK: string = "action-add-link";
 
 // define custom elements used BEFORE they are created/constructed
