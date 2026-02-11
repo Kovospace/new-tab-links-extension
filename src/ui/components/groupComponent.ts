@@ -89,6 +89,7 @@ export class GroupComponent extends HTMLElement {
                 this.log.debug(
                     "render",
                     "add link to group: " + this.title + " with id: " + this.id + " clicked");
+                this.groupViewModel.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
             }
         ));
 

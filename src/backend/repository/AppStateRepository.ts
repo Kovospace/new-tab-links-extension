@@ -64,7 +64,9 @@ export class AppStateRepository {
             .filter((group: Group) => group.environmentId === workspaceId);
     }
 
-    /* ================== CRUD ================== */
+    /**
+     *  Workspace operations
+     */
 
     addWorkspace(title: string): Promise<AppState> {
         const id = uid();
@@ -109,6 +111,10 @@ export class AppStateRepository {
 
     }
 
+    /**
+     *  Group operations
+     */
+
     createGroup(title: string, environmentId: string): Promise<void> {
         const id = uid();
         this.state = {
@@ -132,21 +138,29 @@ export class AppStateRepository {
     }
 
     deleteGroup(groupId: string): Promise<void> {
-        this.getGroup(groupId);
         delete this.state.groups[groupId];
         return this.save();
     }
 
+    /**
+     *  Link operations
+     */
+
     createLink(groupId: string, subGroupId: string, title: string, url: string): Promise<void> {
-        this.getGroup(groupId);
         const id = uid();
-        this.state.links[id] = {
-            id: id,
-            title: title,
-            url: url,
-            environmentId: this.state.activeEnvironmentId,
-            groupId: groupId,
-            subGroupId: subGroupId
+        this.state = {
+            ...this.state,
+            links: {
+                ...this.state.links,
+                [id]: {
+                    id: id,
+                    title: title,
+                    url: url,
+                    environmentId: this.state.activeEnvironmentId,
+                    groupId: groupId,
+                    subGroupId: subGroupId
+                }
+            }
         };
         return this.save();
     }
