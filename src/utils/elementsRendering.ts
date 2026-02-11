@@ -91,4 +91,21 @@ export function renderSpan(
     return spanElem
 }
 
+export function renderTextContainer<ELEMENT_TYPE>(
+    text: string,
+    containerTag: string,
+    tooltipText?: string,
+    classList?: string[]
+): ELEMENT_TYPE {
+    const elem: ELEMENT_TYPE = document.createElement(containerTag);
+    if (tooltipText || tooltipText === "") {
+        elem.title = tooltipText ? tooltipText : text;
+    }
+    elem.textContent = text;
+    if (classList) {
+        elem.classList.add(...classList);
+    }
+    return elem
+}
+
 

@@ -8,6 +8,51 @@ export function qsAll<T extends Element>(selector: string, parent: Element = doc
     return Array.from(parent.querySelectorAll(selector)) as T[];
 }
 
+/**
+ * Performs keyed, incremental rendering of child elements inside a parent container.
+ *
+ * This function compares the current DOM children of `parentElement` with a new
+ * collection of DTOs and updates the DOM with minimal changes:
+ *
+ * - Reuses existing DOM elements when their key matches an incoming DTO
+ * - Creates and appends new DOM elements for DTOs that are not yet rendered
+ * - Removes DOM elements that no longer have a corresponding DTO
+ *
+ * Unlike full re-rendering (e.g. `replaceChildren()`), this approach preserves:
+ * - Existing DOM nodes
+ * - Event listeners
+ * - Focus and user interaction state
+ *
+ * The function assumes that each rendered child element can be uniquely identified
+ * by a stable key derived from the DTO.
+ *
+ * @typeParam DTO_TYPE - Type of the data objects coming from the ViewModel
+ * @typeParam RESULT_ELEMENT_TYPE - Type of the rendered DOM elements (defaults to HTMLElement)
+ *
+ * @param parentElement
+ *        The container element whose direct children represent rendered DTOs.
+ *
+ * @param dtos
+ *        The new ordered list of DTOs that should be reflected in the DOM.
+ *
+ * @param getElementKeyValueFromDto
+ *        Function that extracts a unique, stable key from a DTO.
+ *        This key is used to match DTOs to existing DOM elements.
+ *
+ * @param createChildElement
+ *        Factory function responsible for creating and initializing a new DOM
+ *        element for a given DTO.
+ *
+ * @param elementKey
+ *        Optional property name used to store the key on the DOM element.
+ *        Defaults to `"id"` if not provided.
+ *
+ * @remarks
+ * - This function performs an identity-based diff, not a deep content comparison.
+ * - Element order is preserved based on the incoming `dtos` order only for newly
+ *   created elements; existing elements are not reordered.
+ * - The key stored on the DOM element must remain stable between renders.
+ */
 export function handleReactiveRendering<DTO_TYPE, RESULT_ELEMENT_TYPE = HTMLElement>(
     parentElement: HTMLElement,
     dtos: readonly DTO_TYPE[],

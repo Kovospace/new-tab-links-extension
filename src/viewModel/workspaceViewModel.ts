@@ -37,7 +37,6 @@ export class WorkspaceViewModel {
             this.log.debug('subscriptions', "triggered");
             this.log.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
 
-            // top menu with workspaces (environments) - workspace switcher
             this.workspacesObservable.set(
                 Object
                     .values(state.environments)
@@ -48,17 +47,16 @@ export class WorkspaceViewModel {
                         active: environment.id === state.activeEnvironmentId
                     }) satisfies WorkspaceDTO));
 
-            // workspace heading
             this.workspaceObservable.set(({
                 id: state.activeEnvironmentId,
                 title: state.environments[state.activeEnvironmentId].name,
                 active: true
             }) satisfies WorkspaceDTO);
 
-            // groups with links
             this.groupsObservable.set(
                 Object
                     .values(state.groups)
+                    .filter((group: Group) => group.environmentId === state.activeEnvironmentId)
                     .map(this.toGroupDTO));
         });
     }
@@ -75,6 +73,15 @@ export class WorkspaceViewModel {
     public setCurrentWorkspace(id: string) {
         this.log.debug("setCurrentWorkspace", id);
         this.repo.setWorkspaceDefault(id);
+    }
+
+    public getGroups(workspaceId: string): GroupDTO[] {
+        return this.repo
+            .getGroups(workspaceId)
+            .map((group: Group) => ({
+                id: group.id,
+                title: group.title
+            }) satisfies GroupDTO);
     }
 
     public addGroup(workspaceId: string, title: string | null) {
