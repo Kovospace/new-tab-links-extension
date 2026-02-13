@@ -9,14 +9,16 @@ export class GroupViewModel {
     private repo!: AppStateRepository;
     private groupId!: string;
     private groupTitle!: string;
+    private groupDescription: string;
 
     readonly groupItemsObservable: ObservableValue<GroupDTO>
         = new ObservableValue(null as any);
 
-    constructor(repo: AppStateRepository, groupId: string, groupTitle: string) {
+    constructor(repo: AppStateRepository, groupId: string, groupTitle: string, groupDescription: string) {
         this.repo = repo;
         this.groupId = groupId;
         this.groupTitle = groupTitle;
+        this.groupDescription = groupDescription;
         this.subscriptions();
     }
 
@@ -70,9 +72,18 @@ export class GroupViewModel {
                 this.groupItemsObservable.set({
                     groupId: this.groupId,
                     groupItems: result,
-                    title: this.groupTitle
+                    title: this.groupTitle,
+                    description: this.groupDescription
                 } satisfies GroupDTO);
             });
+    }
+
+    public editGroupTitle(groupId: string, title: string, description: string) {
+      title = title.trim();
+      if (!title) {
+        console.error("Group must have title");
+      }
+      this.repo.renameGroup(groupId, title, description);
     }
 
     public addLink(groupId: string, subGroupId: string, url: string, title: string): void {

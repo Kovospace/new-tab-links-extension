@@ -13,8 +13,14 @@ link-group > hr {
     margin: 0% 5%;
 }
 
-link-group-head > div.group-head-title {
+link-group-head > div.cls-group-head-title {
     margin-right: 0.5em;
+}
+
+link-group-head > div.cls-group-head-title > h2,
+link-group-head > div.cls-group-head-title > span {
+  min-width: 1em;
+  min-height: 1em;
 }
 
 link-group-head > div.group-head-actions {

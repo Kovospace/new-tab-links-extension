@@ -131,9 +131,20 @@ export class AppStateRepository {
         return this.save();
     }
 
-    renameGroup(groupId: string, title: string): Promise<void> {
-        const group = this.getGroup(groupId);
-        group.title = title;
+    renameGroup(id: string, title: string, description: string): Promise<void> {
+      console.log("----------------------------");
+      console.log(description);
+        this.state = {
+          ...this.state,
+          groups: {
+            ...this.state.groups,
+            [id]: {
+              ...this.state.groups[id],
+              title: title,
+              description: description
+            }
+          }
+        };
         return this.save();
     }
 
