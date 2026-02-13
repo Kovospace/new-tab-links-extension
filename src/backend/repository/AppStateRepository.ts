@@ -58,6 +58,10 @@ export class AppStateRepository {
     //     return link;
     // }
 
+    getCurrentWorkspace(): Environment {
+        return this.state.environments[this.state.activeEnvironmentId];
+    }
+
     getGroups(workspaceId: string) {
         return Object
             .values(this.state.groups)
@@ -132,8 +136,8 @@ export class AppStateRepository {
     }
 
     renameGroup(id: string, title: string, description: string): Promise<void> {
-      console.log("----------------------------");
-      console.log(description);
+      // console.log("----------------------------");
+      // console.log(description);
         this.state = {
           ...this.state,
           groups: {
@@ -183,4 +187,4 @@ export class AppStateRepository {
     }
 }
 
-export const appStateDAO = new AppStateRepository();
+export const appStateRepository = new AppStateRepository();

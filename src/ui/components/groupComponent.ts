@@ -50,9 +50,9 @@ export class GroupComponent extends HTMLElement {
         this.attachPersistentListemers();
     }
 
-    private render(): void {
+    private render(parentElem: HTMLElement): void {
 
-        const parentElem: HTMLElement | null = document.getElementById(this.id);
+        //const parentElem: HTMLElement | null = document.getElementById(this.id);
 
         // group container elements
         const headerElem: HTMLElement = document.createElement(ELEM_GROUP_HEAD);
@@ -108,7 +108,7 @@ export class GroupComponent extends HTMLElement {
             .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
     }
 
-    private attachPersistentListemers() {
+    private attachListeners() {
       this.listenerChangeGroupName();
     }
 
@@ -160,7 +160,7 @@ export class GroupComponent extends HTMLElement {
         titleElem.toggleAttribute('contentEditable');
         descriptionElem.toggleAttribute('contentEditable');
         if (!editButton.classList.contains('active')) {
-          console.log('teraz ulož');
+          // console.log('teraz ulož');
           this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
         }
       });
@@ -168,13 +168,13 @@ export class GroupComponent extends HTMLElement {
       titleElem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault(); // prevent new lines
-          cosole.log("enteeeer h2");
+          // cosole.log("enteeeer h2");
         }
       })
 
       titleElem.addEventListener('blur', () => {
-        console.log("bluuuuur h2");
-        console.log('teraz ulož');
+        // console.log("bluuuuur h2");
+        // console.log('teraz ulož');
         this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
 
@@ -186,8 +186,8 @@ export class GroupComponent extends HTMLElement {
       })
 
       descriptionElem.addEventListener('blur', () => {
-        console.log("bluuuuur span");
-        console.log('teraz ulož');
+        // console.log("bluuuuur span");
+        // console.log('teraz ulož');
         this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
     }
