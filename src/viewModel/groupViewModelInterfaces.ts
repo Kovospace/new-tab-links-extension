@@ -20,4 +20,5 @@ export interface GroupDTO {
     groupItems:  GroupItemDTO[];
     groupId: string;
     title: string;
+    description: string;
 }

@@ -172,10 +172,13 @@ export class WorkspaceComponent extends HTMLElement {
             parentElem,
             groups,
             group => group.id,
-            group => {
+            (group: GroupDTO) => {
+              console.log("----------------group");
+              console.log(group);
                 const groupElem = document.createElement(ELEM_GROUP) as GroupComponent;
                 groupElem.title = group.title;
                 groupElem.setRepository(this.appStateRepository);
+                groupElem.setDescription(group.description)
                 return groupElem;
             }
         );

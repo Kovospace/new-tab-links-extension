@@ -51,7 +51,11 @@ html > body button {
         color 0.25s ease-in-out;
 }
 
-html > body h1 {
+html > body h1,
+html > body h2,
+html > body div,
+html > body span
+{
     display: block;
 }
 

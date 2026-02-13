@@ -13,7 +13,9 @@ import {
     ELEM_GROUP_BODY,
     ACT_ADD_LINK,
     ACT_ADD_GROUP,
-    ACT_EDIT_GROUP
+    ACT_EDIT_GROUP,
+    CLASS_GROUP_HEAD_TITLE,
+    CLASS_GROUP_HEAD_ACTIONS
 } from "../../main"
 import {renderButton, renderH1, renderContainer, ICON, renderSpan} from "../../utils/elementsRendering"
 import {Logger} from "../../utils/logger";
@@ -26,9 +28,15 @@ export class GroupComponent extends HTMLElement {
     private groupViewModel!: GroupViewModel;
     private appStateRepository!: AppStateRepository;
 
+    private description!: string;
+
     setRepository(repo: AppStateRepository) {
         this.appStateRepository = repo;
         this.tryInit();
+    }
+
+    setDescription(description: string) {
+      this.description = description;
     }
 
     connectedCallback() {
@@ -37,8 +45,9 @@ export class GroupComponent extends HTMLElement {
 
     private tryInit() {
         if (!this.isConnected || !this.appStateRepository || !this.id) return;
-        this.groupViewModel = new GroupViewModel(this.appStateRepository, this.id, this.title);
+        this.groupViewModel = new GroupViewModel(this.appStateRepository, this.id, this.title, this.description);
         this.render();
+        this.attachPersistentListemers();
     }
 
     private render(): void {
@@ -56,8 +65,8 @@ export class GroupComponent extends HTMLElement {
         parentElem.appendChild(footerElem);
 
         // group head containers
-        const titleSectionElem: HTMLElement = renderContainer(["group-head-title"]);
-        const actionsSectionElem: HTMLElement = renderContainer(["group-head-actions"]);
+        const titleSectionElem: HTMLElement = renderContainer([CLASS_GROUP_HEAD_TITLE]);
+        const actionsSectionElem: HTMLElement = renderContainer([CLASS_GROUP_HEAD_ACTIONS]);
         headerElem.appendChild(titleSectionElem);
         headerElem.appendChild(actionsSectionElem);
 
@@ -66,7 +75,7 @@ export class GroupComponent extends HTMLElement {
         titleSectionElem.appendChild(renderTextContainer(
             this.title, "h2", null));
         titleSectionElem.appendChild(renderTextContainer(
-            "TODO description pre každú grupu", "span"));
+            this.description, "span", null));
 
         // buttons
         actionsSectionElem.appendChild(renderButton(
@@ -97,6 +106,10 @@ export class GroupComponent extends HTMLElement {
         // links
         this.groupViewModel.groupItemsObservable
             .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
+    }
+
+    private attachPersistentListemers() {
+      this.listenerChangeGroupName();
     }
 
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {
@@ -133,6 +146,50 @@ export class GroupComponent extends HTMLElement {
             subgroupElem.appendChild(this.renderLink(link));
         });
         return subgroupElem;
+    }
+
+    private listenerChangeGroupName() {
+
+      const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
+      const editButton = this.getElementsByClassName(ACT_EDIT_GROUP)[0];
+      const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h2")[0];
+      const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+      editButton.addEventListener('click', (event) => {
+        editButton.classList.toggle('active');
+        titleElem.toggleAttribute('contentEditable');
+        descriptionElem.toggleAttribute('contentEditable');
+        if (!editButton.classList.contains('active')) {
+          console.log('teraz ulož');
+          this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+        }
+      });
+
+      titleElem.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // prevent new lines
+          cosole.log("enteeeer h2");
+        }
+      })
+
+      titleElem.addEventListener('blur', () => {
+        console.log("bluuuuur h2");
+        console.log('teraz ulož');
+        this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+      });
+
+      descriptionElem.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // prevent new lines
+          cosole.log("enteeeer span");
+        }
+      })
+
+      descriptionElem.addEventListener('blur', () => {
+        console.log("bluuuuur span");
+        console.log('teraz ulož');
+        this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+      });
     }
 
 }

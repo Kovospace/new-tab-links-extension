@@ -27,6 +27,8 @@ export const ELEM_WORKSPACE_BODY = "workspace-plane-body";
 
 export const ELEM_GROUP: string = "link-group";
 export const ELEM_GROUP_HEAD: string = "link-group-head";
+export const ELEM_GROUP_HEAD_TITLE: string = "link-group-head-title";
+export const ELEM_GROUP_HEAD_ACTIONS: string = "link-group-head-actions";
 export const ELEM_GROUP_BODY: string = "link-group-body";
 export const ELEM_GROUP_FOOT: string = "link-group-foot";
 
@@ -46,6 +48,13 @@ export const ACT_ADD_GROUP: string = "action-add-group";
 export const ACT_EDIT_GROUP: string = "action-edit-group";
 
 export const ACT_ADD_LINK: string = "action-add-link";
+
+/**
+ *  Plain class names
+ */
+
+export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
+export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
 
 // define custom elements used BEFORE they are created/constructed
 // otherwise You are unable to call custom methods for example for

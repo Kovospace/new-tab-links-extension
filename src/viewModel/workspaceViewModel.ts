@@ -13,6 +13,7 @@ export interface WorkspaceDTO {
 export interface GroupDTO {
     id: string;
     title: string;
+    description: string;
 }
 
 export class WorkspaceViewModel {
@@ -78,10 +79,7 @@ export class WorkspaceViewModel {
     public getGroups(workspaceId: string): GroupDTO[] {
         return this.repo
             .getGroups(workspaceId)
-            .map((group: Group) => ({
-                id: group.id,
-                title: group.title
-            }) satisfies GroupDTO);
+            .map(this.toGroupDTO);
     }
 
     public addGroup(workspaceId: string, title: string | null) {
@@ -103,6 +101,7 @@ export class WorkspaceViewModel {
 
     private toGroupDTO = (group: Group): GroupDTO => ({
         id: group.id,
-        title: group.title
+        title: group.title,
+        description: group.description
     });
 }
