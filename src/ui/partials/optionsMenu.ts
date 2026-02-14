@@ -1,0 +1,115 @@
+
+import {Logger} from "../../utils/logger";
+
+import {ACT_EDIT_WORKSPACE, ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
+import {ICON, renderButton} from "../../utils/elementsRendering";
+
+type OptionsMenuItem = {
+    actionTitle: string,
+    dangerous: boolean,
+    onClick: () => void
+}
+
+type MenuRenderData = {
+    openMenuButtonId: string,
+    openMenuButtonClass?: string,
+    openMenuButtonTooltipText?: string
+}
+
+export class OptionsMenu {
+
+    private LOG!: Logger
+
+    private parentElement!: HTMLElement;
+    private openingElement!: HTMLButtonElement;
+    private menuElement!: HTMLElement;
+
+    private renderData!: MenuRenderData;
+    private options!: OptionsMenuItem[];
+    private metadata?: any;
+
+    constructor(
+        parentElement: HTMLElement,
+        renderData: MenuRenderData,
+        options?: OptionsMenuItem[],
+        metadata?: any
+    ) {
+        this.LOG = new Logger("OptionsMenu");
+        this.parentElement = parentElement;
+        this.renderData = renderData;
+        if (metadata) {
+            this.setMetadata(metadata);
+        }
+        if (options) {
+            this.setOptions(options);
+            this.render();
+        }
+    }
+
+    public setOptions(options: OptionsMenuItem[]) {
+        this.options = options;
+    }
+
+    public setMetadata(metadata: any) {
+        this.metadata = metadata;
+    }
+
+    public render() {
+        this.renderButton();
+        this.renderMenu();
+        this.attachListeners();
+    }
+
+    private renderButton() {
+        this.openingElement = renderButton(
+            ICON.MORE,
+            null,
+            [this.renderData.openMenuButtonClass],
+            this.renderData.openMenuButtonTooltipText,
+            (event) => {
+                this.LOG.debug("neu open clicked");
+                event.stopPropagation();
+                this.toggleMenu();
+            }
+        );
+        this.openingElement.id = this.renderData.openMenuButtonId;
+        this.parentElement.appendChild(this.openingElement);
+    }
+
+    private renderMenu(openingElement?: HTMLButtonElement) {
+        if (openingElement) {
+            this.openingElement = openingElement;
+        }
+
+        this.menuElement = document.createElement(ELEM_OPTIONS_MENU);
+
+        this.options.forEach((option: OptionsMenuItem) => {
+            const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
+            optionElem.textContent = option.actionTitle;
+            if (option.dangerous) {
+                optionElem.classList.add("danger");
+            }
+            optionElem.addEventListener('click', () => option.onClick(this.metadata));
+            this.menuElement.appendChild(optionElem);
+        });
+
+        this.openingElement.appendChild(this.menuElement);
+    }
+
+    private attachListeners() {
+        document.addEventListener("mousedown", (event) => {
+            if (
+                !this.menuElement.contains(event.target as Node) &&
+                !this.openingElement.contains(event.target as Node)
+            ) {
+                this.menuElement.classList.remove("visible");
+                this.openingElement.classList.remove("active");
+            }
+        });
+    }
+
+    private toggleMenu() {
+        this.openingElement.classList.toggle("active");
+        this.menuElement.classList.toggle('visible');
+    }
+}

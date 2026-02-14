@@ -7,6 +7,7 @@ export const ICON = {
     MOVE: "⇅",      // move
     EXPAND: "▸",    // expand / open
     COLLAPSE: "▾",  // collapse / close
+    MORE: "⋮",
 } as const;
 
 export function renderContainer(

@@ -39,6 +39,7 @@ html > body > main {
 }
 
 html > body button {
+    position: relative;
     min-width: 2em;
     font-size: 1em;
     padding: 0.25em 0.5em;
@@ -49,6 +50,14 @@ html > body button {
     transition:
         background-color 0.25s ease-in-out,
         color 0.25s ease-in-out;
+}
+
+html > body button:last-child {
+    margin-right: 0;
+}
+
+html > body button:first-child {
+    margin-left: 0;
 }
 
 html > body h1,

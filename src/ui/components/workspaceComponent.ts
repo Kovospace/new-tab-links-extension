@@ -10,6 +10,7 @@ import { GroupViewModel } from "../../viewModel/groupViewModel";
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent";
 import { GroupComponent } from "./groupComponent";
+import { OptionsMenu } from "../partials/optionsMenu"
 
 export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, WorkspaceViewModel> {
 
@@ -112,9 +113,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
      */
     private renderWorkspaceHead(parentElem: HTMLElement, workspace: WorkspaceDTO) {
 
-        // ID
-        this.id = workspace.id;
-
         const titleSectionElem: HTMLElement = renderContainer(["workspace-head-title"]);
         const actionsSectionElem: HTMLElement = renderContainer(["workspace-head-actions"]);
 
@@ -125,15 +123,33 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             "TODO prirobit do tatoveho modelu workspace description", "span"));
 
         // edit workspace screen
-        actionsSectionElem.appendChild(renderButton(
-            ICON.EDIT,
-            workspace.id,
-            [ACT_EDIT_WORKSPACE],
-            "Opens workspaces settings dialog",
-            (event) => {
-                this.LOG.debug("open workspace settings clicked");
+        new OptionsMenu(
+            actionsSectionElem,
+            {
+                openMenuButtonId: `workpsace-${this.id}-menu`
+            },
+            [
+                {
+                    actionTitle: "Edit Workspace title",
+                    dangerous: false,
+                    onClick: (metadata) => {
+                        this.LOG.debug("edit workspace title clicked");
+                        this.LOG.debug("Workspace id: " + metadata.workspaceId);
+                    }
+                },
+                {
+                    actionTitle: "Delete workspace",
+                    dangerous: true,
+                    onClick: (metadata) => {
+                        this.LOG.debug("delete workspace title clicked");
+                        this.LOG.debug("Workspace id: " + metadata.workspaceId);
+                    }
+                }
+            ],
+            {
+                workspaceId: this.id
             }
-        ));
+        );
 
         // add group
         actionsSectionElem.appendChild(renderButton(

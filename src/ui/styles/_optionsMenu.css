@@ -1,0 +1,72 @@
+options-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    border-radius: 0.25em;
+    background-color: #444;
+    margin-top:0.5em;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+            opacity 250ms ease,
+            visibility 250ms ease;
+}
+
+options-menu.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+options-menu-item {
+    position: relative;
+    white-space: nowrap;
+    padding: 0.25em 0.5em;
+    text-align: left;
+    display: block;
+    transition:
+            background-color 0.25s ease-in-out,
+            color 0.25s ease-in-out;
+}
+
+options-menu-item::after {
+    display: block;
+    content: '';
+    height: 0.0625em;
+    background-color: #888;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+options-menu-item:last-child::after {
+    display: none;
+}
+
+options-menu-item.danger {
+    background-color: #800;
+}
+
+options-menu-item:first-child {
+    border-top-left-radius: 0.25em;
+    border-top-right-radius: 0.25em;
+}
+
+options-menu-item:last-child {
+    border-bottom-left-radius: 0.25em;
+    border-bottom-right-radius: 0.25em;
+}
+
+options-menu-item:hover {
+    color: #FFF;
+    background-color: #555;
+}
+
+options-menu-item.danger:hover {
+    background-color: #900;
+}
+
+
+/*html.dark > body button {*/
+/*    background-color: #444;*/
+/*}*/

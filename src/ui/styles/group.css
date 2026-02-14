@@ -11,6 +11,7 @@ link-group > hr {
     height: 0.125em;
     background-color: #eee;
     margin: 0% 5%;
+    border-radius: 0.125em;
 }
 
 link-group-head > div.cls-group-head-title {

@@ -21,6 +21,8 @@ import './ui/styles/group.css'
 import './ui/styles/subgroup.css'
 import './ui/styles/link.css'
 
+import './ui/styles/_optionsMenu.css'
+
 /**
  *  Custom HTML elements names
  */
@@ -39,6 +41,9 @@ export const ELEM_GROUP_FOOT: string = "link-group-foot";
 export const ELEM_SUBGROUP: string = "link-subgroup"
 
 export const ELEM_LINK: string = "link-container";
+
+export const ELEM_OPTIONS_MENU = "options-menu";
+export const ELEM_OPTIONS_MENU_ITEM = "options-menu-item";
 
 /**
  *  Class names bound to some actions triggered by UI elements by user
