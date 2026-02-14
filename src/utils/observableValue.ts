@@ -25,25 +25,25 @@ export class ObservableValue<T> {
     // }
 
     set(next: T) {
-        console.groupCollapsed('Observable.set')
-        console.log('prev:', this.value)
-        console.log('next:', next)
+        // console.groupCollapsed('Observable.set')
+        // console.log('prev:', this.value)
+        // console.log('next:', next)
 
         // Fast path: same reference
         if (Object.is(this.value, next)) {
-            console.log('skip: same reference')
-            console.groupEnd()
+            // console.log('skip: same reference')
+            // console.groupEnd()
             return
         }
 
         // Optional deep guard
         if (isEqual(this.value, next)) {
-            console.log('skip: deep-equal')
-            console.groupEnd()
+            // console.log('skip: deep-equal')
+            // console.groupEnd()
             return
         }
 
-        console.log('apply update')
+        // console.log('apply update')
         this.value = next
 
         for (const fn of [...this.subs]) {
@@ -54,7 +54,7 @@ export class ObservableValue<T> {
             }
         }
 
-        console.groupEnd()
+        // console.groupEnd()
     }
 
     subscribe(fn: Subscriber<T>) {

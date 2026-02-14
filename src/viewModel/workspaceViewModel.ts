@@ -1,85 +1,78 @@
+
+// data layer
 import {AppStateRepository} from "../backend/repository/AppStateRepository";
-import {AppState, Link, Environment, Group} from "../backend/entity/AppStateEntity";
+import {AppState, Environment, Group} from "../backend/entity/AppStateEntity";
+
+// model layer
+import {AbstractViewModel} from "../viewModel/abstract/abstractViewModel"
+import {WorkpsaceDTO, GroupDTO} from "../viewModel/abstract/dtos"
+import {toGroupDTO} from "../viewModel/abstract/mappers"
+
+// utils
 import {ObservableValue} from "../utils/observableValue";
-import {LinkDTO} from "./groupViewModel";
-import {Logger} from "../utils/logger";
 
-export interface WorkspaceDTO {
-    id: string;
-    title: string;
-    active: boolean;
-}
+type WorkspaceObservables = {
+    workspaces: ObservableValue<WorkpsaceDTO[]>;
+    groups: ObservableValue<GroupDTO>;
+    workspace: ObservableValue<WorkpsaceDTO>;
+};
 
-export interface GroupDTO {
-    id: string;
-    title: string;
-    description: string;
-}
+export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, WorkspaceObservables> {
 
-export class WorkspaceViewModel {
-
-    private log: Logger = new Logger("WorkspaceViewModel");
-
-    private repo!: AppStateRepository;
-    private worksapceId!: string;
-
-    public readonly workspacesObservable: ObservableValue<WorkspaceDTO[]> = new ObservableValue(null as any);
-    public readonly groupsObservable: ObservableValue<GroupDTO> = new ObservableValue(null as any);
-    public readonly workspaceObservable: ObservableValue<WorkspaceDTO> = new ObservableValue(null as any);
-
-    constructor(repo: AppStateRepository) {
-        this.repo = repo;
-        this.subscriptions();
+    protected createObservables(): WorkspaceObservables {
+        return {
+            workspaces: new ObservableValue([]),
+            groups: new ObservableValue(null as any),
+            workspace: new ObservableValue(null as any)
+        };
     }
 
-    private subscriptions() {
-        this.repo.state$.subscribe((state: AppState) => {
+    protected subscribed(state: AppState) {
 
-            this.log.debug('subscriptions', "triggered");
-            this.log.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
+        this.LOG.debug('subscriptions', "triggered");
+        this.LOG.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
 
-            this.workspacesObservable.set(
-                Object
-                    .values(state.environments)
-                    .sort((a, b) => a.createdAt - b.createdAt)
-                    .map(environment => ({
-                        id: environment.id,
-                        title: environment.name,
-                        active: environment.id === state.activeEnvironmentId
-                    }) satisfies WorkspaceDTO));
+        this.observables.workspaces.set(
+            Object
+                .values(state.environments)
+                .sort((a: Environment, b: Environment) => a.createdAt - b.createdAt)
+                .map((environment: Environment) => ({
+                    id: environment.id,
+                    title: environment.name,
+                    active: environment.id === state.activeEnvironmentId
+                }) satisfies WorkpsaceDTO));
 
-            this.workspaceObservable.set(({
-                id: state.activeEnvironmentId,
-                title: state.environments[state.activeEnvironmentId].name,
-                active: true
-            }) satisfies WorkspaceDTO);
+        this.observables.workspace.set(({
+            id: state.activeEnvironmentId,
+            title: state.environments[state.activeEnvironmentId].name,
+            active: true
+        }) satisfies WorkpsaceDTO);
 
-            this.groupsObservable.set(
-                Object
-                    .values(state.groups)
-                    .filter((group: Group) => group.environmentId === state.activeEnvironmentId)
-                    .map(this.toGroupDTO));
-        });
+        this.observables.groups.set(
+            Object
+                .values(state.groups)
+                .filter((group: Group) => group.environmentId === state.activeEnvironmentId)
+                .map(toGroupDTO));
     }
 
     public addWorkspace(title: string) {
-        this.log.debug("addWorkspace", title);
+        this.LOG.debug("addWorkspace", title);
         if (!title) {
-            this.log.debug("addWorkspace", "User did not provided a title");
+            this.LOG.debug("addWorkspace", "User did not provided a title");
             return;
         }
-        this.repo.addWorkspace(title);
+        this.REPOSITORY.addWorkspace(title);
     }
 
     public setCurrentWorkspace(id: string) {
-        this.log.debug("setCurrentWorkspace", id);
-        this.repo.setWorkspaceDefault(id);
+        this.LOG.debug("setCurrentWorkspace", id);
+        this.REPOSITORY.setWorkspaceDefault(id);
     }
 
     public getGroups(workspaceId: string): GroupDTO[] {
-        return this.repo
+        return this.REPOSITORY
             .getGroups(workspaceId)
-            .map(this.toGroupDTO);
+            .map(toGroupDTO);
     }
 
     public addGroup(workspaceId: string, title: string | null) {
@@ -88,20 +81,10 @@ export class WorkspaceViewModel {
             return;
         }
         if (!title) {
-            console.log("No group will be created because user does not provided name");
+            console.LOG("No group will be created because user does not provided name");
             return;
         }
-        this.repo.createGroup(title, workspaceId);
+        this.REPOSITORY.createGroup(title, workspaceId);
     }
 
-    private toWorkspaceDTO = (workspace: Environment): WorkspaceDTO => ({
-        id: workspace.id,
-        title: workspace.name
-    });
-
-    private toGroupDTO = (group: Group): GroupDTO => ({
-        id: group.id,
-        title: group.title,
-        description: group.description
-    });
 }

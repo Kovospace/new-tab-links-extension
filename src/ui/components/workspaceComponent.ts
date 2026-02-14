@@ -1,29 +1,19 @@
-import {AppStateRepository} from "../../backend/repository/AppStateRepository";
-import {WorkspaceDTO, WorkspaceViewModel, GroupDTO} from "../../viewModel/workspaceViewModel";
-import {GroupComponent} from "./groupComponent";
 import {qsAll, handleReactiveRendering, toggleActiveClassOnSpecificAttribute} from "../../utils/firstOrderMethods";
 import {ELEM_GROUP, ELEM_WORKSPACE, ELEM_WORKSPACE_BODY, ELEM_WORKSPACE_HEAD, ACT_SWITCH_WORKSPACE, ACT_ADD_GROUP, ACT_EDIT_WORKSPACE, ACT_ADD_WORKSPACE} from "../../main"
-import {renderButton, renderH1, renderContainer, ICON, renderSpan} from "../../utils/elementsRendering"
-import {Logger} from "../../utils/logger";
+import {renderButton, renderContainer, ICON, renderTextContainer} from "../../utils/elementsRendering"
 
-export class WorkspaceComponent extends HTMLElement {
+// data/model layer
+import { AppStateRepository } from "../../backend/repository/AppStateRepository";
+import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
+import { GroupViewModel } from "../../viewModel/groupViewModel";
 
-    private log: Logger = new Logger("WorkspaceComponent");
+// components layer
+import { AbstractComponent } from "../abstract/abstractComponent";
+import { GroupComponent } from "./groupComponent";
 
-    private workspaceViewModel!: WorkspaceViewModel;
-    private appStateRepository!: AppStateRepository;
+export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, WorkspaceViewModel> {
 
-    setRepository(repo: AppStateRepository) {
-        this.appStateRepository = repo;
-    }
-
-    connectedCallback() {
-        if (!this.appStateRepository) throw new Error("Repository not set");
-        this.workspaceViewModel = new WorkspaceViewModel(this.appStateRepository);
-        this.render();
-    }
-
-    private render() {
+    private render(parentElem: HTMLElement) {
 
         const headerElem: HTMLElement = document.body.getElementsByTagName("header")[0];
         const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
@@ -32,22 +22,26 @@ export class WorkspaceComponent extends HTMLElement {
         this.appendChild(headElem);
         this.appendChild(bodyElem);
 
-        this.workspaceViewModel.workspacesObservable
+        this.VIEW_MODEL.observables.workspaces
             .subscribe((workspaces: WorkspaceDTO[]) => this.renderWorkspaceSwitcher(headerElem, workspaces));
 
         this.renderWorkspaceSwitcherToolings(headerElem);
 
-        this.workspaceViewModel.workspaceObservable
+        this.VIEW_MODEL.observables.workspace
             .subscribe((workspace: WorkspaceDTO) => {
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
-                this.renderGroups(bodyElem, this.workspaceViewModel.getGroups(workspace.id));
+                this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));
             });
 
-        this.workspaceViewModel.groupsObservable
+        this.VIEW_MODEL.observables.groups
             .subscribe((groupIds: string[]) => this.renderGroups(bodyElem, groupIds));
 
         this.renderFooter(footerElem);
+    }
+
+    private attachListeners(parentElem: HTMLElement) {
+
     }
 
     /**
@@ -74,10 +68,10 @@ export class WorkspaceComponent extends HTMLElement {
                 [ACT_SWITCH_WORKSPACE],
                 null,
                 clicked => {
-                    this.log.debug(
+                    this.LOG.debug(
                         "renderWorkspaceSwitcher",
                         "workspace switch to workspace: " + workspace.title + " with id: " + workspace.id + " clicked");
-                    this.workspaceViewModel.setCurrentWorkspace(workspace.id);
+                    this.VIEW_MODEL.setCurrentWorkspace(workspace.id);
                 }
             ),
             "value"
@@ -107,8 +101,8 @@ export class WorkspaceComponent extends HTMLElement {
             [ACT_ADD_WORKSPACE],
             "Add new workspace",
             clicked => {
-                this.log.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
-                this.workspaceViewModel.addWorkspace(prompt("Give a name for workspace"));
+                this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
+                this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
             }
         ));
     }
@@ -125,12 +119,10 @@ export class WorkspaceComponent extends HTMLElement {
         const actionsSectionElem: HTMLElement = renderContainer(["workspace-head-actions"]);
 
         // title
-        titleSectionElem.appendChild(renderH1(
-            workspace.title
-        ));
-        titleSectionElem.appendChild(renderSpan(
-            "TODO prirobit do tatoveho modelu workspace description"
-        ));
+        titleSectionElem.appendChild(renderTextContainer(
+            workspace.title, "h1"));
+        titleSectionElem.appendChild(renderTextContainer(
+            "TODO prirobit do tatoveho modelu workspace description", "span"));
 
         // edit workspace screen
         actionsSectionElem.appendChild(renderButton(
@@ -139,7 +131,7 @@ export class WorkspaceComponent extends HTMLElement {
             [ACT_EDIT_WORKSPACE],
             "Opens workspaces settings dialog",
             (event) => {
-                this.log.debug("open workspace settings clicked");
+                this.LOG.debug("open workspace settings clicked");
             }
         ));
 
@@ -150,8 +142,8 @@ export class WorkspaceComponent extends HTMLElement {
             [ACT_ADD_GROUP],
             "Add new group",
             (event) => {
-                this.log.debug("add group clicked");
-                this.workspaceViewModel.addGroup(workspace.id, prompt("Group name?"))
+                this.LOG.debug("add group clicked");
+                this.VIEW_MODEL.addGroup(workspace.id, prompt("Group name?"))
             }
         ));
 
@@ -166,19 +158,13 @@ export class WorkspaceComponent extends HTMLElement {
      */
     private renderGroups(parentElem: HTMLElement, groups: GroupDTO[]) {
 
-        console.log("render groups filled");
-
         handleReactiveRendering<GroupDTO>(
             parentElem,
             groups,
             group => group.id,
             (group: GroupDTO) => {
-              console.log("----------------group");
-              console.log(group);
                 const groupElem = document.createElement(ELEM_GROUP) as GroupComponent;
-                groupElem.title = group.title;
-                groupElem.setRepository(this.appStateRepository);
-                groupElem.setDescription(group.description)
+                groupElem.initialize(this.REPOSITORY, group, GroupViewModel);
                 return groupElem;
             }
         );

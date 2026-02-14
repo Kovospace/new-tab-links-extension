@@ -9,6 +9,7 @@ export interface AppState {
 export interface Environment {
     id: string;
     name: string;
+    description: string;
     createdAt: number;
     order: number;
 }

@@ -22,21 +22,3 @@ export const isSubGroupLink =
         (link: Link): boolean =>
             link.subGroupId !== undefined && link.subGroupId !== null && link.subGroupId !== ""
 
-// mappers
-
-export const toLinkDTO = (link: Link): LinkDTO => ({
-    id: link.id,
-    title: link.title,
-    url: link.url,
-    position: link.position,
-    type: "link",
-});
-
-export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
-    id: subgroup.id,
-    title: subgroup.title,
-    links: [],
-    position: subgroup.position,
-    type: "subgroup"
-});
-

@@ -1,5 +1,9 @@
-import { appStateDAO } from "./backend/repository/AppStateRepository";
+import { appStateRepository } from "./backend/repository/AppStateRepository";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
+import { Environment } from "./backend/entity/AppStateEntity";
+import { WorkpsaceDTO } from "./viewModel/abstract/dtos"
+
+import { WorkspaceViewModel } from "./viewModel/workspaceViewModel"
 
 import {WorkspaceComponent} from "./ui/components/workspaceComponent";
 import {GroupComponent} from "./ui/components/groupComponent";
@@ -67,13 +71,21 @@ customElements.define(ELEM_LINK, LinkComponent);
 (async () => {
 
     // initialize "app data" object and repository, WAIT FOR IT !!!
-    await appStateDAO.init(appStateInit);
+    await appStateRepository.init(appStateInit);
 
     // create custom HTML element ONLY THAT WAY otherwise (innerHTML() method or
     // raw in html file) construction of object happens before initialized "repository"
     // is injected and program crashes
+    const currentEnvironment: Environment = appStateRepository.getCurrentWorkspace();
+    const workspaceDTO: WorkpsaceDTO = ({
+        id: currentEnvironment.id,
+        title: currentEnvironment.name,
+        description: currentEnvironment.description
+    }) satisfies WorkpsaceDTO;
+
     const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
-    workspaceElement.setRepository(appStateDAO);
+    workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
+
     document.body
         .getElementsByTagName("main")[0]
         .appendChild(workspaceElement);
