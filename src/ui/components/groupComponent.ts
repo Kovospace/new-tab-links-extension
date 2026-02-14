@@ -104,7 +104,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 this.LOG.debug(
                     "render",
                     "add link to group: " + this.title + " with id: " + this.id + " clicked");
-                this.groupViewModel.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
+                this.VIEW_MODEL.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
             }
         ));
 

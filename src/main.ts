@@ -61,6 +61,8 @@ export const ACT_ADD_LINK: string = "action-add-link";
 /**
  *  Plain class names
  */
+export const CLASS_WORKSPACE_HEAD_TITLE: string = "cls-workspace-head-title";
+export const CLASS_WORKSPACE_HEAD_ACTIONS: string = "cls-workspace-head-actions";
 
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
 export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";

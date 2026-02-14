@@ -64,6 +64,16 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
         this.REPOSITORY.addWorkspace(title);
     }
 
+    // workspace actions
+
+    public editWorkspaceTitle(id: string, title: string, description?: string) {
+        title = title.trim();
+        if (!title || title === "") {
+            console.error("Workspace name cannot be empty")
+        }
+        this.REPOSITORY.renameWorkspace(id, title, description);
+    }
+
     public setCurrentWorkspace(id: string) {
         this.LOG.debug("setCurrentWorkspace", id);
         this.REPOSITORY.setWorkspaceDefault(id);
@@ -74,6 +84,12 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
             .getGroups(workspaceId)
             .map(toGroupDTO);
     }
+
+    public deleteWorkspace(id: string) {
+        this.REPOSITORY.deleteWorksapce(id);
+    }
+
+    // other actions
 
     public addGroup(workspaceId: string, title: string | null) {
         if (!workspaceId) {

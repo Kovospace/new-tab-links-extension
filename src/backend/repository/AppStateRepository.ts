@@ -98,7 +98,7 @@ export class AppStateRepository {
         return this.save();
     }
 
-    renameWorkspace(id: string, newTitle: string) {
+    renameWorkspace(id: string, title: string, description: string) {
         this.state = {
             ...this.state,
             environments: {
@@ -106,13 +106,40 @@ export class AppStateRepository {
                 [id]: {
                     ...this.state.environments[id],
                     name: title,
+                    description: description
                 } satisfies Environment
             }
         };
+        return this.save();
     }
 
     deleteWorksapce(id: string) {
-
+        // remove env
+        this.state = {
+            ...this.state,
+            environments: Object.fromEntries(
+                Object
+                    .entries(this.state.environments)
+                    .filter(([key]) => key !== id)
+            )
+        };
+        // remove groups
+        Object
+            .values(this.state.groups)
+            .filter(group => group.environmentId === id)
+            .forEach(group => this.deleteGroup(group.id));
+        // remove subgroups
+        Object
+            .values(this.state.subgroups)
+            .filter(subgroup => subgroup.environmentId === id)
+            .forEach(subgroup => this.deleteSubGroup(id));
+        // remove links
+        Object
+            .values(this.state.links)
+            .filter(link => link.environmentId === id)
+            .forEach(link => this.deleteLink(link.id));
+        // save change
+        return this.save();
     }
 
     /**
@@ -154,6 +181,15 @@ export class AppStateRepository {
 
     deleteGroup(groupId: string): Promise<void> {
         delete this.state.groups[groupId];
+        return this.save();
+    }
+
+    /**
+     *  Subgroup operations
+     */
+
+    deleteSubGroup(id: string): Promise<void> {
+        delete this.state.subgroups[id];
         return this.save();
     }
 

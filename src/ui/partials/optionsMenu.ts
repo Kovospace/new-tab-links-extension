@@ -7,7 +7,8 @@ import { toggleOverlay } from "../partials/wrappedHtmlElements";
 
 type OptionsMenuItem = {
     actionTitle: string,
-    dangerous: boolean,
+    dangerous?: boolean,
+    dangerConfirmation?: string,
     onClick: () => void
 }
 
@@ -83,24 +84,35 @@ export class OptionsMenu {
         }
 
         this.menuElement = document.createElement(ELEM_OPTIONS_MENU);
+        this.openingElement.appendChild(this.menuElement);
 
         this.options.forEach((option: OptionsMenuItem) => {
+
             const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
             optionElem.textContent = option.actionTitle;
             optionElem.setAttribute('defaultText', option.actionTitle);
             if (option.dangerous) {
                 optionElem.classList.add("danger");
             }
+
             optionElem.addEventListener('click', () => {
                 this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
                 this.LOG.debug("Metadata: " + this.metadata);
                 toggleOverlay(false);
+                if (option.dangerous) {
+                    const message = "Are You sure ?";
+                    if (option.dangerConfirmation) {
+                        message += `\n\n${option.dangerConfirmation}`;
+                    }
+                    if (!confirm(message)) {
+                        return;
+                    }
+                }
                 option.onClick(this.metadata);
             });
+
             this.menuElement.appendChild(optionElem);
         });
-
-        this.openingElement.appendChild(this.menuElement);
     }
 
     private attachListeners() {

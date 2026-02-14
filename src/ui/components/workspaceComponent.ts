@@ -1,11 +1,24 @@
 import {qsAll, handleReactiveRendering, toggleActiveClassOnSpecificAttribute} from "../../utils/firstOrderMethods";
-import {ELEM_GROUP, ELEM_WORKSPACE, ELEM_WORKSPACE_BODY, ELEM_WORKSPACE_HEAD, ACT_SWITCH_WORKSPACE, ACT_ADD_GROUP, ACT_EDIT_WORKSPACE, ACT_ADD_WORKSPACE} from "../../main"
+import {
+    ELEM_GROUP,
+    ELEM_WORKSPACE,
+    ELEM_WORKSPACE_BODY,
+    ELEM_WORKSPACE_HEAD,
+    ACT_SWITCH_WORKSPACE,
+    ACT_ADD_GROUP,
+    ACT_EDIT_WORKSPACE,
+    ACT_ADD_WORKSPACE,
+    CLASS_GROUP_HEAD_TITLE,
+    CLASS_WORKSPACE_HEAD_TITLE,
+    CLASS_WORKSPACE_HEAD_ACTIONS
+} from "../../main"
 import {renderButton, renderContainer, ICON, renderTextContainer} from "../../utils/elementsRendering"
 
 // data/model layer
 import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
+import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent";
@@ -113,8 +126,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
      */
     private renderWorkspaceHead(parentElem: HTMLElement, workspace: WorkspaceDTO) {
 
-        const titleSectionElem: HTMLElement = renderContainer(["workspace-head-title"]);
-        const actionsSectionElem: HTMLElement = renderContainer(["workspace-head-actions"]);
+        const titleSectionElem: HTMLElement = renderContainer([CLASS_WORKSPACE_HEAD_TITLE]);
+        const actionsSectionElem: HTMLElement = renderContainer([CLASS_WORKSPACE_HEAD_ACTIONS]);
 
         // title
         titleSectionElem.appendChild(renderTextContainer(
@@ -126,24 +139,20 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         new OptionsMenu(
             actionsSectionElem,
             {
-                openMenuButtonId: `workpsace-${this.id}-menu`
+                openMenuButtonId: `workpsace-${this.id}-menu`,
+                openMenuButtonTooltipText: "Edit current workspace",
+                openMenuButtonClass: ACT_EDIT_WORKSPACE
             },
             [
                 {
                     actionTitle: "Edit Workspace title",
-                    dangerous: false,
-                    onClick: (metadata) => {
-                        this.LOG.debug("edit workspace title clicked");
-                        this.LOG.debug("Workspace id: " + metadata.workspaceId);
-                    }
+                    onClick: (metadata) => this.toggleGroupTitleEditable(event.target as HTMLElement)
                 },
                 {
                     actionTitle: "Delete workspace",
                     dangerous: true,
-                    onClick: (metadata) => {
-                        this.LOG.debug("delete workspace title clicked");
-                        this.LOG.debug("Workspace id: " + metadata.workspaceId);
-                    }
+                    dangerConfirmation: "ll groups and links that are associated to that workspace will be deleted as well.",
+                    onClick: (metadata) => this.VIEW_MODEL.deleteWorkspace(this.id)
                 }
             ],
             {
@@ -193,6 +202,51 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         const dummyTextElem = document.createElement("span");
         dummyTextElem.title = "tiririri";
         parentElem.appendChild(dummyTextElem);
+    }
+
+    private toggleGroupTitleEditable(menuItem: HTMLElement) {
+
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h1")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        menuItem.classList.toggle("active");
+        titleElem.toggleAttribute('contentEditable');
+        titleElem.classList.toggle("editable");
+        descriptionElem.toggleAttribute('contentEditable');
+        descriptionElem.classList.toggle("editable");
+        if (menuItem.classList.contains("active")) {
+            setTimeout(() => { menuItem.textContent = "Save Workspace title" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
+    }
+
+    private listenerChangeGroupName() {
+
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h1")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        titleElem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // prevent new lines
+            }
+        })
+
+        titleElem.addEventListener('blur', () => {
+            this.VIEW_MODEL.editWorkspaceTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+        });
+
+        descriptionElem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // prevent new lines
+            }
+        })
+
+        descriptionElem.addEventListener('blur', () => {
+            this.VIEW_MODEL.editWorkspaceTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+        });
     }
 
 }
