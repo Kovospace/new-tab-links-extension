@@ -3,6 +3,7 @@ import {Logger} from "../../utils/logger";
 
 import {ACT_EDIT_WORKSPACE, ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
 import {ICON, renderButton} from "../../utils/elementsRendering";
+import { toggleOverlay } from "../partials/wrappedHtmlElements";
 
 type OptionsMenuItem = {
     actionTitle: string,
@@ -86,10 +87,16 @@ export class OptionsMenu {
         this.options.forEach((option: OptionsMenuItem) => {
             const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
             optionElem.textContent = option.actionTitle;
+            optionElem.setAttribute('defaultText', option.actionTitle);
             if (option.dangerous) {
                 optionElem.classList.add("danger");
             }
-            optionElem.addEventListener('click', () => option.onClick(this.metadata));
+            optionElem.addEventListener('click', () => {
+                this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
+                this.LOG.debug("Metadata: " + this.metadata);
+                toggleOverlay(false);
+                option.onClick(this.metadata);
+            });
             this.menuElement.appendChild(optionElem);
         });
 
@@ -104,6 +111,7 @@ export class OptionsMenu {
             ) {
                 this.menuElement.classList.remove("visible");
                 this.openingElement.classList.remove("active");
+                toggleOverlay(false);
             }
         });
     }
@@ -111,5 +119,6 @@ export class OptionsMenu {
     private toggleMenu() {
         this.openingElement.classList.toggle("active");
         this.menuElement.classList.toggle('visible');
+        toggleOverlay(this.menuElement.classList.contains('visible'));
     }
 }

@@ -14,31 +14,50 @@ html > body {
     font-family: sans-serif;
 }
 
-html > body > header,
-html > body > footer {
+div.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.33);
+    z-index: 100;
+    opacity: 1;
+    transition:
+            opacity 250ms ease,
+            visibility 250ms ease;
+}
+
+div.overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+header,
+footer {
     padding: 0.5em;
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: 1em;
 }
 
-html > body > header > div,
-html > body > header > span {
+header > div,
+header > span {
     display: inline-block;
 }
 
-html > body > header > span {
+header > span {
     margin-right: 0.5em;
 }
 
-html > body > main {
+main {
     padding: 0em 1em;
     flex-grow: 1;
     flex-shrink: 0;
     flex-basis: auto;
 }
 
-html > body button {
+button {
     position: relative;
     min-width: 2em;
     font-size: 1em;
@@ -52,18 +71,18 @@ html > body button {
         color 0.25s ease-in-out;
 }
 
-html > body button:last-child {
+button:last-child {
     margin-right: 0;
 }
 
-html > body button:first-child {
+button:first-child {
     margin-left: 0;
 }
 
-html > body h1,
-html > body h2,
-html > body div,
-html > body span
+h1,
+h2,
+div,
+span
 {
     display: block;
 }
@@ -75,24 +94,41 @@ html.dark {
     color: #eee;
 }
 
-html.dark > body > header,
-html.dark > body > footer {
+html.dark header,
+html.dark footer {
     background-color: #222;
 }
 
-html.dark > body button {
+html.dark button {
     background-color: #444;
 }
 
-html.dark > body button.active {
+html.dark button.active {
     background-color: #18F;
 }
 
-html.dark > body button:hover {
+html.dark button:hover {
     color: #FFF;
     background-color: #555;
 }
 
-html.dark > body button.active:hover {
+html.dark button.active:hover {
     background-color: #29F;
+}
+
+html.dark .editable {
+    background-color: #444;
+    transition:
+            box-shadow 0.25s ease-in-out,
+            background-color 0.25s ease-in-out,
+            color 0.25s ease-in-out;
+}
+
+html.dark .editable:hover {
+    background-color: #555;
+    color: #FFF;
+}
+
+html.dark .editable:focus {
+    box-shadow: inset 0 0 0 0.125em #18F;
 }

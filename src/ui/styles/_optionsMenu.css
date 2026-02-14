@@ -1,9 +1,11 @@
 options-menu {
     position: absolute;
+    z-index: 101; /* more than overlay */
     top: 100%;
     left: 0;
     border-radius: 0.25em;
     background-color: #444;
+    box-shadow: 0 0 0 0.25em black;
     margin-top:0.5em;
     opacity: 0;
     visibility: hidden;
@@ -47,6 +49,10 @@ options-menu-item.danger {
     background-color: #800;
 }
 
+options-menu-item.active {
+    background-color: #18F;
+}
+
 options-menu-item:first-child {
     border-top-left-radius: 0.25em;
     border-top-right-radius: 0.25em;
@@ -66,7 +72,6 @@ options-menu-item.danger:hover {
     background-color: #900;
 }
 
-
-/*html.dark > body button {*/
-/*    background-color: #444;*/
-/*}*/
+options-menu-item.active:hover {
+    background-color: #29F;
+}
