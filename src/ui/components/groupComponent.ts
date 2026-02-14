@@ -1,10 +1,5 @@
-import {AppStateRepository} from "../../backend/repository/AppStateRepository";
-import {GroupViewModel} from "../../viewModel/groupViewModel";
-import {GroupDTO, GroupItemDTO, LinkDTO, SubgroupDTO, GroupItemsDTO} from "../../viewModel/groupViewModelInterfaces";
-import {handleReactiveRendering, qsAll} from "../../utils/firstOrderMethods";
-import {renderTextContainer} from "../../utils/elementsRendering";
-import {LinkComponent} from "./linkComponent"
-import {SubgroupComponent} from "./subgroupComponent"
+
+// constants
 import {
     ELEM_LINK,
     ELEM_SUBGROUP,
@@ -17,42 +12,26 @@ import {
     CLASS_GROUP_HEAD_TITLE,
     CLASS_GROUP_HEAD_ACTIONS
 } from "../../main"
-import {renderButton, renderH1, renderContainer, ICON, renderSpan} from "../../utils/elementsRendering"
-import {Logger} from "../../utils/logger";
-import {WorkspaceDTO} from "../../viewModel/workspaceViewModel";
 
-export class GroupComponent extends HTMLElement {
+// data / model layer
+import {AppStateRepository} from "../../backend/repository/AppStateRepository";
+import { GroupViewModel } from "../../viewModel/groupViewModel";
+import { GroupDTO, GroupItemDTO, LinkDTO, SubgroupDTO } from "../../viewModel/abstract/dtos"
 
-    private log: Logger = new Logger("GroupComponent");
+// components layer
+import { AbstractComponent } from "../abstract/abstractComponent"
+import { LinkComponent } from "./linkComponent"
+import { SubgroupComponent } from "./subgroupComponent"
+import { renderTextContainer, renderButton, renderContainer, ICON } from "../../utils/elementsRendering";
+import { handleReactiveRendering } from "../../utils/firstOrderMethods";
 
-    private groupViewModel!: GroupViewModel;
-    private appStateRepository!: AppStateRepository;
 
-    private description!: string;
 
-    setRepository(repo: AppStateRepository) {
-        this.appStateRepository = repo;
-        this.tryInit();
-    }
-
-    setDescription(description: string) {
-      this.description = description;
-    }
-
-    connectedCallback() {
-        this.tryInit();
-    }
-
-    private tryInit() {
-        if (!this.isConnected || !this.appStateRepository || !this.id) return;
-        this.groupViewModel = new GroupViewModel(this.appStateRepository, this.id, this.title, this.description);
-        this.render();
-        this.attachPersistentListemers();
-    }
+export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> {
 
     private render(parentElem: HTMLElement): void {
 
-        //const parentElem: HTMLElement | null = document.getElementById(this.id);
+        this.id = this.DTO.id;
 
         // group container elements
         const headerElem: HTMLElement = document.createElement(ELEM_GROUP_HEAD);
@@ -73,29 +52,29 @@ export class GroupComponent extends HTMLElement {
         // group head elements
         // title
         titleSectionElem.appendChild(renderTextContainer(
-            this.title, "h2", null));
+            this.DTO.title, "h2", null));
         titleSectionElem.appendChild(renderTextContainer(
-            this.description, "span", null));
+            this.DTO.description, "span", null));
 
         // buttons
         actionsSectionElem.appendChild(renderButton(
             ICON.EDIT,
-            this.id,
+            this.DTO.id,
             [ACT_EDIT_GROUP],
             "Edit group",
             onClick => {
-                this.log.debug(
+                this.LOG.debug(
                     "render",
                     "edit group: " + this.title + " with id: " + this.id + " clicked");
             }
         ));
         actionsSectionElem.appendChild(renderButton(
             ICON.ADD,
-            this.id,
+            this.DTO.id,
             [ACT_ADD_LINK],
             "Add link to group",
             onClick => {
-                this.log.debug(
+                this.LOG.debug(
                     "render",
                     "add link to group: " + this.title + " with id: " + this.id + " clicked");
                 this.groupViewModel.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
@@ -104,7 +83,7 @@ export class GroupComponent extends HTMLElement {
 
         // group body elements
         // links
-        this.groupViewModel.groupItemsObservable
+        this.VIEW_MODEL.observables.group
             .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
     }
 
@@ -115,7 +94,7 @@ export class GroupComponent extends HTMLElement {
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {
         handleReactiveRendering<GroupItemDTO, HTMLButtonElement>(
             parentElem,
-            groupDto.groupItems,
+            groupDto.items,
             groupItem => groupItem.id,
             groupItem => {
                 switch (groupItem.type) {
@@ -134,14 +113,14 @@ export class GroupComponent extends HTMLElement {
     private renderLink(link: LinkDTO): HTMLElement {
         const linkElem = document.createElement(ELEM_LINK) as LinkComponent;
         linkElem.id = link.id;
-        linkElem.setRepository(this.appStateRepository);
+        linkElem.setRepository(this.REPOSITORY);
         return linkElem;
     }
 
     private renderSubgroup(subgroup: SubgroupDTO): HTMLElement {
         const subgroupElem = document.createElement(ELEM_SUBGROUP) as SubgroupComponent;
         subgroupElem.id = subgroup.id;
-        subgroupElem.setRepository(this.appStateRepository);
+        subgroupElem.setRepository(this.REPOSITORY);
         subgroup.links.forEach((link: LinkDTO): void => {
             subgroupElem.appendChild(this.renderLink(link));
         });
@@ -160,35 +139,28 @@ export class GroupComponent extends HTMLElement {
         titleElem.toggleAttribute('contentEditable');
         descriptionElem.toggleAttribute('contentEditable');
         if (!editButton.classList.contains('active')) {
-          // console.log('teraz ulož');
-          this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+          this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
         }
       });
 
       titleElem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault(); // prevent new lines
-          // cosole.log("enteeeer h2");
         }
       })
 
       titleElem.addEventListener('blur', () => {
-        // console.log("bluuuuur h2");
-        // console.log('teraz ulož');
-        this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+        this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
 
       descriptionElem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault(); // prevent new lines
-          cosole.log("enteeeer span");
         }
       })
 
       descriptionElem.addEventListener('blur', () => {
-        // console.log("bluuuuur span");
-        // console.log('teraz ulož');
-        this.groupViewModel.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+        this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
     }
 

@@ -1,89 +1,88 @@
-import {ObservableValue} from "../utils/observableValue";
+
+// data layer
 import {AppStateRepository} from "../backend/repository/AppStateRepository";
-import {Link, Subgroup} from "../backend/entity/AppStateEntity";
-import {GroupItemDTO, LinkDTO, SubgroupDTO, GroupItemsDTO, GroupDTO} from "./groupViewModelInterfaces"
-import {isItemInGroupAndEnv, isRootGroupLink, isSubGroupLink, isSubGroup, toSubGroupDTO, toLinkDTO} from "./groupViewModelUtils"
+import {AppState, Link, Subgroup} from "../backend/entity/AppStateEntity";
 
-export class GroupViewModel {
+// model layer
+import {AbstractViewModel} from "../viewModel/abstract/abstractViewModel"
+import {GroupDTO, GroupItemDTO, SubgroupDTO, LinkDTO} from "../viewModel/abstract/dtos"
+import {toSubGroupDTO, toLinkDTO} from "../viewModel/abstract/mappers"
 
-    private repo!: AppStateRepository;
-    private groupId!: string;
-    private groupTitle!: string;
-    private groupDescription: string;
+// utils
+import {ObservableValue} from "../utils/observableValue";
+import {isItemInGroupAndEnv, isRootGroupLink, isSubGroupLink, isSubGroup} from "./groupViewModelUtils"
 
-    readonly groupItemsObservable: ObservableValue<GroupDTO>
-        = new ObservableValue(null as any);
 
-    constructor(repo: AppStateRepository, groupId: string, groupTitle: string, groupDescription: string) {
-        this.repo = repo;
-        this.groupId = groupId;
-        this.groupTitle = groupTitle;
-        this.groupDescription = groupDescription;
-        this.subscriptions();
+
+type GroupObservables = {
+  group: ObservableValue<GroupDTO>
+};
+
+export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables> {
+
+    protected createObservables(): GroupObservables {
+        return {
+            group: new ObservableValue(null as any)
+        };
     }
 
-    private subscriptions(): void {
-        this.repo.state$
-            .pick("subgroups", "links", "activeEnvironmentId")
-            .subscribe(attrs => {
+    protected subscribed(attrs: AppState) {
 
-                //console.log("groupViewModel subscribe triggered");
+        const currentEnvironmentId = attrs.activeEnvironmentId;
+        const links: Link[] = Object.values(attrs.links);
+        const subGroups: Subgroup[] = Object.values(attrs.subgroups);
 
-                const currentEnvironmentId = attrs.activeEnvironmentId;
-                const links: Link[] = Object.values(attrs.links);
-                const subGroups: Subgroup[] = Object.values(attrs.subgroups);
+        const result: GroupItemDTO[] = [];
 
-                const result: GroupItemsDTO = [];
+        // fill "root group" links into viewModel structure
+        result.push(...links
+            .filter((link: Link) =>
+                isItemInGroupAndEnv(currentEnvironmentId, this.DTO.id)(link)
+                && isRootGroupLink()(link))
+            .map(toLinkDTO));
 
-                // fill "root group" links into viewModel structure
-                result.push(...links
-                    .filter((link: Link) =>
-                        isItemInGroupAndEnv(currentEnvironmentId, this.groupId)(link)
-                        && isRootGroupLink()(link))
-                    .map(toLinkDTO));
+        // fill root groups into viewModel structure
+        result.push(...subGroups
+            .filter((subgroup: Subgroup) =>
+                isItemInGroupAndEnv(currentEnvironmentId, this.DTO.id)(subgroup)
+                && isSubGroup()(subgroup))
+            .map(toSubGroupDTO));
 
-                // fill root groups into viewModel structure
-                result.push(...subGroups
-                    .filter((subgroup: Subgroup) =>
-                        isItemInGroupAndEnv(currentEnvironmentId, this.groupId)(subgroup)
-                        && isSubGroup()(subgroup))
-                    .map(toSubGroupDTO));
-
-                // fill "subgroup" links into each subgroups
-                result
-                    .filter((groupItem: GroupItemDTO) => groupItem.type === "subgroup")
-                    .forEach((subGroup: SubgroupDTO) => {
-                        subGroup.links
-                            .push(...links
-                                .filter((link: Link) => isSubGroupLink()(link))
-                                .filter((link: Link) => link.subGroupId === subGroup.id)
-                                .map(toLinkDTO));
-                        // sort links inside subgroup
-                        subGroup.links
-                            .sort((a, b) => a.position - b.position);
-                    });
-
-                // sort 1st order items of group
-                result
+        // fill "subgroup" links into each subgroups
+        result
+            .filter((groupItem: GroupItemDTO) => groupItem.type === "subgroup")
+            .forEach((subGroup: SubgroupDTO) => {
+                subGroup.links
+                    .push(...links
+                        .filter((link: Link) => isSubGroupLink()(link))
+                        .filter((link: Link) => link.subGroupId === subGroup.id)
+                        .map(toLinkDTO));
+                // sort links inside subgroup
+                subGroup.links
                     .sort((a, b) => a.position - b.position);
-
-                //console.log("groupViewModel subscribe result: " + result);
-
-                this.groupItemsObservable.set({
-                    groupId: this.groupId,
-                    groupItems: result,
-                    title: this.groupTitle,
-                    description: this.groupDescription
-                } satisfies GroupDTO);
             });
+
+        // sort 1st order items of group
+        result
+            .sort((a, b) => a.position - b.position);
+
+        console.log("groupViewModel subscribe result: " + result);
+
+        this.observables.group.set({
+            id: this.groupId,
+            items: result,
+            title: this.groupTitle,
+            description: this.groupDescription
+        } satisfies GroupDTO);
     }
+
 
     public editGroupTitle(groupId: string, title: string, description: string) {
       title = title.trim();
       if (!title) {
         console.error("Group must have title");
       }
-      this.repo.renameGroup(groupId, title, description);
+      this.REPOSITORY.renameGroup(groupId, title, description);
     }
 
     public addLink(groupId: string, subGroupId: string, url: string, title: string): void {
@@ -99,7 +98,7 @@ export class GroupViewModel {
             console.log("Link does not contain any title");
             return;
         }
-        this.repo.createLink(groupId, subGroupId, title, url);
+        this.REPOSITORY.createLink(groupId, subGroupId, title, url);
     }
 
 }

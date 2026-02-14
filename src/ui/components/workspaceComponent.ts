@@ -1,19 +1,21 @@
-import {AppStateRepository} from "../../backend/repository/AppStateRepository";
-import {WorkspaceDTO, WorkspaceViewModel, GroupDTO} from "../../viewModel/workspaceViewModel";
-import {GroupComponent} from "./groupComponent";
 import {qsAll, handleReactiveRendering, toggleActiveClassOnSpecificAttribute} from "../../utils/firstOrderMethods";
 import {ELEM_GROUP, ELEM_WORKSPACE, ELEM_WORKSPACE_BODY, ELEM_WORKSPACE_HEAD, ACT_SWITCH_WORKSPACE, ACT_ADD_GROUP, ACT_EDIT_WORKSPACE, ACT_ADD_WORKSPACE} from "../../main"
-import {renderButton, renderH1, renderContainer, ICON, renderSpan} from "../../utils/elementsRendering"
-import {Logger} from "../../utils/logger";
+import {renderButton, renderContainer, ICON, renderTextContainer} from "../../utils/elementsRendering"
 
-import { AbstractComponent } from "../abstract/abstractComponent"
-import { WorkpsaceDTO } from "../../viewModel/abstract/dtos"
+// data/model layer
+import { AppStateRepository } from "../../backend/repository/AppStateRepository";
+import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
+import { GroupViewModel } from "../../viewModel/groupViewModel";
+
+// components layer
+import { AbstractComponent } from "../abstract/abstractComponent";
+import { GroupComponent } from "./groupComponent";
 
 export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, WorkspaceViewModel> {
 
     private render(parentElem: HTMLElement) {
 
-        // console.log("render called");
+        this.id = this.DTO.id;
 
         const headerElem: HTMLElement = document.body.getElementsByTagName("header")[0];
         const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
@@ -31,8 +33,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             .subscribe((workspace: WorkspaceDTO) => {
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
-                //TODO fix
-                //this.renderGroups(bodyElem, this.workspaceViewModel.getGroups(workspace.id));
+                this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));
             });
 
         this.VIEW_MODEL.observables.groups
@@ -57,8 +58,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
      *  </header>
      */
     private renderWorkspaceSwitcher(parentElem: HTMLElement, workspaces: WorkspaceDTO[]) {
-
-        console.log(workspaces);
 
         // workspaces switcher
         handleReactiveRendering<WorkspaceDTO, HTMLButtonElement>(
@@ -122,12 +121,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         const actionsSectionElem: HTMLElement = renderContainer(["workspace-head-actions"]);
 
         // title
-        titleSectionElem.appendChild(renderH1(
-            workspace.title
-        ));
-        titleSectionElem.appendChild(renderSpan(
-            "TODO prirobit do tatoveho modelu workspace description"
-        ));
+        titleSectionElem.appendChild(renderTextContainer(
+            workspace.title, "h1"));
+        titleSectionElem.appendChild(renderTextContainer(
+            "TODO prirobit do tatoveho modelu workspace description", "span"));
 
         // edit workspace screen
         actionsSectionElem.appendChild(renderButton(
@@ -163,19 +160,13 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
      */
     private renderGroups(parentElem: HTMLElement, groups: GroupDTO[]) {
 
-        // console.log("render groups filled");
-
         handleReactiveRendering<GroupDTO>(
             parentElem,
             groups,
             group => group.id,
             (group: GroupDTO) => {
-              // console.log("----------------group");
-              // console.log(group);
                 const groupElem = document.createElement(ELEM_GROUP) as GroupComponent;
-                groupElem.title = group.title;
-                groupElem.setRepository(this.appStateRepository);
-                groupElem.setDescription(group.description)
+                groupElem.initialize(this.REPOSITORY, group, GroupViewModel);
                 return groupElem;
             }
         );

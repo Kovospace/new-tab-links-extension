@@ -1,23 +1,15 @@
+
+// data layer
 import {AppStateRepository} from "../backend/repository/AppStateRepository";
-import {AppState, Link, Environment, Group} from "../backend/entity/AppStateEntity";
-import {ObservableValue} from "../utils/observableValue";
-import {LinkDTO} from "./groupViewModel";
-import {Logger} from "../utils/logger";
+import {AppState, Environment, Group} from "../backend/entity/AppStateEntity";
+
+// model layer
 import {AbstractViewModel} from "../viewModel/abstract/abstractViewModel"
 import {WorkpsaceDTO, GroupDTO} from "../viewModel/abstract/dtos"
 import {toGroupDTO} from "../viewModel/abstract/mappers"
 
-// export interface WorkspaceDTO {
-//     id: string;
-//     title: string;
-//     active: boolean;
-// }
-//
-// export interface GroupDTO {
-//     id: string;
-//     title: string;
-//     description: string;
-// }
+// utils
+import {ObservableValue} from "../utils/observableValue";
 
 type WorkspaceObservables = {
     workspaces: ObservableValue<WorkpsaceDTO[]>;
@@ -26,18 +18,6 @@ type WorkspaceObservables = {
 };
 
 export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, WorkspaceObservables> {
-
-    // private repo!: AppStateRepository;
-    // private worksapceId!: string;
-
-    // public readonly workspacesObservable: ObservableValue<WorkspaceDTO[]> = new ObservableValue(null as any);
-    // public readonly groupsObservable: ObservableValue<GroupDTO> = new ObservableValue(null as any);
-    // public readonly workspaceObservable: ObservableValue<WorkspaceDTO> = new ObservableValue(null as any);
-
-    // constructor(repo: AppStateRepository) {
-    //     this.repo = repo;
-    //     this.subscriptions();
-    // }
 
     protected createObservables(): WorkspaceObservables {
         return {
@@ -48,14 +28,15 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
     }
 
     protected subscribed(state: AppState) {
+
         this.LOG.debug('subscriptions', "triggered");
         this.LOG.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
 
         this.observables.workspaces.set(
             Object
                 .values(state.environments)
-                .sort((a, b) => a.createdAt - b.createdAt)
-                .map(environment => ({
+                .sort((a: Environment, b: Environment) => a.createdAt - b.createdAt)
+                .map((environment: Environment) => ({
                     id: environment.id,
                     title: environment.name,
                     active: environment.id === state.activeEnvironmentId
@@ -106,14 +87,4 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
         this.REPOSITORY.createGroup(title, workspaceId);
     }
 
-    // private toWorkspaceDTO = (workspace: Environment): WorkspaceDTO => ({
-    //     id: workspace.id,
-    //     title: workspace.name
-    // });
-    //
-    // private toGroupDTO = (group: Group): GroupDTO => ({
-    //     id: group.id,
-    //     title: group.title,
-    //     description: group.description
-    // });
 }

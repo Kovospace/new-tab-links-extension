@@ -86,9 +86,6 @@ customElements.define(ELEM_LINK, LinkComponent);
     const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
     workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
 
-    // console.log("iniiiiit");
-    // console.log(workspaceDTO);
-
     document.body
         .getElementsByTagName("main")[0]
         .appendChild(workspaceElement);

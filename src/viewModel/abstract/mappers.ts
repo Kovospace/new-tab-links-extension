@@ -11,3 +11,19 @@ export const toGroupDTO = (group: Group): GroupDTO => ({
     title: group.title,
     description: group.description
 });
+
+export const toLinkDTO = (link: Link): LinkDTO => ({
+    id: link.id,
+    title: link.title,
+    url: link.url,
+    position: link.position,
+    type: "link",
+});
+
+export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
+    id: subgroup.id,
+    title: subgroup.title,
+    links: [],
+    position: subgroup.position,
+    type: "subgroup"
+});
