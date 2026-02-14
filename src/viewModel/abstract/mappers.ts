@@ -1,4 +1,4 @@
-import {Environment, Group} from "../../backend/entity/AppStateEntity";
+import {Environment, Group, Subgroup} from "../../backend/entity/AppStateEntity";
 import {GroupDTO, WorkpsaceDTO} from "./dtos";
 
 export const toWorkspaceDTO = (workspace: Environment): WorkpsaceDTO => ({

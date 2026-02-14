@@ -42,7 +42,21 @@ export abstract class AbstractComponent<TEMPLATE_DTO_TYPE, VIEW_MODEL_TYPE> exte
         if (!this.isConnected || !this.REPOSITORY || !this.DTO) return;
         this.VIEW_MODEL = new this.viewModelConstructor(this.DTO, this.REPOSITORY);
         this.VIEW_MODEL.initialize();
-        const parentElem: HTMLElement | null = document.getElementById(this.id || this.DTO.id);
+        console.log("this.id " + this.id);
+        console.log("this.DTO.id " + this.DTO.id);
+
+        // let id: string = "";
+        // if (this.id === undefined || this.id === null || this.id === "") {
+        //     id = this.DTO.id;
+        // }
+
+        this.id = this.DTO.id;
+
+        const parentElem: HTMLElement | null = document.getElementById(this.id);
+        // console.log("------------------------");
+        // console.log(this.id);
+        // console.log(this.DTO.id);
+        // console.log("------------------------");
         this.render(parentElem);
         this.attachListeners(parentElem);
     }

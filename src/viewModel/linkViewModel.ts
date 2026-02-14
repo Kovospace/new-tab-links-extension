@@ -1,34 +1,37 @@
-import {AppStateRepository} from "../backend/repository/AppStateRepository";
-import {Link} from "../backend/entity/AppStateEntity";
-import {ObservableValue} from "../utils/observableValue";
 
-export interface LinkDTO {
-    title: string;
-    url: string;
-}
+// data layer
+import { AppState, Link } from "../backend/entity/AppStateEntity";
 
-export class LinkViewModel {
+// model layer
+import { AbstractViewModel } from "../viewModel/abstract/abstractViewModel"
+import { LinkDTO } from "./abstract/dtos";
+import { toLinkDTO } from "./abstract/mappers";
 
-    readonly linkObservable: ObservableValue<LinkDTO> = new ObservableValue<LinkDTO>();
-
-    private toLinkDTO = (link: Link): LinkDTO => ({
-        title: link.title,
-        url: link.url,
-    });
+// utils
+import { ObservableValue } from "../utils/observableValue";
 
 
-    constructor(repo: AppStateRepository, linkId: string) {
-        repo.state$
-            .pick("links")
-            .subscribe(attrs => {
 
-                console.log("linkViemModel subscribe triggered");
+type LinkObservables = {
+    link: ObservableValue<LinkDTO>
+};
 
-                const result: LinkDTO = this.toLinkDTO(Object
-                    .values(attrs.links)
-                    .find((link: Link) => link.id === linkId));
+export class LinkViewModel extends AbstractViewModel<LinkDTO, LinkObservables> {
 
-                this.linkObservable.set(result)
-            });
+    protected createObservables() {
+        return {
+          link: new ObservableValue<LinkDTO>(null as any)
+        };
+    }
+
+    protected subscribed(attrs: AppState) {
+
+        const result: LinkDTO = toLinkDTO(Object
+            .values(attrs.links)
+            .find((link: Link) => link.id === this.DTO.id));
+
+        //console.log(result);
+
+        this.observables.link.set(result);
     }
 }

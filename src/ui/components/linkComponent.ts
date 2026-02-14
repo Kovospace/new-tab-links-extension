@@ -1,35 +1,33 @@
-import {AppStateRepository} from "../../backend/repository/AppStateRepository";
-import {LinkViewModel, LinkDTO} from "../../viewModel/linkViewModel";
 
-export class LinkComponent extends HTMLElement{
+// data / model layer
+import { AppStateRepository } from "../../backend/repository/AppStateRepository";
+import { LinkDTO } from "../../viewModel/abstract/dtos"
+import { LinkViewModel } from "../../viewModel/linkViewModel";
 
-    private linkViewModel!: LinkViewModel;
-    private appStateRepository!: AppStateRepository;
+// components layer
+import { AbstractComponent } from "../abstract/abstractComponent"
 
-    setRepository(repo: AppStateRepository) {
-        this.appStateRepository = repo;
-        // console.log("set repo");
-        this.tryInit();
+export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
+
+    protected render(parentElem: HTMLElement) {
+
+        // console.log("\n");
+        // console.log("----------------------------");
+        // console.log("----------------------------");
+        // console.log(parentElem);
+        // console.log(this.DTO);
+        // console.log("----------------------------");
+        // console.log("----------------------------");
+        // console.log("\n");
+        // console.log(this.DTO.id);
+        // console.log(this.id);
+
+        this.VIEW_MODEL.observables.link
+            .subscribe((linkDto: LinkDTO)=> this.renderLink(linkDto, parentElem));
     }
 
-    connectedCallback() {
-        // console.log("callbacks");
-        this.tryInit();
-    }
+    protected attachListeners(parentElem: HTMLElement) {
 
-    tryInit() {
-        if (!this.isConnected || !this.appStateRepository || !this.id) return;
-        // console.log("inited");
-        this.linkViewModel = new LinkViewModel(this.appStateRepository, this.id);
-        this.render();
-        this.callbacks();
-    }
-
-    render() {
-        this.linkViewModel.linkObservable
-            .subscribe((linkDto: LinkDTO)=> {
-                this.renderHtmlTemplate(linkDto);
-            });
     }
 
     /**
@@ -45,8 +43,7 @@ export class LinkComponent extends HTMLElement{
      *      <a href="[[ LinkDTO.url ]]">[[ LinkDTO.title ]]</a>
      *  </div>
      */
-    private renderHtmlTemplate(linkDto: LinkDTO) {
-        const parentElem: HTMLElement | null = document.getElementById(this.id);
+    private renderLink(linkDto: LinkDTO, parentElem: HTMLElement) {
 
         const containerDiv: HTMLElement = document.createElement("div");
         parentElem.appendChild(containerDiv);
@@ -57,7 +54,4 @@ export class LinkComponent extends HTMLElement{
         containerDiv.appendChild(anchor);
     }
 
-    private callbacks() {
-
-    }
 }

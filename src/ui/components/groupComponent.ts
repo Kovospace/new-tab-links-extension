@@ -14,8 +14,10 @@ import {
 } from "../../main"
 
 // data / model layer
-import {AppStateRepository} from "../../backend/repository/AppStateRepository";
+import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
+import { LinkViewModel } from "../../viewModel/linkViewModel";
+import { SubGroupViewModel } from "../../viewModel/subGroupViewModel";
 import { GroupDTO, GroupItemDTO, LinkDTO, SubgroupDTO } from "../../viewModel/abstract/dtos"
 
 // components layer
@@ -30,8 +32,6 @@ import { handleReactiveRendering } from "../../utils/firstOrderMethods";
 export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> {
 
     private render(parentElem: HTMLElement): void {
-
-        this.id = this.DTO.id;
 
         // group container elements
         const headerElem: HTMLElement = document.createElement(ELEM_GROUP_HEAD);
@@ -112,18 +112,16 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
     private renderLink(link: LinkDTO): HTMLElement {
         const linkElem = document.createElement(ELEM_LINK) as LinkComponent;
-        linkElem.id = link.id;
-        linkElem.setRepository(this.REPOSITORY);
+        linkElem.initialize(this.REPOSITORY, link, LinkViewModel);
         return linkElem;
     }
 
     private renderSubgroup(subgroup: SubgroupDTO): HTMLElement {
         const subgroupElem = document.createElement(ELEM_SUBGROUP) as SubgroupComponent;
-        subgroupElem.id = subgroup.id;
-        subgroupElem.setRepository(this.REPOSITORY);
-        subgroup.links.forEach((link: LinkDTO): void => {
-            subgroupElem.appendChild(this.renderLink(link));
-        });
+        subgroupElem.initialize(this.REPOSITORY, subgroup, SubGroupViewModel);
+        // subgroup.links.forEach((link: LinkDTO): void => {
+        //     subgroupElem.appendChild(this.renderLink(link));
+        // });
         return subgroupElem;
     }
 

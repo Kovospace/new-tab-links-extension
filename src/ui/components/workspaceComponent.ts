@@ -15,8 +15,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
 
     private render(parentElem: HTMLElement) {
 
-        this.id = this.DTO.id;
-
         const headerElem: HTMLElement = document.body.getElementsByTagName("header")[0];
         const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
         const headElem: HTMLElement = document.createElement(ELEM_WORKSPACE_HEAD);

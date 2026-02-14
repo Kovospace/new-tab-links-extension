@@ -66,7 +66,7 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         result
             .sort((a, b) => a.position - b.position);
 
-        console.log("groupViewModel subscribe result: " + result);
+       // console.log("groupViewModel subscribe result: " + result);
 
         this.observables.group.set({
             id: this.groupId,
