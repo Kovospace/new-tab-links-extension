@@ -29,8 +29,13 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
 
     protected subscribed(state: AppState) {
 
-        this.LOG.debug('subscriptions', "triggered");
-        this.LOG.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
+        this.LOG.debug('subscriptions', "incoming data: " + Object.values(state));
+
+        const currentWorkspaceId: string = state.activeEnvironmentId;
+        if (!currentWorkspaceId) {
+            // no active workspace - first run or all deleted
+            window.location.reload();
+        }
 
         this.observables.workspaces.set(
             Object
@@ -39,24 +44,28 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
                 .map((environment: Environment) => ({
                     id: environment.id,
                     title: environment.name,
-                    active: environment.id === state.activeEnvironmentId
+                    //description: environment.description,
+                    active: environment.id === currentWorkspaceId
                 }) satisfies WorkpsaceDTO));
 
         this.observables.workspace.set(({
-            id: state.activeEnvironmentId,
-            title: state.environments[state.activeEnvironmentId].name,
+            id: currentWorkspaceId,
+            title: state.environments[currentWorkspaceId].name,
+            description: state.environments[currentWorkspaceId].description,
             active: true
         }) satisfies WorkpsaceDTO);
 
         this.observables.groups.set(
             Object
                 .values(state.groups)
-                .filter((group: Group) => group.environmentId === state.activeEnvironmentId)
+                .filter((group: Group) => group.environmentId === currentWorkspaceId)
                 .map(toGroupDTO));
     }
 
+    // workspace actions
+
     public addWorkspace(title: string) {
-        this.LOG.debug("addWorkspace", title);
+        this.LOG.debug("addWorkspace", `title: ${title}`);
         if (!title) {
             this.LOG.debug("addWorkspace", "User did not provided a title");
             return;
@@ -64,8 +73,17 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
         this.REPOSITORY.addWorkspace(title);
     }
 
+    public editWorkspaceTitle(id: string, title: string, description?: string) {
+        this.LOG.debug("editWorkspaceTitle", `id: ${id}, title: ${title}, description:${description}`);
+        title = title.trim();
+        if (!title || title === "") {
+            console.error("Workspace name cannot be empty")
+        }
+        this.REPOSITORY.renameWorkspace(id, title, description);
+    }
+
     public setCurrentWorkspace(id: string) {
-        this.LOG.debug("setCurrentWorkspace", id);
+        this.LOG.debug("setCurrentWorkspace", `id: ${id}`);
         this.REPOSITORY.setWorkspaceDefault(id);
     }
 
@@ -75,7 +93,15 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
             .map(toGroupDTO);
     }
 
+    public deleteWorkspace(id: string) {
+        this.LOG.debug("deleteWorskpace", `id: ${id}`);
+        this.REPOSITORY.deleteWorksapce(id);
+    }
+
+    // other actions
+
     public addGroup(workspaceId: string, title: string | null) {
+        this.LOG.debug("addGroup", `title: ${title}`);
         if (!workspaceId) {
             console.error("ID of workspace to be created group in is not defined");
             return;

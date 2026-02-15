@@ -13,6 +13,9 @@ import {
     CLASS_GROUP_HEAD_ACTIONS
 } from "../../main"
 
+// utils
+import { sleep } from "../../utils/firstOrderMethods"
+
 // data / model layer
 import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
@@ -26,6 +29,7 @@ import { LinkComponent } from "./linkComponent"
 import { SubgroupComponent } from "./subgroupComponent"
 import { renderTextContainer, renderButton, renderContainer, ICON } from "../../utils/elementsRendering";
 import { handleReactiveRendering } from "../../utils/firstOrderMethods";
+import {OptionsMenu} from "../partials/optionsMenu";
 
 
 
@@ -57,17 +61,41 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             this.DTO.description, "span", null));
 
         // buttons
-        actionsSectionElem.appendChild(renderButton(
-            ICON.EDIT,
-            this.DTO.id,
-            [ACT_EDIT_GROUP],
-            "Edit group",
-            onClick => {
-                this.LOG.debug(
-                    "render",
-                    "edit group: " + this.title + " with id: " + this.id + " clicked");
+        new OptionsMenu(
+            actionsSectionElem,
+            {
+                openMenuButtonId: `group-${this.id}-menu`,
+                openMenuButtonClass: ACT_EDIT_GROUP,
+                openMenuButtonTooltipText: "Edit the Group"
+            },
+            [
+                {
+                    actionTitle: "Add link",
+                    dangerous: false,
+                    onClick: (metadata) => {}
+                },
+                {
+                    actionTitle: "Edit Group title",
+                    dangerous: false,
+                    onClick: (metadata) => this.toggleGroupTitleEditable(event.target as HTMLElement)
+                },
+                {
+                    actionTitle: "Manage links",
+                    dangerous: false,
+                    onClick: (metadata) => {}
+                },
+                {
+                    actionTitle: "Delete group",
+                    dangerous: true,
+                    dangerConfirmation: "All links and sub-groups associated to that group will be deleted.",
+                    onClick: (metadata) => this.VIEW_MODEL.deleteGroup(this.id)
+                }
+            ],
+            {
+                groupId: this.id
             }
-        ));
+        );
+
         actionsSectionElem.appendChild(renderButton(
             ICON.ADD,
             this.DTO.id,
@@ -77,7 +105,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 this.LOG.debug(
                     "render",
                     "add link to group: " + this.title + " with id: " + this.id + " clicked");
-                this.groupViewModel.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
+                this.VIEW_MODEL.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
             }
         ));
 
@@ -119,27 +147,32 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     private renderSubgroup(subgroup: SubgroupDTO): HTMLElement {
         const subgroupElem = document.createElement(ELEM_SUBGROUP) as SubgroupComponent;
         subgroupElem.initialize(this.REPOSITORY, subgroup, SubGroupViewModel);
-        // subgroup.links.forEach((link: LinkDTO): void => {
-        //     subgroupElem.appendChild(this.renderLink(link));
-        // });
         return subgroupElem;
+    }
+
+    private toggleGroupTitleEditable(menuItem: HTMLElement) {
+
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h2")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        menuItem.classList.toggle("active");
+        titleElem.toggleAttribute('contentEditable');
+        titleElem.classList.toggle("editable");
+        descriptionElem.toggleAttribute('contentEditable');
+        descriptionElem.classList.toggle("editable");
+        if (menuItem.classList.contains("active")) {
+            setTimeout(() => { menuItem.textContent = "Save group title" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
     }
 
     private listenerChangeGroupName() {
 
       const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
-      const editButton = this.getElementsByClassName(ACT_EDIT_GROUP)[0];
       const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h2")[0];
       const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
-
-      editButton.addEventListener('click', (event) => {
-        editButton.classList.toggle('active');
-        titleElem.toggleAttribute('contentEditable');
-        descriptionElem.toggleAttribute('contentEditable');
-        if (!editButton.classList.contains('active')) {
-          this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
-        }
-      });
 
       titleElem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {

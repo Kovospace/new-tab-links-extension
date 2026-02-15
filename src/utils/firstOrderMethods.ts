@@ -8,6 +8,10 @@ export function qsAll<T extends Element>(selector: string, parent: Element = doc
     return Array.from(parent.querySelectorAll(selector)) as T[];
 }
 
+export function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * Performs keyed, incremental rendering of child elements inside a parent container.
  *

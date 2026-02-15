@@ -5,6 +5,7 @@ import { WorkpsaceDTO } from "./viewModel/abstract/dtos"
 
 import { WorkspaceViewModel } from "./viewModel/workspaceViewModel"
 
+import {FirstRunComponent} from "./ui/components/firstRunComponent";
 import {WorkspaceComponent} from "./ui/components/workspaceComponent";
 import {GroupComponent} from "./ui/components/groupComponent";
 import {LinkComponent} from "./ui/components/linkComponent";
@@ -16,14 +17,19 @@ import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import './ui/styles/reset.css'
 import './ui/styles/main.css'
+import './ui/styles/firstRun.css'
 import './ui/styles/workspace.css'
 import './ui/styles/group.css'
 import './ui/styles/subgroup.css'
 import './ui/styles/link.css'
 
+import './ui/styles/_optionsMenu.css'
+
 /**
  *  Custom HTML elements names
  */
+
+export const ELEM_FIRSTRUN: string = 'first-run';
 
 export const ELEM_WORKSPACE = "workspace-plane";
 export const ELEM_WORKSPACE_HEAD = "workspace-plane-head";
@@ -40,9 +46,16 @@ export const ELEM_SUBGROUP: string = "link-subgroup"
 
 export const ELEM_LINK: string = "link-container";
 
+export const ELEM_OPTIONS_MENU = "options-menu";
+export const ELEM_OPTIONS_MENU_ITEM = "options-menu-item";
+
 /**
  *  Class names bound to some actions triggered by UI elements by user
  */
+
+export const ACT_FIRST_WORKSPACE: string = "act-first-workspace";
+export const ACT_IMPORT_LINKS: string = "act-import-links";
+export const ACT_LOAD_DEFAUTLS: string = "ct-load-defaults";
 
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
@@ -56,6 +69,8 @@ export const ACT_ADD_LINK: string = "action-add-link";
 /**
  *  Plain class names
  */
+export const CLASS_WORKSPACE_HEAD_TITLE: string = "cls-workspace-head-title";
+export const CLASS_WORKSPACE_HEAD_ACTIONS: string = "cls-workspace-head-actions";
 
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
 export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
@@ -67,6 +82,7 @@ customElements.define(ELEM_WORKSPACE, WorkspaceComponent);
 customElements.define(ELEM_GROUP, GroupComponent);
 customElements.define(ELEM_SUBGROUP, SubgroupComponent);
 customElements.define(ELEM_LINK, LinkComponent);
+customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
 
@@ -76,18 +92,26 @@ customElements.define(ELEM_LINK, LinkComponent);
     // create custom HTML element ONLY THAT WAY otherwise (innerHTML() method or
     // raw in html file) construction of object happens before initialized "repository"
     // is injected and program crashes
-    const currentEnvironment: Environment = appStateRepository.getCurrentWorkspace();
-    const workspaceDTO: WorkpsaceDTO = ({
-        id: currentEnvironment.id,
-        title: currentEnvironment.name,
-        description: currentEnvironment.description
-    }) satisfies WorkpsaceDTO;
+    const currentEnvironment: Environment = appStateRepository.getCurrentEnvironment();
+    const rootContainerElem = document.body.getElementsByTagName("main")[0];
 
-    const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
-    workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
+    if (!currentEnvironment) {
 
-    document.body
-        .getElementsByTagName("main")[0]
-        .appendChild(workspaceElement);
+        const guideElem = document.createElement(ELEM_FIRSTRUN) as FirstRunComponent;
+        guideElem.initialize(appStateRepository);
+        rootContainerElem.appendChild(guideElem);
+
+    } else {
+
+        const workspaceDTO: WorkpsaceDTO = ({
+            id: currentEnvironment.id,
+            title: currentEnvironment.name,
+            description: currentEnvironment.description
+        }) satisfies WorkpsaceDTO;
+
+        const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
+        workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
+        rootContainerElem.appendChild(workspaceElement);
+    }
 
 })();

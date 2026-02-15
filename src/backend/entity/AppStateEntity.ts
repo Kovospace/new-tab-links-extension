@@ -19,6 +19,8 @@ export interface Group {
     title: string;
     description: string;
     environmentId: string;
+    createdAt: number;
+    order: number;
 }
 
 export interface GroupItem {
@@ -28,6 +30,7 @@ export interface GroupItem {
     groupId: string;
     type: string;
     position: number;
+    createdAt: number;
 }
 
 export interface Subgroup extends GroupItem {

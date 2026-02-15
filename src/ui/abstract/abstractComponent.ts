@@ -32,31 +32,14 @@ export abstract class AbstractComponent<TEMPLATE_DTO_TYPE, VIEW_MODEL_TYPE> exte
         this.DTO = dto;
         this.viewModelConstructor = viemModelClass;
         this.performInitialization();
-        // console.log("------------ initialize method");
-        // console.log(this.REPOSITORY);
-        // console.log("DTO snapshot:", structuredClone(this.DTO));
-        // console.log(this.LOG);
     }
 
     private performInitialization() {
         if (!this.isConnected || !this.REPOSITORY || !this.DTO) return;
         this.VIEW_MODEL = new this.viewModelConstructor(this.DTO, this.REPOSITORY);
         this.VIEW_MODEL.initialize();
-        console.log("this.id " + this.id);
-        console.log("this.DTO.id " + this.DTO.id);
-
-        // let id: string = "";
-        // if (this.id === undefined || this.id === null || this.id === "") {
-        //     id = this.DTO.id;
-        // }
-
         this.id = this.DTO.id;
-
         const parentElem: HTMLElement | null = document.getElementById(this.id);
-        // console.log("------------------------");
-        // console.log(this.id);
-        // console.log(this.DTO.id);
-        // console.log("------------------------");
         this.render(parentElem);
         this.attachListeners(parentElem);
     }
