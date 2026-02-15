@@ -44,21 +44,25 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
                 .map((environment: Environment) => ({
                     id: environment.id,
                     title: environment.name,
-                    active: environment.id === state.activeEnvironmentId
+                    //description: environment.description,
+                    active: environment.id === currentWorkspaceId
                 }) satisfies WorkpsaceDTO));
 
         this.observables.workspace.set(({
-            id: state.activeEnvironmentId,
-            title: state.environments[state.activeEnvironmentId].name,
+            id: currentWorkspaceId,
+            title: state.environments[currentWorkspaceId].name,
+            description: state.environments[currentWorkspaceId].description,
             active: true
         }) satisfies WorkpsaceDTO);
 
         this.observables.groups.set(
             Object
                 .values(state.groups)
-                .filter((group: Group) => group.environmentId === state.activeEnvironmentId)
+                .filter((group: Group) => group.environmentId === currentWorkspaceId)
                 .map(toGroupDTO));
     }
+
+    // workspace actions
 
     public addWorkspace(title: string) {
         this.LOG.debug("addWorkspace", `title: ${title}`);
@@ -68,8 +72,6 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
         }
         this.REPOSITORY.addWorkspace(title);
     }
-
-    // workspace actions
 
     public editWorkspaceTitle(id: string, title: string, description?: string) {
         this.LOG.debug("editWorkspaceTitle", `id: ${id}, title: ${title}, description:${description}`);

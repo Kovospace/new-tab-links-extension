@@ -43,6 +43,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
 
         this.VIEW_MODEL.observables.workspace
             .subscribe((workspace: WorkspaceDTO) => {
+                console.log(workspace);
                 this.id = workspace.id; // exception, because this is root template
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
@@ -56,7 +57,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
     }
 
     private attachListeners(parentElem: HTMLElement) {
-
+        this.listenerChangeWorkspaceName();
     }
 
     /**
@@ -134,7 +135,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         titleSectionElem.appendChild(renderTextContainer(
             workspace.title, "h1"));
         titleSectionElem.appendChild(renderTextContainer(
-            "TODO prirobit do tatoveho modelu workspace description", "span"));
+            workspace.description, "span"));
 
         // edit workspace screen
         new OptionsMenu(
@@ -147,7 +148,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             [
                 {
                     actionTitle: "Edit Workspace title",
-                    onClick: (metadata) => this.toggleGroupTitleEditable(event.target as HTMLElement)
+                    onClick: (metadata) => this.toggleWorkspaceTitleEditable(event.target as HTMLElement)
                 },
                 {
                     actionTitle: "Delete workspace",
@@ -205,7 +206,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         parentElem.appendChild(dummyTextElem);
     }
 
-    private toggleGroupTitleEditable(menuItem: HTMLElement) {
+    private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {
 
         const titleAndDescParentContainer = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
         const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h1")[0];
@@ -223,7 +224,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         }
     }
 
-    private listenerChangeGroupName() {
+    private listenerChangeWorkspaceName() {
 
         const titleAndDescParentContainer = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
         const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h1")[0];

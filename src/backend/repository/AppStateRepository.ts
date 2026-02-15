@@ -90,6 +90,7 @@ export class AppStateRepository {
     }
 
     renameWorkspace(id: string, title: string, description: string) {
+        this.LOG.debug("renameWorkspace", `id: ${id}, title: ${title}, description: ${description}`);
         this.state = {
             ...this.state,
             environments: {
