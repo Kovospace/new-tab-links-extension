@@ -62,7 +62,7 @@ export class AppStateRepository {
      *  Workspace operations
      */
 
-    addWorkspace(title: string): Promise<AppState> {
+    addWorkspace(title: string, description?: string): Promise<AppState> {
         const id = uid();
         this.state = {
             ...this.state,
@@ -72,6 +72,7 @@ export class AppStateRepository {
                 [id]: {
                     id: id,
                     name: title,
+                    description: description,
                     createdAt: Date.now(),
                     order: 0
                 } satisfies Environment

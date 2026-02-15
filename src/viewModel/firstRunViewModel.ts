@@ -8,4 +8,15 @@ export class FirstRunViewModel {
         this.REPOSITORY = repository;
     }
 
+    public addWorkspace(title: string, description?: string): void {
+        if (!title) {
+            alert("At least title is mandatory");
+        }
+        this.REPOSITORY
+            .addWorkspace(title, description)
+            .then(() => {
+                window.location.reload();
+            });
+    }
+
 }

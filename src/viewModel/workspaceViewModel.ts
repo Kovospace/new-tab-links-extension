@@ -29,8 +29,13 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
 
     protected subscribed(state: AppState) {
 
-        this.LOG.debug('subscriptions', "triggered");
-        this.LOG.debug('subscriptions', "incoming data: " + Object.values(state.groups).length);
+        this.LOG.debug('subscriptions', "incoming data: " + Object.values(state));
+
+        const currentWorkspaceId: string = state.activeEnvironmentId;
+        if (!currentWorkspaceId) {
+            // no active workspace - first run or all deleted
+            window.location.reload();
+        }
 
         this.observables.workspaces.set(
             Object

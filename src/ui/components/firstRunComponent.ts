@@ -1,5 +1,6 @@
 import {AppStateRepository} from "../../backend/repository/AppStateRepository";
 import {FirstRunViewModel} from "../../viewModel/firstRunViewModel"
+import { ACT_FIRST_WORKSPACE, ACT_IMPORT_LINKS, ACT_LOAD_DEFAUTLS } from "../../main"
 
 export class FirstRunComponent extends HTMLElement {
 
@@ -12,7 +13,12 @@ export class FirstRunComponent extends HTMLElement {
     }
 
     connectedCallback() {
+       this.start();
+    }
+
+    start(): void {
         this.render();
+        this.attachButtonActions();
     }
 
     public render(): void {
@@ -24,19 +30,19 @@ export class FirstRunComponent extends HTMLElement {
             <div>
                 <h3>Start by creating Workspace</h3>
                 <br>
-                <button id="act-first-workspace"> + Add first workspace</button>
+                <button id="${ACT_FIRST_WORKSPACE}"> + Add first workspace</button>
             </div>
             <br>
             <div>
                 <h3>... or load links from backup / exported file</h3>
                 <br>
-                <button id="act-import-links"> &gt; Import</button>
+                <button id="${ACT_IMPORT_LINKS}"> &gt; Import</button>
             </div>
             <br>
             <div>
                 <h3>... or load predefined examples set</h3>
                 <br>
-                <button id="act-load-defaults"> - Load examples</button>
+                <button id="${ACT_LOAD_DEFAUTLS}"> - Load examples</button>
             </div>
         `;
 
@@ -45,6 +51,11 @@ export class FirstRunComponent extends HTMLElement {
 
     private attachButtonActions() {
 
+        this
+            .querySelector<HTMLButtonElement>(`#${ACT_FIRST_WORKSPACE}`)
+            .addEventListener('click', () => {
+                this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"), "Default workspace");
+            });
     }
 
 }

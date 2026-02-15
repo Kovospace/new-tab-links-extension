@@ -53,6 +53,10 @@ export const ELEM_OPTIONS_MENU_ITEM = "options-menu-item";
  *  Class names bound to some actions triggered by UI elements by user
  */
 
+export const ACT_FIRST_WORKSPACE: string = "act-first-workspace";
+export const ACT_IMPORT_LINKS: string = "act-import-links";
+export const ACT_LOAD_DEFAUTLS: string = "ct-load-defaults";
+
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";
