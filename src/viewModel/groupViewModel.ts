@@ -66,8 +66,6 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         result
             .sort((a, b) => a.position - b.position);
 
-       // console.log("groupViewModel subscribe result: " + result);
-
         this.observables.group.set({
             id: this.groupId,
             items: result,
@@ -86,6 +84,9 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
     }
 
     public addLink(groupId: string, subGroupId: string, url: string, title: string): void {
+        this.LOG.debug(
+            "addLink",
+            `groupId: ${groupId}, subGroupId: ${subGroupId}, url: ${url}, title: ${title}`);
         if (!groupId) {
             console.error("Link does not contain groupId where it should belong");
             return;

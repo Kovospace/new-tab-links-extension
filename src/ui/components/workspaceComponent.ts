@@ -43,7 +43,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
 
         this.VIEW_MODEL.observables.workspace
             .subscribe((workspace: WorkspaceDTO) => {
-                console.log(workspace);
                 this.id = workspace.id; // exception, because this is root template
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
@@ -178,6 +177,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             titleSectionElem,
             actionsSectionElem
         );
+
+        // reattach listeners because child elements of workspace heading was replaced
+        this.listenerChangeWorkspaceName();
     }
 
     /**

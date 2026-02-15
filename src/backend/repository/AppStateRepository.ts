@@ -13,7 +13,7 @@ export class AppStateRepository {
     private LOG!: Logger
 
     private state!: AppState;
-    private initialState!: AppState;
+    //private initialState!: AppState;
     readonly state$ = new ObservableValue<AppState>(appStateInit);
     private datasource = new ChromeStorageWrapper()
     //private repositoryUtils!: AppStateRepositoryUtils;
@@ -21,7 +21,7 @@ export class AppStateRepository {
     public async init(initialState: AppState) {
         this.LOG = new Logger("AppStateRepository");
         const saved = await this.datasource.get<AppState>(STORAGE_KEY);
-        this.initialState = initialState;
+        //this.initialState = initialState;
         this.state = saved ?? initialState;
         this.state$.set(this.state);
         return this.save();
@@ -39,7 +39,7 @@ export class AppStateRepository {
 
     getCurrentEnvironment(): Environment {
         if (Object.keys(this.state.environments).length <= 0) {
-            this.LOG.debug("getCurrentWorkspace", "no environments in state");
+            this.LOG.debug("getCurrentEnvironment", "no environments in state");
             this.state.activeEnvironmentId = null;
             return null;
         }
@@ -48,7 +48,9 @@ export class AppStateRepository {
             this.state.activeEnvironmentId = Object.keys(this.state.environments)[0];
         }
         const currentEnv: Environment = this.state.environments[this.state.activeEnvironmentId];
-        this.LOG.debug("getCurrentWorkspace", `selecting ${currentEnv.id} as current environment`);
+        this.LOG.debug(
+            "getCurrentEnvironment",
+            `selecting ${currentEnv.id} as current environment`);
         return currentEnv;
     }
 
@@ -195,6 +197,9 @@ export class AppStateRepository {
      */
 
     createLink(groupId: string, subGroupId: string, title: string, url: string): Promise<void> {
+        this.LOG.debug(
+            "createLink",
+            `groupId: ${groupId}, subGroupId: ${subGroupId}, title: ${title}, url: ${url}`);
         const id = uid();
         this.state = {
             ...this.state,
@@ -204,10 +209,11 @@ export class AppStateRepository {
                     id: id,
                     title: title,
                     url: url,
-                    environmentId: this.getCurrentEnvironment(),
+                    environmentId: this.getCurrentEnvironment().id,
                     groupId: groupId,
-                    subGroupId: subGroupId
-                }
+                    subGroupId: subGroupId,
+                    type: "link"
+                } satisfies Link
             }
         };
         return this.save();
