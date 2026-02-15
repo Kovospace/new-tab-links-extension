@@ -37,21 +37,26 @@ export class AppStateRepository {
         return id in this.state.environments;
     }
 
-    getCurrentEnvironment(): Environment {
+    // GET actions
+
+    getCurrentEnvironmentId(): string | null {
         if (Object.keys(this.state.environments).length <= 0) {
-            this.LOG.debug("getCurrentEnvironment", "no environments in state");
+            this.LOG.debug("getCurrentEnvironmentId", "no environments in state");
             this.state.activeEnvironmentId = null;
             return null;
         }
-        if (!this.state.activeEnvironmentId) {
-            this.LOG.debug("getCurrentWorkspace", "setting first available env as current");
+        if (!this.state.activeEnvironmentId || !this.checkEnvironmentExists(this.state.activeEnvironmentId)) {
+            this.LOG.debug("getCurrentEnvironmentId", "setting first available env as current");
             this.state.activeEnvironmentId = Object.keys(this.state.environments)[0];
         }
-        const currentEnv: Environment = this.state.environments[this.state.activeEnvironmentId];
         this.LOG.debug(
-            "getCurrentEnvironment",
-            `selecting ${currentEnv.id} as current environment`);
-        return currentEnv;
+            "getCurrentEnvironmentId",
+            `${this.state.activeEnvironmentId} used as current environment`);
+        return this.state.activeEnvironmentId;
+    }
+
+    getCurrentEnvironment(): Environment | null {
+        return this.getCurrentEnvironmentId() ? this.state.environments[this.state.activeEnvironmentId] : null;
     }
 
     getGroups(workspaceId: string) {
@@ -60,10 +65,11 @@ export class AppStateRepository {
             .filter((group: Group) => group.environmentId === workspaceId);
     }
 
-    /**
-     *  Workspace operations
-     */
+    // Workspace operations
 
+    /**
+     *  Create new workspace
+     */
     addWorkspace(title: string, description?: string): Promise<AppState> {
         const id = uid();
         this.state = {
@@ -83,6 +89,9 @@ export class AppStateRepository {
         return this.save();
     }
 
+    /**
+     *  Set given workspace as current
+     */
     setWorkspaceDefault(id: string): Promise<AppState> {
         this.state = {
             ...this.state,
@@ -91,6 +100,9 @@ export class AppStateRepository {
         return this.save();
     }
 
+    /**
+     *  Change workspace title and description
+     */
     renameWorkspace(id: string, title: string, description: string) {
         this.LOG.debug("renameWorkspace", `id: ${id}, title: ${title}, description: ${description}`);
         this.state = {
@@ -107,6 +119,9 @@ export class AppStateRepository {
         return this.save();
     }
 
+    /**
+     *  Delete workspace including everything that is associated with it
+     */
     deleteWorksapce(id: string) {
         this.LOG.debug("deleteWorkspace", id);
         // remove env
@@ -120,7 +135,8 @@ export class AppStateRepository {
         };
         // post-remove env checks
         if (id === this.state.activeEnvironmentId) {
-            this.state.activeEnvironmentId = this.getCurrentEnvironment();
+            // set other not deleted environment ID as current
+            this.state.activeEnvironmentId = this.getCurrentEnvironmentId();
         }
         // remove groups
         Object
@@ -141,29 +157,36 @@ export class AppStateRepository {
         return this.save();
     }
 
-    /**
-     *  Group operations
-     */
+    // Group operations
 
+    /**
+     *  Create group in given workspace or in current workspace if parameter omitted
+     */
     createGroup(title: string, environmentId: string): Promise<void> {
         const id = uid();
+        if (!environmentId) {
+            environmentId = this.getCurrentEnvironmentId();
+        }
         this.state = {
             ...this.state,
             groups: {
                 ...this.state.groups,
                 [id]: {
-                    id,
-                    environmentId,
-                    title
-                }
+                    id: id,
+                    environmentId: environmentId,
+                    title: title,
+                    // description: "",
+                    createdAt: Date.now()
+                } satisfies Group
             }
         };
         return this.save();
     }
 
+    /**
+     *  Change group title and description
+     */
     renameGroup(id: string, title: string, description: string): Promise<void> {
-      // console.log("----------------------------");
-      // console.log(description);
         this.state = {
           ...this.state,
           groups: {
@@ -178,24 +201,63 @@ export class AppStateRepository {
         return this.save();
     }
 
-    deleteGroup(groupId: string): Promise<void> {
-        delete this.state.groups[groupId];
+    /**
+     *  Deletes the whole group, links and subgroups associated with it
+     */
+    deleteGroup(id: string): Promise<void> {
+        // delete group
+        const groups = { ...this.state.groups };
+        delete groups[id];
+        this.state = {
+            ...this.state,
+            groups
+        };
+        // delete all links in group
+        Object
+            .values(this.state.links)
+            .filter(link => link.groupId === id)
+            .forEach(link => this.deleteLink(link.id));
+        // delete all subgroups in group
+        Object
+            .values(this.state.subgroups)
+            .filter(subgroup => subgroup.groupId === id)
+            .forEach(subgroup => this.deleteSubGroup(subgroup.id));
         return this.save();
     }
 
-    /**
-     *  Subgroup operations
-     */
+    // Subgroup operations
 
+    /**
+     *  Deletes the whole sub-groups and its links
+     */
     deleteSubGroup(id: string): Promise<void> {
-        delete this.state.subgroups[id];
+        // delete subgroup
+        const subGroups = { ...this.state.subgroups };
+        delete subGroups[id];
+        this.state = {
+            ...this.state,
+            subGroups
+        };
+        // delete links
+        Object
+            .values(this.state.links)
+            .filter(link => link.subGroupId === id)
+            .forEach(link => this.deleteLink(link.id));
         return this.save();
     }
 
     /**
-     *  Link operations
+     *  Delete subgroup but move links to "root" level of group
      */
+    ceaseSubgroup(id: string) {
 
+    }
+
+    // Link operations
+
+    /**
+     *  Create new link for given group (and sub-group if selected) in current workspace
+     */
     createLink(groupId: string, subGroupId: string, title: string, url: string): Promise<void> {
         this.LOG.debug(
             "createLink",
@@ -209,18 +271,27 @@ export class AppStateRepository {
                     id: id,
                     title: title,
                     url: url,
-                    environmentId: this.getCurrentEnvironment().id,
+                    environmentId: this.getCurrentEnvironmentId(),
                     groupId: groupId,
                     subGroupId: subGroupId,
-                    type: "link"
+                    type: "link",
+                    createdAt: Date.now()
                 } satisfies Link
             }
         };
         return this.save();
     }
 
+    /**
+     *  Delete given link by its ID
+     */
     deleteLink(id: string): Promise<void> {
-        delete this.state.links[id];
+        const links = { ...this.state.links };
+        delete links[id];
+        this.state = {
+            ...this.state,
+            links
+        };
         return this.save();
     }
 }

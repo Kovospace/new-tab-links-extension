@@ -152,7 +152,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
                 {
                     actionTitle: "Delete workspace",
                     dangerous: true,
-                    dangerConfirmation: "ll groups and links that are associated to that workspace will be deleted as well.",
+                    dangerConfirmation: "All groups and links that are associated to that workspace will be deleted as well.",
                     onClick: (metadata) => this.VIEW_MODEL.deleteWorkspace(this.id)
                 }
             ],

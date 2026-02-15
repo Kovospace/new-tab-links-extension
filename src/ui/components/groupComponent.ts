@@ -87,7 +87,8 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Delete group",
                     dangerous: true,
-                    onClick: (metadata) => {}
+                    dangerConfirmation: "All links and sub-groups associated to that group will be deleted.",
+                    onClick: (metadata) => this.VIEW_MODEL.deleteGroup(this.id)
                 }
             ],
             {

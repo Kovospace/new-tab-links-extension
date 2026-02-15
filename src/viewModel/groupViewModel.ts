@@ -74,7 +74,6 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         } satisfies GroupDTO);
     }
 
-
     public editGroupTitle(groupId: string, title: string, description: string) {
       title = title.trim();
       if (!title) {
@@ -83,7 +82,11 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
       this.REPOSITORY.renameGroup(groupId, title, description);
     }
 
-    public addLink(groupId: string, subGroupId: string, url: string, title: string): void {
+    public deleteGroup(id: string) {
+        this.REPOSITORY.deleteGroup(id);
+    }
+
+    public addLink(groupId: string, subGroupId?: string, url: string, title: string): void {
         this.LOG.debug(
             "addLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, url: ${url}, title: ${title}`);
