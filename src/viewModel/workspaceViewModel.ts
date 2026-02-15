@@ -56,7 +56,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
     }
 
     public addWorkspace(title: string) {
-        this.LOG.debug("addWorkspace", title);
+        this.LOG.debug("addWorkspace", `title: ${title}`);
         if (!title) {
             this.LOG.debug("addWorkspace", "User did not provided a title");
             return;
@@ -67,6 +67,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
     // workspace actions
 
     public editWorkspaceTitle(id: string, title: string, description?: string) {
+        this.LOG.debug("editWorkspaceTitle", `id: ${id}, title: ${title}, description:${description}`);
         title = title.trim();
         if (!title || title === "") {
             console.error("Workspace name cannot be empty")
@@ -75,7 +76,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
     }
 
     public setCurrentWorkspace(id: string) {
-        this.LOG.debug("setCurrentWorkspace", id);
+        this.LOG.debug("setCurrentWorkspace", `id: ${id}`);
         this.REPOSITORY.setWorkspaceDefault(id);
     }
 
@@ -86,12 +87,14 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
     }
 
     public deleteWorkspace(id: string) {
+        this.LOG.debug("deleteWorskpace", `id: ${id}`);
         this.REPOSITORY.deleteWorksapce(id);
     }
 
     // other actions
 
     public addGroup(workspaceId: string, title: string | null) {
+        this.LOG.debug("addGroup", `title: ${title}`);
         if (!workspaceId) {
             console.error("ID of workspace to be created group in is not defined");
             return;

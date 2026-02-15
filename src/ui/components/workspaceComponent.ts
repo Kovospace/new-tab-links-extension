@@ -43,6 +43,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
 
         this.VIEW_MODEL.observables.workspace
             .subscribe((workspace: WorkspaceDTO) => {
+                this.id = workspace.id; // exception, because this is root template
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
                 this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));

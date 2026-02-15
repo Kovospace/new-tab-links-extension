@@ -100,7 +100,7 @@ export class OptionsMenu {
                 this.LOG.debug("Metadata: " + this.metadata);
                 toggleOverlay(false);
                 if (option.dangerous) {
-                    const message = "Are You sure ?";
+                    let message = "Are You sure ?";
                     if (option.dangerConfirmation) {
                         message += `\n\n${option.dangerConfirmation}`;
                     }

@@ -4,62 +4,52 @@ import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWra
 // import {AppStateRepositoryUtils} from "./AppStateRepositoryUtils";
 import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit} from "../datasource/init/AppStateInit";
+import {Logger} from "../../utils/logger"
 
 const STORAGE_KEY = "workspace_state";
 
 export class AppStateRepository {
 
+    private LOG!: Logger
+
     private state!: AppState;
+    private initialState!: AppState;
     readonly state$ = new ObservableValue<AppState>(appStateInit);
     private datasource = new ChromeStorageWrapper()
     //private repositoryUtils!: AppStateRepositoryUtils;
 
     public async init(initialState: AppState) {
+        this.LOG = new Logger("AppStateRepository");
         const saved = await this.datasource.get<AppState>(STORAGE_KEY);
-        // console.log("AppStateRepository - init(): saved state: " + saved)
+        this.initialState = initialState;
         this.state = saved ?? initialState;
         this.state$.set(this.state);
         return this.save();
     }
 
     private async save(): Promise<AppState> {
-        // console.log("AppStateRepository - save(): this.state before datasource save: " + Object.values(this.state.groups).length);
-        // console.log("AppStateRepository - save(): this.$state.get() before datasource save: " + Object.values(this.state$.get().groups).length);
         await this.datasource.save(STORAGE_KEY, this.state);
-        // console.log("AppStateRepository - save(): this.state after datasource save: " + Object.values(this.state.groups).length);
-        // console.log("AppStateRepository - save(): this.$state.get() after datasource save: " + Object.values(this.state$.get().groups).length);
         this.state$.set(this.state);
-        // console.log("AppStateRepository - save(): this.state after state set: " + Object.values(this.state.groups).length);
-        // console.log("AppStateRepository - save(): this.$state.get() after state set: " + Object.values(this.state$.get().groups).length);
         return this.state;
     }
 
-    // public getCurrentEnvironment(): Environment {
-    //     const environmentId: string = this.state.activeEnvironmentId;
-    //     if (!environmentId) throw new Error(
-    //         "Environment ID does not exists in AppState data model");
-    //     const environment: Environment = this.state.environments[environmentId];
-    //     if (!environment) throw new Error(
-    //         "Environment with ID " + environmentId + " does not exists in app state");
-    //     return environment;
-    // }
-    //
-    // public getGroup(groupId: string): Group {
-    //     const group = this.state.groups[groupId];
-    //     if (!group) throw new Error(
-    //         "Group with group ID " + groupId + " does not exists in AppState data model");
-    //     return group;
-    // }
-    //
-    // public getLink(linkId: string) {
-    //     const link: Link = this.state.links[linkId];
-    //     if (!link) throw new Error(
-    //         "Link with link ID " + linkId + " does not exists in AppState data model");
-    //     return link;
-    // }
+    private checkEnvironmentExists(id: string): boolean {
+        return id in this.state.environments;
+    }
 
-    getCurrentWorkspace(): Environment {
-        return this.state.environments[this.state.activeEnvironmentId];
+    getCurrentEnvironment(): Environment {
+        if (Object.keys(this.state.environments).length <= 0) {
+            this.LOG.debug("getCurrentWorkspace", "no environments in state");
+            this.state.activeEnvironmentId = null;
+            return null;
+        }
+        if (!this.state.activeEnvironmentId) {
+            this.LOG.debug("getCurrentWorkspace", "setting first available env as current");
+            this.state.activeEnvironmentId = Object.keys(this.state.environments)[0];
+        }
+        const currentEnv: Environment = this.state.environments[this.state.activeEnvironmentId];
+        this.LOG.debug("getCurrentWorkspace", `selecting ${currentEnv.id} as current environment`);
+        return currentEnv;
     }
 
     getGroups(workspaceId: string) {
@@ -114,6 +104,7 @@ export class AppStateRepository {
     }
 
     deleteWorksapce(id: string) {
+        this.LOG.debug("deleteWorkspace", id);
         // remove env
         this.state = {
             ...this.state,
@@ -123,6 +114,10 @@ export class AppStateRepository {
                     .filter(([key]) => key !== id)
             )
         };
+        // post-remove env checks
+        if (id === this.state.activeEnvironmentId) {
+            this.state.activeEnvironmentId = this.getCurrentEnvironment();
+        }
         // remove groups
         Object
             .values(this.state.groups)
@@ -207,7 +202,7 @@ export class AppStateRepository {
                     id: id,
                     title: title,
                     url: url,
-                    environmentId: this.state.activeEnvironmentId,
+                    environmentId: this.getCurrentEnvironment(),
                     groupId: groupId,
                     subGroupId: subGroupId
                 }
@@ -217,7 +212,6 @@ export class AppStateRepository {
     }
 
     deleteLink(id: string): Promise<void> {
-        this.getLink(id);
         delete this.state.links[id];
         return this.save();
     }
