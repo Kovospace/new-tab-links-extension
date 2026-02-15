@@ -138,21 +138,11 @@ export class AppStateRepository {
             // set other not deleted environment ID as current
             this.state.activeEnvironmentId = this.getCurrentEnvironmentId();
         }
-        // remove groups
+        // remove groups (&& cascading actions to subGroups and links)
         Object
             .values(this.state.groups)
             .filter(group => group.environmentId === id)
             .forEach(group => this.deleteGroup(group.id));
-        // remove subgroups
-        Object
-            .values(this.state.subgroups)
-            .filter(subgroup => subgroup.environmentId === id)
-            .forEach(subgroup => this.deleteSubGroup(id));
-        // remove links
-        Object
-            .values(this.state.links)
-            .filter(link => link.environmentId === id)
-            .forEach(link => this.deleteLink(link.id));
         // save change
         return this.save();
     }
@@ -212,12 +202,12 @@ export class AppStateRepository {
             ...this.state,
             groups
         };
-        // delete all links in group
+        // delete all links in group that are not in subgroup
         Object
             .values(this.state.links)
-            .filter(link => link.groupId === id)
+            .filter(link => link.groupId === id && !link.subGroupId)
             .forEach(link => this.deleteLink(link.id));
-        // delete all subgroups in group
+        // delete all subgroups in group (&& cascading actions for its links)
         Object
             .values(this.state.subgroups)
             .filter(subgroup => subgroup.groupId === id)
