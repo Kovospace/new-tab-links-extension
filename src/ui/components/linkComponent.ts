@@ -58,13 +58,26 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         span.textContent = linkDto.description;
         containerDiv.appendChild(span);
 
-        const img: HTMLImageElement = document.createElement("img");
-        img.width = 32;
-        img.height = 32;
-        FaviconsHandler.get(linkDto.url).then(src => {
-            img.src = src;
-        });
-        containerDiv.appendChild(img);
+        // const img: HTMLImageElement = document.createElement("img");
+        // img.width = 32;
+        // img.height = 32;
+        // FaviconsHandler.get(linkDto.url).then(src => {
+        //     img.src = src;
+        // });
+        // containerDiv.appendChild(img);
+
+        chrome.runtime.sendMessage(
+            { type: "FETCH_FAVICON", url },
+            res => {
+              if (res?.ok) {
+                console.log("RES OK");
+                console.log(blob);
+                const blob = new Blob([res.buffer], { type: "image/x-icon" });
+                resolve(blob);
+              }
+              else reject(res?.error || "Fetch failed");
+            }
+        );
     }
 
 }
