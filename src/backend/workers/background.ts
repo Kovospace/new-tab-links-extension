@@ -6,8 +6,18 @@ chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
         // Resolve favicon URL then fetch only the icon
         fetchFaviconUrl(pageUrl)
             .then(fetchFaviconBinary)
-            .then(buffer => sendResponse({ ok: true, buffer }))
-            .catch(err => sendResponse({ ok: false, error: err.message }));
+            .then(buffer => {
+              console.log("background buffer");
+              console.log(buffer);
+              return sendResponse({
+                ok: true,
+                buffer: Array.from(new Uint8Array(buffer))
+              })
+            })
+            .catch(err => sendResponse({
+              ok: false,
+              error: err.message
+            }));
 
         return true; // keep message channel open for async
     }
