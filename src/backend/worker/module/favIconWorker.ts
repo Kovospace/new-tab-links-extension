@@ -6,8 +6,7 @@ export interface GetFaviconInput {
 }
 
 export interface GetFaviconOutput {
-  bytes: Uint8Array;
-  mimeType: string;
+  base64: string
 }
 
 export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconOutput> {
@@ -18,41 +17,18 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
         return this.get(payload);
       default:
         return this.errorResponse(
-            "UNKNOWN_ACTION",
+            "FAVICON_WORKER_UNKNOWN_ACTION",
             `Action ${action} not supported`
         );
     }
   }
 
   private async get(input: GetFaviconInput) {
-
-    FavIconWorker.fetchFaviconUrl(pageUrl)
-        .then(FavIconWorker.fetchFaviconBinary)
-        .then(buffer => this.response(
-            {
-              bytes: Array.from(new Uint8Array(buffer)),
-              mimeType: "image/png"
-            }));
-
-
-    //const origin = new URL(input.url).origin;
-    //const faviconUrl = `${origin}/favicon.ico`;
-
-    // const res = await fetch(faviconUrl);
-    // if (!res.ok) {
-    //   return this.errorResponse(
-    //       "FAVICON_NOT_FOUND",
-    //       faviconUrl
-    //   );
-    // }
-    //
-    // const buffer = await res.arrayBuffer();
-    //
-    // return this.response({
-    //   bytes: new Uint8Array(buffer),
-    //   mimeType:
-    //       res.headers.get("content-type") ?? "image/x-icon",
-    // });
+    return FavIconWorker.fetchFaviconUrl(input.url)
+        .then(FavIconWorker.fetchFaviconBase64)
+        .then(buffer => this.response({
+              base64: buffer
+        } satisfies GetFaviconOutput));
   }
 
   private static async fetchFaviconUrl(pageUrl: string): Promise<string> {
@@ -77,10 +53,33 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
     }
   }
 
-  private static async fetchFaviconBinary(faviconUrl: string): Promise<ArrayBuffer> {
+  // private static async fetchFaviconBinary(faviconUrl: string): Promise<ArrayBuffer> {
+  //   const res = await fetch(faviconUrl);
+  //   if (!res.ok) throw new Error(`Failed to fetch favicon: ${res.status}`);
+  //   return res.arrayBuffer();
+  // }
+
+  private static async fetchFaviconBase64(faviconUrl: string): Promise<string> {
     const res = await fetch(faviconUrl);
     if (!res.ok) throw new Error(`Failed to fetch favicon: ${res.status}`);
-    return res.arrayBuffer();
+
+    // ArrayBuffer z fetch
+    const buffer = await res.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+
+    // Konverzia na Base64
+    let binary = "";
+    const chunkSize = 0x8000; // 32k chunks pre veľké súbory
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    const base64 = btoa(binary);
+
+    // MIME type – predvolené na favicon
+    const mimeType = res.headers.get("content-type") ?? "image/x-icon";
+
+    return `data:${mimeType};base64,${base64}`;
   }
 
 }

@@ -1,12 +1,12 @@
 
-export interface BackgroundMessage<TPayload = unknown> {
+export interface WorkerMessage<TPayload = unknown> {
   target: string;        // názov modulu (class)
   action: string;        // názov metódy
   payload: TPayload;     // DTO
   requestId?: string;    // optional correlation id
 }
 
-export interface BackgroundResponse<T = unknown> {
+export interface WorkerResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
@@ -25,7 +25,7 @@ export abstract class BackgroundWorker<
     payload: TPayload
   ): Promise<TResult>;
 
-  protected response(data: TResult): BackgroundResponse<TResult> {
+  protected response(data: TResult): WorkerResponse<TResult> {
     return {
       success: true,
       data,
@@ -35,7 +35,7 @@ export abstract class BackgroundWorker<
   protected errorResponse(
     code: string,
     message: string
-  ): BackgroundResponse {
+  ): WorkerResponse {
     return {
       success: false,
       error: { code, message },

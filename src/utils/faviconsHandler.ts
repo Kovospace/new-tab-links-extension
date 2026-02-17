@@ -1,3 +1,6 @@
+import { WorkerResponse, WorkerMessage } from "../backend/worker/abstract/BackgroundWorker"
+import { GetFaviconOutput } from "../backend/worker/module/favIconWorker"
+
 export class FaviconsHandler {
 
     /* ===============================
@@ -175,5 +178,29 @@ export class FaviconsHandler {
                 }
             );
         });
+    }
+
+    //TODO temporary
+    // store image bytes and other metadata to database and the viemModel should react to it
+    static renderImage(pageUrl) {
+      return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+            {
+              target: "favicon",
+              action: "get",
+              payload: {
+                url: pageUrl,
+              } satisfies GetFaviconInput,
+            } satisfies WorkerMessage,
+            (res: WorkerResponse<GetFaviconOutput>) => {
+              console.log(res);
+              if (res.success) {
+                resolve(res.data.base64);
+              } else {
+                reject(res?.error || "Fetch failed");
+              }
+            }
+        );
+      });
     }
 }
