@@ -66,7 +66,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         // });
         // containerDiv.appendChild(img);
 
-        const res = await chrome.runtime.sendMessage({
+        chrome.runtime.sendMessage({
           target: "favicon",
           action: "get",
           payload: {

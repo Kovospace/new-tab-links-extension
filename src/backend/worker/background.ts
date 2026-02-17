@@ -44,6 +44,7 @@ const router = new BackgroundRouter({
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log(message, sender, sendResponse);
   router.dispatch(message).then(sendResponse);
   return true; // asynchronous
 });
