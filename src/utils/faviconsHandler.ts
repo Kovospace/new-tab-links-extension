@@ -1,35 +1,78 @@
 export class FaviconsHandler {
 
+    /* ===============================
+     * Config
+     * =============================== */
+
     static DB_NAME = "FaviconsDB";
-    static STORE_NAME = "favicons";
+    static STORE = "favicons";
     static DB_VERSION = 1;
+
+    static ICON_SIZE = 32;
+
+    // in-memory cache (session only)
+    static #memoryCache = new Map();
 
     /* ===============================
      * Public API
      * =============================== */
 
     /**
-     * Main entry point
-     * Returns an image src (object URL)
+     * Returns an <img src> string
      */
     static async get(pageUrl) {
-        // 1️⃣ Serve from cache if available
-        const cached = await this.#getCachedBlob(pageUrl);
-        if (cached) {
-            return URL.createObjectURL(cached);
+        // 0️⃣ memory cache (fastest)
+        if (this.#memoryCache.has(pageUrl)) {
+            return this.#memoryCache.get(pageUrl);
         }
 
-        // 2️⃣ Resolve favicon URL
+        // 1️⃣ IndexedDB cache
+        const cachedBlob = await this.#getFromDB(pageUrl);
+        if (cachedBlob) {
+            console.log(cachedBlob);
+            //console.log(cachedBlob instanceof Blob, blob.size);
+            const src = URL.createObjectURL(cachedBlob);
+            this.#memoryCache.set(pageUrl, src);
+            return src;
+        }
+
+        // 2️⃣ Chrome favicon service (display-only)
+        // if (this.#supportsChromeFavicon()) {
+        //     const src = `chrome://favicon/size/${this.ICON_SIZE}@2x/${pageUrl}`;
+        //     this.#memoryCache.set(pageUrl, src);
+        //     return src;
+        // }
+
+        // 3️⃣ Resolve favicon URL (HTML → /favicon.ico)
         const faviconUrl = await this.#resolveFaviconUrl(pageUrl);
 
-        // 3️⃣ Download favicon
-        const blob = await this.#downloadFavicon(faviconUrl, pageUrl);
+        console.log("favicon");
 
-        // 4️⃣ Cache it
-        await this.#storeBlob(pageUrl, blob);
+        // 4️⃣ Download via background (no CORS)
+        const blob = await this.#fetchViaBackground(faviconUrl);
 
-        // 5️⃣ Return usable URL
-        return URL.createObjectURL(blob);
+        console.log(blob instanceof Blob, blob.size);
+
+        // 5️⃣ Persist
+        await this.#storeInDB(pageUrl, blob);
+
+        console.log(blob instanceof Blob, blob.size);
+
+        const src = URL.createObjectURL(blob);
+        this.#memoryCache.set(pageUrl, src);
+        return src;
+    }
+
+    /* ===============================
+     * Chrome detection
+     * =============================== */
+
+    static #supportsChromeFavicon() {
+        return (
+            typeof chrome !== "undefined" &&
+            chrome.runtime &&
+            typeof InstallTrigger === "undefined"
+        );
     }
 
     /* ===============================
@@ -38,32 +81,32 @@ export class FaviconsHandler {
 
     static #openDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+            const req = indexedDB.open(this.DB_NAME, this.DB_VERSION);
 
-            request.onupgradeneeded = () => {
-                request.result.createObjectStore(this.STORE_NAME);
+            req.onupgradeneeded = () => {
+                req.result.createObjectStore(this.STORE);
             };
 
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
         });
     }
 
-    static async #getCachedBlob(key) {
+    static async #getFromDB(key) {
         const db = await this.#openDB();
         return new Promise(resolve => {
-            const tx = db.transaction(this.STORE_NAME, "readonly");
-            const req = tx.objectStore(this.STORE_NAME).get(key);
+            const tx = db.transaction(this.STORE, "readonly");
+            const req = tx.objectStore(this.STORE).get(key);
             req.onsuccess = () => resolve(req.result || null);
             req.onerror = () => resolve(null);
         });
     }
 
-    static async #storeBlob(key, blob) {
+    static async #storeInDB(key, blob) {
         const db = await this.#openDB();
         return new Promise((resolve, reject) => {
-            const tx = db.transaction(this.STORE_NAME, "readwrite");
-            tx.objectStore(this.STORE_NAME).put(blob, key);
+            const tx = db.transaction(this.STORE, "readwrite");
+            tx.objectStore(this.STORE).put(blob, key);
             tx.oncomplete = resolve;
             tx.onerror = () => reject(tx.error);
         });
@@ -74,32 +117,15 @@ export class FaviconsHandler {
      * =============================== */
 
     static async #resolveFaviconUrl(pageUrl) {
-        // Chrome / Brave / Edge
-        if (this.#supportsChromeFavicon()) {
-            return `chrome://favicon/size/32@2x/${pageUrl}`;
-        }
-
-        // Fallback: parse HTML
         try {
             const html = await this.#fetchHtml(pageUrl);
             const icons = this.#extractIcons(html, pageUrl);
-            if (icons.length > 0) {
-                return icons[0];
-            }
+            if (icons.length > 0) return icons[0];
         } catch {
             // ignore
         }
 
-        // Last resort
         return this.#defaultFavicon(pageUrl);
-    }
-
-    static #supportsChromeFavicon() {
-        return (
-            typeof chrome !== "undefined" &&
-            chrome.runtime &&
-            typeof InstallTrigger === "undefined" // not Firefox
-        );
     }
 
     static async #fetchHtml(url) {
@@ -131,18 +157,23 @@ export class FaviconsHandler {
     }
 
     /* ===============================
-     * Network
+     * Background fetch (NO CORS)
      * =============================== */
 
-    static async #downloadFavicon(faviconUrl, pageUrl) {
-        try {
-            const res = await fetch(faviconUrl);
-            if (!res.ok) throw new Error();
-            return await res.blob();
-        } catch {
-            // fallback to /favicon.ico
-            const res = await fetch(this.#defaultFavicon(pageUrl));
-            return await res.blob();
-        }
+    static #fetchViaBackground(url) {
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+                { type: "FETCH_FAVICON", url },
+                res => {
+                    if (res?.ok) {
+                        console.log("RES OK");
+                        console.log(blob);
+                        const blob = new Blob([res.buffer], { type: "image/x-icon" });
+                        resolve(blob);
+                    }
+                    else reject(res?.error || "Fetch failed");
+                }
+            );
+        });
     }
 }

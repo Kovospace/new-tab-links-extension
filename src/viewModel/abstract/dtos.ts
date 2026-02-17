@@ -17,6 +17,7 @@ export interface GroupItemDTO {
     type: string;
     id: string;
     position: number;
+    description: string;
 }
 
 export interface LinkDTO extends GroupItemDTO {

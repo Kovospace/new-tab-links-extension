@@ -6,6 +6,7 @@ import { LinkViewModel } from "../../viewModel/linkViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent"
+import {FaviconsHandler} from "../../utils/faviconsHandler";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
@@ -52,6 +53,18 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         anchor.href = linkDto.url;
         anchor.textContent = linkDto.title;
         containerDiv.appendChild(anchor);
+
+        const span: HTMLSpanElement = document.createElement("span");
+        span.textContent = linkDto.description;
+        containerDiv.appendChild(span);
+
+        const img: HTMLImageElement = document.createElement("img");
+        img.width = 32;
+        img.height = 32;
+        FaviconsHandler.get(linkDto.url).then(src => {
+            img.src = src;
+        });
+        containerDiv.appendChild(img);
     }
 
 }
