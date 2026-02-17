@@ -2,7 +2,7 @@
 import { BackgroundWorker } from './abstract/BackgroundWorker'
 import { FavIconWorker } from './module/favIconWorker'
 
-type ModuleConstructor = new () => BackgroundModule<any, any>;
+type ModuleConstructor = new () => BackgroundWorker<any, any>;
 
 class WorkerRouter {
   private instances = new Map<string, BackgroundWorker>();

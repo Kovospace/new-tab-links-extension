@@ -1,0 +1,55 @@
+workspace-plane {
+    display: block;
+}
+
+
+
+workspace-plane-head {
+    display: flex;
+    align-items: center;
+    padding: 0.5em 0em;
+}
+
+workspace-plane-head > div {
+    display: inline-block;
+}
+
+workspace-plane-head > div.workspace-head-title {
+    padding-right: 1em;
+}
+
+
+
+workspace-plane-body {
+    display: flex;
+    flex-direction: row;
+    /*justify-content: space-between;*/
+    align-items: start;
+}
+
+workspace-plane-body > link-group {
+    margin: 0.5em;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    transition: background-color 0.25s ease-in-out;
+}
+
+workspace-plane-body > link-group:first-child {
+    margin-left: 0em;
+}
+
+workspace-plane-body > link-group:last-child {
+    margin-right: 0em;
+}
+
+
+
+html.dark workspace-plane-body > link-group {
+    background-color: #222;
+}
+
+html.dark workspace-plane-body > link-group:hover {
+    background-color: #333;
+}
+
+

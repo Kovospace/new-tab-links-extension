@@ -1,0 +1,54 @@
+/* Reset all margins, paddings, borders, fonts, box-sizing */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border: 0;
+    outline: 0;
+}
+
+/* Remove default list styles */
+ul, ol {
+    list-style: none;
+}
+
+/* Remove default link styles */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Remove default table spacing */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* Make images & media responsive */
+img, video, canvas, picture {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Inherit fonts & line height */
+body, input, textarea, button, select {
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.5;
+    color: inherit;
+    background: none;
+}
+
+/* Smooth fonts in all browsers */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Set body & html full height */
+html, body {
+    height: 100%;
+}

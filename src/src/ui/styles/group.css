@@ -1,0 +1,35 @@
+link-group-head {
+    display: flex;
+    direction: row;
+    align-items: center;
+    margin-bottom: 0.25em;
+}
+
+link-group > hr {
+    display: block;
+    width: 90%;
+    height: 0.125em;
+    background-color: #eee;
+    margin: 0% 5%;
+}
+
+link-group-head > div.cls-group-head-title {
+    margin-right: 0.5em;
+}
+
+link-group-head > div.cls-group-head-title > h2,
+link-group-head > div.cls-group-head-title > span {
+  min-width: 1em;
+  min-height: 1em;
+}
+
+link-group-head > div.group-head-actions {
+    display: flex;
+    direction: row;
+    align-items: center;
+}
+
+link-group-body {
+    display: block;
+    margin-top:0.25em;
+}
