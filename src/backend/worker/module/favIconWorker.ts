@@ -1,5 +1,6 @@
 
 import { BackgroundWorker } from '../abstract/BackgroundWorker'
+import { FavIconRepository } from "../../repository/FavIconRepository"
 
 export interface GetFaviconInput {
   url: string;
@@ -7,6 +8,12 @@ export interface GetFaviconInput {
 
 export interface GetFaviconOutput {
   base64: string
+}
+
+interface Base64envelope {
+  pageUrl: string;
+  faviconUrl: string;
+  base64?: string;
 }
 
 export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconOutput> {
@@ -24,11 +31,16 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
   }
 
   private async get(input: GetFaviconInput) {
-    return FavIconWorker.fetchFaviconUrl(input.url)
+    //console.log("called");
+    const faviconFromDB = await FavIconRepository.get(input.url);
+    // console.log(faviconFromDB);
+    if (!faviconFromDB) {
+      return FavIconWorker.fetchFaviconUrl(input.url)
         .then(FavIconWorker.fetchFaviconBase64)
-        .then(buffer => this.response({
-              base64: buffer
-        } satisfies GetFaviconOutput));
+        .then(FavIconWorker.saveBase64IntoDB)
+        .then(() => this.response({}));
+    }
+    return this.response({});
   }
 
   private static async fetchFaviconUrl(pageUrl: string): Promise<string> {
@@ -46,21 +58,23 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
       }
 
       // fallback to /favicon.ico
-      return new URL("/favicon.ico", pageUrl).href;
+      return {
+        faviconUrl: new URL("/favicon.ico", pageUrl).href,
+        pageUrl: pageUrl
+      } satisfies Base64envelope
+
     } catch {
+
       // If HTML fetch fails, fallback to /favicon.ico
-      return new URL("/favicon.ico", pageUrl).href;
+      return {
+        faviconUrl: new URL("/favicon.ico", pageUrl).href,
+        pageUrl: pageUrl
+      } satisfies Base64envelope
     }
   }
 
-  // private static async fetchFaviconBinary(faviconUrl: string): Promise<ArrayBuffer> {
-  //   const res = await fetch(faviconUrl);
-  //   if (!res.ok) throw new Error(`Failed to fetch favicon: ${res.status}`);
-  //   return res.arrayBuffer();
-  // }
-
-  private static async fetchFaviconBase64(faviconUrl: string): Promise<string> {
-    const res = await fetch(faviconUrl);
+  private static async fetchFaviconBase64(base64envelope: Base64envelope): Promise<string> {
+    const res = await fetch(base64envelope.faviconUrl);
     if (!res.ok) throw new Error(`Failed to fetch favicon: ${res.status}`);
 
     // ArrayBuffer z fetch
@@ -79,7 +93,15 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
     // MIME type – predvolené na favicon
     const mimeType = res.headers.get("content-type") ?? "image/x-icon";
 
-    return `data:${mimeType};base64,${base64}`;
+    return {
+      base64: `data:${mimeType};base64,${base64}`,
+      pageUrl: base64envelope.pageUrl,
+      faviconUrl: base64envelope.faviconUrl
+    } satisfies Base64envelope;
+  }
+
+  private static async saveBase64IntoDB(base64envelope: Base64envelope) {
+    return FavIconRepository.save(base64envelope.pageUrl, base64envelope.base64);
   }
 
 }
