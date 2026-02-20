@@ -10,7 +10,8 @@ import {
     ACT_ADD_GROUP,
     ACT_EDIT_GROUP,
     CLASS_GROUP_HEAD_TITLE,
-    CLASS_GROUP_HEAD_ACTIONS
+    CLASS_GROUP_HEAD_ACTIONS,
+    CLASS_ACTION_ADD
 } from "../../main"
 
 // utils
@@ -99,7 +100,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         actionsSectionElem.appendChild(renderButton(
             ICON.ADD,
             this.DTO.id,
-            [ACT_ADD_LINK],
+            [ACT_ADD_LINK, CLASS_ACTION_ADD],
             "Add link to group",
             onClick => {
                 this.LOG.debug(

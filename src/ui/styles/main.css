@@ -59,16 +59,18 @@ main {
 
 button {
     position: relative;
-    min-width: 2em;
+    min-width: 1.5em;
     font-size: 1em;
-    padding: 0.25em 0.5em;
+    line-height: 1em;
+    padding: 0.25em;
     margin: 0 0.25em;
     border-radius: 0.25em;
     font-weight: bold;
     cursor: pointer;
     transition:
-        background-color 0.25s ease-in-out,
-        color 0.25s ease-in-out;
+      box-shadow 0.125s ease,
+      background-color 0.25s ease-in-out,
+      color 0.25s ease-in-out;
 }
 
 button:last-child {
@@ -111,17 +113,49 @@ html.dark button {
     background-color: #444;
 }
 
-html.dark button.active {
-    background-color: #18F;
-}
-
 html.dark button:hover {
-    color: #FFF;
-    background-color: #555;
+  color: #FFF;
+  background-color: #555;
 }
 
-html.dark button.active:hover {
-    background-color: #29F;
+html.dark button:active {
+  box-shadow: 0 0 0.25em 0.25em #444;
+}
+
+html.dark .active {
+    background-color: #09F;
+}
+
+html.dark .add {
+  background-color: #090;
+}
+
+html.dark .danger {
+  background-color: #900;
+}
+
+html.dark .active:hover {
+  background-color: #0BF;
+}
+
+html.dark .add:hover {
+  background-color: #0B0;
+}
+
+html.dark .danger:hover {
+  background-color: #B00;
+}
+
+html.dark .active:active {
+  box-shadow: 0 0 0.25em 0.25em #09F;
+}
+
+html.dark .add:active {
+  box-shadow: 0 0 0.25em 0.25em #090;
+}
+
+html.dark .danger:active {
+  box-shadow: 0 0 0.25em 0.25em #900;
 }
 
 html.dark .editable {
