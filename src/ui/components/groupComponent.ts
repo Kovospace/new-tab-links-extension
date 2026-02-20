@@ -54,6 +54,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         headerElem.appendChild(titleSectionElem);
         headerElem.appendChild(actionsSectionElem);
 
+        console.log("render");
+
+        //TODO vytvorit vo viewmodel subscriber na tieto dáta
         // group head elements
         // title
         titleSectionElem.appendChild(renderTextContainer(
@@ -114,6 +117,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         // links
         this.VIEW_MODEL.observables.group
             .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
+
+        // reattach listeners on changes
+        /this.listenerChangeGroupName();
     }
 
     private attachListeners() {
@@ -182,6 +188,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       })
 
       titleElem.addEventListener('blur', () => {
+          console.log("blurred");
         this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
 
@@ -192,6 +199,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       })
 
       descriptionElem.addEventListener('blur', () => {
+          console.log("blurred");
         this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
     }

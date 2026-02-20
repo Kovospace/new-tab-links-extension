@@ -28,6 +28,8 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
 
     protected subscribed(attrs: AppState) {
 
+        console.log("event happened");
+
         const currentEnvironmentId = attrs.activeEnvironmentId;
         const links: Link[] = Object.values(attrs.links);
         const subGroups: Subgroup[] = Object.values(attrs.subgroups);
@@ -65,6 +67,8 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         // sort 1st order items of group
         result
             .sort((a, b) => a.position - b.position);
+
+        console.log("event happened end");
 
         this.observables.group.set({
             id: this.groupId,
