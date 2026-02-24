@@ -19,7 +19,10 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
     protected render(parentElem: HTMLElement) {
 
         this.VIEW_MODEL.observables.link
-            .subscribe((linkDto: LinkDTO)=> this.renderLink(linkDto, parentElem));
+            .subscribe((linkDto: LinkDTO)=> {
+                parentElem.replaceChildren();
+                this.renderLink(linkDto, parentElem);
+            });
     }
 
     protected attachListeners(parentElem: HTMLElement) {
@@ -77,21 +80,27 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         linkActionsDiv.appendChild(renderButton(
             ICON.MOVE_UP, this.DTO.id, [ACT_LINK_MOVE_UP], "Move link up", onClick => {
                 event.stopPropagation();
+                this.VIEW_MODEL.moveLinkUp();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.MOVE_DOWN, this.DTO.id, [ACT_LINK_MOVE_DOWN], "Move link down", onClick => {
-                event.stopPropagation();;
+                event.stopPropagation();
+                this.VIEW_MODEL.moveLinkDown();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.DELETE, this.DTO.id, [ACT_LINK_DELETE, CLASS_ACTION_DANGER], "Delete link", onClick => {
                 event.stopPropagation();
+                this.VIEW_MODEL.deleteLink();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Delete link", onClick => {
                 event.stopPropagation();
+                const title = "";
+                const url = "";
+                this.VIEW_MODEL.editLink(title, url);
             }));
     }
 

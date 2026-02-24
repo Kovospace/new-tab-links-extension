@@ -18,10 +18,14 @@ export interface GroupItemDTO {
     id: string;
     position: number;
     description: string;
+    //
+    workspaceId: string;
+    groupId: string;
 }
 
 export interface LinkDTO extends GroupItemDTO {
     url: string;
+    subGroupId: string;
 }
 
 export interface SubgroupDTO extends GroupItemDTO {

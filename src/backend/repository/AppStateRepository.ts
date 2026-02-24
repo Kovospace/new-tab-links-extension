@@ -1,4 +1,4 @@
-import {AppState, Environment, Group, Link} from "../entity/AppStateEntity";
+import {AppState, Environment, Group, Link, GroupItem} from "../entity/AppStateEntity";
 import {uid} from "../../utils/firstOrderMethods";
 import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWrapper";
 // import {AppStateRepositoryUtils} from "./AppStateRepositoryUtils";
@@ -249,10 +249,14 @@ export class AppStateRepository {
      *  Create new link for given group (and sub-group if selected) in current workspace
      */
     createLink(groupId: string, subGroupId: string, title: string, url: string): Promise<void> {
+
         this.LOG.debug(
             "createLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, title: ${title}, url: ${url}`);
-        const id = uid();
+
+        const id: string = uid();
+        const nextPosition: number = this.getPositionForNewLink(groupId, subGroupId);
+
         this.state = {
             ...this.state,
             links: {
@@ -265,10 +269,53 @@ export class AppStateRepository {
                     groupId: groupId,
                     subGroupId: subGroupId,
                     type: "link",
-                    createdAt: Date.now()
+                    createdAt: Date.now(),
+                    position: nextPosition
                 } satisfies Link
             }
         };
+
+        return this.save();
+    }
+
+    /**
+     *  Edit any non-readonly property of link
+     */
+    editLink(id: string, subGroupId: string, groupId: string, workspaceId: string,
+             title: string, url: string, position: number
+    ) {
+
+        this.LOG.debug(
+            "editLink",
+            `workspaceId: ${workspaceId}, groupId: ${groupId}, subGroupId: ${subGroupId}, 
+            id: ${id}, title: ${title}, url: ${url}, position: ${position}`);
+
+        let linksToEdit: Record<string, Link> = {
+            [id]: this.state.links[id]
+        };
+
+        if (position !== undefined && position !== null && linksToEdit[id].position !== position) {
+            linksToEdit = this.getRepositionedLinks(
+                id, linksToEdit[id].position, position, groupId, subGroupId);
+        }
+
+        linksToEdit[id] = {
+            ...linksToEdit[id],
+            title: title,
+            url: url,
+            environmentId: workspaceId,
+            groupId: groupId,
+            subGroupId: subGroupId
+        } satisfies Link;
+
+        this.state = {
+            ...this.state,
+            links: {
+                ...this.state.links,
+                ...linksToEdit
+            }
+        };
+
         return this.save();
     }
 
@@ -283,6 +330,71 @@ export class AppStateRepository {
             links
         };
         return this.save();
+    }
+
+
+
+    //TODO ako sa bude chovat pri 0 linkoch
+    private getPositionForNewLink(groupId: string, subGroupId: string | null | undefined): number {
+        return Math.max(...Object.values(this.state.links)
+            .filter(link => {
+                if (subGroupId !== undefined && subGroupId !== null && subGroupId !== "") {
+                    return link.subGroupId === subGroupId
+                }
+                return link.groupId === groupId;
+            })
+            .map(link => link.position)
+            .filter(position => position !== undefined)) + 1;
+    }
+
+    private getRepositionedLinks(
+        currentLinkId: string, currentPosition: number, newPosition: number,
+        groupId: string, subGroupId: string | null | undefined
+    ): Record<string, Link> {
+
+        const updatedLinks: Record<string, Link> = {};
+
+        Object
+            .entries(this.state.links)
+            .filter(([_, link]) => {
+                if (subGroupId) {
+                    return link.subGroupId === subGroupId
+                }
+                return link.groupId === groupId;
+            })
+            .forEach(([id, link]) => {
+                // presúvaný link
+                if (id === currentLinkId) {
+                    updatedLinks[id] = {
+                        ...link,
+                        position: newPosition
+                    };
+                    return;
+                }
+                let updatedPosition = link.position;
+                // presun nahor (napr. z 5 → 2)
+                if (
+                    newPosition < currentPosition &&
+                    link.position >= newPosition &&
+                    link.position < currentPosition
+                ) {
+                    updatedPosition = link.position + 1;
+                }
+                // presun nadol (napr. z 2 → 5)
+                if (
+                    newPosition > currentPosition &&
+                    link.position <= newPosition &&
+                    link.position > currentPosition
+                ) {
+                    updatedPosition = link.position - 1;
+                }
+                updatedLinks[id] = {
+                    ...link,
+                    position: updatedPosition
+                };
+            });
+
+        return updatedLinks;
     }
 }
 

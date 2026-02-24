@@ -46,7 +46,7 @@ export const appStateInit: AppState = {
     links: {
         "test-link-1": {
             title: "test link 1",
-            id: "test-1",
+            id: "test-link-1",
             subGroupId: "",
             groupId: "group-1",
             environmentId: "env-1",
@@ -56,7 +56,7 @@ export const appStateInit: AppState = {
         },
         "test-link-2": {
             title: "test link 2",
-            id: "test-2",
+            id: "test-link-2",
             subGroupId: "subgroup-1",
             groupId: "group-1",
             environmentId: "env-1",
@@ -65,14 +65,34 @@ export const appStateInit: AppState = {
             position: 0
         },
         "test-link-3": {
-            title: "test link 3",
-            id: "test-3",
+            title: "test-link-3",
+            id: "test-link-3",
             subGroupId: "",
             groupId: "group-1",
             environmentId: "env-1",
             url: "http://kokot.do.pici",
             type: "link",
             position: 2
+        },
+        "test-link-4": {
+            title: "test-link-4",
+            id: "test-link-4",
+            subGroupId: "",
+            groupId: "group-1",
+            environmentId: "env-1",
+            url: "http://kokot.do.pici",
+            type: "link",
+            position: 3
+        },
+        "test-link-5": {
+            title: "test-link-5",
+            id: "test-link-5",
+            subGroupId: "",
+            groupId: "group-1",
+            environmentId: "env-1",
+            url: "http://kokot.do.pici",
+            type: "link",
+            position: 4
         }
     }
 };

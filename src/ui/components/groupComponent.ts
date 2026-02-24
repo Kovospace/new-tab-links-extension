@@ -54,8 +54,6 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         headerElem.appendChild(titleSectionElem);
         headerElem.appendChild(actionsSectionElem);
 
-        console.log("render");
-
         //TODO vytvorit vo viewmodel subscriber na tieto dáta
         // group head elements
         // title
@@ -127,22 +125,38 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     }
 
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {
-        handleReactiveRendering<GroupItemDTO, HTMLButtonElement>(
-            parentElem,
-            groupDto.items,
-            groupItem => groupItem.id,
-            groupItem => {
-                switch (groupItem.type) {
-                    case "link":
-                        return this.renderLink(groupItem);
-                    case "subgroup":
-                        return this.renderSubgroup(groupItem);
-                    default:
-                        console.error("unsupported element");
-                        return document.createElement("span");
-                }
+        // handleReactiveRendering<GroupItemDTO, HTMLButtonElement>(
+        //     parentElem,
+        //     groupDto.items,
+        //     groupItem => groupItem.id,
+        //     groupItem => {
+        //         switch (groupItem.type) {
+        //             case "link":
+        //                 return this.renderLink(groupItem);
+        //             case "subgroup":
+        //                 return this.renderSubgroup(groupItem);
+        //             default:
+        //                 console.error("unsupported element");
+        //                 return document.createElement("span");
+        //         }
+        //     }
+        // );
+        //TODO pre hybanie linkami vymysliet destruktivnu akciu na prerenderovanie vsetkeho v
+        // ramci grupy, resp. vymysliet ako predat flag na trigger destruktivnej akcie
+        parentElem.replaceChildren();
+        groupDto.items.forEach(groupItem => {
+            switch (groupItem.type) {
+                case "link":
+                    parentElem.appendChild(this.renderLink(groupItem));
+                    break;
+                case "subgroup":
+                    parentElem.appendChild(this.renderSubgroup(groupItem));
+                    break;
+                default:
+                    console.error("unsupported element");
+                    //return document.createElement("span");
             }
-        );
+        });
     }
 
     private renderLink(link: LinkDTO): HTMLElement {
@@ -197,7 +211,6 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       })
 
       titleElem.addEventListener('blur', () => {
-          console.log("blurred");
         this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
 
@@ -208,7 +221,6 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       })
 
       descriptionElem.addEventListener('blur', () => {
-          console.log("blurred");
         this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
       });
     }
