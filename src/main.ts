@@ -53,27 +53,48 @@ export const ELEM_OPTIONS_MENU_ITEM = "options-menu-item";
  *  Class names bound to some actions triggered by UI elements by user
  */
 
+// "Greetings" screen
 export const ACT_FIRST_WORKSPACE: string = "act-first-workspace";
 export const ACT_IMPORT_LINKS: string = "act-import-links";
-export const ACT_LOAD_DEFAUTLS: string = "ct-load-defaults";
+export const ACT_LOAD_DEFAUTLS: string = "act-load-defaults";
 
+// Workspace component
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";
 
+// Group component
 export const ACT_ADD_GROUP: string = "action-add-group";
 export const ACT_EDIT_GROUP: string = "action-edit-group";
-
 export const ACT_ADD_LINK: string = "action-add-link";
+
+// Link component
+export const ACT_LINK_MOVE_UP: string = "act-link-move-up";
+export const ACT_LINK_MOVE_DOWN: string = "act-link-move-down";
+export const ACT_LINK_DELETE: string = "act-link-delete";
+export const ACT_LINK_EDIT: string = "act-link-edit";
 
 /**
  *  Plain class names
  */
+
+// General classes
+export const CLASS_ACTION_ADD: string = "add";
+export const CLASS_ACTION_DANGER: string = "danger";
+export const CLASS_ACTION_ACTIVE: string = "active";
+
+// Workspace component
 export const CLASS_WORKSPACE_HEAD_TITLE: string = "cls-workspace-head-title";
 export const CLASS_WORKSPACE_HEAD_ACTIONS: string = "cls-workspace-head-actions";
 
+// Group component
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
 export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
+
+// Link component
+export const CLASS_LINK_ACTIONS_CONTAINER = "cls-link-actions-container";
+export const CLASS_LINK_TEXT = "cls-link-text";
+export const CLASS_LINK_ICON= "cls-link-icon";
 
 // define custom elements used BEFORE they are created/constructed
 // otherwise You are unable to call custom methods for example for

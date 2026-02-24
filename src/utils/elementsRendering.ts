@@ -1,12 +1,14 @@
 
 export const ICON = {
-    EDIT: "✎",      // edit / rename
-    ADD: "+",       // add
-    DELETE: "×",    // delete
-    CLOSE: "✕",     // close
-    MOVE: "⇅",      // move
-    EXPAND: "▸",    // expand / open
-    COLLAPSE: "▾",  // collapse / close
+    EDIT: "✎",       // edit / rename
+    ADD: "+",        // add
+    DELETE: "×",     // delete
+    CLOSE: "✕",      // close
+    MOVE: "⇅",       // move (up/down)
+    MOVE_UP: "▴",    // move up
+    MOVE_DOWN: "▾",  // move down
+    EXPAND: "▸",     // expand / open
+    COLLAPSE: "▾",   // collapse / close
     MORE: "⋮",
 } as const;
 

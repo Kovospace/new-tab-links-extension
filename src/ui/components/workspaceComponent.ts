@@ -10,7 +10,9 @@ import {
     ACT_ADD_WORKSPACE,
     CLASS_GROUP_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_TITLE,
-    CLASS_WORKSPACE_HEAD_ACTIONS
+    CLASS_WORKSPACE_HEAD_ACTIONS,
+    CLASS_ACTION_ADD,
+    CLASS_ACTION_DANGER
 } from "../../main"
 import {renderButton, renderContainer, ICON, renderTextContainer} from "../../utils/elementsRendering"
 
@@ -113,7 +115,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         parentElem.appendChild(renderButton(
             ICON.ADD,
             null,
-            [ACT_ADD_WORKSPACE],
+            [ACT_ADD_WORKSPACE, CLASS_ACTION_ADD],
             "Add new workspace",
             clicked => {
                 this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
@@ -165,7 +167,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         actionsSectionElem.appendChild(renderButton(
             ICON.ADD + " Add group",
             workspace.id,
-            [ACT_ADD_GROUP],
+            [ACT_ADD_GROUP, CLASS_ACTION_ADD],
             "Add new group",
             (event) => {
                 this.LOG.debug("add group clicked");

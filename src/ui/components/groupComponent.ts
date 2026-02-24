@@ -10,7 +10,8 @@ import {
     ACT_ADD_GROUP,
     ACT_EDIT_GROUP,
     CLASS_GROUP_HEAD_TITLE,
-    CLASS_GROUP_HEAD_ACTIONS
+    CLASS_GROUP_HEAD_ACTIONS,
+    CLASS_ACTION_ADD
 } from "../../main"
 
 // utils
@@ -53,6 +54,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         headerElem.appendChild(titleSectionElem);
         headerElem.appendChild(actionsSectionElem);
 
+        //TODO vytvorit vo viewmodel subscriber na tieto dáta
         // group head elements
         // title
         titleSectionElem.appendChild(renderTextContainer(
@@ -82,7 +84,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Manage links",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: (metadata) => this.toggleLinksManagementOptions(event.target as HTMLElement)
                 },
                 {
                     actionTitle: "Delete group",
@@ -99,7 +101,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         actionsSectionElem.appendChild(renderButton(
             ICON.ADD,
             this.DTO.id,
-            [ACT_ADD_LINK],
+            [ACT_ADD_LINK, CLASS_ACTION_ADD],
             "Add link to group",
             onClick => {
                 this.LOG.debug(
@@ -113,6 +115,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         // links
         this.VIEW_MODEL.observables.group
             .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
+
+        // reattach listeners on changes
+        //this.listenerChangeGroupName();
     }
 
     private attachListeners() {
@@ -120,22 +125,38 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     }
 
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {
-        handleReactiveRendering<GroupItemDTO, HTMLButtonElement>(
-            parentElem,
-            groupDto.items,
-            groupItem => groupItem.id,
-            groupItem => {
-                switch (groupItem.type) {
-                    case "link":
-                        return this.renderLink(groupItem);
-                    case "subgroup":
-                        return this.renderSubgroup(groupItem);
-                    default:
-                        console.error("unsupported element");
-                        return document.createElement("span");
-                }
+        // handleReactiveRendering<GroupItemDTO, HTMLButtonElement>(
+        //     parentElem,
+        //     groupDto.items,
+        //     groupItem => groupItem.id,
+        //     groupItem => {
+        //         switch (groupItem.type) {
+        //             case "link":
+        //                 return this.renderLink(groupItem);
+        //             case "subgroup":
+        //                 return this.renderSubgroup(groupItem);
+        //             default:
+        //                 console.error("unsupported element");
+        //                 return document.createElement("span");
+        //         }
+        //     }
+        // );
+        //TODO pre hybanie linkami vymysliet destruktivnu akciu na prerenderovanie vsetkeho v
+        // ramci grupy, resp. vymysliet ako predat flag na trigger destruktivnej akcie
+        parentElem.replaceChildren();
+        groupDto.items.forEach(groupItem => {
+            switch (groupItem.type) {
+                case "link":
+                    parentElem.appendChild(this.renderLink(groupItem));
+                    break;
+                case "subgroup":
+                    parentElem.appendChild(this.renderSubgroup(groupItem));
+                    break;
+                default:
+                    console.error("unsupported element");
+                    //return document.createElement("span");
             }
-        );
+        });
     }
 
     private renderLink(link: LinkDTO): HTMLElement {
@@ -165,6 +186,15 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             setTimeout(() => { menuItem.textContent = "Save group title" }, 250);
         } else {
             setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
+    }
+
+    private toggleLinksManagementOptions(menuItem: HTMLElement) {
+        this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.toggle("managed");
+        if (!this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
+            setTimeout(() => { menuItem.textContent = "Finish group links editing" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
         }
     }
 

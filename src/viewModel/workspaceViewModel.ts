@@ -107,7 +107,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
             return;
         }
         if (!title) {
-            console.LOG("No group will be created because user does not provided name");
+            console.log("No group will be created because user does not provided name");
             return;
         }
         this.REPOSITORY.createGroup(title, workspaceId);

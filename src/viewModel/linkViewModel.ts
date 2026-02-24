@@ -34,4 +34,35 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO, LinkObservables> {
 
         this.observables.link.set(result);
     }
+
+    public deleteLink() {
+        this.REPOSITORY.deleteLink(this.DTO.id);
+    }
+
+    public editLink(title: string, url: string) {
+        if (!title) {
+
+        }
+        if (!url) {
+
+        }
+        this.REPOSITORY.editLink(
+            this.DTO.id, this.DTO.subGroupId, this.DTO.groupId, this.DTO.workspaceId,
+            title, url, null);
+    }
+
+    public moveLinkUp() {
+        if (this.DTO.position <= 0) {
+            return;
+        }
+        this.REPOSITORY.editLink(
+            this.DTO.id, this.DTO.subGroupId, this.DTO.groupId, this.DTO.workspaceId,
+            this.DTO.title, this.DTO.url, this.DTO.position - 1);
+    }
+
+    public moveLinkDown() {
+        this.REPOSITORY.editLink(
+            this.DTO.id, this.DTO.subGroupId, this.DTO.groupId, this.DTO.workspaceId,
+            this.DTO.title, this.DTO.url, this.DTO.position + 1);
+    }
 }

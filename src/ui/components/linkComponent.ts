@@ -6,6 +6,12 @@ import { LinkViewModel } from "../../viewModel/linkViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent"
+import { renderButton, ICON, renderContainer } from "../../utils/elementsRendering"
+import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
+    CLASS_LINK_ACTIONS_CONTAINER, CLASS_LINK_TEXT, CLASS_LINK_ICON, CLASS_ACTION_ADD,
+    CLASS_ACTION_ACTIVE, CLASS_ACTION_DANGER } from "../../main";
+
+// utils
 import {FaviconsHandler} from "../../utils/faviconsHandler";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
@@ -13,11 +19,14 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
     protected render(parentElem: HTMLElement) {
 
         this.VIEW_MODEL.observables.link
-            .subscribe((linkDto: LinkDTO)=> this.renderLink(linkDto, parentElem));
+            .subscribe((linkDto: LinkDTO)=> {
+                parentElem.replaceChildren();
+                this.renderLink(linkDto, parentElem);
+            });
     }
 
     protected attachListeners(parentElem: HTMLElement) {
-
+        this.listenerOpenLink();
     }
 
     /**
@@ -36,11 +45,14 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
     private renderLink(linkDto: LinkDTO, parentElem: HTMLElement) {
 
         // containers
-        const faviconDiv: HTMLElement = document.createElement("div");
+        const faviconDiv: HTMLElement = renderContainer([CLASS_LINK_ICON]);
         parentElem.appendChild(faviconDiv);
 
-        const linkContentDiv: HTMLElement = document.createElement("div");
+        const linkContentDiv: HTMLElement = renderContainer([CLASS_LINK_TEXT]);
         parentElem.appendChild(linkContentDiv);
+
+        const linkActionsDiv: HTMLElement = renderContainer([CLASS_LINK_ACTIONS_CONTAINER]);
+        parentElem.appendChild(linkActionsDiv);
 
         // link
         const anchor: HTMLAnchorElement = document.createElement("a");
@@ -63,6 +75,39 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             .then(base64 => { img.src = base64 });
 
         faviconDiv.appendChild(img);
+
+        // "manage links" actions
+        linkActionsDiv.appendChild(renderButton(
+            ICON.MOVE_UP, this.DTO.id, [ACT_LINK_MOVE_UP], "Move link up", onClick => {
+                event.stopPropagation();
+                this.VIEW_MODEL.moveLinkUp();
+            }));
+
+        linkActionsDiv.appendChild(renderButton(
+            ICON.MOVE_DOWN, this.DTO.id, [ACT_LINK_MOVE_DOWN], "Move link down", onClick => {
+                event.stopPropagation();
+                this.VIEW_MODEL.moveLinkDown();
+            }));
+
+        linkActionsDiv.appendChild(renderButton(
+            ICON.DELETE, this.DTO.id, [ACT_LINK_DELETE, CLASS_ACTION_DANGER], "Delete link", onClick => {
+                event.stopPropagation();
+                this.VIEW_MODEL.deleteLink();
+            }));
+
+        linkActionsDiv.appendChild(renderButton(
+            ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Delete link", onClick => {
+                event.stopPropagation();
+                const title = "";
+                const url = "";
+                this.VIEW_MODEL.editLink(title, url);
+            }));
+    }
+
+    private listenerOpenLink() {
+        this.addEventListener('click', () => {
+            window.location.href = this.DTO.url;
+        });
     }
 
 }
