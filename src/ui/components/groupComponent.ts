@@ -86,7 +86,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Manage links",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: (metadata) => this.toggleLinksManagementOptions(event.target as HTMLElement)
                 },
                 {
                     actionTitle: "Delete group",
@@ -119,7 +119,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
 
         // reattach listeners on changes
-        /this.listenerChangeGroupName();
+        //this.listenerChangeGroupName();
     }
 
     private attachListeners() {
@@ -172,6 +172,15 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             setTimeout(() => { menuItem.textContent = "Save group title" }, 250);
         } else {
             setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
+    }
+
+    private toggleLinksManagementOptions(menuItem: HTMLElement) {
+        this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.toggle("managed");
+        if (!this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
+            setTimeout(() => { menuItem.textContent = "Finish group links editing" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
         }
     }
 

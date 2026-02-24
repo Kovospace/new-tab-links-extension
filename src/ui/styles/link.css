@@ -29,6 +29,8 @@ link-container > div.cls-link-text {
 
 link-container > div.cls-link-actions-container {
   margin-left: auto;
+  display: flex;
+  flex-direction: row;
 }
 
 link-container > div.cls-link-actions-container > button {
@@ -66,6 +68,19 @@ link-container:hover > div.cls-link-actions-container > button.danger {
 
 link-container:hover > div.cls-link-actions-container > button.danger:hover {
   background-color: #B00;
+}
+
+
+
+link-group-body > link-container > div.cls-link-actions-container {
+  max-width: 32em;
+  overflow: hidden;
+  transition:
+    max-width 0.25s ease-in-out;
+}
+
+link-group-body.managed > link-container > div.cls-link-actions-container {
+  max-width: 0em;
 }
 
 
