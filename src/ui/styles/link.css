@@ -72,15 +72,17 @@ link-container:hover > div.cls-link-actions-container > button.danger:hover {
 
 
 
-link-group-body > link-container > div.cls-link-actions-container {
-  max-width: 32em;
+link-group-body > link-container > div.cls-link-actions-container,
+link-group-body > link-subgroup > link-container > div.cls-link-actions-container {
+  max-width: 0em;
   overflow: hidden;
   transition:
     max-width 0.25s ease-in-out;
 }
 
-link-group-body.managed > link-container > div.cls-link-actions-container {
-  max-width: 0em;
+link-group-body.managed > link-container > div.cls-link-actions-container,
+link-group-body.managed > link-subgroup > link-container > div.cls-link-actions-container {
+  max-width: 32em;
 }
 
 

@@ -98,8 +98,8 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         linkActionsDiv.appendChild(renderButton(
             ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Delete link", onClick => {
                 event.stopPropagation();
-                const title = "";
-                const url = "";
+                const title = prompt("Update title", this.DTO.title);
+                const url = prompt("Update URL", this.DTO.url);
                 this.VIEW_MODEL.editLink(title, url);
             }));
     }
