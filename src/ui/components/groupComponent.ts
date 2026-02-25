@@ -191,7 +191,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
     private toggleLinksManagementOptions(menuItem: HTMLElement) {
         this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.toggle("managed");
-        if (!this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
+        if (this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
             setTimeout(() => { menuItem.textContent = "Finish group links editing" }, 250);
         } else {
             setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
