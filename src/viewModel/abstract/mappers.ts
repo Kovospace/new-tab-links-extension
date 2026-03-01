@@ -1,5 +1,5 @@
 import {Environment, Group, Subgroup, Link} from "../../backend/entity/AppStateEntity";
-import {GroupDTO, WorkpsaceDTO, LinkDTO} from "./dtos";
+import {GroupDTO, WorkpsaceDTO, LinkDTO, SubgroupDTO} from "./dtos";
 
 export const toWorkspaceDTO = (workspace: Environment): WorkpsaceDTO => ({
     id: workspace.id,
@@ -26,6 +26,7 @@ export const toLinkDTO = (link: Link): LinkDTO => ({
 export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     id: subgroup.id,
     title: subgroup.title,
+    description: subgroup.description,
     links: [],
     position: subgroup.position,
     type: "subgroup"

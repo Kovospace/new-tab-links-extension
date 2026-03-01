@@ -36,6 +36,7 @@ export interface GroupItem {
 export interface Subgroup extends GroupItem {
     collapsed: boolean;
     defaultCollapsed: boolean;
+    description: string;
 }
 
 export interface Link extends GroupItem {

@@ -109,5 +109,19 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         this.REPOSITORY.createLink(groupId, subGroupId, title, url);
     }
 
+    public addSubGroup(title: string, description: string) {
+        // if (!groupId) {
+        //     console.error("groupId is missing for sub-group creation");
+        // }
+        if (!title) {
+            console.log("subgroup title not provided for subgroup");
+            return;
+        }
+        if (!description) {
+            console.log("description not provided for subgroup");
+        }
+        this.REPOSITORY.createSubGroup(title, description, this.DTO.id);
+    }
+
 }
 

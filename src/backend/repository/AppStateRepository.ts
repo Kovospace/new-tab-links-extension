@@ -1,4 +1,4 @@
-import {AppState, Environment, Group, Link, GroupItem} from "../entity/AppStateEntity";
+import {AppState, Environment, Group, Link, GroupItem, Subgroup} from "../entity/AppStateEntity";
 import {uid} from "../../utils/firstOrderMethods";
 import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWrapper";
 // import {AppStateRepositoryUtils} from "./AppStateRepositoryUtils";
@@ -38,7 +38,6 @@ export class AppStateRepository {
     }
 
     // GET actions
-
     getCurrentEnvironmentId(): string | null {
         if (Object.keys(this.state.environments).length <= 0) {
             this.LOG.debug("getCurrentEnvironmentId", "no environments in state");
@@ -220,6 +219,30 @@ export class AppStateRepository {
     /**
      *  Deletes the whole sub-groups and its links
      */
+
+    createSubGroup(title: string, description: string, groupId: string, environmentId: string): Promise<void> {
+        const id = uid();
+        if (!environmentId) {
+            environmentId = this.getCurrentEnvironmentId();
+        }
+        this.state = {
+            ...this.state,
+            subgroups: {
+                ...this.state.subgroups,
+                [id]: {
+                    id: id,
+                    groupId: groupId,
+                    environmentId: environmentId,
+                    title: title,
+                    description: description,
+                    createdAt: Date.now(),
+                    type: "subgroup"
+                } satisfies Subgroup
+            }
+        };
+        return this.save();
+    }
+
     deleteSubGroup(id: string): Promise<void> {
         // delete subgroup
         const subGroups = { ...this.state.subgroups };

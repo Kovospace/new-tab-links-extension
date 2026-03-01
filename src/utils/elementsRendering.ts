@@ -10,6 +10,7 @@ export const ICON = {
     EXPAND: "▸",     // expand / open
     COLLAPSE: "▾",   // collapse / close
     MORE: "⋮",
+    OPEN_GROUPED: "⇉"
 } as const;
 
 export function renderContainer(

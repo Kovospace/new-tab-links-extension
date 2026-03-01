@@ -1,0 +1,55 @@
+link-subgroup {
+    margin-left: 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    display: flex;
+    flex-direction: column;
+}
+
+link-subgroup > hr {
+    display: block;
+    height: 0.125em;
+    background-color: #eee;
+    margin-top: 0.375em;
+    margin-bottom: 0.375em;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+link-subgroup-head,
+link-subgroup-body {
+    display: block;
+}
+
+link-subgroup-head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+link-subgroup-head > div.cls-subgroup-head-title {
+    margin-right: 0.75em;
+}
+
+link-subgroup-head > div.cls-subgroup-head-actions {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+link-subgroup-head > div.cls-subgroup-head-actions > button {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+link-subgroup-head > div.cls-subgroup-head-actions > button:first-child {
+    margin-bottom: 0.175em;
+}
+
+link-subgroup-head > div.cls-subgroup-head-actions > button:last-child {
+    margin-top: 0.175em;
+}
+
+link-subgroup-body {
+    margin-top: 0.75em;
+}

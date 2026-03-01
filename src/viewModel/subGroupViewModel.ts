@@ -39,4 +39,8 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO, SubGroupOb
 
         this.observables.subgroup.set(result);
     }
+
+    public addLink(title: string, url: string) {
+        this.REPOSITORY.createLink(this.DTO.groupId, this.DTO.id, title, url);
+    }
 }
