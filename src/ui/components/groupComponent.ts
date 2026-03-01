@@ -74,7 +74,13 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Add link",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: (metadata) => this.actionAddLink()
+                },
+                {
+                    actionTitle: "Add subgroup",
+                    dangerous: false,
+                    onClick: (metadata) => this.VIEW_MODEL.addSubGroup(
+                        prompt("Give subgroup title"), prompt("Give subgroup description"))
                 },
                 {
                     actionTitle: "Edit Group title",
@@ -103,12 +109,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             this.DTO.id,
             [ACT_ADD_LINK, CLASS_ACTION_ADD],
             "Add link to group",
-            onClick => {
-                this.LOG.debug(
-                    "render",
-                    "add link to group: " + this.title + " with id: " + this.id + " clicked");
-                this.VIEW_MODEL.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
-            }
+            onClick => this.actionAddLink()
         ));
 
         // group body elements
@@ -157,6 +158,13 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                     //return document.createElement("span");
             }
         });
+    }
+
+    private actionAddLink() {
+        this.LOG.debug(
+            "render",
+            "add link to group: " + this.title + " with id: " + this.id + " clicked");
+        this.VIEW_MODEL.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
     }
 
     private renderLink(link: LinkDTO): HTMLElement {

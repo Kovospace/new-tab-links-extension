@@ -43,6 +43,8 @@ export const ELEM_GROUP_BODY: string = "link-group-body";
 export const ELEM_GROUP_FOOT: string = "link-group-foot";
 
 export const ELEM_SUBGROUP: string = "link-subgroup"
+export const ELEM_SUBGROUP_HEAD: string = "link-subgroup-head";
+export const ELEM_SUBGROUP_BODY = "link-subgroup-body"
 
 export const ELEM_LINK: string = "link-container";
 
@@ -68,6 +70,10 @@ export const ACT_ADD_GROUP: string = "action-add-group";
 export const ACT_EDIT_GROUP: string = "action-edit-group";
 export const ACT_ADD_LINK: string = "action-add-link";
 
+// Sub-group component
+export const ACT_EDIT_SUBGROUP: string = "action-edit-subgroup";
+export const ACT_OPEN_ALL_SUBGROUP_LINKS = "action-open-all-subgroup-links"
+
 // Link component
 export const ACT_LINK_MOVE_UP: string = "act-link-move-up";
 export const ACT_LINK_MOVE_DOWN: string = "act-link-move-down";
@@ -90,6 +96,10 @@ export const CLASS_WORKSPACE_HEAD_ACTIONS: string = "cls-workspace-head-actions"
 // Group component
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
 export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
+
+// Subgroup component
+export const CLASS_SUBGROUP_HEAD_TITLE = "cls-subgroup-head-title";
+export const CLASS_SUBGROUP_HEAD_ACTIONS = "cls-subgroup-head-actions";
 
 // Link component
 export const CLASS_LINK_ACTIONS_CONTAINER = "cls-link-actions-container";

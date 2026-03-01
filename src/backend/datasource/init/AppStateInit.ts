@@ -35,6 +35,7 @@ export const appStateInit: AppState = {
         "subgroup-1": {
             id: "subgroup-1",
             title: "Testovacia podskupina 1",
+            description: "Popis sub group 1",
             groupId: "group-1",
             environmentId: "env-1",
             collapsed: false,
