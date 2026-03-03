@@ -25,6 +25,7 @@ link-subgroup-head {
     display: flex;
     flex-direction: row;
     align-items: center;
+    cursor: pointer;
 }
 
 link-subgroup-head > div.cls-subgroup-head-title {
@@ -51,5 +52,15 @@ link-subgroup-head > div.cls-subgroup-head-actions > button:last-child {
 }
 
 link-subgroup-body {
-    margin-top: 0.75em;
+    padding-top: 0.75em;
+    overflow: hidden;
+    height: auto;
+    max-height: 100vh;
+    transition:
+        max-height 0.25s ease;
 }
+
+link-subgroup-body.rolled {
+    max-height: 0;
+}
+
