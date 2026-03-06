@@ -42,7 +42,7 @@ workspace-plane-body > link-group {
     margin: 0.5em;
     padding: 0.5em;
     border-radius: 0.5em;
-    transition: background-color 0.25s ease-in-out;
+    transition: background-color var(--time-transition-medium) ease-in-out;
 }
 
 workspace-plane-body > link-group:first-child {
@@ -56,11 +56,10 @@ workspace-plane-body > link-group:last-child {
 
 
 html.dark workspace-plane-body > link-group {
-    background-color: #222;
+    background-color: var(--color-component-background);
 }
 
-html.dark workspace-plane-body > link-group:hover {
-    background-color: #333;
+html.dark workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)) {
+    background-color: var(--color-component-background-hover);
 }
-
 

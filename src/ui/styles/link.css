@@ -7,12 +7,12 @@ link-container {
 }
 
 link-container:hover {
-  background-color: #555;
-  color: #FFF;
+  background-color: var(--color-button-background-hover);
+  color: var(--color-button-text-hover);
   border-radius: 0.25em;
   transition:
-    color 0.25s ease-in-out,
-    background-color 0.25s ease-in-out
+    color var(--time-transition-medium) ease-in-out,
+    background-color var(--time-transition-medium) ease-in-out
 }
 
 link-container > div {
@@ -55,19 +55,19 @@ link-container:hover > div.cls-link-actions-container > button {
 link-container:hover > div.cls-link-actions-container > button.act-link-move-up:hover,
 link-container:hover > div.cls-link-actions-container > button.act-link-move-down:hover
 {
-  background-color: #090;
+  background-color: var(--color-button-add-background-hover);
 }
 
 link-container:hover > div.cls-link-actions-container > button.act-link-edit:hover {
-  background-color: #09F;
+  background-color: var(--color-button-active-background-hover);
 }
 
 link-container:hover > div.cls-link-actions-container > button.danger {
-  background-color: #900;
+  background-color: var(--color-button-danger-background);
 }
 
 link-container:hover > div.cls-link-actions-container > button.danger:hover {
-  background-color: #B00;
+  background-color: var(--color-button-danger-background-hover);
 }
 
 
