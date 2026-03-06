@@ -15,6 +15,8 @@ import {SubgroupComponent} from "./ui/components/subgroupComponent";
  *  CSS files
  */
 
+import './ui/styles/__variables.css'
+
 import './ui/styles/reset.css'
 import './ui/styles/main.css'
 import './ui/styles/firstRun.css'

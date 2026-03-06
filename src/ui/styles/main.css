@@ -24,8 +24,8 @@ div.overlay {
     z-index: 100;
     opacity: 1;
     transition:
-            opacity 250ms ease,
-            visibility 250ms ease;
+            opacity var(--time-transition-medium) ease,
+            visibility var(--time-transition-medium) ease;
 }
 
 div.overlay.hidden {
@@ -64,13 +64,13 @@ button {
     line-height: 1em;
     padding: 0.25em;
     margin: 0 0.25em;
-    border-radius: 0.25em;
+    border-radius: var(--radius-normal);
     font-weight: bold;
     cursor: pointer;
     transition:
-      box-shadow 0.125s ease,
-      background-color 0.25s ease-in-out,
-      color 0.25s ease-in-out;
+      box-shadow var(--time-transition-fast) ease,
+      background-color var(--time-transition-medium) ease-in-out,
+      color var(--time-transition-medium) ease-in-out;
 }
 
 button:last-child {
@@ -100,77 +100,80 @@ h2 {
 
 
 html.dark {
-    background-color: #111;
-    color: #eee;
+    background-color: var(--color-document-background);
+    color: var(--color-document-text);
 }
 
 html.dark header,
 html.dark footer {
-    background-color: #222;
+    background-color: var(--color-component-background);
+    color: var(--color-component-text);
 }
 
 html.dark button {
-    background-color: #444;
+    background-color: var(--color-button-background);
+    color: var(--color-button-text);
 }
 
 html.dark button:hover {
-  color: #FFF;
-  background-color: #555;
+  color: var(--color-button-text-hover);
+  background-color: var(--color-button-background-hover);
 }
 
 html.dark button:active {
-  box-shadow: 0 0 0.25em 0.25em #444;
+  box-shadow: 0 0 0.25em 0.25em var(--color-button-background);
 }
 
 html.dark .active {
-    background-color: #09F;
+    background-color: var(--color-button-active-background);
 }
 
 html.dark .add {
-  background-color: #090;
+  background-color: var(--color-button-add-background);
 }
 
 html.dark .danger {
-  background-color: #900;
+  background-color: var(--color-button-danger-background);
 }
 
 html.dark .active:hover {
-  background-color: #0BF;
+  background-color: var(--color-button-active-background-hover);
 }
 
 html.dark .add:hover {
-  background-color: #0B0;
+  background-color: var(--color-button-add-background-hover);
 }
 
 html.dark .danger:hover {
-  background-color: #B00;
+  background-color: var(--color-button-danger-background-hover);
 }
 
 html.dark .active:active {
-  box-shadow: 0 0 0.25em 0.25em #09F;
+  box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
 }
 
 html.dark .add:active {
-  box-shadow: 0 0 0.25em 0.25em #090;
+  box-shadow: 0 0 0.25em 0.25em var(--color-button-add-background);
 }
 
 html.dark .danger:active {
-  box-shadow: 0 0 0.25em 0.25em #900;
+  box-shadow: 0 0 0.25em 0.25em var(--color-button-danger-background);
 }
 
 html.dark .editable {
-    background-color: #444;
+    background-color: var(--color-textfield-background);
+    color: var(--color-textfield-text);
     transition:
-            box-shadow 0.25s ease-in-out,
-            background-color 0.25s ease-in-out,
-            color 0.25s ease-in-out;
+            box-shadow var(--time-transition-medium) ease-in-out,
+            background-color var(--time-transition-medium) ease-in-out,
+            color var(--time-transition-medium) ease-in-out;
 }
 
 html.dark .editable:hover {
-    background-color: #555;
-    color: #FFF;
+    background-color: var(--color-textfield-background-hover);
+    color: var(--color-textfield-text-hover);
 }
 
 html.dark .editable:focus {
-    box-shadow: inset 0 0 0 0.125em #18F;
+    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
 }

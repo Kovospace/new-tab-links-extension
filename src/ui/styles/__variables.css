@@ -1,0 +1,30 @@
+:root {
+    --color-document-background: #000;
+    --color-document-text: #eee;
+
+    --color-component-background: #222;
+    --color-component-text: #eee;
+    --color-component-background-hover: #333;
+
+    --color-button-background: #444;
+    --color-button-text: #eee;
+    --color-button-background-hover: #555;
+    --color-button-text-hover: #fff;
+    --color-button-active-background: #09F;
+    --color-button-active-background-hover: #0BF;
+    --color-button-add-background: #090;
+    --color-button-add-background-hover: #0B0;
+    --color-button-danger-background: #900;
+    --color-button-danger-background-hover: #B00;
+
+    --color-textfield-background: #444;
+    --color-textfield-text: #eee;
+    --color-textfield-background-hover: #555;
+    --color-textfield-text-hover: #fff;
+    --color-textfield-border-active: #09f;
+
+    --time-transition-fast: 0.125s;
+    --time-transition-medium: 0.25s;
+
+    --radius-normal: 0.25em;
+}
