@@ -59,8 +59,7 @@ html.dark workspace-plane-body > link-group {
     background-color: var(--color-component-background);
 }
 
-html.dark workspace-plane-body > link-group:hover {
+html.dark workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)) {
     background-color: var(--color-component-background-hover);
 }
-
 

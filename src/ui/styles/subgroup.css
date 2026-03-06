@@ -2,8 +2,17 @@ link-subgroup {
     margin-left: 1em;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+    padding:0.25em;
     display: flex;
     flex-direction: column;
+    border-radius: var(--radius-normal);
+    transition:
+            background-color var(--time-transition-medium) ease-in-out,
+            color var(--time-transition-medium) ease-in-out;
+}
+
+link-subgroup:hover {
+    background-color: var(--color-component-background-hover);
 }
 
 link-subgroup > hr {
@@ -24,7 +33,7 @@ link-subgroup-body {
 link-subgroup-head {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     cursor: pointer;
 }
 
