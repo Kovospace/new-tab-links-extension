@@ -3,15 +3,15 @@ options-menu {
     z-index: 101; /* more than overlay */
     top: 100%;
     left: 0;
-    border-radius: 0.25em;
-    background-color: #444;
-    box-shadow: 0 0 0 0.25em black;
+    border-radius: var(--radius-normal);
+    background-color: var(--color-component-background);
+    box-shadow: 0 0 0 0.25em var(--color-document-background);
     margin-top:0.5em;
     opacity: 0;
     visibility: hidden;
     transition:
-            opacity 250ms ease,
-            visibility 250ms ease;
+            opacity var(--time-transition-medium) ease,
+            visibility var(--time-transition-medium) ease;
 }
 
 options-menu.visible {
@@ -26,8 +26,8 @@ options-menu-item {
     text-align: left;
     display: block;
     transition:
-            background-color 0.25s ease-in-out,
-            color 0.25s ease-in-out;
+            background-color var(--time-transition-medium) ease-in-out,
+            color var(--time-transition-medium) ease-in-out;
 }
 
 options-menu-item::after {
@@ -46,32 +46,32 @@ options-menu-item:last-child::after {
 }
 
 options-menu-item.danger {
-    background-color: #900;
+    background-color: var(--color-button-danger-background);
 }
 
 options-menu-item.active {
-    background-color: #09F;
+    background-color: var(--color-button-active-background);
 }
 
 options-menu-item:first-child {
-    border-top-left-radius: 0.25em;
-    border-top-right-radius: 0.25em;
+    border-top-left-radius: var(--radius-normal);
+    border-top-right-radius: var(--radius-normal);
 }
 
 options-menu-item:last-child {
-    border-bottom-left-radius: 0.25em;
-    border-bottom-right-radius: 0.25em;
+    border-bottom-left-radius: var(--radius-normal);
+    border-bottom-right-radius: var(--radius-normal);
 }
 
 options-menu-item:hover {
-    color: #FFF;
-    background-color: #555;
+    color: var(--color-button-text-hover);
+    background-color: var(--color-button-background-hover);
 }
 
 options-menu-item.danger:hover {
-    background-color: #B00;
+    background-color: var(--color-button-danger-background-hover);
 }
 
 options-menu-item.active:hover {
-    background-color: #0BF;
+    background-color: var(--color-button-active-background);
 }
