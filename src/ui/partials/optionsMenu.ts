@@ -1,8 +1,8 @@
 
 import {Logger} from "../../utils/logger";
 
-import {ACT_EDIT_WORKSPACE, ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
-import {ICON, renderButton} from "../../utils/elementsRendering";
+import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
+import { ICON, renderButton } from "../partials/wrappedHtmlElements"
 import { toggleOverlay } from "../partials/wrappedHtmlElements";
 
 type OptionsMenuItem = {
@@ -65,8 +65,8 @@ export class OptionsMenu {
     private renderButton() {
         this.openingElement = renderButton(
             ICON.MORE,
-            null,
-            [this.renderData.openMenuButtonClass],
+            "",
+            [this.renderData.openMenuButtonClass ? this.renderData.openMenuButtonId : ""],
             this.renderData.openMenuButtonTooltipText,
             (event) => {
                 this.LOG.debug("neu open clicked");
@@ -108,7 +108,7 @@ export class OptionsMenu {
                         return;
                     }
                 }
-                option.onClick(this.metadata);
+                option.onClick();
             });
 
             this.menuElement.appendChild(optionElem);

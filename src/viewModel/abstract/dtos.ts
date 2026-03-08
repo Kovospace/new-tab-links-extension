@@ -1,23 +1,25 @@
-export interface WorkpsaceDTO {
+
+export interface ViewModelDTO {
     id: string;
+}
+
+export interface WorkspaceDTO extends ViewModelDTO {
     title: string;
     description?: string;
     active?: boolean;
 }
 
-export interface GroupDTO {
-    id: string;
+export interface GroupDTO extends ViewModelDTO {
     title: string;
     description?: string;
     items?: GroupItemDTO[];
 }
 
-export interface GroupItemDTO {
+export interface GroupItemDTO extends ViewModelDTO {
     title: string;
     type: string;
-    id: string;
     position: number;
-    description: string;
+    description?: string;
     //
     workspaceId: string;
     groupId: string;
@@ -25,9 +27,9 @@ export interface GroupItemDTO {
 
 export interface LinkDTO extends GroupItemDTO {
     url: string;
-    subGroupId: string;
+    subGroupId?: string;
 }
 
 export interface SubgroupDTO extends GroupItemDTO {
-    links: LinkDTO[];
+    links?: LinkDTO[] | null;
 }

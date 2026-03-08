@@ -5,7 +5,7 @@ import { ACT_FIRST_WORKSPACE, ACT_IMPORT_LINKS, ACT_LOAD_DEFAUTLS } from "../../
 export class FirstRunComponent extends HTMLElement {
 
     private REPOSITORY!: AppStateRepository;
-    private VIEW_MODEL: FirstRunVieeModel;
+    private VIEW_MODEL!: FirstRunViewModel;
 
     initialize(repository: AppStateRepository): void {
         this.REPOSITORY = repository;
@@ -51,11 +51,18 @@ export class FirstRunComponent extends HTMLElement {
 
     private attachButtonActions() {
 
-        this
-            .querySelector<HTMLButtonElement>(`#${ACT_FIRST_WORKSPACE}`)
-            .addEventListener('click', () => {
-                this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"), "Default workspace");
-            });
+        const addFirstWorkspaceButton: HTMLButtonElement | null =
+            this.querySelector<HTMLButtonElement>(`#${ACT_FIRST_WORKSPACE}`);
+
+        if (addFirstWorkspaceButton === undefined || addFirstWorkspaceButton === null) {
+            console.error(`Cannot find button for action ${ACT_FIRST_WORKSPACE}`);
+        }
+
+        addFirstWorkspaceButton!.addEventListener('click', () => {
+            this.VIEW_MODEL.addWorkspace(
+                prompt("Give a name for workspace"),
+                "Default workspace");
+        });
     }
 
 }

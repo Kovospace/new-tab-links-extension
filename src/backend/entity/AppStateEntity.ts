@@ -3,24 +3,24 @@ export interface AppState {
     groups: Record<string, Group>;
     subgroups: Record<string, Subgroup>;
     links: Record<string, Link>;
-    activeEnvironmentId: string;
+    activeEnvironmentId: string | null | undefined;
 }
 
 export interface Environment {
     id: string;
     name: string;
-    description: string;
+    description?: string;
     createdAt: number;
-    order: number;
+    order?: number;
 }
 
 export interface Group {
     id: string;
     title: string;
-    description: string;
+    description?: string;
     environmentId: string;
     createdAt: number;
-    order: number;
+    order?: number;
 }
 
 export interface GroupItem {
@@ -36,10 +36,10 @@ export interface GroupItem {
 export interface Subgroup extends GroupItem {
     collapsed: boolean;
     defaultCollapsed: boolean;
-    description: string;
+    description?: string;
 }
 
 export interface Link extends GroupItem {
     url: string;
-    subGroupId: string;
+    subGroupId?: string;
 }

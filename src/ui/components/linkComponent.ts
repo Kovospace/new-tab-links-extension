@@ -1,18 +1,17 @@
 
 // data / model layer
-import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { LinkDTO } from "../../viewModel/abstract/dtos"
 import { LinkViewModel } from "../../viewModel/linkViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent"
-import { renderButton, ICON, renderContainer } from "../../utils/elementsRendering"
+import { ICON, renderContainer, renderButton } from "../partials/wrappedHtmlElements"
 import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
     CLASS_LINK_ACTIONS_CONTAINER, CLASS_LINK_TEXT, CLASS_LINK_ICON, CLASS_ACTION_ADD,
-    CLASS_ACTION_ACTIVE, CLASS_ACTION_DANGER } from "../../main";
+    CLASS_ACTION_DANGER } from "../../main";
 
 // utils
-import {FaviconsHandler} from "../../utils/faviconsHandler";
+import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
@@ -62,7 +61,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
         // description
         const span: HTMLSpanElement = document.createElement("span");
-        span.textContent = linkDto.description;
+        span.textContent = linkDto.description ? linkDto.description : "";
         linkContentDiv.appendChild(span);
 
         // icon
@@ -79,25 +78,25 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         // "manage links" actions
         linkActionsDiv.appendChild(renderButton(
             ICON.MOVE_UP, this.DTO.id, [ACT_LINK_MOVE_UP], "Move link up", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.VIEW_MODEL.moveLinkUp();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.MOVE_DOWN, this.DTO.id, [ACT_LINK_MOVE_DOWN], "Move link down", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.VIEW_MODEL.moveLinkDown();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.DELETE, this.DTO.id, [ACT_LINK_DELETE, CLASS_ACTION_DANGER], "Delete link", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.VIEW_MODEL.deleteLink();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Delete link", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 const title = prompt("Update title", this.DTO.title);
                 const url = prompt("Update URL", this.DTO.url);
                 this.VIEW_MODEL.editLink(title, url);

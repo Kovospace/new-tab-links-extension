@@ -1,7 +1,6 @@
 import {AppState, Environment, Group, Link, GroupItem, Subgroup} from "../entity/AppStateEntity";
-import {uid} from "../../utils/firstOrderMethods";
 import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWrapper";
-// import {AppStateRepositoryUtils} from "./AppStateRepositoryUtils";
+import {uid} from "./AppStateRepositoryUtils";
 import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"
@@ -16,7 +15,6 @@ export class AppStateRepository {
     //private initialState!: AppState;
     readonly state$ = new ObservableValue<AppState>(appStateInit);
     private datasource = new ChromeStorageWrapper()
-    //private repositoryUtils!: AppStateRepositoryUtils;
 
     public async init(initialState: AppState) {
         this.LOG = new Logger("AppStateRepository");
@@ -41,7 +39,7 @@ export class AppStateRepository {
     getCurrentEnvironmentId(): string | null {
         if (Object.keys(this.state.environments).length <= 0) {
             this.LOG.debug("getCurrentEnvironmentId", "no environments in state");
-            this.state.activeEnvironmentId = null;
+            //this.state.activeEnvironmentId = null;
             return null;
         }
         if (!this.state.activeEnvironmentId || !this.checkEnvironmentExists(this.state.activeEnvironmentId)) {
@@ -55,6 +53,9 @@ export class AppStateRepository {
     }
 
     getCurrentEnvironment(): Environment | null {
+        if (!this.state.activeEnvironmentId) {
+            return null;
+        }
         return this.getCurrentEnvironmentId() ? this.state.environments[this.state.activeEnvironmentId] : null;
     }
 
@@ -102,7 +103,7 @@ export class AppStateRepository {
     /**
      *  Change workspace title and description
      */
-    renameWorkspace(id: string, title: string, description: string) {
+    renameWorkspace(id: string, title: string, description?: string) {
         this.LOG.debug("renameWorkspace", `id: ${id}, title: ${title}, description: ${description}`);
         this.state = {
             ...this.state,
@@ -151,10 +152,11 @@ export class AppStateRepository {
     /**
      *  Create group in given workspace or in current workspace if parameter omitted
      */
-    createGroup(title: string, environmentId: string): Promise<void> {
+    createGroup(title: string, environmentId: string): Promise<AppState> {
         const id = uid();
         if (!environmentId) {
-            environmentId = this.getCurrentEnvironmentId();
+            // in that case it is not possible for environment to not exists
+            environmentId = this.getCurrentEnvironmentId()!;
         }
         this.state = {
             ...this.state,
@@ -164,7 +166,6 @@ export class AppStateRepository {
                     id: id,
                     environmentId: environmentId,
                     title: title,
-                    // description: "",
                     createdAt: Date.now()
                 } satisfies Group
             }
@@ -175,7 +176,7 @@ export class AppStateRepository {
     /**
      *  Change group title and description
      */
-    renameGroup(id: string, title: string, description: string): Promise<void> {
+    renameGroup(id: string, title: string, description: string): Promise<AppState> {
         this.state = {
           ...this.state,
           groups: {
@@ -193,7 +194,7 @@ export class AppStateRepository {
     /**
      *  Deletes the whole group, links and subgroups associated with it
      */
-    deleteGroup(id: string): Promise<void> {
+    deleteGroup(id: string): Promise<AppState> {
         // delete group
         const groups = { ...this.state.groups };
         delete groups[id];
@@ -216,15 +217,17 @@ export class AppStateRepository {
 
     // Subgroup operations
 
+    //TODO assign position to new subgroup
     /**
      *  Deletes the whole sub-groups and its links
      */
-
-    createSubGroup(title: string, description: string, groupId: string, environmentId: string): Promise<void> {
+    createSubGroup(
+        groupId: string,
+        environmentId: string | null = this.getCurrentEnvironmentId(),
+        title: string,
+        description?: string
+    ): Promise<AppState> {
         const id = uid();
-        if (!environmentId) {
-            environmentId = this.getCurrentEnvironmentId();
-        }
         this.state = {
             ...this.state,
             subgroups: {
@@ -232,24 +235,28 @@ export class AppStateRepository {
                 [id]: {
                     id: id,
                     groupId: groupId,
-                    environmentId: environmentId,
+                    environmentId: environmentId!,
                     title: title,
                     description: description,
                     createdAt: Date.now(),
-                    type: "subgroup"
+                    type: "subgroup",
+                    collapsed: true,
+                    defaultCollapsed: true,
+                    //TODO
+                    position: 0
                 } satisfies Subgroup
             }
         };
         return this.save();
     }
 
-    deleteSubGroup(id: string): Promise<void> {
+    deleteSubGroup(id: string): Promise<AppState> {
         // delete subgroup
         const subGroups = { ...this.state.subgroups };
         delete subGroups[id];
         this.state = {
             ...this.state,
-            subGroups
+            ...subGroups
         };
         // delete links
         Object
@@ -271,7 +278,7 @@ export class AppStateRepository {
     /**
      *  Create new link for given group (and sub-group if selected) in current workspace
      */
-    createLink(groupId: string, subGroupId: string, title: string, url: string): Promise<void> {
+    createLink(url: string, title: string, groupId: string, subGroupId?: string): Promise<AppState> {
 
         this.LOG.debug(
             "createLink",
@@ -288,7 +295,7 @@ export class AppStateRepository {
                     id: id,
                     title: title,
                     url: url,
-                    environmentId: this.getCurrentEnvironmentId(),
+                    environmentId: this.getCurrentEnvironmentId()!, // in that case environment must already exist
                     groupId: groupId,
                     subGroupId: subGroupId,
                     type: "link",
@@ -304,9 +311,9 @@ export class AppStateRepository {
     /**
      *  Edit any non-readonly property of link
      */
-    editLink(id: string, subGroupId: string, groupId: string, workspaceId: string,
-             title: string, url: string, position: number
-    ) {
+    editLink(url: string, title: string, id: string, groupId: string,
+             subGroupId?: string, workspaceId?: string, position?: number
+    ): Promise<AppState> {
 
         this.LOG.debug(
             "editLink",
@@ -320,6 +327,10 @@ export class AppStateRepository {
         if (position !== undefined && position !== null && linksToEdit[id].position !== position) {
             linksToEdit = this.getRepositionedLinks(
                 id, linksToEdit[id].position, position, groupId, subGroupId);
+        }
+
+        if (!workspaceId) {
+            workspaceId = this.getCurrentEnvironmentId()!;
         }
 
         linksToEdit[id] = {
@@ -345,7 +356,7 @@ export class AppStateRepository {
     /**
      *  Delete given link by its ID
      */
-    deleteLink(id: string): Promise<void> {
+    deleteLink(id: string): Promise<AppState> {
         const links = { ...this.state.links };
         delete links[id];
         this.state = {

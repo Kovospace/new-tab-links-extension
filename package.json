@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/K0V0/NewTabGroupedLinks#readme",
   "devDependencies": {
+    "@types/chrome": "^0.1.37",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   },

@@ -1,6 +1,6 @@
 
 // utils
-import {OpenSubgroupAsGroupedTabsHandler} from "../../utils/openSubgroupAsGroupedTabsHandler"
+import {OpenSubgroupAsGroupedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsGroupedTabsHandler"
 
 // data / model layer
 import { SubgroupDTO, LinkDTO } from "../../viewModel/abstract/dtos"
@@ -20,7 +20,7 @@ import {
 } from "../../main";
 import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
-import {ICON, renderButton, renderContainer, renderTextContainer} from "../../utils/elementsRendering"
+import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 import { OptionsMenu } from "../partials/optionsMenu"
 
 
@@ -52,8 +52,8 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         const subgroupInfoContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_TITLE]);
         headElem.appendChild(subgroupInfoContainer);
 
-        const subgroupTitle = renderTextContainer(this.DTO.title, "h3", null, []);
-        const subgroupDescription = renderTextContainer(this.DTO.description, "span", null, []);
+        const subgroupTitle = renderTextContainer("h3", this.DTO.title);
+        const subgroupDescription = renderTextContainer("span", this.DTO.description);
         subgroupInfoContainer.appendChild(subgroupTitle);
         subgroupInfoContainer.appendChild(subgroupDescription);
 
@@ -71,8 +71,8 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Add link",
                     dangerous: false,
-                    onClick: (metadata) => {
-                        event.stopPropagation();
+                    onClick: () => {
+                        event?.stopPropagation();
                         this.VIEW_MODEL.addLink(
                             prompt("Give link title"), prompt("Give link URL"));
                     }
@@ -80,41 +80,39 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Expand / Collapse group",
                     dangerous: false,
-                    onClick: (metadata) => {
-                        this.actionSubgroupFold(event.target.closest(ELEM_SUBGROUP));
-                    }
+                    onClick: () => this.actionSubgroupFold(event)
                 },
                 {
                     actionTitle: "Open all links in grouped tabs",
                     dangerous: false,
-                    onClick: (metadata) => {
+                    onClick: () => {
                         this.actionOpenSubGroupLinks();
                     }
                 },
                 {
                     actionTitle: "Open all links in separated tabs",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: () => {}
                 },
                 {
                     actionTitle: "Edit subgroup title & description",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: () => {}
                 },
                 {
                     actionTitle: "Manage links",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: () => {}
                 },
                 {
                     actionTitle: "Move all links out of subgroup",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: () => {}
                 },
                 {
                     actionTitle: "Delete subgroup",
                     dangerous: true,
-                    onClick: (metadata) => {}
+                    onClick: () => {}
                 },
             ]
         );
@@ -125,12 +123,15 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             [ACT_OPEN_ALL_SUBGROUP_LINKS],
             "Open all subgroup links in new grouped tabs",
             onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.actionOpenSubGroupLinks();
             }
         ));
 
         // subgroup links
+        if (!subgroupDto.links) {
+         return;
+        }
         subgroupDto.links.forEach((link: LinkDTO) => {
             const linkElem: LinkComponent = document.createElement(ELEM_LINK) as LinkComponent;
             linkElem.initialize(this.REPOSITORY, link, LinkViewModel);
@@ -141,17 +142,24 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     private listenerOnHeadClick(thisElem: HTMLElement): void {
         thisElem
             .getElementsByTagName(ELEM_SUBGROUP_HEAD)[0]
-            .addEventListener('click', () => {
-                this.actionSubgroupFold(event.target.closest(ELEM_SUBGROUP));
-            });
+            .addEventListener('click', () => this.actionSubgroupFold(event));
     }
 
-    private actionSubgroupFold(subGroupElem: HTMLElement): void {
-        console.log(subGroupElem);
-        subGroupElem.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("rolled");
+    private actionSubgroupFold(event: Event | undefined): void {
+        if (!event) {
+            return;
+        }
+        const elem: HTMLElement = event.target as HTMLElement;
+        if (!elem) {
+            return;
+        }
+        elem.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("rolled");
     }
 
     private actionOpenSubGroupLinks(): void {
+        if (!this.DTO.links) {
+            return;
+        }
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
             this.DTO.links.map(link => link.url),
             this.DTO.title);
