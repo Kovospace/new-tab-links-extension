@@ -1,4 +1,3 @@
-import { WorkerResponse, WorkerMessage } from "../backend/worker/abstract/BackgroundWorker"
 import { GetFaviconOutput, GetFaviconInput } from "../backend/worker/module/favIconWorker"
 import { FavIconRepository } from "../backend/repository/FavIconRepository"
 import { sendToWorkerThread } from "./sendToWorker"

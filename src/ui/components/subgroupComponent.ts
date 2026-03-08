@@ -1,6 +1,8 @@
 
+// utils
+import {OpenSubgroupAsGroupedTabsHandler} from "../../utils/openSubgroupAsGroupedTabsHandler"
+
 // data / model layer
-import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { SubgroupDTO, LinkDTO } from "../../viewModel/abstract/dtos"
 import { SubGroupViewModel } from "../../viewModel/subGroupViewModel";
 
@@ -13,8 +15,6 @@ import {
     ACT_EDIT_GROUP,
     CLASS_SUBGROUP_HEAD_TITLE,
     CLASS_SUBGROUP_HEAD_ACTIONS,
-    ACT_ADD_LINK,
-    CLASS_ACTION_ADD,
     ACT_OPEN_ALL_SUBGROUP_LINKS,
     ELEM_SUBGROUP
 } from "../../main";
@@ -87,7 +87,9 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Open all links in grouped tabs",
                     dangerous: false,
-                    onClick: (metadata) => {}
+                    onClick: (metadata) => {
+                        this.actionOpenSubGroupLinks();
+                    }
                 },
                 {
                     actionTitle: "Open all links in separated tabs",
@@ -124,7 +126,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             "Open all subgroup links in new grouped tabs",
             onClick => {
                 event.stopPropagation();
-                //this.actionAddLink();
+                this.actionOpenSubGroupLinks();
             }
         ));
 
@@ -147,5 +149,11 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     private actionSubgroupFold(subGroupElem: HTMLElement): void {
         console.log(subGroupElem);
         subGroupElem.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("rolled");
+    }
+
+    private actionOpenSubGroupLinks(): void {
+        OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
+            this.DTO.links.map(link => link.url),
+            this.DTO.title);
     }
 }
