@@ -1,5 +1,5 @@
 
-import { BackgroundWorker } from '../abstract/BackgroundWorker'
+import {BackgroundWorker, WorkerResponse} from '../abstract/BackgroundWorker'
 import { FavIconRepository } from "../../repository/FavIconRepository"
 
 export interface GetFaviconInput {
