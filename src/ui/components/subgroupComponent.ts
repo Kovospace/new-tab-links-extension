@@ -1,6 +1,6 @@
 
 // utils
-import {OpenSubgroupAsGroupedTabsHandler} from "../../utils/openSubgroupAsGroupedTabsHandler"
+import {OpenSubgroupAsGroupedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsGroupedTabsHandler"
 
 // data / model layer
 import { SubgroupDTO, LinkDTO } from "../../viewModel/abstract/dtos"

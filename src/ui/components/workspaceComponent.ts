@@ -1,4 +1,3 @@
-import {handleReactiveRendering, toggleActiveClassOnSpecificAttribute} from "../../utils/firstOrderMethods";
 import {
     ELEM_GROUP,
     ELEM_WORKSPACE_BODY,
@@ -11,7 +10,6 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD,
 } from "../../main"
-import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 
 // data/model layer
 import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
@@ -22,6 +20,11 @@ import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
 import { AbstractComponent } from "../abstract/abstractComponent";
 import { GroupComponent } from "./groupComponent";
 import { OptionsMenu } from "../partials/optionsMenu"
+
+// utils
+import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
+import { handleReactiveRendering } from "../utils/rendering"
+import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 
 export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, WorkspaceViewModel> {
 

@@ -1,6 +1,6 @@
-import { GetFaviconOutput, GetFaviconInput } from "../backend/worker/module/favIconWorker"
-import { FavIconRepository } from "../backend/repository/FavIconRepository"
-import { sendToWorkerThread } from "./sendToWorker"
+import { GetFaviconOutput, GetFaviconInput } from "../../backend/worker/module/favIconWorker"
+import { FavIconRepository } from "../../backend/repository/FavIconRepository"
+import { sendToWorkerThread } from "../../utils/sendToWorker"
 
 export class FaviconsHandler {
 

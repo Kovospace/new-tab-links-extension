@@ -1,7 +1,6 @@
 import {AppState, Environment, Group, Link, GroupItem, Subgroup} from "../entity/AppStateEntity";
-import {uid} from "../../utils/firstOrderMethods";
 import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWrapper";
-// import {AppStateRepositoryUtils} from "./AppStateRepositoryUtils";
+import {uid} from "./AppStateRepositoryUtils";
 import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"

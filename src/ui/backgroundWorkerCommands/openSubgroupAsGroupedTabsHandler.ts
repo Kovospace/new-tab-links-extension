@@ -1,5 +1,5 @@
-import {sendToWorkerThread} from "./sendToWorker";
-import {OpenGroupedTabsInput, OpenGroupedTabsOutput} from "../backend/worker/module/openGroupedTabsWorker";
+import {sendToWorkerThread} from "../../utils/sendToWorker";
+import {OpenGroupedTabsInput, OpenGroupedTabsOutput} from "../../backend/worker/module/openGroupedTabsWorker";
 
 export class OpenSubgroupAsGroupedTabsHandler {
 
