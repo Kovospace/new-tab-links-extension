@@ -245,6 +245,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
 
         titleElem.addEventListener('keydown', (e) => {
+            //TODO
             // if (e.key === 'Enter') {
             //     e.preventDefault(); // prevent new lines
             // }
@@ -255,6 +256,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         });
 
         descriptionElem.addEventListener('keydown', (e) => {
+            //TODO
             // if (e.key === 'Enter') {
             //     e.preventDefault(); // prevent new lines
             // }

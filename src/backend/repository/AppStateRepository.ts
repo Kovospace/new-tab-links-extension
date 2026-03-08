@@ -242,6 +242,7 @@ export class AppStateRepository {
                     type: "subgroup",
                     collapsed: true,
                     defaultCollapsed: true,
+                    //TODO
                     position: 0
                 } satisfies Subgroup
             }

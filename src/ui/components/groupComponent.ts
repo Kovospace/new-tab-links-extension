@@ -210,6 +210,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
 
       titleElem.addEventListener('keydown', (e) => {
+          //TODO
         // if (e.key === 'Enter') {
         //   e.preventDefault(); // prevent new lines
         // }
@@ -220,6 +221,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       });
 
       descriptionElem.addEventListener('keydown', (e) => {
+          //TODO
         // if (e.key === 'Enter') {
         //   e.preventDefault(); // prevent new lines
         // }

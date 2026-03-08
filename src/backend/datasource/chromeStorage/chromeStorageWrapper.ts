@@ -2,8 +2,8 @@ const storage = {
 
     async get<T>(key: string): Promise<T | null> {
         return new Promise(resolve => {
-            // @ts-ignore
             chrome.storage.local.get([key], result => {
+                //@ts-ignore
                 resolve(result[key] ?? null);
             });
         });
@@ -11,7 +11,6 @@ const storage = {
 
     async set<T>(key: string, value: T): Promise<void> {
         return new Promise(resolve => {
-            // @ts-ignore
             chrome.storage.local.set({ [key]: value }, () => resolve());
         });
     }
