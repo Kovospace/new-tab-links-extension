@@ -1,27 +1,26 @@
 
 // data layer
-import {AppStateRepository} from "../backend/repository/AppStateRepository";
 import {AppState, Environment, Group} from "../backend/entity/AppStateEntity";
 
 // model layer
 import {AbstractViewModel} from "../viewModel/abstract/abstractViewModel"
-import {WorkpsaceDTO, GroupDTO} from "../viewModel/abstract/dtos"
+import {WorkspaceDTO, GroupDTO} from "../viewModel/abstract/dtos"
 import {toGroupDTO} from "../viewModel/abstract/mappers"
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
 
 type WorkspaceObservables = {
-    workspaces: ObservableValue<WorkpsaceDTO[]>;
+    workspaces: ObservableValue<WorkspaceDTO[]>;
     groups: ObservableValue<GroupDTO>;
-    workspace: ObservableValue<WorkpsaceDTO>;
+    workspace: ObservableValue<WorkspaceDTO>;
 };
 
-export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, WorkspaceObservables> {
+export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
 
     protected createObservables(): WorkspaceObservables {
         return {
-            workspaces: new ObservableValue([]),
+            workspaces: new ObservableValue([] as WorkspaceDTO[]),
             groups: new ObservableValue(null as any),
             workspace: new ObservableValue(null as any)
         };
@@ -31,7 +30,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
 
         this.LOG.debug('subscriptions', "incoming data: " + Object.values(state));
 
-        const currentWorkspaceId: string = state.activeEnvironmentId;
+        const currentWorkspaceId: string = state.activeEnvironmentId!;
         if (!currentWorkspaceId) {
             // no active workspace - first run or all deleted
             window.location.reload();
@@ -46,14 +45,14 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
                     title: environment.name,
                     //description: environment.description,
                     active: environment.id === currentWorkspaceId
-                }) satisfies WorkpsaceDTO));
+                }) satisfies WorkspaceDTO));
 
         this.observables.workspace.set(({
             id: currentWorkspaceId,
             title: state.environments[currentWorkspaceId].name,
             description: state.environments[currentWorkspaceId].description,
             active: true
-        }) satisfies WorkpsaceDTO);
+        }) satisfies WorkspaceDTO);
 
         this.observables.groups.set(
             Object
@@ -64,7 +63,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO, Workspac
 
     // workspace actions
 
-    public addWorkspace(title: string) {
+    public addWorkspace(title: string | null) {
         this.LOG.debug("addWorkspace", `title: ${title}`);
         if (!title) {
             this.LOG.debug("addWorkspace", "User did not provided a title");

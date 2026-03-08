@@ -98,16 +98,18 @@ type TextElement =
     | HTMLParagraphElement;
 
 export function renderTextContainer<ELEMENT_TYPE extends TextElement>(
-    text: string,
     containerTag: string,
+    text?: string,
     tooltipText?: string,
     classList?: string[]
 ): ELEMENT_TYPE {
     const elem: ELEMENT_TYPE = document.createElement(containerTag) as ELEMENT_TYPE;
-    if (tooltipText || tooltipText === "") {
+    if ((tooltipText || tooltipText === "") && text) {
         elem.title = tooltipText ? tooltipText : text;
     }
-    elem.textContent = text;
+    if (text) {
+        elem.textContent = text;
+    }
     if (classList) {
         elem.classList.add(...classList);
     }

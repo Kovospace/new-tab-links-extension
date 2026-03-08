@@ -1,6 +1,5 @@
 
 // data layer
-import {AppStateRepository} from "../backend/repository/AppStateRepository";
 import {AppState, Link, Subgroup} from "../backend/entity/AppStateEntity";
 
 // model layer
@@ -18,7 +17,7 @@ type GroupObservables = {
   group: ObservableValue<GroupDTO>
 };
 
-export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables> {
+export class GroupViewModel extends AbstractViewModel<GroupDTO> {
 
     protected createObservables(): GroupObservables {
         return {
@@ -30,7 +29,7 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
 
         console.log("event happened");
 
-        const currentEnvironmentId = attrs.activeEnvironmentId;
+        const currentEnvironmentId = attrs.activeEnvironmentId!;
         const links: Link[] = Object.values(attrs.links);
         const subGroups: Subgroup[] = Object.values(attrs.subgroups);
 
@@ -41,7 +40,8 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
             .filter((link: Link) =>
                 isItemInGroupAndEnv(currentEnvironmentId, this.DTO.id)(link)
                 && isRootGroupLink()(link))
-            .map(toLinkDTO));
+            .map(toLinkDTO)
+            .map(linkDto => linkDto as GroupItemDTO));
 
         // fill root groups into viewModel structure
         result.push(...subGroups
@@ -53,15 +53,22 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         // fill "subgroup" links into each subgroups
         result
             .filter((groupItem: GroupItemDTO) => groupItem.type === "subgroup")
+            .map(groupItem => groupItem as SubgroupDTO)
             .forEach((subGroup: SubgroupDTO) => {
-                subGroup.links
+                if (!subGroup.links) {
+                    return;
+                }
+                subGroup.links!
                     .push(...links
                         .filter((link: Link) => isSubGroupLink()(link))
                         .filter((link: Link) => link.subGroupId === subGroup.id)
-                        .map(toLinkDTO));
+                        .map(toLinkDTO)
+                        .filter((link): link is LinkDTO => link !== null));
                 // sort links inside subgroup
-                subGroup.links
-                    .sort((a, b) => a.position - b.position);
+                if (subGroup.links) {
+                    subGroup.links
+                        .sort((a, b) => a.position - b.position);
+                }
             });
 
         // sort 1st order items of group
@@ -71,10 +78,10 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         console.log("event happened end");
 
         this.observables.group.set({
-            id: this.groupId,
+            id: this.DTO.id,
             items: result,
-            title: this.groupTitle,
-            description: this.groupDescription
+            title: this.DTO.title,
+            description: this.DTO.description
         } satisfies GroupDTO);
     }
 
@@ -90,7 +97,7 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         this.REPOSITORY.deleteGroup(id);
     }
 
-    public addLink(groupId: string, subGroupId?: string, url: string, title: string): void {
+    public addLink(url: string | null, title: string | null, groupId: string, subGroupId?: string): void {
         this.LOG.debug(
             "addLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, url: ${url}, title: ${title}`);
@@ -106,10 +113,10 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
             console.log("Link does not contain any title");
             return;
         }
-        this.REPOSITORY.createLink(groupId, subGroupId, title, url);
+        this.REPOSITORY.createLink(url, title, groupId, subGroupId);
     }
 
-    public addSubGroup(title: string | null, description: string) {
+    public addSubGroup(title: string | null, description?: string | null) {
         // if (!groupId) {
         //     console.error("groupId is missing for sub-group creation");
         // }
@@ -119,8 +126,10 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO, GroupObservables
         }
         if (!description) {
             console.log("description not provided for subgroup");
+            this.REPOSITORY.createSubGroup(this.DTO.id, this.REPOSITORY.getCurrentEnvironmentId(), title);
+            return;
         }
-        this.REPOSITORY.createSubGroup(title, description, this.DTO.id);
+        this.REPOSITORY.createSubGroup(this.DTO.id, this.REPOSITORY.getCurrentEnvironmentId(), title, description);
     }
 
 }

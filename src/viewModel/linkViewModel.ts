@@ -16,9 +16,9 @@ type LinkObservables = {
     link: ObservableValue<LinkDTO>
 };
 
-export class LinkViewModel extends AbstractViewModel<LinkDTO, LinkObservables> {
+export class LinkViewModel extends AbstractViewModel<LinkDTO> {
 
-    protected createObservables() {
+    protected createObservables(): LinkObservables {
         return {
           link: new ObservableValue<LinkDTO>(null as any)
         };
@@ -26,11 +26,13 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO, LinkObservables> {
 
     protected subscribed(attrs: AppState) {
 
-        const result: LinkDTO = toLinkDTO(Object
+        const result: LinkDTO | null = toLinkDTO(Object
             .values(attrs.links)
             .find((link: Link) => link.id === this.DTO.id));
 
-        //console.log(result);
+        if (!result) {
+            return;
+        }
 
         this.observables.link.set(result);
     }
@@ -39,30 +41,24 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO, LinkObservables> {
         this.REPOSITORY.deleteLink(this.DTO.id);
     }
 
-    public editLink(title: string, url: string) {
+    public editLink(title: string | null, url: string | null) {
         if (!title) {
-
+            return;
         }
         if (!url) {
-
+            return;
         }
-        this.REPOSITORY.editLink(
-            this.DTO.id, this.DTO.subGroupId, this.DTO.groupId, this.DTO.workspaceId,
-            title, url, null);
+        this.REPOSITORY.editLink(url, title, this.DTO.id, this.DTO.groupId, this.DTO.subGroupId, this.DTO.workspaceId);
     }
 
     public moveLinkUp() {
         if (this.DTO.position <= 0) {
             return;
         }
-        this.REPOSITORY.editLink(
-            this.DTO.id, this.DTO.subGroupId, this.DTO.groupId, this.DTO.workspaceId,
-            this.DTO.title, this.DTO.url, this.DTO.position - 1);
+        this.REPOSITORY.editLink(this.DTO.url, this.DTO.title, this.DTO.id, this.DTO.groupId, this.DTO.subGroupId, this.DTO.workspaceId, this.DTO.position - 1);
     }
 
     public moveLinkDown() {
-        this.REPOSITORY.editLink(
-            this.DTO.id, this.DTO.subGroupId, this.DTO.groupId, this.DTO.workspaceId,
-            this.DTO.title, this.DTO.url, this.DTO.position + 1);
+        this.REPOSITORY.editLink(this.DTO.url, this.DTO.title, this.DTO.id, this.DTO.groupId, this.DTO.subGroupId, this.DTO.workspaceId, this.DTO.position + 1);
     }
 }

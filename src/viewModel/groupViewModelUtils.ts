@@ -1,6 +1,8 @@
 
 // predicates
 
+import {GroupItem, Link, Subgroup} from "../backend/entity/AppStateEntity";
+
 export const isItemInGroupAndEnv =
     (environmentId: string, groupId: string) =>
         (groupItem: Link | Subgroup): boolean =>
@@ -12,10 +14,9 @@ export const isRootGroupLink =
         (link: Link): boolean =>
             link.subGroupId === undefined || link.subGroupId === null || link.subGroupId === ""
 
-export const isSubGroup =
-    () =>
-        (subgroup: Subgroup): boolean =>
-            subgroup.url === undefined && subgroup.subGroupId === undefined
+export const isSubGroup: () => (subGroup: GroupItem) => boolean =
+    (): (subGroup: GroupItem) => boolean =>
+        (subgroup: GroupItem): boolean => !("url" in subgroup) && !("subGroupId" in subgroup)
 
 export const isSubGroupLink =
     () =>

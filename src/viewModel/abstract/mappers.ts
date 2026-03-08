@@ -1,7 +1,7 @@
 import {Environment, Group, Subgroup, Link} from "../../backend/entity/AppStateEntity";
-import {GroupDTO, WorkpsaceDTO, LinkDTO, SubgroupDTO} from "./dtos";
+import {GroupDTO, WorkspaceDTO, LinkDTO, SubgroupDTO} from "./dtos";
 
-export const toWorkspaceDTO = (workspace: Environment): WorkpsaceDTO => ({
+export const toWorkspaceDTO = (workspace: Environment): WorkspaceDTO => ({
     id: workspace.id,
     title: workspace.name
 });
@@ -12,16 +12,21 @@ export const toGroupDTO = (group: Group): GroupDTO => ({
     description: group.description
 });
 
-export const toLinkDTO = (link: Link): LinkDTO => ({
-    id: link.id,
-    title: link.title,
-    url: link.url,
-    position: link.position,
-    type: "link",
-    workspaceId: link.environmentId,
-    groupId: link.groupId,
-    subGroupId: link.subGroupId
-});
+export const toLinkDTO = (link: Link | undefined): LinkDTO | null => {
+    if (!link) {
+        return null;
+    }
+    return {
+        id: link.id,
+        title: link.title,
+        url: link.url,
+        position: link.position,
+        type: "link",
+        workspaceId: link.environmentId,
+        groupId: link.groupId,
+        subGroupId: link.subGroupId
+    } satisfies LinkDTO
+}
 
 export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     id: subgroup.id,
@@ -29,5 +34,7 @@ export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     description: subgroup.description,
     links: [],
     position: subgroup.position,
-    type: "subgroup"
+    type: "subgroup",
+    groupId: subgroup.groupId,
+    workspaceId: subgroup.environmentId
 });

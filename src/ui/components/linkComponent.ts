@@ -61,7 +61,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
         // description
         const span: HTMLSpanElement = document.createElement("span");
-        span.textContent = linkDto.description;
+        span.textContent = linkDto.description ? linkDto.description : "";
         linkContentDiv.appendChild(span);
 
         // icon
@@ -78,25 +78,25 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         // "manage links" actions
         linkActionsDiv.appendChild(renderButton(
             ICON.MOVE_UP, this.DTO.id, [ACT_LINK_MOVE_UP], "Move link up", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.VIEW_MODEL.moveLinkUp();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.MOVE_DOWN, this.DTO.id, [ACT_LINK_MOVE_DOWN], "Move link down", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.VIEW_MODEL.moveLinkDown();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.DELETE, this.DTO.id, [ACT_LINK_DELETE, CLASS_ACTION_DANGER], "Delete link", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 this.VIEW_MODEL.deleteLink();
             }));
 
         linkActionsDiv.appendChild(renderButton(
             ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Delete link", onClick => {
-                event.stopPropagation();
+                event?.stopPropagation();
                 const title = prompt("Update title", this.DTO.title);
                 const url = prompt("Update URL", this.DTO.url);
                 this.VIEW_MODEL.editLink(title, url);

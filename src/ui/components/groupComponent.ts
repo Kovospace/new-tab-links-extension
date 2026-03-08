@@ -53,10 +53,8 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         //TODO vytvorit vo viewmodel subscriber na tieto dáta
         // group head elements
         // title
-        titleSectionElem.appendChild(renderTextContainer(
-            this.DTO.title, "h2", null));
-        titleSectionElem.appendChild(renderTextContainer(
-            this.DTO.description, "span", null));
+        titleSectionElem.appendChild(renderTextContainer("h2", this.DTO.title));
+        titleSectionElem.appendChild(renderTextContainer("span", this.DTO.description));
 
         // buttons
         new OptionsMenu(
@@ -81,18 +79,18 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Edit Group title",
                     dangerous: false,
-                    onClick: (metadata) => this.toggleGroupTitleEditable(event.target as HTMLElement)
+                    onClick: () => this.toggleGroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Manage links",
                     dangerous: false,
-                    onClick: (metadata) => this.toggleLinksManagementOptions(event.target as HTMLElement)
+                    onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Delete group",
                     dangerous: true,
                     dangerConfirmation: "All links and sub-groups associated to that group will be deleted.",
-                    onClick: (metadata) => this.VIEW_MODEL.deleteGroup(this.id)
+                    onClick: () => this.VIEW_MODEL.deleteGroup(this.id)
                 }
             ],
             {
@@ -138,16 +136,19 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         //         }
         //     }
         // );
+        if (!groupDto.items) {
+            return;
+        }
         //TODO pre hybanie linkami vymysliet destruktivnu akciu na prerenderovanie vsetkeho v
         // ramci grupy, resp. vymysliet ako predat flag na trigger destruktivnej akcie
         parentElem.replaceChildren();
         groupDto.items.forEach(groupItem => {
             switch (groupItem.type) {
                 case "link":
-                    parentElem.appendChild(this.renderLink(groupItem));
+                    parentElem.appendChild(this.renderLink(groupItem as LinkDTO));
                     break;
                 case "subgroup":
-                    parentElem.appendChild(this.renderSubgroup(groupItem));
+                    parentElem.appendChild(this.renderSubgroup(groupItem as SubgroupDTO));
                     break;
                 default:
                     console.error("unsupported element");
@@ -160,7 +161,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         this.LOG.debug(
             "render",
             "add link to group: " + this.title + " with id: " + this.id + " clicked");
-        this.VIEW_MODEL.addLink(this.id, null, prompt("Give URL"), prompt("Give name"));
+        this.VIEW_MODEL.addLink(prompt("Give URL"), prompt("Give name"), this.id);
     }
 
     private renderLink(link: LinkDTO): HTMLElement {
@@ -209,9 +210,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
 
       titleElem.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault(); // prevent new lines
-        }
+        // if (e.key === 'Enter') {
+        //   e.preventDefault(); // prevent new lines
+        // }
       })
 
       titleElem.addEventListener('blur', () => {
@@ -219,9 +220,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
       });
 
       descriptionElem.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault(); // prevent new lines
-        }
+        // if (e.key === 'Enter') {
+        //   e.preventDefault(); // prevent new lines
+        // }
       })
 
       descriptionElem.addEventListener('blur', () => {

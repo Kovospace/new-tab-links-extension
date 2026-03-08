@@ -1,7 +1,7 @@
 import { appStateRepository } from "./backend/repository/AppStateRepository";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
-import { WorkpsaceDTO } from "./viewModel/abstract/dtos"
+import { WorkspaceDTO } from "./viewModel/abstract/dtos"
 
 import { WorkspaceViewModel } from "./viewModel/workspaceViewModel"
 
@@ -125,7 +125,7 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // create custom HTML element ONLY THAT WAY otherwise (innerHTML() method or
     // raw in html file) construction of object happens before initialized "repository"
     // is injected and program crashes
-    const currentEnvironment: Environment = appStateRepository.getCurrentEnvironment();
+    const currentEnvironment: Environment | null = appStateRepository.getCurrentEnvironment();
     const rootContainerElem = document.body.getElementsByTagName("main")[0];
 
     if (!currentEnvironment) {
@@ -136,11 +136,11 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
     } else {
 
-        const workspaceDTO: WorkpsaceDTO = ({
+        const workspaceDTO: WorkspaceDTO = ({
             id: currentEnvironment.id,
             title: currentEnvironment.name,
             description: currentEnvironment.description
-        }) satisfies WorkpsaceDTO;
+        }) satisfies WorkspaceDTO;
 
         const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
         workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);

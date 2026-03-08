@@ -65,8 +65,8 @@ export class OptionsMenu {
     private renderButton() {
         this.openingElement = renderButton(
             ICON.MORE,
-            null,
-            [this.renderData.openMenuButtonClass],
+            "",
+            [this.renderData.openMenuButtonClass ? this.renderData.openMenuButtonId : ""],
             this.renderData.openMenuButtonTooltipText,
             (event) => {
                 this.LOG.debug("neu open clicked");

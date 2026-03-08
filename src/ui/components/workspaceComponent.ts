@@ -12,7 +12,7 @@ import {
 } from "../../main"
 
 // data/model layer
-import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
+import { WorkspaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
 
@@ -26,9 +26,9 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../par
 import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 
-export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, WorkspaceViewModel> {
+export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
-    private render(parentElem: HTMLElement) {
+    render(parentElem: HTMLElement) {
 
         const headerElem: HTMLElement = document.body.getElementsByTagName("header")[0];
         const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
@@ -51,12 +51,12 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             });
 
         this.VIEW_MODEL.observables.groups
-            .subscribe((groupIds: string[]) => this.renderGroups(bodyElem, groupIds));
+            .subscribe(groups => this.renderGroups(bodyElem, groups));
 
         this.renderFooter(footerElem);
     }
 
-    private attachListeners(parentElem: HTMLElement) {
+    attachListeners(parentElem: HTMLElement) {
         this.listenerChangeWorkspaceName();
     }
 
@@ -71,10 +71,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
      *      ...
      *  </header>
      */
-    private renderWorkspaceSwitcher(parentElem: HTMLElement, workspaces: WorkspaceDTO[]) {
+    private renderWorkspaceSwitcher(parentElem: HTMLElement, workspaces: WorkspaceDTO[]): void {
 
         // workspaces switcher
-        handleReactiveRendering<WorkspaceDTO, HTMLButtonElement>(
+        handleReactiveRendering<WorkspaceDTO, HTMLButtonElement, "value">(
             parentElem.getElementsByTagName("div")[0],
             workspaces,
             workspace => workspace.id,
@@ -82,7 +82,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
                 workspace.title,
                 workspace.id,
                 [ACT_SWITCH_WORKSPACE],
-                null,
+                "",
                 clicked => {
                     this.LOG.debug(
                         "renderWorkspaceSwitcher",
@@ -94,8 +94,15 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         );
 
         // switch active class idependently because other sources like human action can trigger this render
-        const activeWorkspaceId: string = workspaces.find((workspace: WorkspaceDTO) => workspace.active).id;
-        toggleActiveClassOnSpecificAttribute<HTMLButtonElement>("value", activeWorkspaceId, ACT_SWITCH_WORKSPACE);
+        if (!workspaces) {
+            return;
+        }
+        const activeWorkspace: WorkspaceDTO | undefined =  workspaces
+            .find((workspace: WorkspaceDTO) => workspace.active);
+        if (!activeWorkspace) {
+            return;
+        }
+        toggleActiveClassOnSpecificAttribute<HTMLButtonElement, "value">("value", activeWorkspace.id, ACT_SWITCH_WORKSPACE);
     }
 
     /**
@@ -113,10 +120,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         // add workspace button
         parentElem.appendChild(renderButton(
             ICON.ADD,
-            null,
+            "",
             [ACT_ADD_WORKSPACE, CLASS_ACTION_ADD],
             "Add new workspace",
-            clicked => {
+            onClick => {
                 this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
                 this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
             }
@@ -132,10 +139,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         const actionsSectionElem: HTMLElement = renderContainer([CLASS_WORKSPACE_HEAD_ACTIONS]);
 
         // title
-        titleSectionElem.appendChild(renderTextContainer(
-            workspace.title, "h1"));
-        titleSectionElem.appendChild(renderTextContainer(
-            workspace.description, "span"));
+        titleSectionElem.appendChild(renderTextContainer("h1", workspace.title));
+        titleSectionElem.appendChild(renderTextContainer("span", workspace.description));
 
         // edit workspace screen
         new OptionsMenu(
@@ -148,17 +153,17 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             [
                 {
                     actionTitle: "Add workspace",
-                    onClick: (metadata) => this.actionAddGroup(workspace.id)
+                    onClick: () => this.actionAddGroup(workspace.id)
                 },
                 {
                     actionTitle: "Edit Workspace title",
-                    onClick: (metadata) => this.toggleWorkspaceTitleEditable(event.target as HTMLElement)
+                    onClick: () => this.toggleWorkspaceTitleEditable(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Delete workspace",
                     dangerous: true,
                     dangerConfirmation: "All groups and links that are associated to that workspace will be deleted as well.",
-                    onClick: (metadata) => this.VIEW_MODEL.deleteWorkspace(this.id)
+                    onClick: () => this.VIEW_MODEL.deleteWorkspace(this.id)
                 }
             ],
             {
@@ -189,7 +194,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
      */
     private renderGroups(parentElem: HTMLElement, groups: GroupDTO[]) {
 
-        handleReactiveRendering<GroupDTO>(
+        handleReactiveRendering<GroupDTO, HTMLElement, "id">(
             parentElem,
             groups,
             group => group.id,
@@ -240,9 +245,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
 
         titleElem.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // prevent new lines
-            }
+            // if (e.key === 'Enter') {
+            //     e.preventDefault(); // prevent new lines
+            // }
         })
 
         titleElem.addEventListener('blur', () => {
@@ -250,9 +255,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         });
 
         descriptionElem.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // prevent new lines
-            }
+            // if (e.key === 'Enter') {
+            //     e.preventDefault(); // prevent new lines
+            // }
         })
 
         descriptionElem.addEventListener('blur', () => {
