@@ -1,23 +1,19 @@
-import {qsAll, handleReactiveRendering, toggleActiveClassOnSpecificAttribute} from "../../utils/firstOrderMethods";
+import {handleReactiveRendering, toggleActiveClassOnSpecificAttribute} from "../../utils/firstOrderMethods";
 import {
     ELEM_GROUP,
-    ELEM_WORKSPACE,
     ELEM_WORKSPACE_BODY,
     ELEM_WORKSPACE_HEAD,
     ACT_SWITCH_WORKSPACE,
     ACT_ADD_GROUP,
     ACT_EDIT_WORKSPACE,
     ACT_ADD_WORKSPACE,
-    CLASS_GROUP_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD,
-    CLASS_ACTION_DANGER
 } from "../../main"
 import {renderButton, renderContainer, ICON, renderTextContainer} from "../../utils/elementsRendering"
 
 // data/model layer
-import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
@@ -148,6 +144,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             },
             [
                 {
+                    actionTitle: "Add workspace",
+                    onClick: (metadata) => this.actionAddGroup(workspace.id)
+                },
+                {
                     actionTitle: "Edit Workspace title",
                     onClick: (metadata) => this.toggleWorkspaceTitleEditable(event.target as HTMLElement)
                 },
@@ -169,10 +169,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
             workspace.id,
             [ACT_ADD_GROUP, CLASS_ACTION_ADD],
             "Add new group",
-            (event) => {
-                this.LOG.debug("add group clicked");
-                this.VIEW_MODEL.addGroup(workspace.id, prompt("Group name?"))
-            }
+            (event) => this.actionAddGroup(workspace.id)
         ));
 
         parentElem.replaceChildren(
@@ -226,6 +223,11 @@ export class WorkspaceComponent extends AbstractComponent<WorkpsaceDTO, Workspac
         } else {
             setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
         }
+    }
+
+    private actionAddGroup(workspaceId: string): void {
+        this.LOG.debug("add group clicked");
+        this.VIEW_MODEL.addGroup(workspaceId, prompt("Group name?"));
     }
 
     private listenerChangeWorkspaceName() {

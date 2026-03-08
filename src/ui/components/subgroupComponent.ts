@@ -153,6 +153,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     private actionOpenSubGroupLinks(): void {
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
-            this.DTO.links.map(link => link.url));
+            this.DTO.links.map(link => link.url),
+            this.DTO.title);
     }
 }

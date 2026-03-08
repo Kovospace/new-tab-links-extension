@@ -2,10 +2,12 @@ import {BackgroundWorker} from "../abstract/BackgroundWorker";
 
 export interface OpenGroupedTabsInput {
     urls: string[];
+    title: string;
+    color: string;
 }
 
 export interface OpenGroupedTabsOutput {
-
+    // dummy
 }
 
 export class OpenGroupedTabsWorker extends BackgroundWorker<OpenGroupedTabsInput, OpenGroupedTabsOutput> {
@@ -13,7 +15,7 @@ export class OpenGroupedTabsWorker extends BackgroundWorker<OpenGroupedTabsInput
     async handle(action: string, payload: OpenGroupedTabsInput) {
         switch (action) {
             case "open":
-                this.openTabs(payload.urls);
+                this.openTabs(payload.urls, payload.title, payload.color);
                 return this.response({});
             default:
                 return this.errorResponse(
@@ -23,7 +25,7 @@ export class OpenGroupedTabsWorker extends BackgroundWorker<OpenGroupedTabsInput
         }
     }
 
-    private async openTabs(urls: string[]): Promise<void> {
+    private async openTabs(urls: string[], title: string, color: string): Promise<void> {
         const tabIds = [];
         // Otvorenie kariet
         for (const url of urls) {
@@ -33,7 +35,9 @@ export class OpenGroupedTabsWorker extends BackgroundWorker<OpenGroupedTabsInput
         // Vytvorenie skupiny
         const groupId = await chrome.tabs.group({ tabIds });
         // Voliteľne nastaviť názov a farbu skupiny
-        await chrome.tabGroups.update(groupId, { title: "Moje karty", color: "blue" });
+        await chrome.tabGroups.update(
+            groupId,
+            { title: title, color: color });
     }
 
 }

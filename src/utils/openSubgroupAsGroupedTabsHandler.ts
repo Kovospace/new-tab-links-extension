@@ -3,9 +3,15 @@ import {OpenGroupedTabsInput, OpenGroupedTabsOutput} from "../backend/worker/mod
 
 export class OpenSubgroupAsGroupedTabsHandler {
 
-    static async handleGroupedTabsOpen(pageUrls: string[]) {
+    static async handleGroupedTabsOpen(
+        pageUrls: string[], groupTitle: string, groupColor: string = "blue"
+    ) {
         await sendToWorkerThread<OpenGroupedTabsInput, OpenGroupedTabsOutput>(
-            "openGroupedTabs", "open", { urls: pageUrls });
+            "openGroupedTabs", "open", {
+                urls: pageUrls,
+                title: groupTitle,
+                color: groupColor,
+            });
     }
 
 }
