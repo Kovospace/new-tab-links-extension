@@ -216,15 +216,17 @@ export class AppStateRepository {
 
     // Subgroup operations
 
+    //TODO assign position to new subgroup
     /**
      *  Deletes the whole sub-groups and its links
      */
-
-    createSubGroup(title: string, description: string, groupId: string, environmentId: string): Promise<void> {
+    createSubGroup(
+        title: string,
+        description: string,
+        groupId: string,
+        environmentId: string | null = this.getCurrentEnvironmentId()
+    ): Promise<AppState> {
         const id = uid();
-        if (!environmentId) {
-            environmentId = this.getCurrentEnvironmentId();
-        }
         this.state = {
             ...this.state,
             subgroups: {
@@ -232,11 +234,14 @@ export class AppStateRepository {
                 [id]: {
                     id: id,
                     groupId: groupId,
-                    environmentId: environmentId,
+                    environmentId: environmentId!,
                     title: title,
                     description: description,
                     createdAt: Date.now(),
-                    type: "subgroup"
+                    type: "subgroup",
+                    collapsed: true,
+                    defaultCollapsed: true,
+                    position: 0
                 } satisfies Subgroup
             }
         };

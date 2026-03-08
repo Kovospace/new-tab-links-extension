@@ -5,7 +5,7 @@ import { ACT_FIRST_WORKSPACE, ACT_IMPORT_LINKS, ACT_LOAD_DEFAUTLS } from "../../
 export class FirstRunComponent extends HTMLElement {
 
     private REPOSITORY!: AppStateRepository;
-    private VIEW_MODEL: FirstRunVieeModel;
+    private VIEW_MODEL!: FirstRunViewModel;
 
     initialize(repository: AppStateRepository): void {
         this.REPOSITORY = repository;

@@ -11,7 +11,7 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD,
 } from "../../main"
-import {renderButton, renderContainer, ICON, renderTextContainer} from "../../utils/elementsRendering"
+import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 
 // data/model layer
 import { WorkpsaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";

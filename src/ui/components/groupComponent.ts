@@ -7,7 +7,6 @@ import {
     ELEM_GROUP_FOOT,
     ELEM_GROUP_BODY,
     ACT_ADD_LINK,
-    ACT_ADD_GROUP,
     ACT_EDIT_GROUP,
     CLASS_GROUP_HEAD_TITLE,
     CLASS_GROUP_HEAD_ACTIONS,
@@ -15,10 +14,8 @@ import {
 } from "../../main"
 
 // utils
-import { sleep } from "../../utils/firstOrderMethods"
 
 // data / model layer
-import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { LinkViewModel } from "../../viewModel/linkViewModel";
 import { SubGroupViewModel } from "../../viewModel/subGroupViewModel";
@@ -28,15 +25,14 @@ import { GroupDTO, GroupItemDTO, LinkDTO, SubgroupDTO } from "../../viewModel/ab
 import { AbstractComponent } from "../abstract/abstractComponent"
 import { LinkComponent } from "./linkComponent"
 import { SubgroupComponent } from "./subgroupComponent"
-import { renderTextContainer, renderButton, renderContainer, ICON } from "../../utils/elementsRendering";
-import { handleReactiveRendering } from "../../utils/firstOrderMethods";
+import { ICON, renderContainer, renderButton, renderTextContainer } from "../../ui/partials/wrappedHtmlElements"
 import {OptionsMenu} from "../partials/optionsMenu";
 
 
 
 export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> {
 
-    private render(parentElem: HTMLElement): void {
+    render(parentElem: HTMLElement): void {
 
         // group container elements
         const headerElem: HTMLElement = document.createElement(ELEM_GROUP_HEAD);
@@ -74,12 +70,12 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Add link",
                     dangerous: false,
-                    onClick: (metadata) => this.actionAddLink()
+                    onClick: () => this.actionAddLink()
                 },
                 {
                     actionTitle: "Add subgroup",
                     dangerous: false,
-                    onClick: (metadata) => this.VIEW_MODEL.addSubGroup(
+                    onClick: () => this.VIEW_MODEL.addSubGroup(
                         prompt("Give subgroup title"), prompt("Give subgroup description"))
                 },
                 {
@@ -121,7 +117,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         //this.listenerChangeGroupName();
     }
 
-    private attachListeners() {
+    attachListeners() {
       this.listenerChangeGroupName();
     }
 

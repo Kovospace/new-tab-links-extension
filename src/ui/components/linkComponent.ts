@@ -1,15 +1,14 @@
 
 // data / model layer
-import { AppStateRepository } from "../../backend/repository/AppStateRepository";
 import { LinkDTO } from "../../viewModel/abstract/dtos"
 import { LinkViewModel } from "../../viewModel/linkViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent"
-import { renderButton, ICON, renderContainer } from "../../utils/elementsRendering"
+import { ICON, renderContainer, renderButton } from "../partials/wrappedHtmlElements"
 import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
     CLASS_LINK_ACTIONS_CONTAINER, CLASS_LINK_TEXT, CLASS_LINK_ICON, CLASS_ACTION_ADD,
-    CLASS_ACTION_ACTIVE, CLASS_ACTION_DANGER } from "../../main";
+    CLASS_ACTION_DANGER } from "../../main";
 
 // utils
 import {FaviconsHandler} from "../../utils/faviconsHandler";

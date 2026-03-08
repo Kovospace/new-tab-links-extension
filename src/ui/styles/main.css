@@ -22,7 +22,7 @@ div.overlay {
     height: 100vh;
     background: rgba(0, 0, 0, 0.33);
     backdrop-filter: blur(1px);
-    -webkit-backdrop-filter: blur(8px); /* Safari */
+    -webkit-backdrop-filter: blur(1px); /* Safari */
     z-index: 100;
     opacity: 1;
     transition:

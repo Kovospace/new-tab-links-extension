@@ -20,7 +20,7 @@ import {
 } from "../../main";
 import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
-import {ICON, renderButton, renderContainer, renderTextContainer} from "../../utils/elementsRendering"
+import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 import { OptionsMenu } from "../partials/optionsMenu"
 
 
