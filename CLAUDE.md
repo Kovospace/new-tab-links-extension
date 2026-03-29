@@ -99,3 +99,6 @@ Defined in `src/main.ts`: custom element tag names and worker message type const
 - Show only relevant code changes (diffs or snippets)
 - Do not repeat unchanged code
 - Clearly indicate where changes apply
+
+### Workflow
+- After completing each set of changes, run `npm run build` to build the extension so I can test it in the browser.

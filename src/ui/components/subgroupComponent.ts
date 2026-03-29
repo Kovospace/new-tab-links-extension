@@ -1,6 +1,7 @@
 
 // utils
 import {OpenSubgroupAsGroupedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsGroupedTabsHandler"
+import {OpenSubgroupAsIsolatedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsIsolatedTabsHandler"
 
 // data / model layer
 import { SubgroupDTO, LinkDTO } from "../../viewModel/abstract/dtos"
@@ -92,7 +93,9 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Open all links in separated tabs",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => {
+                        this.actionOpenSubGroupLinksIsolated();
+                    }
                 },
                 {
                     actionTitle: "Edit subgroup title & description",
@@ -161,7 +164,14 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             return;
         }
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
-            this.DTO.links.map(link => link.url),
-            this.DTO.title);
+            this.DTO.links.map(link => link.url), this.DTO.title);
+    }
+
+    private actionOpenSubGroupLinksIsolated(): void {
+        if (!this.DTO.links) {
+            return;
+        }
+        OpenSubgroupAsIsolatedTabsHandler.handleIsolatedTabsOpen(
+            this.DTO.links.map(link => link.url));
     }
 }
