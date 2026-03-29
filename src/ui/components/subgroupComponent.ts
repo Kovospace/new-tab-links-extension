@@ -105,7 +105,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Manage links",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Move all links out of subgroup",
@@ -165,6 +165,15 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         }
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
             this.DTO.links.map(link => link.url), this.DTO.title);
+    }
+
+    private toggleLinksManagementOptions(menuItem: HTMLElement): void {
+        this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("managed");
+        if (this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.contains("managed")) {
+            setTimeout(() => { menuItem.textContent = "Finish links editing" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
+        }
     }
 
     private actionOpenSubGroupLinksIsolated(): void {
