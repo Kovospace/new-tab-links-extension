@@ -36,6 +36,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     protected attachListeners(parentElem: HTMLElement) {
         this.listenerOnHeadClick(parentElem);
+        this.listenerChangeSubgroupTitle();
     }
 
     private renderSubGroup(parentElem: HTMLElement, subgroupDto: SubgroupDTO) {
@@ -100,7 +101,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Edit subgroup title & description",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => this.toggleSubgroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Manage links",
@@ -165,6 +166,37 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         }
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
             this.DTO.links.map(link => link.url), this.DTO.title);
+    }
+
+    private toggleSubgroupTitleEditable(menuItem: HTMLElement): void {
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h3")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        menuItem.classList.toggle("active");
+        titleElem.toggleAttribute('contentEditable');
+        titleElem.classList.toggle("editable");
+        descriptionElem.toggleAttribute('contentEditable');
+        descriptionElem.classList.toggle("editable");
+        if (menuItem.classList.contains("active")) {
+            setTimeout(() => { menuItem.textContent = "Save subgroup title" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
+    }
+
+    private listenerChangeSubgroupTitle(): void {
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h3")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        titleElem.addEventListener('blur', () => {
+            this.VIEW_MODEL.editSubgroupTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+        });
+
+        descriptionElem.addEventListener('blur', () => {
+            this.VIEW_MODEL.editSubgroupTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+        });
     }
 
     private toggleLinksManagementOptions(menuItem: HTMLElement): void {

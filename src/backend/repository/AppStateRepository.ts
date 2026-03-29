@@ -250,6 +250,21 @@ export class AppStateRepository {
         return this.save();
     }
 
+    editSubGroup(id: string, title: string, description: string): Promise<AppState> {
+        this.state = {
+            ...this.state,
+            subgroups: {
+                ...this.state.subgroups,
+                [id]: {
+                    ...this.state.subgroups[id],
+                    title: title,
+                    description: description
+                }
+            }
+        };
+        return this.save();
+    }
+
     deleteSubGroup(id: string): Promise<AppState> {
         // delete subgroup
         const subGroups = { ...this.state.subgroups };
