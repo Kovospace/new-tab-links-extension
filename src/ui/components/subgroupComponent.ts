@@ -111,12 +111,17 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Move all links out of subgroup",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => this.VIEW_MODEL.moveLinksOutOfSubgroup(this.id)
                 },
                 {
-                    actionTitle: "Delete subgroup",
+                    actionTitle: "Delete subgroup & move links",
                     dangerous: true,
-                    onClick: () => {}
+                    onClick: () => this.VIEW_MODEL.deleteSubgroupAndMoveLinks(this.id)
+                },
+                {
+                    actionTitle: "Delete subgroup including links",
+                    dangerous: true,
+                    onClick: () => this.VIEW_MODEL.deleteSubgroup(this.id)
                 },
             ]
         );

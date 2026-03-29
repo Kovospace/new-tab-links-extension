@@ -50,6 +50,18 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
         this.REPOSITORY.editSubGroup(id, title, description);
     }
 
+    public deleteSubgroup(id: string): void {
+        this.REPOSITORY.deleteSubGroup(id);
+    }
+
+    public moveLinksOutOfSubgroup(id: string): void {
+        this.REPOSITORY.moveLinksFromSubgroup(id);
+    }
+
+    public deleteSubgroupAndMoveLinks(id: string): void {
+        this.REPOSITORY.ceaseSubgroup(id);
+    }
+
     public addLink(title: string | null, url: string | null): void {
         if (!title) {
             //TODO validations for user
