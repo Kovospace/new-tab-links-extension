@@ -85,5 +85,9 @@ link-group-body.managed > link-subgroup > link-subgroup-body > link-container > 
   max-width: 32em;
 }
 
+link-subgroup-body.managed > link-container > div.cls-link-actions-container {
+  max-width: 32em;
+}
+
 
 

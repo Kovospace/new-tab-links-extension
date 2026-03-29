@@ -1,6 +1,7 @@
 
 // utils
 import {OpenSubgroupAsGroupedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsGroupedTabsHandler"
+import {OpenSubgroupAsIsolatedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsIsolatedTabsHandler"
 
 // data / model layer
 import { SubgroupDTO, LinkDTO } from "../../viewModel/abstract/dtos"
@@ -35,6 +36,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     protected attachListeners(parentElem: HTMLElement) {
         this.listenerOnHeadClick(parentElem);
+        this.listenerChangeSubgroupTitle();
     }
 
     private renderSubGroup(parentElem: HTMLElement, subgroupDto: SubgroupDTO) {
@@ -92,27 +94,34 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 {
                     actionTitle: "Open all links in separated tabs",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => {
+                        this.actionOpenSubGroupLinksIsolated();
+                    }
                 },
                 {
                     actionTitle: "Edit subgroup title & description",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => this.toggleSubgroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Manage links",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Move all links out of subgroup",
                     dangerous: false,
-                    onClick: () => {}
+                    onClick: () => this.VIEW_MODEL.moveLinksOutOfSubgroup(this.id)
                 },
                 {
-                    actionTitle: "Delete subgroup",
+                    actionTitle: "Delete subgroup & move links",
                     dangerous: true,
-                    onClick: () => {}
+                    onClick: () => this.VIEW_MODEL.deleteSubgroupAndMoveLinks(this.id)
+                },
+                {
+                    actionTitle: "Delete subgroup including links",
+                    dangerous: true,
+                    onClick: () => this.VIEW_MODEL.deleteSubgroup(this.id)
                 },
             ]
         );
@@ -161,7 +170,54 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             return;
         }
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
-            this.DTO.links.map(link => link.url),
-            this.DTO.title);
+            this.DTO.links.map(link => link.url), this.DTO.title);
+    }
+
+    private toggleSubgroupTitleEditable(menuItem: HTMLElement): void {
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h3")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        menuItem.classList.toggle("active");
+        titleElem.toggleAttribute('contentEditable');
+        titleElem.classList.toggle("editable");
+        descriptionElem.toggleAttribute('contentEditable');
+        descriptionElem.classList.toggle("editable");
+        if (menuItem.classList.contains("active")) {
+            setTimeout(() => { menuItem.textContent = "Save subgroup title" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
+    }
+
+    private listenerChangeSubgroupTitle(): void {
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h3")[0];
+        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+
+        titleElem.addEventListener('blur', () => {
+            this.VIEW_MODEL.editSubgroupTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+        });
+
+        descriptionElem.addEventListener('blur', () => {
+            this.VIEW_MODEL.editSubgroupTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+        });
+    }
+
+    private toggleLinksManagementOptions(menuItem: HTMLElement): void {
+        this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("managed");
+        if (this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.contains("managed")) {
+            setTimeout(() => { menuItem.textContent = "Finish links editing" }, 250);
+        } else {
+            setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
+        }
+    }
+
+    private actionOpenSubGroupLinksIsolated(): void {
+        if (!this.DTO.links) {
+            return;
+        }
+        OpenSubgroupAsIsolatedTabsHandler.handleIsolatedTabsOpen(
+            this.DTO.links.map(link => link.url));
     }
 }

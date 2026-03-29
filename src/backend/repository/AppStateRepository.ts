@@ -250,13 +250,28 @@ export class AppStateRepository {
         return this.save();
     }
 
+    editSubGroup(id: string, title: string, description: string): Promise<AppState> {
+        this.state = {
+            ...this.state,
+            subgroups: {
+                ...this.state.subgroups,
+                [id]: {
+                    ...this.state.subgroups[id],
+                    title: title,
+                    description: description
+                }
+            }
+        };
+        return this.save();
+    }
+
     deleteSubGroup(id: string): Promise<AppState> {
         // delete subgroup
         const subGroups = { ...this.state.subgroups };
         delete subGroups[id];
         this.state = {
             ...this.state,
-            ...subGroups
+            subgroups: subGroups
         };
         // delete links
         Object
@@ -267,10 +282,33 @@ export class AppStateRepository {
     }
 
     /**
-     *  Delete subgroup but move links to "root" level of group
+     *  Move links out of subgroup to root level of group, keep subgroup intact
      */
-    ceaseSubgroup(id: string) {
+    moveLinksFromSubgroup(id: string): Promise<AppState> {
+        const updatedLinks: Record<string, Link> = { ...this.state.links };
+        Object.values(updatedLinks)
+            .filter(link => link.subGroupId === id)
+            .forEach(link => {
+                updatedLinks[link.id] = { ...link, subGroupId: undefined };
+            });
+        this.state = { ...this.state, links: updatedLinks };
+        return this.save();
+    }
 
+    /**
+     *  Move links out of subgroup to root level of group, then delete the subgroup
+     */
+    ceaseSubgroup(id: string): Promise<AppState> {
+        const updatedLinks: Record<string, Link> = { ...this.state.links };
+        Object.values(updatedLinks)
+            .filter(link => link.subGroupId === id)
+            .forEach(link => {
+                updatedLinks[link.id] = { ...link, subGroupId: undefined };
+            });
+        const updatedSubgroups = { ...this.state.subgroups };
+        delete updatedSubgroups[id];
+        this.state = { ...this.state, links: updatedLinks, subgroups: updatedSubgroups };
+        return this.save();
     }
 
     // Link operations

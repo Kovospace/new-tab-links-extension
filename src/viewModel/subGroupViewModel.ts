@@ -41,6 +41,27 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
         this.observables.subgroup.set(result);
     }
 
+    public editSubgroupTitle(id: string, title: string, description: string): void {
+        title = title.trim();
+        if (!title) {
+            console.error("Subgroup must have title");
+            return;
+        }
+        this.REPOSITORY.editSubGroup(id, title, description);
+    }
+
+    public deleteSubgroup(id: string): void {
+        this.REPOSITORY.deleteSubGroup(id);
+    }
+
+    public moveLinksOutOfSubgroup(id: string): void {
+        this.REPOSITORY.moveLinksFromSubgroup(id);
+    }
+
+    public deleteSubgroupAndMoveLinks(id: string): void {
+        this.REPOSITORY.ceaseSubgroup(id);
+    }
+
     public addLink(title: string | null, url: string | null): void {
         if (!title) {
             //TODO validations for user
