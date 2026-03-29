@@ -2,6 +2,7 @@
 import { BackgroundWorker } from './abstract/BackgroundWorker'
 import { FavIconWorker } from './module/favIconWorker'
 import {OpenGroupedTabsWorker} from "./module/openGroupedTabsWorker";
+import {OpenTabsWorker} from "./module/openTabsWorker";
 
 type ModuleConstructor = new () => BackgroundWorker<any, any>;
 
@@ -42,7 +43,8 @@ class WorkerRouter {
 
 const router = new WorkerRouter({
   favicon: FavIconWorker,
-  openGroupedTabs: OpenGroupedTabsWorker
+  openGroupedTabs: OpenGroupedTabsWorker,
+  openTabs: OpenTabsWorker
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
