@@ -41,7 +41,9 @@ export function renderContainer(
     classList: string[]
 ): HTMLElement {
     const containerElem: HTMLElement = document.createElement("div");
-    containerElem.classList.add(...classList);
+    if (classList) {
+        containerElem.classList.add(...classList);
+    }
     return containerElem;
 }
 

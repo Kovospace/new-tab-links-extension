@@ -8,7 +8,7 @@ import {
     ACT_ADD_WORKSPACE,
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
-    CLASS_ACTION_ADD,
+    CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT,
 } from "../../main"
 
 // data/model layer
@@ -30,18 +30,15 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     render(parentElem: HTMLElement) {
 
-        const headerElem: HTMLElement = document.body.getElementsByTagName("header")[0];
-        const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
         const headElem: HTMLElement = document.createElement(ELEM_WORKSPACE_HEAD);
         const bodyElem: HTMLElement = document.createElement(ELEM_WORKSPACE_BODY);
         this.appendChild(headElem);
         this.appendChild(bodyElem);
 
-        this.VIEW_MODEL.observables.workspaces
-            .subscribe((workspaces: WorkspaceDTO[]) => this.renderWorkspaceSwitcher(headerElem, workspaces));
+        // page header
+        this.renderHeader();
 
-        this.renderWorkspaceSwitcherToolings(headerElem);
-
+        // page body - workspace titlebar
         this.VIEW_MODEL.observables.workspace
             .subscribe((workspace: WorkspaceDTO) => {
                 this.id = workspace.id; // exception, because this is root template
@@ -50,14 +47,41 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));
             });
 
+        // page body - groups
         this.VIEW_MODEL.observables.groups
             .subscribe(groups => this.renderGroups(bodyElem, groups));
 
+        // page footer
         this.renderFooter(footerElem);
     }
 
     attachListeners(parentElem: HTMLElement) {
         this.listenerChangeWorkspaceName();
+    }
+
+    private renderHeader() {
+        const headerElem: HTMLElement = document.body.getElementsByTagName("header")[0];
+        const headerElemLeftContent: HTMLElement = renderContainer([CLASS_WORKSPACE_HEADER_LEFT]);
+        const headerElemRightContent: HTMLElement = renderContainer([CLASS_WORKSPACE_HEADER_RIGHT]);
+        headerElem.appendChild(headerElemLeftContent);
+        headerElem.appendChild(headerElemRightContent);
+
+        // workspace buttons
+        headerElemLeftContent.appendChild(renderContainer());
+        this.VIEW_MODEL.observables.workspaces
+            .subscribe((workspaces: WorkspaceDTO[]) => this.renderWorkspaceSwitcher(headerElemLeftContent, workspaces));
+
+        // add workspace button
+        headerElemLeftContent.appendChild(renderButton(
+            ICON.ADD,
+            "",
+            [ACT_ADD_WORKSPACE, CLASS_ACTION_ADD],
+            "Add new workspace",
+            onClick => {
+                this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
+                this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
+            }
+        ));
     }
 
     /**
@@ -103,31 +127,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             return;
         }
         toggleActiveClassOnSpecificAttribute<HTMLButtonElement, "value">("value", activeWorkspace.id, ACT_SWITCH_WORKSPACE);
-    }
-
-    /**
-     * Top menu workspace switcher content (Application header content)
-     *
-     * Parent to inflate:
-     *
-     *  <header>
-     *      ...
-     *      [[ add workspace button ]]
-     *  </header>
-     */
-    private renderWorkspaceSwitcherToolings(parentElem: HTMLElement) {
-
-        // add workspace button
-        parentElem.appendChild(renderButton(
-            ICON.ADD,
-            "",
-            [ACT_ADD_WORKSPACE, CLASS_ACTION_ADD],
-            "Add new workspace",
-            onClick => {
-                this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
-                this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
-            }
-        ));
     }
 
     /**
@@ -180,6 +179,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             (event) => this.actionAddGroup(workspace.id)
         ));
 
+        // settings menu
+
         parentElem.replaceChildren(
             titleSectionElem,
             actionsSectionElem
@@ -209,10 +210,12 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     /**
      *  Application footer content
      */
-    private renderFooter(parentElem: HTMLElement) {
+    private renderFooter() {
+        const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
+
         const dummyTextElem = document.createElement("span");
         dummyTextElem.title = "tiririri";
-        parentElem.appendChild(dummyTextElem);
+        footerElem.appendChild(dummyTextElem);
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

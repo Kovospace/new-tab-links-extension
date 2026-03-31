@@ -43,12 +43,12 @@ footer {
     flex-basis: 1em;
 }
 
-header > div,
-header > span {
+header > div > div,
+header > div > span {
     display: inline-block;
 }
 
-header > span {
+header > div > span {
     margin-right: 0.5em;
 }
 

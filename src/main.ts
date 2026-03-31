@@ -92,6 +92,8 @@ export const CLASS_ACTION_DANGER: string = "danger";
 export const CLASS_ACTION_ACTIVE: string = "active";
 
 // Workspace component
+export const CLASS_WORKSPACE_HEADER_LEFT: string = "cls-workspace-header-left";
+export const CLASS_WORKSPACE_HEADER_RIGHT: string = "cls-workspace-header-right";
 export const CLASS_WORKSPACE_HEAD_TITLE: string = "cls-workspace-head-title";
 export const CLASS_WORKSPACE_HEAD_ACTIONS: string = "cls-workspace-head-actions";
 
