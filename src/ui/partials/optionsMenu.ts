@@ -130,6 +130,12 @@ export class OptionsMenu {
 
     private toggleMenu() {
         this.openingElement.classList.toggle("active");
+        const willBeVisible = !this.menuElement.classList.contains('visible');
+        if (willBeVisible) {
+            const rect = this.openingElement.getBoundingClientRect();
+            const isRightHalf = rect.left > window.innerWidth / 2;
+            this.menuElement.classList.toggle('align-right', isRightHalf);
+        }
         this.menuElement.classList.toggle('visible');
         toggleOverlay(this.menuElement.classList.contains('visible'));
     }
