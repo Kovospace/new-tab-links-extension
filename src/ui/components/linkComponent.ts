@@ -64,14 +64,15 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         span.textContent = linkDto.description ? linkDto.description : "";
         linkContentDiv.appendChild(span);
 
-        // icon
+        // icon — worker resolves to a base64 data URI or a fallback asset path
         const img: HTMLImageElement = document.createElement("img");
         img.width = 32;
         img.height = 32;
+        img.src = '/gfx/favicon-default.svg';
 
         FaviconsHandler
             .handleIconDownloadAndCache(anchor.href)
-            .then(base64 => { img.src = base64 });
+            .then(iconSrc => { if (iconSrc) img.src = iconSrc; });
 
         faviconDiv.appendChild(img);
 
