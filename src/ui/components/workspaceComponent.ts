@@ -8,7 +8,7 @@ import {
     ACT_ADD_WORKSPACE,
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
-    CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT,
+    CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
 } from "../../main"
 
 // data/model layer
@@ -67,6 +67,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         headerElem.appendChild(headerElemRightContent);
 
         // workspace buttons
+        headerElemLeftContent.appendChild(renderTextContainer("span", "Workspaces"));
         headerElemLeftContent.appendChild(renderContainer());
         this.VIEW_MODEL.observables.workspaces
             .subscribe((workspaces: WorkspaceDTO[]) => this.renderWorkspaceSwitcher(headerElemLeftContent, workspaces));
@@ -82,6 +83,24 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
             }
         ));
+
+        // application / user account menu
+        new OptionsMenu(
+            headerElemRightContent,
+            {
+                openMenuButtonId: `application-menu`,
+                openMenuButtonClass: ACT_APP_MENU,
+                openMenuButtonTooltipText: "Application menu"
+            },
+            [
+                {
+                    actionTitle: "User",
+                    dangerous: false,
+                    onClick: () => {}
+                }
+            ],
+            {}
+        );
     }
 
     /**

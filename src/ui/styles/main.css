@@ -48,6 +48,19 @@ header > div > span {
     display: inline-block;
 }
 
+header > div > div {
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+}
+
+header > div.cls-workspace-header-left {
+    float: left;
+}
+
+header > div.cls-workspace-header-right {
+    float: right;
+}
+
 header > div > span {
     margin-right: 0.5em;
 }
