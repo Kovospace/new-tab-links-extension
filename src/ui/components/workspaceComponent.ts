@@ -85,7 +85,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             }
         ));
 
-        // application / user account menu
+        // application / profiles menu
         new OptionsMenu(
             headerElemRightContent,
             {

@@ -18,7 +18,8 @@ export class AppStateRepository {
 
     public async init(initialState: AppState) {
         this.LOG = new Logger("AppStateRepository");
-        const saved = await this.datasource.get<AppState>(APP_STATE_PREFIX);
+        const profileKey = APP_STATE_PREFIX + initialState.activeProfileId;
+        const saved = await this.datasource.get<AppState>(profileKey);
         //this.initialState = initialState;
         this.state = saved ?? initialState;
         this.state$.set(this.state);
@@ -26,7 +27,7 @@ export class AppStateRepository {
     }
 
     private async save(): Promise<AppState> {
-        await this.datasource.save(APP_STATE_PREFIX, this.state);
+        await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
         this.state$.set(this.state);
         return this.state;
     }

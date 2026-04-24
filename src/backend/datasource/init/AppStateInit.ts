@@ -1,4 +1,11 @@
-import { AppState } from "../../entity/AppStateEntity";
+import { AppState, User } from "../../entity/AppStateEntity";
+
+export const DEFAULT_USER: User = {
+    id: "user-default",
+    username: "Default"
+};
+
+export const DEFAULT_PROFILE_ID = "default";
 
 /**
  *  Správne vyrenderovanie testovacích dát:
@@ -10,10 +17,8 @@ import { AppState } from "../../entity/AppStateEntity";
  */
 
 export const appStateInit: AppState = {
-    // user: {
-    //   id: "1",
-    //   username: "Default user"
-    // },
+    user: DEFAULT_USER,
+    activeProfileId: DEFAULT_PROFILE_ID,
     activeEnvironmentId: "env-1",
     environments: {
         "env-1": {
