@@ -1,10 +1,16 @@
 export interface AppState {
+    user: User;
     environments: Record<string, Environment>;
     groups: Record<string, Group>;
     subgroups: Record<string, Subgroup>;
     links: Record<string, Link>;
     activeEnvironmentId: string | null | undefined;
 }
+
+// export interface User {
+//     id: string;
+//     username: string;
+// }
 
 export interface Environment {
     id: string;

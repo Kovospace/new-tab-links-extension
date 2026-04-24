@@ -9,6 +9,7 @@ import {
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
+    ACT_USER_PROFILES,
 } from "../../main"
 
 // data/model layer
@@ -83,6 +84,25 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
             }
         ));
+
+        // application / user account menu
+        new OptionsMenu(
+            headerElemRightContent,
+            {
+                openMenuButtonId: `user-profiles`,
+                openMenuButtonClass: ACT_USER_PROFILES,
+                openMenuButtonTooltipText: "User profiles list",
+                openMenuButtonContent: `${ICON.USER} username`
+            },
+            [
+                {
+                    actionTitle: "Dummy",
+                    dangerous: false,
+                    onClick: () => {}
+                }
+            ],
+            {}
+        );
 
         // application / user account menu
         new OptionsMenu(
@@ -199,7 +219,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         ));
 
         // settings menu
-
         parentElem.replaceChildren(
             titleSectionElem,
             actionsSectionElem

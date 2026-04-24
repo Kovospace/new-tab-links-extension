@@ -5,7 +5,7 @@ import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"
 
-const STORAGE_KEY = "workspace_state";
+const APP_STATE_PREFIX = "app_state_";
 
 export class AppStateRepository {
 
@@ -18,7 +18,7 @@ export class AppStateRepository {
 
     public async init(initialState: AppState) {
         this.LOG = new Logger("AppStateRepository");
-        const saved = await this.datasource.get<AppState>(STORAGE_KEY);
+        const saved = await this.datasource.get<AppState>(APP_STATE_PREFIX);
         //this.initialState = initialState;
         this.state = saved ?? initialState;
         this.state$.set(this.state);
@@ -26,7 +26,7 @@ export class AppStateRepository {
     }
 
     private async save(): Promise<AppState> {
-        await this.datasource.save(STORAGE_KEY, this.state);
+        await this.datasource.save(APP_STATE_PREFIX, this.state);
         this.state$.set(this.state);
         return this.state;
     }

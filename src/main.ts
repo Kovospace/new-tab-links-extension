@@ -64,6 +64,7 @@ export const ACT_LOAD_DEFAUTLS: string = "act-load-defaults";
 
 // Workspace component
 export const ACT_APP_MENU: string = "action-app-menu";
+export const ACT_USER_PROFILES: string = "action-user-profiles-menu";
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";

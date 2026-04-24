@@ -10,6 +10,10 @@ import { AppState } from "../../entity/AppStateEntity";
  */
 
 export const appStateInit: AppState = {
+    // user: {
+    //   id: "1",
+    //   username: "Default user"
+    // },
     activeEnvironmentId: "env-1",
     environments: {
         "env-1": {
