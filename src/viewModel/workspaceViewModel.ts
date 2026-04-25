@@ -134,10 +134,11 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         this.REPOSITORY.switchProfile(id);
     }
 
-    public createProfile(name: string | null) {
+    public async createProfile(name: string | null) {
         this.LOG.debug("createProfile", `name: ${name}`);
         if (!name) return;
-        profileRepository.createProfile(name);
+        const meta = await profileRepository.createProfile(name);
+        this.switchProfile(meta.id);
     }
 
     public async importProfile() {
