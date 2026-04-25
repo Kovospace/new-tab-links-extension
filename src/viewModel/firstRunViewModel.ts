@@ -1,4 +1,6 @@
 import {AppStateRepository} from "../backend/repository/AppStateRepository";
+import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
+import {appStateInit} from "../backend/datasource/init/AppStateInit";
 
 export class FirstRunViewModel {
 
@@ -17,6 +19,21 @@ export class FirstRunViewModel {
             .then(() => {
                 window.location.reload();
             });
+    }
+
+    public async importProfile(): Promise<void> {
+        const data = await ProfileDataTransfer.importFromFile();
+        if (!data) return;
+        await this.REPOSITORY.replaceCurrentProfileData(data);
+        window.location.reload();
+    }
+
+    public async loadDefaults(): Promise<void> {
+        const { environments, groups, subgroups, links, activeEnvironmentId } = appStateInit;
+        await this.REPOSITORY.replaceCurrentProfileData(
+            { environments, groups, subgroups, links, activeEnvironmentId }
+        );
+        window.location.reload();
     }
 
 }

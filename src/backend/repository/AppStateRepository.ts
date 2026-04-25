@@ -1,4 +1,4 @@
-import {AppState, Environment, Group, Link, GroupItem, Subgroup} from "../entity/AppStateEntity";
+import {AppState, Environment, Group, Link, GroupItem, Subgroup, ProfileData} from "../entity/AppStateEntity";
 import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWrapper";
 import {uid} from "./AppStateRepositoryUtils";
 import {ObservableValue} from "../../utils/observableValue";
@@ -33,6 +33,19 @@ export class AppStateRepository {
 
     getActiveProfileId(): string {
         return this.state.activeProfileId;
+    }
+
+    /**
+     * Overwrite the current profile's data in-place and fire state$.
+     * Used when populating an empty profile (first-run import or load defaults).
+     */
+    public replaceCurrentProfileData(data: ProfileData): Promise<AppState> {
+        this.state = {
+            ...data,
+            user: this.state.user,
+            activeProfileId: this.state.activeProfileId
+        };
+        return this.save();
     }
 
     /**

@@ -25,8 +25,9 @@ export class FirstRunComponent extends HTMLElement {
 
         const template: string = `
             <h1>No workspaces & Groups & Links here yet.</h1>
-            <h2>If You se this page, it is either first run or everything was wiped out.</h2>
             <br>
+            <h2>If You se this page, it is either first run or everything was wiped out.</h2>
+            <br><br>
             <div>
                 <h3>Start by creating Workspace</h3>
                 <br>
@@ -51,10 +52,11 @@ export class FirstRunComponent extends HTMLElement {
 
     private attachButtonActions() {
 
-        const addFirstWorkspaceButton: HTMLButtonElement | null =
-            this.querySelector<HTMLButtonElement>(`#${ACT_FIRST_WORKSPACE}`);
+        const addFirstWorkspaceButton = this.querySelector<HTMLButtonElement>(`#${ACT_FIRST_WORKSPACE}`);
+        const importButton = this.querySelector<HTMLButtonElement>(`#${ACT_IMPORT_LINKS}`);
+        const loadDefaultsButton = this.querySelector<HTMLButtonElement>(`#${ACT_LOAD_DEFAUTLS}`);
 
-        if (addFirstWorkspaceButton === undefined || addFirstWorkspaceButton === null) {
+        if (!addFirstWorkspaceButton) {
             console.error(`Cannot find button for action ${ACT_FIRST_WORKSPACE}`);
         }
 
@@ -62,6 +64,14 @@ export class FirstRunComponent extends HTMLElement {
             this.VIEW_MODEL.addWorkspace(
                 prompt("Give a name for workspace"),
                 "Default workspace");
+        });
+
+        importButton!.addEventListener('click', () => {
+            this.VIEW_MODEL.importProfile();
+        });
+
+        loadDefaultsButton!.addEventListener('click', () => {
+            this.VIEW_MODEL.loadDefaults();
         });
     }
 
