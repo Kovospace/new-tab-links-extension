@@ -9,6 +9,7 @@ import {toGroupDTO} from "../viewModel/abstract/mappers"
 
 // repositories
 import {profileRepository} from "../backend/repository/ProfileRepository";
+import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
@@ -137,6 +138,20 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         this.LOG.debug("createProfile", `name: ${name}`);
         if (!name) return;
         profileRepository.createProfile(name);
+    }
+
+    public exportCurrentProfile() {
+        const state = this.REPOSITORY.state$.get();
+        const activeProfileId = state.activeProfileId;
+        const profileMeta = profileRepository.profiles$.get()
+            .find(p => p.id === activeProfileId);
+        const filename = profileMeta?.name ?? activeProfileId;
+
+        const { environments, groups, subgroups, links, activeEnvironmentId } = state;
+        ProfileDataTransfer.exportToFile(
+            { environments, groups, subgroups, links, activeEnvironmentId },
+            filename
+        );
     }
 
     // other actions

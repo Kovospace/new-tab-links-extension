@@ -114,7 +114,14 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                         separator: true
                     },
                     {
-                        actionTitle: "+ New profile",
+                        actionTitle: `${ICON.EXPORT} Export current profile`,
+                        onClick: () => this.VIEW_MODEL.exportCurrentProfile()
+                    },
+                    {
+                        separator: true
+                    },
+                    {
+                        actionTitle: `${ICON.ADD} New profile`,
                         onClick: () => this.VIEW_MODEL.createProfile(prompt("Profile name?"))
                     }
                 ]);
