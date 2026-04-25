@@ -6,7 +6,8 @@ options-menu {
     right: auto;
     border-radius: var(--radius-normal);
     background-color: var(--color-component-background);
-    box-shadow: 0 0 0 0.25em var(--color-document-background);
+    border: 0.25em solid var(--color-document-background);
+    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
     margin-top:0.5em;
     opacity: 0;
     visibility: hidden;
@@ -40,7 +41,7 @@ options-menu-item::after {
     display: block;
     content: '';
     height: 0.0625em;
-    background-color: #888;
+    background-color: var(--color-component-framing);
     position: absolute;
     bottom: 0;
     left: 0;
@@ -61,7 +62,7 @@ options-menu-item.no-bordered::after {
 
 options-menu-item.separator {
     padding: 0;
-    height: 0.75em;
+    height: 1em;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,7 +72,9 @@ options-menu-item.separator::after {
     position: static;
     display: block;
     width: 80%;
-    height: 0.0625em;
+    height: 0;
+    background-color: transparent;
+    border-top: 0.25em dotted #888;
 }
 
 options-menu-item.danger {

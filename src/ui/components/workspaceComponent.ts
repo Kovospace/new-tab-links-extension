@@ -124,9 +124,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                         onClick: () => this.VIEW_MODEL.importProfile()
                     },
                     {
-                        separator: true
-                    },
-                    {
                         actionTitle: `${ICON.ADD} New profile`,
                         onClick: () => this.VIEW_MODEL.createProfile(prompt("Profile name?"))
                     }
