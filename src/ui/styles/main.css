@@ -143,6 +143,10 @@ html.dark .active {
     background-color: var(--color-button-active-background);
 }
 
+html.dark .highlight {
+    background-color: var(--color-button-active-background);
+}
+
 html.dark .add {
   background-color: var(--color-button-add-background);
 }
@@ -155,6 +159,10 @@ html.dark .active:hover {
   background-color: var(--color-button-active-background-hover);
 }
 
+html.dark .highlight:hover {
+    background-color: var(--color-button-active-background-hover);
+}
+
 html.dark .add:hover {
   background-color: var(--color-button-add-background-hover);
 }
@@ -165,6 +173,10 @@ html.dark .danger:hover {
 
 html.dark .active:active {
   box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
+}
+
+html.dark .highlight:active {
+    box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
 }
 
 html.dark .add:active {

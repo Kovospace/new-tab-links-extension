@@ -17,7 +17,7 @@ type OptionsMenuItem = {
 
 type MenuRenderData = {
     openMenuButtonId: string,
-    openMenuButtonClass?: string,
+    openMenuButtonClass?: string | string[],
     openMenuButtonTooltipText?: string
     openMenuButtonContent?: string
 }
@@ -86,7 +86,13 @@ export class OptionsMenu {
         this.openingElement = renderButton(
             this.renderData.openMenuButtonContent ? this.renderData.openMenuButtonContent : ICON.MORE,
             "",
-            [this.renderData.openMenuButtonClass ? this.renderData.openMenuButtonId : ""],
+            this.renderData.openMenuButtonClass
+                ? [
+                    ...(Array.isArray(this.renderData.openMenuButtonClass)
+                        ? this.renderData.openMenuButtonClass
+                        : [this.renderData.openMenuButtonClass])
+                  ]
+                : [],
             this.renderData.openMenuButtonTooltipText,
             (event) => {
                 this.LOG.debug("neu open clicked");
