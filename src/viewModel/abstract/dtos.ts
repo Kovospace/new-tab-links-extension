@@ -33,3 +33,9 @@ export interface LinkDTO extends GroupItemDTO {
 export interface SubgroupDTO extends GroupItemDTO {
     links?: LinkDTO[] | null;
 }
+
+export interface ProfileDTO extends ViewModelDTO {
+    name: string;
+    /** Whether this profile is the currently loaded one. */
+    active: boolean;
+}

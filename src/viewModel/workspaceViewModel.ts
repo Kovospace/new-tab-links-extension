@@ -1,11 +1,14 @@
 
 // data layer
-import {AppState, Environment, Group} from "../backend/entity/AppStateEntity";
+import {AppState, Environment, Group, ProfileMeta} from "../backend/entity/AppStateEntity";
 
 // model layer
 import {AbstractViewModel} from "../viewModel/abstract/abstractViewModel"
-import {WorkspaceDTO, GroupDTO} from "../viewModel/abstract/dtos"
+import {WorkspaceDTO, GroupDTO, ProfileDTO} from "../viewModel/abstract/dtos"
 import {toGroupDTO} from "../viewModel/abstract/mappers"
+
+// repositories
+import {profileRepository} from "../backend/repository/ProfileRepository";
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
@@ -14,6 +17,7 @@ type WorkspaceObservables = {
     workspaces: ObservableValue<WorkspaceDTO[]>;
     groups: ObservableValue<GroupDTO>;
     workspace: ObservableValue<WorkspaceDTO>;
+    profiles: ObservableValue<ProfileDTO[]>;
 };
 
 export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
@@ -22,8 +26,22 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         return {
             workspaces: new ObservableValue([] as WorkspaceDTO[]),
             groups: new ObservableValue(null as any),
-            workspace: new ObservableValue(null as any)
+            workspace: new ObservableValue(null as any),
+            profiles: new ObservableValue([] as ProfileDTO[])
         };
+    }
+
+    public override initialize(): void {
+        super.initialize();
+        // Subscribe to profile list changes (profile added / deleted)
+        profileRepository.profiles$.subscribe((profiles: ProfileMeta[]) => {
+            const activeId = this.REPOSITORY.getActiveProfileId();
+            this.observables.profiles.set(profiles.map(p => ({
+                id: p.id,
+                name: p.name,
+                active: p.id === activeId
+            } satisfies ProfileDTO)));
+        });
     }
 
     protected subscribed(state: AppState) {
@@ -59,6 +77,16 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
                 .values(state.groups)
                 .filter((group: Group) => group.environmentId === currentWorkspaceId)
                 .map(toGroupDTO));
+
+        // Update active flag on profiles when the loaded profile changes
+        const profiles = profileRepository.profiles$.get();
+        if (profiles.length > 0) {
+            this.observables.profiles.set(profiles.map(p => ({
+                id: p.id,
+                name: p.name,
+                active: p.id === state.activeProfileId
+            } satisfies ProfileDTO)));
+        }
     }
 
     // workspace actions
@@ -95,6 +123,20 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     public deleteWorkspace(id: string) {
         this.LOG.debug("deleteWorskpace", `id: ${id}`);
         this.REPOSITORY.deleteWorksapce(id);
+    }
+
+    // profile actions
+
+    public switchProfile(id: string) {
+        this.LOG.debug("switchProfile", `id: ${id}`);
+        profileRepository.setActiveProfile(id);
+        this.REPOSITORY.switchProfile(id);
+    }
+
+    public createProfile(name: string | null) {
+        this.LOG.debug("createProfile", `name: ${name}`);
+        if (!name) return;
+        profileRepository.createProfile(name);
     }
 
     // other actions

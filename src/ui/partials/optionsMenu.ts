@@ -8,6 +8,8 @@ import { toggleOverlay } from "../partials/wrappedHtmlElements";
 type OptionsMenuItem = {
     actionTitle: string,
     dangerous?: boolean,
+    active?: boolean,
+    separator?: boolean,
     dangerConfirmation?: string,
     onClick: () => void
 }
@@ -16,6 +18,7 @@ type MenuRenderData = {
     openMenuButtonId: string,
     openMenuButtonClass?: string,
     openMenuButtonTooltipText?: string
+    openMenuButtonContent?: string
 }
 
 export class OptionsMenu {
@@ -56,6 +59,22 @@ export class OptionsMenu {
         this.metadata = metadata;
     }
 
+    /** Replace all menu items without re-creating the menu element or button. */
+    public updateOptions(options: OptionsMenuItem[]) {
+        this.options = options;
+        this.menuElement.replaceChildren();
+        this.options.forEach(option => this.appendMenuItem(option));
+    }
+
+    /** Update the label text of the opening button without disturbing the nested menu element. */
+    public updateButtonContent(content: string) {
+        const textNode = Array.from(this.openingElement.childNodes)
+            .find(node => node.nodeType === Node.TEXT_NODE);
+        if (textNode) {
+            textNode.textContent = content;
+        }
+    }
+
     public render() {
         this.renderButton();
         this.renderMenu();
@@ -64,7 +83,7 @@ export class OptionsMenu {
 
     private renderButton() {
         this.openingElement = renderButton(
-            ICON.MORE,
+            this.renderData.openMenuButtonContent ? this.renderData.openMenuButtonContent : ICON.MORE,
             "",
             [this.renderData.openMenuButtonClass ? this.renderData.openMenuButtonId : ""],
             this.renderData.openMenuButtonTooltipText,
@@ -86,33 +105,42 @@ export class OptionsMenu {
         this.menuElement = document.createElement(ELEM_OPTIONS_MENU);
         this.openingElement.appendChild(this.menuElement);
 
-        this.options.forEach((option: OptionsMenuItem) => {
+        this.options.forEach((option: OptionsMenuItem) => this.appendMenuItem(option));
+    }
 
-            const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
-            optionElem.textContent = option.actionTitle;
-            optionElem.setAttribute('defaultText', option.actionTitle);
-            if (option.dangerous) {
-                optionElem.classList.add("danger");
-            }
-
-            optionElem.addEventListener('click', () => {
-                this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
-                this.LOG.debug("Metadata: " + this.metadata);
-                toggleOverlay(false);
-                if (option.dangerous) {
-                    let message = "Are You sure ?";
-                    if (option.dangerConfirmation) {
-                        message += `\n\n${option.dangerConfirmation}`;
-                    }
-                    if (!confirm(message)) {
-                        return;
-                    }
-                }
-                option.onClick();
-            });
-
+    private appendMenuItem(option: OptionsMenuItem) {
+        const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
+        if (option.separator) {
+            optionElem.classList.add("separator");
             this.menuElement.appendChild(optionElem);
+            return;
+        }
+        optionElem.textContent = option.actionTitle;
+        optionElem.setAttribute('defaultText', option.actionTitle);
+        if (option.dangerous) {
+            optionElem.classList.add("danger");
+        }
+        if (option.active) {
+            optionElem.classList.add("active");
+        }
+
+        optionElem.addEventListener('click', () => {
+            this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
+            this.LOG.debug("Metadata: " + this.metadata);
+            toggleOverlay(false);
+            if (option.dangerous) {
+                let message = "Are You sure ?";
+                if (option.dangerConfirmation) {
+                    message += `\n\n${option.dangerConfirmation}`;
+                }
+                if (!confirm(message)) {
+                    return;
+                }
+            }
+            option.onClick();
         });
+
+        this.menuElement.appendChild(optionElem);
     }
 
     private attachListeners() {

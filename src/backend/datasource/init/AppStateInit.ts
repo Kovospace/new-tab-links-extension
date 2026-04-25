@@ -1,4 +1,20 @@
-import { AppState } from "../../entity/AppStateEntity";
+import { AppState, ProfileData, User } from "../../entity/AppStateEntity";
+
+export const DEFAULT_USER: User = {
+    id: "user-default",
+    username: "Default"
+};
+
+export const DEFAULT_PROFILE_ID = "default";
+
+/** Blank ProfileData used when a newly created profile has no saved data yet. */
+export const emptyProfileData: ProfileData = {
+    environments: {},
+    groups: {},
+    subgroups: {},
+    links: {},
+    activeEnvironmentId: null
+};
 
 /**
  *  Správne vyrenderovanie testovacích dát:
@@ -10,6 +26,8 @@ import { AppState } from "../../entity/AppStateEntity";
  */
 
 export const appStateInit: AppState = {
+    user: DEFAULT_USER,
+    activeProfileId: DEFAULT_PROFILE_ID,
     activeEnvironmentId: "env-1",
     environments: {
         "env-1": {

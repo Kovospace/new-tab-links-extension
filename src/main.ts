@@ -1,4 +1,5 @@
 import { appStateRepository } from "./backend/repository/AppStateRepository";
+import { profileRepository } from "./backend/repository/ProfileRepository";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
 import { WorkspaceDTO } from "./viewModel/abstract/dtos"
@@ -64,6 +65,7 @@ export const ACT_LOAD_DEFAUTLS: string = "act-load-defaults";
 
 // Workspace component
 export const ACT_APP_MENU: string = "action-app-menu";
+export const ACT_USER_PROFILES: string = "action-user-profiles-menu";
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";
@@ -122,8 +124,10 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
 
+    // initialize profile registry first so we know which profile to load
+    await profileRepository.init();
     // initialize "app data" object and repository, WAIT FOR IT !!!
-    await appStateRepository.init(appStateInit);
+    await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
     // create custom HTML element ONLY THAT WAY otherwise (innerHTML() method or
     // raw in html file) construction of object happens before initialized "repository"

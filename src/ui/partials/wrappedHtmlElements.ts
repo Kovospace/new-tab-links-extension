@@ -13,7 +13,8 @@ export const ICON = {
     EXPAND: "▸",     // expand / open
     COLLAPSE: "▾",   // collapse / close
     MORE: "⋮",
-    OPEN_GROUPED: "⇉"
+    OPEN_GROUPED: "⇉",
+    USER: "◉"
 } as const;
 
 /**
