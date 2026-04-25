@@ -13,7 +13,7 @@ import {
 } from "../../main"
 
 // data/model layer
-import { WorkspaceDTO, GroupDTO } from "../../viewModel/abstract/dtos";
+import { WorkspaceDTO, GroupDTO, ProfileDTO } from "../../viewModel/abstract/dtos";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
 
@@ -85,24 +85,40 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             }
         ));
 
-        // application / profiles menu
-        new OptionsMenu(
+        // application / profiles menu — populated reactively via observables.profiles
+        headerElemRightContent.appendChild(renderTextContainer("span", "Profile"));
+
+        const profilesMenu = new OptionsMenu(
             headerElemRightContent,
             {
                 openMenuButtonId: `user-profiles`,
                 openMenuButtonClass: ACT_USER_PROFILES,
                 openMenuButtonTooltipText: "User profiles list",
-                openMenuButtonContent: `${ICON.USER} username`
+                openMenuButtonContent: `...`
             },
-            [
-                {
-                    actionTitle: "Dummy",
-                    dangerous: false,
-                    onClick: () => {}
-                }
-            ],
+            [],
             {}
         );
+
+        this.VIEW_MODEL.observables.profiles
+            .subscribe((profiles: ProfileDTO[]) => {
+                const active = profiles.find(p => p.active);
+                profilesMenu.updateButtonContent(`${active?.name ?? '...'}`);
+                profilesMenu.updateOptions([
+                    ...profiles.map(p => ({
+                        actionTitle: p.name,
+                        active: p.active,
+                        onClick: () => this.VIEW_MODEL.switchProfile(p.id)
+                    })),
+                    {
+                        separator: true
+                    },
+                    {
+                        actionTitle: "+ New profile",
+                        onClick: () => this.VIEW_MODEL.createProfile(prompt("Profile name?"))
+                    }
+                ]);
+            });
 
         // application / user account menu
         new OptionsMenu(

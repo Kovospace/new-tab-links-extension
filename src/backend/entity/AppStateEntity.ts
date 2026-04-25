@@ -16,6 +16,16 @@ export interface ProfileData {
 }
 
 /**
+ * Lightweight profile descriptor stored in the profile registry.
+ * Does not contain the full profile data — that is stored separately per profile.
+ */
+export interface ProfileMeta {
+    id: string;
+    name: string;
+    createdAt: number;
+}
+
+/**
  * A named profile stored in IndexedDB. Contains all profile data plus metadata.
  */
 export interface Profile extends ProfileData {

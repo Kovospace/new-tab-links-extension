@@ -51,6 +51,25 @@ options-menu-item:last-child::after {
     display: none;
 }
 
+options-menu-item:has(+ options-menu-item.separator)::after {
+    display: none;
+}
+
+options-menu-item.separator {
+    padding: 0;
+    height: 0.75em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+options-menu-item.separator::after {
+    position: static;
+    display: block;
+    width: 80%;
+    height: 0.0625em;
+}
+
 options-menu-item.danger {
     background-color: var(--color-button-danger-background);
 }
@@ -80,4 +99,10 @@ options-menu-item.danger:hover {
 
 options-menu-item.active:hover {
     background-color: var(--color-button-active-background);
+}
+
+options-menu-item.separator:hover {
+    color: inherit;
+    background-color: inherit;
+    cursor: default;
 }

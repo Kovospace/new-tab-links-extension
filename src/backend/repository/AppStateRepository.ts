@@ -2,7 +2,7 @@ import {AppState, Environment, Group, Link, GroupItem, Subgroup} from "../entity
 import {ChromeStorageWrapper} from "../datasource/chromeStorage/chromeStorageWrapper";
 import {uid} from "./AppStateRepositoryUtils";
 import {ObservableValue} from "../../utils/observableValue";
-import {appStateInit} from "../datasource/init/AppStateInit";
+import {appStateInit, emptyProfileData} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"
 
 const APP_STATE_PREFIX = "app_state_";
@@ -16,13 +16,38 @@ export class AppStateRepository {
     readonly state$ = new ObservableValue<AppState>(appStateInit);
     private datasource = new ChromeStorageWrapper()
 
-    public async init(initialState: AppState) {
+    /**
+     * @param initialState  Fallback state when no persisted data exists for the profile.
+     * @param activeProfileId  Which profile to load; overrides initialState.activeProfileId
+     *                         (supplied by ProfileRepository on startup).
+     */
+    public async init(initialState: AppState, activeProfileId?: string) {
         this.LOG = new Logger("AppStateRepository");
-        const profileKey = APP_STATE_PREFIX + initialState.activeProfileId;
+        const profileId = activeProfileId ?? initialState.activeProfileId;
+        const profileKey = APP_STATE_PREFIX + profileId;
         const saved = await this.datasource.get<AppState>(profileKey);
-        //this.initialState = initialState;
-        this.state = saved ?? initialState;
+        this.state = saved ?? { ...initialState, activeProfileId: profileId };
         this.state$.set(this.state);
+        return this.save();
+    }
+
+    getActiveProfileId(): string {
+        return this.state.activeProfileId;
+    }
+
+    /**
+     * Replace the entire loaded profile with another one.
+     * Loads saved data for that profile from storage (or starts empty),
+     * then fires state$ so all subscribers re-render.
+     */
+    public async switchProfile(profileId: string): Promise<AppState> {
+        const profileKey = APP_STATE_PREFIX + profileId;
+        const saved = await this.datasource.get<AppState>(profileKey);
+        this.state = {
+            ...(saved ?? emptyProfileData),
+            user: this.state.user,
+            activeProfileId: profileId
+        };
         return this.save();
     }
 
