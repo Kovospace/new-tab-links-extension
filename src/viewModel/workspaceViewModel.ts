@@ -9,6 +9,7 @@ import {toGroupDTO} from "../viewModel/abstract/mappers"
 
 // repositories
 import {profileRepository} from "../backend/repository/ProfileRepository";
+import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
@@ -133,10 +134,37 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         this.REPOSITORY.switchProfile(id);
     }
 
-    public createProfile(name: string | null) {
+    public async createProfile(name: string | null) {
         this.LOG.debug("createProfile", `name: ${name}`);
         if (!name) return;
-        profileRepository.createProfile(name);
+        const meta = await profileRepository.createProfile(name);
+        this.switchProfile(meta.id);
+    }
+
+    public async importProfile() {
+        const data = await ProfileDataTransfer.importFromFile();
+        if (!data) return;
+
+        const name = prompt("Name for the imported profile?");
+        if (!name) return;
+
+        const meta = await profileRepository.createProfile(name);
+        await this.REPOSITORY.saveProfileData(meta.id, data);
+        this.switchProfile(meta.id);
+    }
+
+    public exportCurrentProfile() {
+        const state = this.REPOSITORY.state$.get();
+        const activeProfileId = state.activeProfileId;
+        const profileMeta = profileRepository.profiles$.get()
+            .find(p => p.id === activeProfileId);
+        const filename = profileMeta?.name ?? activeProfileId;
+
+        const { environments, groups, subgroups, links, activeEnvironmentId } = state;
+        ProfileDataTransfer.exportToFile(
+            { environments, groups, subgroups, links, activeEnvironmentId },
+            filename
+        );
     }
 
     // other actions

@@ -93,6 +93,7 @@ export const ACT_LINK_EDIT: string = "act-link-edit";
 export const CLASS_ACTION_ADD: string = "add";
 export const CLASS_ACTION_DANGER: string = "danger";
 export const CLASS_ACTION_ACTIVE: string = "active";
+export const CLASS_ACTION_HIGHLIGHT: string = "highlight";
 
 // Workspace component
 export const CLASS_WORKSPACE_HEADER_LEFT: string = "cls-workspace-header-left";

@@ -14,7 +14,9 @@ export const ICON = {
     COLLAPSE: "▾",   // collapse / close
     MORE: "⋮",
     OPEN_GROUPED: "⇉",
-    USER: "◉"
+    USER: "◉",
+    EXPORT: "⇧",   // export (up/out)
+    IMPORT: "⇩"   // import (down/in)
 } as const;
 
 /**

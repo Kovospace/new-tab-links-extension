@@ -9,7 +9,7 @@ import {
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
-    ACT_USER_PROFILES,
+    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT,
 } from "../../main"
 
 // data/model layer
@@ -86,13 +86,13 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         ));
 
         // application / profiles menu — populated reactively via observables.profiles
-        headerElemRightContent.appendChild(renderTextContainer("span", "Profile"));
+        // headerElemRightContent.appendChild(renderTextContainer("span", "Profile"));
 
         const profilesMenu = new OptionsMenu(
             headerElemRightContent,
             {
                 openMenuButtonId: `user-profiles`,
-                openMenuButtonClass: ACT_USER_PROFILES,
+                openMenuButtonClass: [ACT_USER_PROFILES, CLASS_ACTION_HIGHLIGHT],
                 openMenuButtonTooltipText: "User profiles list",
                 openMenuButtonContent: `...`
             },
@@ -103,7 +103,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         this.VIEW_MODEL.observables.profiles
             .subscribe((profiles: ProfileDTO[]) => {
                 const active = profiles.find(p => p.active);
-                profilesMenu.updateButtonContent(`${active?.name ?? '...'}`);
+                profilesMenu.updateButtonContent(`Profile: ${active?.name ?? '...'}`);
                 profilesMenu.updateOptions([
                     ...profiles.map(p => ({
                         actionTitle: p.name,
@@ -114,7 +114,17 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                         separator: true
                     },
                     {
-                        actionTitle: "+ New profile",
+                        actionTitle: `${ICON.EXPORT} Export current profile`,
+                        noBorder: true,
+                        onClick: () => this.VIEW_MODEL.exportCurrentProfile()
+                    },
+                    {
+                        actionTitle: `${ICON.IMPORT} Import profile`,
+                        noBorder: true,
+                        onClick: () => this.VIEW_MODEL.importProfile()
+                    },
+                    {
+                        actionTitle: `${ICON.ADD} Create new profile`,
                         onClick: () => this.VIEW_MODEL.createProfile(prompt("Profile name?"))
                     }
                 ]);

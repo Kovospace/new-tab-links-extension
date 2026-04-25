@@ -10,13 +10,14 @@ type OptionsMenuItem = {
     dangerous?: boolean,
     active?: boolean,
     separator?: boolean,
+    noBorder?: boolean,
     dangerConfirmation?: string,
     onClick: () => void
 }
 
 type MenuRenderData = {
     openMenuButtonId: string,
-    openMenuButtonClass?: string,
+    openMenuButtonClass?: string | string[],
     openMenuButtonTooltipText?: string
     openMenuButtonContent?: string
 }
@@ -85,7 +86,13 @@ export class OptionsMenu {
         this.openingElement = renderButton(
             this.renderData.openMenuButtonContent ? this.renderData.openMenuButtonContent : ICON.MORE,
             "",
-            [this.renderData.openMenuButtonClass ? this.renderData.openMenuButtonId : ""],
+            this.renderData.openMenuButtonClass
+                ? [
+                    ...(Array.isArray(this.renderData.openMenuButtonClass)
+                        ? this.renderData.openMenuButtonClass
+                        : [this.renderData.openMenuButtonClass])
+                  ]
+                : [],
             this.renderData.openMenuButtonTooltipText,
             (event) => {
                 this.LOG.debug("neu open clicked");
@@ -110,6 +117,9 @@ export class OptionsMenu {
 
     private appendMenuItem(option: OptionsMenuItem) {
         const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
+        if (option.noBorder) {
+            optionElem.classList.add("no-bordered");
+        }
         if (option.separator) {
             optionElem.classList.add("separator");
             this.menuElement.appendChild(optionElem);
