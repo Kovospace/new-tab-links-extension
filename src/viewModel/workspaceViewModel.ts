@@ -140,6 +140,18 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         profileRepository.createProfile(name);
     }
 
+    public async importProfile() {
+        const data = await ProfileDataTransfer.importFromFile();
+        if (!data) return;
+
+        const name = prompt("Name for the imported profile?");
+        if (!name) return;
+
+        const meta = await profileRepository.createProfile(name);
+        await this.REPOSITORY.saveProfileData(meta.id, data);
+        this.switchProfile(meta.id);
+    }
+
     public exportCurrentProfile() {
         const state = this.REPOSITORY.state$.get();
         const activeProfileId = state.activeProfileId;

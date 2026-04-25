@@ -36,6 +36,20 @@ export class AppStateRepository {
     }
 
     /**
+     * Persist ProfileData under a given profile key without switching the active profile.
+     * Used when importing a profile — data is saved but the current session is unaffected
+     * until an explicit switchProfile() call.
+     */
+    public async saveProfileData(profileId: string, data: ProfileData): Promise<void> {
+        const fullState: AppState = {
+            ...data,
+            user: this.state.user,
+            activeProfileId: profileId
+        };
+        await this.datasource.save(APP_STATE_PREFIX + profileId, fullState);
+    }
+
+    /**
      * Replace the entire loaded profile with another one.
      * Loads saved data for that profile from storage (or starts empty),
      * then fires state$ so all subscribers re-render.

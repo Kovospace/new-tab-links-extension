@@ -10,6 +10,7 @@ type OptionsMenuItem = {
     dangerous?: boolean,
     active?: boolean,
     separator?: boolean,
+    noBorder?: boolean,
     dangerConfirmation?: string,
     onClick: () => void
 }
@@ -110,6 +111,9 @@ export class OptionsMenu {
 
     private appendMenuItem(option: OptionsMenuItem) {
         const optionElem = document.createElement(ELEM_OPTIONS_MENU_ITEM);
+        if (option.noBorder) {
+            optionElem.classList.add("no-bordered");
+        }
         if (option.separator) {
             optionElem.classList.add("separator");
             this.menuElement.appendChild(optionElem);

@@ -115,7 +115,13 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                     },
                     {
                         actionTitle: `${ICON.EXPORT} Export current profile`,
+                        noBorder: true,
                         onClick: () => this.VIEW_MODEL.exportCurrentProfile()
+                    },
+                    {
+                        actionTitle: `${ICON.IMPORT} Import profile`,
+                        noBorder: true,
+                        onClick: () => this.VIEW_MODEL.importProfile()
                     },
                     {
                         separator: true
