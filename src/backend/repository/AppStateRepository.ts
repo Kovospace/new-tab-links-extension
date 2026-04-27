@@ -461,6 +461,57 @@ export class AppStateRepository {
 
 
 
+    moveSubgroupUp(id: string): Promise<AppState> {
+        const sg = this.state.subgroups[id];
+        if (!sg || sg.position <= 0) return Promise.resolve(this.state);
+        return this.editSubgroupPosition(id, sg.position - 1, sg.groupId);
+    }
+
+    moveSubgroupDown(id: string): Promise<AppState> {
+        const sg = this.state.subgroups[id];
+        if (!sg) return Promise.resolve(this.state);
+        return this.editSubgroupPosition(id, sg.position + 1, sg.groupId);
+    }
+
+    /**
+     * Moves a subgroup to a new position within its group, shifting all sibling
+     * root-level links and subgroups that occupy the range between old and new position.
+     * Links inside subgroups are not affected (they have their own position scope).
+     */
+    private editSubgroupPosition(id: string, newPosition: number, groupId: string): Promise<AppState> {
+        const currentPosition = this.state.subgroups[id].position;
+        if (currentPosition === newPosition) return Promise.resolve(this.state);
+
+        const shift = (pos: number): number => {
+            if (newPosition < currentPosition && pos >= newPosition && pos < currentPosition) return pos + 1;
+            if (newPosition > currentPosition && pos <= newPosition && pos > currentPosition) return pos - 1;
+            return pos;
+        };
+
+        const updatedLinks: Record<string, Link> = {};
+        Object.entries(this.state.links)
+            .filter(([_, link]) => link.groupId === groupId && !link.subGroupId)
+            .forEach(([linkId, link]) => {
+                updatedLinks[linkId] = { ...link, position: shift(link.position) };
+            });
+
+        const updatedSubgroups: Record<string, Subgroup> = {};
+        Object.entries(this.state.subgroups)
+            .filter(([_, sg]) => sg.groupId === groupId)
+            .forEach(([sgId, sg]) => {
+                updatedSubgroups[sgId] = sgId === id
+                    ? { ...sg, position: newPosition }
+                    : { ...sg, position: shift(sg.position) };
+            });
+
+        this.state = {
+            ...this.state,
+            links: { ...this.state.links, ...updatedLinks },
+            subgroups: { ...this.state.subgroups, ...updatedSubgroups }
+        };
+        return this.save();
+    }
+
     private getOrderForNewGroup(environmentId: string): number {
         const orders = Object.values(this.state.groups)
             .filter(g => g.environmentId === environmentId)

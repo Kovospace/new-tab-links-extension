@@ -17,7 +17,10 @@ import {
     CLASS_SUBGROUP_HEAD_TITLE,
     CLASS_SUBGROUP_HEAD_ACTIONS,
     ACT_OPEN_ALL_SUBGROUP_LINKS,
-    ELEM_SUBGROUP
+    ELEM_SUBGROUP,
+    ACT_SUBGROUP_MOVE_UP,
+    ACT_SUBGROUP_MOVE_DOWN,
+    CLASS_SUBGROUP_MOVE_ACTIONS
 } from "../../main";
 import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
@@ -58,6 +61,18 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         const subgroupDescription = renderTextContainer("span", this.DTO.description);
         subgroupInfoContainer.appendChild(subgroupTitle);
         subgroupInfoContainer.appendChild(subgroupDescription);
+
+        // Move-up / Move-down buttons — visible only when the parent group is in "managed" mode
+        const moveActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_MOVE_ACTIONS]);
+        headElem.appendChild(moveActionsContainer);
+        moveActionsContainer.appendChild(renderButton(
+            ICON.MOVE_UP, this.DTO.id, [ACT_SUBGROUP_MOVE_UP], "Move subgroup up",
+            (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupUp(); }
+        ));
+        moveActionsContainer.appendChild(renderButton(
+            ICON.MOVE_DOWN, this.DTO.id, [ACT_SUBGROUP_MOVE_DOWN], "Move subgroup down",
+            (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupDown(); }
+        ));
 
         const subgroupActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_ACTIONS]);
         headElem.appendChild(subgroupActionsContainer);

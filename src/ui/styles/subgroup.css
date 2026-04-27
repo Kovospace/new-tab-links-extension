@@ -76,3 +76,17 @@ link-subgroup-body > link-container:first-child {
     margin-top: 0.75em;
 }
 
+/* Move buttons — hidden by default, revealed when parent group is in managed mode */
+link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions {
+    display: flex;
+    flex-direction: row;
+    max-width: 0;
+    overflow: hidden;
+    transition: max-width 0.25s ease-in-out;
+    margin-right: 0.25em;
+}
+
+link-group-body.managed > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions {
+    max-width: 4em;
+}
+
