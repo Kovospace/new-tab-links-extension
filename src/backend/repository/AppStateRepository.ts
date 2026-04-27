@@ -115,7 +115,8 @@ export class AppStateRepository {
     getGroups(workspaceId: string) {
         return Object
             .values(this.state.groups)
-            .filter((group: Group) => group.environmentId === workspaceId);
+            .filter((group: Group) => group.environmentId === workspaceId)
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
 
     // Workspace operations
@@ -219,7 +220,8 @@ export class AppStateRepository {
                     id: id,
                     environmentId: environmentId,
                     title: title,
-                    createdAt: Date.now()
+                    createdAt: Date.now(),
+                    order: this.getOrderForNewGroup(environmentId)
                 } satisfies Group
             }
         };
@@ -458,6 +460,15 @@ export class AppStateRepository {
     }
 
 
+
+    private getOrderForNewGroup(environmentId: string): number {
+        const orders = Object.values(this.state.groups)
+            .filter(g => g.environmentId === environmentId)
+            .map(g => g.order)
+            .filter((o): o is number => o !== undefined);
+
+        return orders.length === 0 ? 0 : Math.max(...orders) + 1;
+    }
 
     private getPositionForNewLink(groupId: string, subGroupId: string | null | undefined): number {
         const positions = Object.values(this.state.links)

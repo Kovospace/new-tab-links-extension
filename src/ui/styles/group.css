@@ -10,7 +10,7 @@ link-group > hr {
     width: 90%;
     height: 0.125em;
     background-color: #eee;
-    margin: 0.5em 5%;
+    margin: 0.5em 5% 1em;
     border-radius: var(--radius-small);
 }
 

@@ -50,11 +50,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         headerElem.appendChild(titleSectionElem);
         headerElem.appendChild(actionsSectionElem);
 
-        //TODO vytvorit vo viewmodel subscriber na tieto dáta
-        // group head elements
-        // title
-        titleSectionElem.appendChild(renderTextContainer("h2", this.DTO.title));
-        titleSectionElem.appendChild(renderTextContainer("span", this.DTO.description));
+        // title — rendered reactively via the group observable (same pattern as workspaceComponent)
 
         // buttons
         new OptionsMenu(
@@ -109,14 +105,14 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         // group body elements
         // links
         this.VIEW_MODEL.observables.group
-            .subscribe((attrs: GroupDTO) => this.renderGroupItems(bodyElem, attrs));
-
-        // reattach listeners on changes
-        //this.listenerChangeGroupName();
+            .subscribe((attrs: GroupDTO) => {
+                this.renderGroupHead(titleSectionElem, attrs);
+                this.renderGroupItems(bodyElem, attrs);
+            });
     }
 
     attachListeners() {
-      this.listenerChangeGroupName();
+        // listeners are re-attached reactively inside renderGroupHead on each observable emission
     }
 
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {
@@ -176,6 +172,20 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         return subgroupElem;
     }
 
+    /**
+     * Re-renders the title/description inside the group header and re-attaches blur listeners.
+     * Called on every group observable emission — mirrors the pattern in workspaceComponent.
+     * Because replaceChildren discards the old elements (including any contentEditable state),
+     * clicking outside while editing triggers blur → save → observable → fresh elements → edit mode cleared.
+     */
+    private renderGroupHead(titleSectionElem: HTMLElement, groupDto: GroupDTO): void {
+        titleSectionElem.replaceChildren(
+            renderTextContainer("h2", groupDto.title),
+            renderTextContainer("span", groupDto.description)
+        );
+        this.listenerChangeGroupName();
+    }
+
     private toggleGroupTitleEditable(menuItem: HTMLElement) {
 
         const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
@@ -204,32 +214,29 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     }
 
     private listenerChangeGroupName() {
+        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
+        const titleElem = titleAndDescParentContainer.querySelector<HTMLElement>(":scope > h2")!;
+        const descriptionElem = titleAndDescParentContainer.querySelector<HTMLElement>(":scope > span")!;
 
-      const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
-      const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h2")[0];
-      const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+        const save = () =>
+            this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
 
-      titleElem.addEventListener('keydown', (e) => {
-          //TODO
-        // if (e.key === 'Enter') {
-        //   e.preventDefault(); // prevent new lines
-        // }
-      })
+        titleElem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault(); // prevent new lines in title
+        });
 
-      titleElem.addEventListener('blur', () => {
-        this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
-      });
+        // Use focusout (bubbles) so we can check relatedTarget — skip save when focus
+        // just moved to the description field within the same edit session.
+        titleElem.addEventListener('focusout', (e: FocusEvent) => {
+            if (e.relatedTarget === descriptionElem) return;
+            save();
+        });
 
-      descriptionElem.addEventListener('keydown', (e) => {
-          //TODO
-        // if (e.key === 'Enter') {
-        //   e.preventDefault(); // prevent new lines
-        // }
-      })
+        descriptionElem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
+        });
 
-      descriptionElem.addEventListener('blur', () => {
-        this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
-      });
+        descriptionElem.addEventListener('blur', save);
     }
 
 }
