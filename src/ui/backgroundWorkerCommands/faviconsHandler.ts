@@ -1,13 +1,19 @@
 import { GetFaviconOutput, GetFaviconInput } from "../../backend/worker/module/favIconWorker"
-import { FavIconRepository } from "../../backend/repository/FavIconRepository"
+import { WorkerResponse } from "../../backend/worker/abstract/BackgroundWorker"
 import { sendToWorkerThread } from "../../utils/sendToWorker"
 
 export class FaviconsHandler {
 
-  static async handleIconDownloadAndCache(pageUrl: string) {
-    await sendToWorkerThread<GetFaviconInput, GetFaviconOutput>(
+  static async handleIconDownloadAndCache(pageUrl: string): Promise<string | null> {
+    const response = await sendToWorkerThread<GetFaviconInput, WorkerResponse<GetFaviconOutput>>(
         "favicon", "get", { url: pageUrl });
-    return await FavIconRepository.get(pageUrl);
+    return response?.data?.base64 ?? null;
+  }
+
+  static async refreshIcon(pageUrl: string): Promise<string | null> {
+    const response = await sendToWorkerThread<GetFaviconInput, WorkerResponse<GetFaviconOutput>>(
+        "favicon", "refresh", { url: pageUrl });
+    return response?.data?.base64 ?? null;
   }
 
 }

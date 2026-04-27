@@ -15,4 +15,10 @@ export class InMemoryGopnikCache {
   static has(key: string, namespace: string): boolean {
     return key in (this.store[namespace] ?? {});
   }
+
+  static delete(key: string, namespace: string): void {
+    if (this.store[namespace]) {
+      delete this.store[namespace][key];
+    }
+  }
 }
