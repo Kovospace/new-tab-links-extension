@@ -39,4 +39,15 @@ export class IndexedDB {
       tx.onerror = () => reject(tx.error);
     });
   }
+
+  static async deleteFromDB(key: string, namespace: string): Promise<void> {
+    const db = await this.openDB(namespace);
+
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(namespace, "readwrite");
+      tx.objectStore(namespace).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
 }

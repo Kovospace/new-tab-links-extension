@@ -459,17 +459,18 @@ export class AppStateRepository {
 
 
 
-    //TODO ako sa bude chovat pri 0 linkoch
     private getPositionForNewLink(groupId: string, subGroupId: string | null | undefined): number {
-        return Math.max(...Object.values(this.state.links)
+        const positions = Object.values(this.state.links)
             .filter(link => {
                 if (subGroupId !== undefined && subGroupId !== null && subGroupId !== "") {
-                    return link.subGroupId === subGroupId
+                    return link.subGroupId === subGroupId;
                 }
                 return link.groupId === groupId;
             })
             .map(link => link.position)
-            .filter(position => position !== undefined)) + 1;
+            .filter((p): p is number => p !== undefined);
+
+        return positions.length === 0 ? 0 : Math.max(...positions) + 1;
     }
 
     private getRepositionedLinks(

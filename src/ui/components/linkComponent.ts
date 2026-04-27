@@ -12,6 +12,7 @@ import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
 
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
+import { contextMenu } from "../partials/contextMenu";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
@@ -24,8 +25,9 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             });
     }
 
-    protected attachListeners(parentElem: HTMLElement) {
+    protected attachListeners(_parentElem: HTMLElement) {
         this.listenerOpenLink();
+        this.listenerContextMenu();
     }
 
     /**
@@ -107,6 +109,50 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
     private listenerOpenLink() {
         this.addEventListener('click', () => {
             window.location.href = this.DTO.url;
+        });
+    }
+
+    private listenerContextMenu() {
+        this.addEventListener('contextmenu', (e: Event) => {
+            const img = this.querySelector<HTMLImageElement>('img');
+            if (!img) return;
+
+            const src = img.src;
+            // const isDefaultOrBroken =
+            //     src.endsWith('favicon-default.svg') ||
+            //     src.endsWith('favicon-broken.svg');
+
+            // if (!isDefaultOrBroken) return; // let native context menu through
+
+            e.preventDefault();
+
+            const anchor = this.querySelector<HTMLAnchorElement>('a');
+            const url = anchor?.href ?? this.DTO.url;
+
+            contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, [
+                {
+                    label: 'Edit link',
+                    onClick: () => {
+                        const title = prompt("Update title", this.DTO.title);
+                        const url2 = prompt("Update URL", this.DTO.url);
+                        this.VIEW_MODEL.editLink(title, url2);
+                    }
+                },
+                {
+                    label: 'Delete link',
+                    danger: true,
+                    onClick: () => {
+                        this.VIEW_MODEL.deleteLink();
+                    }
+                },
+                {
+                    label: 'Refresh icon',
+                    onClick: async () => {
+                        const newSrc = await FaviconsHandler.refreshIcon(url);
+                        if (newSrc && img.isConnected) img.src = newSrc;
+                    }
+                }
+            ]);
         });
     }
 

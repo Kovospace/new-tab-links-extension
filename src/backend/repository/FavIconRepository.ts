@@ -25,4 +25,9 @@ export class FavIconRepository {
     InMemoryGopnikCache.set(pageUrl, base64, FavIconRepository.GOPNIK_DB_NAMESPACE);
     await IndexedDB.storeInDB(pageUrl, base64, FavIconRepository.INDEXED_DB_NAMESPACE);
   }
+
+  public static async delete(pageUrl: string): Promise<void> {
+    InMemoryGopnikCache.delete(pageUrl, FavIconRepository.GOPNIK_DB_NAMESPACE);
+    await IndexedDB.deleteFromDB(pageUrl, FavIconRepository.INDEXED_DB_NAMESPACE);
+  }
 }

@@ -53,7 +53,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             .subscribe(groups => this.renderGroups(bodyElem, groups));
 
         // page footer
-        this.renderFooter(footerElem);
+        this.renderFooter();
     }
 
     attachListeners(parentElem: HTMLElement) {
@@ -69,7 +69,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         // workspace buttons
         headerElemLeftContent.appendChild(renderTextContainer("span", "Workspaces"));
-        headerElemLeftContent.appendChild(renderContainer());
+        headerElemLeftContent.appendChild(renderContainer([]));
         this.VIEW_MODEL.observables.workspaces
             .subscribe((workspaces: WorkspaceDTO[]) => this.renderWorkspaceSwitcher(headerElemLeftContent, workspaces));
 
