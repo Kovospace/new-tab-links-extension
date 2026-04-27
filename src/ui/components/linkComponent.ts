@@ -131,6 +131,21 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
             contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, [
                 {
+                    label: 'Edit link',
+                    onClick: () => {
+                        const title = prompt("Update title", this.DTO.title);
+                        const url2 = prompt("Update URL", this.DTO.url);
+                        this.VIEW_MODEL.editLink(title, url2);
+                    }
+                },
+                {
+                    label: 'Delete link',
+                    danger: true,
+                    onClick: () => {
+                        this.VIEW_MODEL.deleteLink();
+                    }
+                },
+                {
                     label: 'Refresh icon',
                     onClick: async () => {
                         const newSrc = await FaviconsHandler.refreshIcon(url);

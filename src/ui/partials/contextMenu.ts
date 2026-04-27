@@ -3,6 +3,8 @@ import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM } from "../../main";
 export type ContextMenuAction = {
   label: string;
   onClick: () => void;
+  /** Renders the item in a danger/destructive style */
+  danger?: boolean;
 }
 
 class ContextMenu {
@@ -35,6 +37,7 @@ class ContextMenu {
     for (const action of actions) {
       const item = document.createElement(ELEM_OPTIONS_MENU_ITEM);
       item.textContent = action.label;
+      if (action.danger) item.classList.add('danger');
       item.addEventListener('click', () => { this.hide(); action.onClick(); });
       el.appendChild(item);
     }
