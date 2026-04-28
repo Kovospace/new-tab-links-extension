@@ -461,6 +461,19 @@ export class AppStateRepository {
 
 
 
+    moveLinkUp(id: string): Promise<AppState> {
+        const link = this.state.links[id];
+        if (!link || link.position <= 0) return Promise.resolve(this.state);
+        return this.editLink(link.url, link.title, id, link.groupId, link.subGroupId, link.environmentId, link.position - 1);
+    }
+
+    moveLinkDown(id: string): Promise<AppState> {
+        const link = this.state.links[id];
+        if (!link) return Promise.resolve(this.state);
+        if (link.position >= this.getMaxPositionInScope(link.groupId, link.subGroupId)) return Promise.resolve(this.state);
+        return this.editLink(link.url, link.title, id, link.groupId, link.subGroupId, link.environmentId, link.position + 1);
+    }
+
     moveSubgroupUp(id: string): Promise<AppState> {
         const sg = this.state.subgroups[id];
         if (!sg || sg.position <= 0) return Promise.resolve(this.state);
@@ -470,6 +483,7 @@ export class AppStateRepository {
     moveSubgroupDown(id: string): Promise<AppState> {
         const sg = this.state.subgroups[id];
         if (!sg) return Promise.resolve(this.state);
+        if (sg.position >= this.getMaxPositionInScope(sg.groupId)) return Promise.resolve(this.state);
         return this.editSubgroupPosition(id, sg.position + 1, sg.groupId);
     }
 
@@ -510,6 +524,32 @@ export class AppStateRepository {
             subgroups: { ...this.state.subgroups, ...updatedSubgroups }
         };
         return this.save();
+    }
+
+    /**
+     * Returns the highest position value among all items that share the same
+     * position scope as the given location.
+     *
+     * - Inside a subgroup: only links within that subgroup are compared.
+     * - Root level of a group: root-level links (no subGroupId) AND subgroups
+     *   are compared together, because they share the same position sequence.
+     */
+    private getMaxPositionInScope(groupId: string, subGroupId?: string): number {
+        if (subGroupId) {
+            const positions = Object.values(this.state.links)
+                .filter(l => l.subGroupId === subGroupId)
+                .map(l => l.position);
+            return positions.length === 0 ? 0 : Math.max(...positions);
+        }
+        const positions = [
+            ...Object.values(this.state.links)
+                .filter(l => l.groupId === groupId && !l.subGroupId)
+                .map(l => l.position),
+            ...Object.values(this.state.subgroups)
+                .filter(sg => sg.groupId === groupId)
+                .map(sg => sg.position)
+        ];
+        return positions.length === 0 ? 0 : Math.max(...positions);
     }
 
     private getOrderForNewGroup(environmentId: string): number {
