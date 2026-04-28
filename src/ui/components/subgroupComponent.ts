@@ -61,8 +61,11 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
         const subgroupTitle = renderTextContainer("h3", this.DTO.title);
         const subgroupDescription = renderTextContainer("span", this.DTO.description);
-        const linkCount = renderTextContainer("span", `${String(subgroupDto.links?.length ?? 0)} hidden items`);
+        const count = subgroupDto.links?.length ?? 0;
+        const linkCount = renderTextContainer(
+            "span", count === 0 ? "No items in subgroup yet" : `${count} hidden items`);
         linkCount.classList.add(CLASS_SUBGROUP_LINK_COUNT);
+        if (count === 0) linkCount.classList.add("empty");
         subgroupInfoContainer.appendChild(subgroupTitle);
         subgroupInfoContainer.appendChild(subgroupDescription);
         subgroupInfoContainer.appendChild(linkCount);

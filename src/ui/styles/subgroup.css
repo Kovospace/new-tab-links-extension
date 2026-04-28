@@ -83,7 +83,8 @@ link-subgroup-body > link-container:first-child {
     margin-top: 0.25em;
 }
 
-link-subgroup:has(link-subgroup-body.rolled) .cls-subgroup-link-count {
+link-subgroup:has(link-subgroup-body.rolled) .cls-subgroup-link-count,
+.cls-subgroup-link-count.empty {
     display: inline;
 }
 
