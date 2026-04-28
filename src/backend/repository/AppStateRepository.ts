@@ -479,6 +479,78 @@ export class AppStateRepository {
 
 
 
+    /**
+     * Moves a root-level link into a subgroup, placing it at the end of that subgroup's
+     * position sequence and compacting the gap it leaves in the root-level scope.
+     */
+    moveLinkToSubgroup(linkId: string, targetSubGroupId: string): Promise<AppState> {
+        const link = this.state.links[linkId];
+        if (!link || link.subGroupId) return Promise.resolve(this.state);
+
+        const newPosition = this.getPositionForNewLink(link.groupId, targetSubGroupId);
+
+        const updatedLinks: Record<string, Link> = {};
+        Object.entries(this.state.links)
+            .filter(([_, l]) => l.groupId === link.groupId && !l.subGroupId)
+            .forEach(([id, l]) => {
+                if (id === linkId) {
+                    updatedLinks[id] = { ...l, subGroupId: targetSubGroupId, position: newPosition };
+                } else if (l.position > link.position) {
+                    updatedLinks[id] = { ...l, position: l.position - 1 };
+                } else {
+                    updatedLinks[id] = l;
+                }
+            });
+
+        const updatedSubgroups: Record<string, Subgroup> = {};
+        Object.entries(this.state.subgroups)
+            .filter(([_, sg]) => sg.groupId === link.groupId && sg.position > link.position)
+            .forEach(([id, sg]) => {
+                updatedSubgroups[id] = { ...sg, position: sg.position - 1 };
+            });
+
+        this.state = {
+            ...this.state,
+            links: { ...this.state.links, ...updatedLinks },
+            subgroups: { ...this.state.subgroups, ...updatedSubgroups }
+        };
+        return this.save();
+    }
+
+    /**
+     * Moves a link out of its subgroup to the end of the root-level position sequence,
+     * compacting the gap it leaves in the subgroup scope.
+     */
+    moveLinkOutOfSubgroup(linkId: string): Promise<AppState> {
+        const link = this.state.links[linkId];
+        if (!link || !link.subGroupId) return Promise.resolve(this.state);
+
+        const oldSubGroupId = link.subGroupId;
+
+        // Compact the subgroup scope first
+        const compactedLinks: Record<string, Link> = {};
+        Object.entries(this.state.links)
+            .filter(([id, l]) => l.subGroupId === oldSubGroupId && id !== linkId)
+            .forEach(([id, l]) => {
+                compactedLinks[id] = l.position > link.position
+                    ? { ...l, position: l.position - 1 }
+                    : l;
+            });
+
+        this.state = { ...this.state, links: { ...this.state.links, ...compactedLinks } };
+
+        const newPosition = this.getPositionForNewLink(link.groupId, undefined);
+
+        this.state = {
+            ...this.state,
+            links: {
+                ...this.state.links,
+                [linkId]: { ...this.state.links[linkId], subGroupId: undefined, position: newPosition }
+            }
+        };
+        return this.save();
+    }
+
     moveLinkUp(id: string): Promise<AppState> {
         const link = this.state.links[id];
         if (!link || link.position <= 0) return Promise.resolve(this.state);
