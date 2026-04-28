@@ -9,7 +9,8 @@ export const toWorkspaceDTO = (workspace: Environment): WorkspaceDTO => ({
 export const toGroupDTO = (group: Group): GroupDTO => ({
     id: group.id,
     title: group.title,
-    description: group.description
+    description: group.description,
+    order: group.order ?? 0
 });
 
 export const toLinkDTO = (link: Link | undefined): LinkDTO | null => {

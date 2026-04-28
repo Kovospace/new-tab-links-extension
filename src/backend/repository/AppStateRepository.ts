@@ -492,6 +492,56 @@ export class AppStateRepository {
         return this.editLink(link.url, link.title, id, link.groupId, link.subGroupId, link.environmentId, link.position + 1);
     }
 
+    moveGroupUp(id: string): Promise<AppState> {
+        const group = this.state.groups[id];
+        if (!group || (group.order ?? 0) <= 0) return Promise.resolve(this.state);
+        return this.editGroupOrder(id, (group.order ?? 0) - 1, group.environmentId);
+    }
+
+    moveGroupDown(id: string): Promise<AppState> {
+        const group = this.state.groups[id];
+        if (!group) return Promise.resolve(this.state);
+        if ((group.order ?? 0) >= this.getMaxOrderInEnvironment(group.environmentId)) return Promise.resolve(this.state);
+        return this.editGroupOrder(id, (group.order ?? 0) + 1, group.environmentId);
+    }
+
+    /**
+     * Moves a group to a new order within its environment, shifting all sibling groups
+     * that occupy the range between the old and new order.
+     */
+    private editGroupOrder(id: string, newOrder: number, environmentId: string): Promise<AppState> {
+        const currentOrder = this.state.groups[id].order ?? 0;
+        if (currentOrder === newOrder) return Promise.resolve(this.state);
+
+        const shift = (order: number): number => {
+            if (newOrder < currentOrder && order >= newOrder && order < currentOrder) return order + 1;
+            if (newOrder > currentOrder && order <= newOrder && order > currentOrder) return order - 1;
+            return order;
+        };
+
+        const updatedGroups: Record<string, Group> = {};
+        Object.entries(this.state.groups)
+            .filter(([_, g]) => g.environmentId === environmentId)
+            .forEach(([gId, g]) => {
+                updatedGroups[gId] = gId === id
+                    ? { ...g, order: newOrder }
+                    : { ...g, order: shift(g.order ?? 0) };
+            });
+
+        this.state = {
+            ...this.state,
+            groups: { ...this.state.groups, ...updatedGroups }
+        };
+        return this.save();
+    }
+
+    private getMaxOrderInEnvironment(environmentId: string): number {
+        const orders = Object.values(this.state.groups)
+            .filter(g => g.environmentId === environmentId)
+            .map(g => g.order ?? 0);
+        return orders.length === 0 ? 0 : Math.max(...orders);
+    }
+
     moveSubgroupUp(id: string): Promise<AppState> {
         const sg = this.state.subgroups[id];
         if (!sg || sg.position <= 0) return Promise.resolve(this.state);

@@ -79,6 +79,14 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                     onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
+                    actionTitle: "Move group left",
+                    onClick: () => this.VIEW_MODEL.moveGroupUp()
+                },
+                {
+                    actionTitle: "Move group right",
+                    onClick: () => this.VIEW_MODEL.moveGroupDown()
+                },
+                {
                     actionTitle: "Delete group",
                     dangerous: true,
                     dangerConfirmation: "All links and sub-groups associated to that group will be deleted.",

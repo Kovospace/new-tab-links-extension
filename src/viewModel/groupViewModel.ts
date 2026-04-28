@@ -116,6 +116,15 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
         this.REPOSITORY.createLink(url, title, groupId, subGroupId);
     }
 
+    public moveGroupUp(): void {
+        if ((this.DTO.order ?? 0) <= 0) return;
+        this.REPOSITORY.moveGroupUp(this.DTO.id);
+    }
+
+    public moveGroupDown(): void {
+        this.REPOSITORY.moveGroupDown(this.DTO.id);
+    }
+
     public addSubGroup(title: string | null, description?: string | null) {
         // if (!groupId) {
         //     console.error("groupId is missing for sub-group creation");

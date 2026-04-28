@@ -13,6 +13,7 @@ export interface GroupDTO extends ViewModelDTO {
     title: string;
     description?: string;
     items?: GroupItemDTO[];
+    order: number;
 }
 
 export interface GroupItemDTO extends ViewModelDTO {
