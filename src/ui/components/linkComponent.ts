@@ -124,6 +124,10 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
             const actions: ContextMenuAction[] = [
                 {
+                    label: 'Copy link URL',
+                    onClick: () => navigator.clipboard.writeText(this.DTO.url)
+                },
+                {
                     label: 'Edit link',
                     onClick: () => {
                         const title = prompt("Update title", this.DTO.title);
