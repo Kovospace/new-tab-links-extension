@@ -32,6 +32,8 @@ import {OptionsMenu} from "../partials/optionsMenu";
 
 export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> {
 
+    private groupTitleEditingMenuItem: HTMLElement | null = null;
+
     render(parentElem: HTMLElement): void {
 
         // group container elements
@@ -202,9 +204,28 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         descriptionElem.toggleAttribute('contentEditable');
         descriptionElem.classList.toggle("editable");
         if (menuItem.classList.contains("active")) {
+            this.groupTitleEditingMenuItem = menuItem;
             setTimeout(() => { menuItem.textContent = "Save group title" }, 250);
+            (titleElem as HTMLElement).focus();
         } else {
+            this.groupTitleEditingMenuItem = null;
             setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+        }
+    }
+
+    private exitGroupTitleEditing() {
+        const container = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
+        const titleElem = container?.querySelector<HTMLElement>(":scope > h2");
+        const descElem = container?.querySelector<HTMLElement>(":scope > span");
+        titleElem?.removeAttribute('contentEditable');
+        titleElem?.classList.remove('editable');
+        descElem?.removeAttribute('contentEditable');
+        descElem?.classList.remove('editable');
+        if (this.groupTitleEditingMenuItem) {
+            this.groupTitleEditingMenuItem.classList.remove('active');
+            this.groupTitleEditingMenuItem.textContent =
+                this.groupTitleEditingMenuItem.getAttribute('defaultText');
+            this.groupTitleEditingMenuItem = null;
         }
     }
 
@@ -219,29 +240,24 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     }
 
     private listenerChangeGroupName() {
-        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0];
-        const titleElem = titleAndDescParentContainer.querySelector<HTMLElement>(":scope > h2")!;
-        const descriptionElem = titleAndDescParentContainer.querySelector<HTMLElement>(":scope > span")!;
-
-        const save = () =>
-            this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+        const container = this.getElementsByClassName(CLASS_GROUP_HEAD_TITLE)[0] as HTMLElement;
+        const titleElem = container.querySelector<HTMLElement>(":scope > h2")!;
+        const descriptionElem = container.querySelector<HTMLElement>(":scope > span")!;
 
         titleElem.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') e.preventDefault(); // prevent new lines in title
-        });
-
-        // Use focusout (bubbles) so we can check relatedTarget — skip save when focus
-        // just moved to the description field within the same edit session.
-        titleElem.addEventListener('focusout', (e: FocusEvent) => {
-            if (e.relatedTarget === descriptionElem) return;
-            save();
+            if (e.key === 'Enter') e.preventDefault();
         });
 
         descriptionElem.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') e.preventDefault();
         });
 
-        descriptionElem.addEventListener('blur', save);
+        // focusout bubbles from any child — only save when focus leaves the container entirely
+        container.addEventListener('focusout', (e: FocusEvent) => {
+            if (container.contains(e.relatedTarget as Node)) return;
+            this.VIEW_MODEL.editGroupTitle(this.id, titleElem.textContent, descriptionElem.textContent);
+            this.exitGroupTitleEditing();
+        });
     }
 
 }

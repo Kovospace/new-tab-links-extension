@@ -122,6 +122,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             const anchor = this.querySelector<HTMLAnchorElement>('a');
             const url = anchor?.href ?? this.DTO.url;
 
+            // link actions
             const actions: ContextMenuAction[] = [
                 {
                     label: 'Copy link URL',
@@ -136,13 +137,6 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                     }
                 },
                 {
-                    label: 'Delete link',
-                    danger: true,
-                    onClick: () => {
-                        this.VIEW_MODEL.deleteLink();
-                    }
-                },
-                {
                     label: 'Refresh icon',
                     onClick: async () => {
                         const newSrc = await FaviconsHandler.refreshIcon(url);
@@ -151,6 +145,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 }
             ];
 
+            // move to / from subgroup link actions
             if (this.DTO.subGroupId) {
                 actions.push({
                     label: 'Move out of subgroup',
@@ -165,6 +160,15 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                     });
                 });
             }
+
+            // delete link action
+            actions.push({
+                label: 'Delete link',
+                danger: true,
+                onClick: () => {
+                    this.VIEW_MODEL.deleteLink();
+                }
+            });
 
             contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, actions);
         });
