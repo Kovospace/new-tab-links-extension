@@ -1,6 +1,6 @@
 
 // data layer
-import { AppState, Link } from "../backend/entity/AppStateEntity";
+import { AppState, Link, Subgroup } from "../backend/entity/AppStateEntity";
 
 // model layer
 import { AbstractViewModel } from "../viewModel/abstract/abstractViewModel"
@@ -57,5 +57,19 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO> {
 
     public moveLinkDown() {
         this.REPOSITORY.moveLinkDown(this.DTO.id);
+    }
+
+    public getSubgroupsForGroup(): Array<{id: string, title: string}> {
+        return Object.values(this.REPOSITORY.state$.get().subgroups)
+            .filter((sg: Subgroup) => sg.groupId === this.DTO.groupId)
+            .map(sg => ({ id: sg.id, title: sg.title }));
+    }
+
+    public moveLinkToSubgroup(subgroupId: string): void {
+        this.REPOSITORY.moveLinkToSubgroup(this.DTO.id, subgroupId);
+    }
+
+    public moveLinkOutOfSubgroup(): void {
+        this.REPOSITORY.moveLinkOutOfSubgroup(this.DTO.id);
     }
 }

@@ -41,6 +41,15 @@ link-subgroup-head > div.cls-subgroup-head-title {
     margin-right: 0.75em;
 }
 
+link-subgroup-head > div.cls-subgroup-head-title > h3 {
+  margin-bottom: 0.125em;
+  border-radius: 0.25em;
+}
+
+link-subgroup-head > div.cls-subgroup-head-title > span {
+  border-radius: 0.25em;
+}
+
 link-subgroup-head > div.cls-subgroup-head-actions {
     display: flex;
     flex-direction: column;

@@ -32,6 +32,8 @@ import { OptionsMenu } from "../partials/optionsMenu"
 
 export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupViewModel> {
 
+    private subgroupTitleEditingMenuItem: HTMLElement | null = null;
+
     protected render(parentElem: HTMLElement) {
 
         this.VIEW_MODEL.observables.subgroup
@@ -167,7 +169,13 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     private listenerOnHeadClick(thisElem: HTMLElement): void {
         thisElem
             .getElementsByTagName(ELEM_SUBGROUP_HEAD)[0]
-            .addEventListener('click', () => this.actionSubgroupFold());
+            .addEventListener('click', () => {
+                const titleContainer = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
+                const titleElem = titleContainer?.querySelector<HTMLElement>(":scope > h3");
+                const descElem = titleContainer?.querySelector<HTMLElement>(":scope > span");
+                if (titleElem?.isContentEditable || descElem?.isContentEditable) return;
+                this.actionSubgroupFold();
+            });
     }
 
     private actionSubgroupFold(): void {
@@ -196,23 +204,49 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         descriptionElem.toggleAttribute('contentEditable');
         descriptionElem.classList.toggle("editable");
         if (menuItem.classList.contains("active")) {
+            this.subgroupTitleEditingMenuItem = menuItem;
             setTimeout(() => { menuItem.textContent = "Save subgroup title" }, 250);
+            (titleElem as HTMLElement).focus();
         } else {
+            this.subgroupTitleEditingMenuItem = null;
             setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
         }
     }
 
-    private listenerChangeSubgroupTitle(): void {
-        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
-        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h3")[0];
-        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
+    private exitSubgroupTitleEditing(): void {
+        const container = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0];
+        const titleElem = container?.querySelector<HTMLElement>(":scope > h3");
+        const descElem = container?.querySelector<HTMLElement>(":scope > span");
+        titleElem?.removeAttribute('contentEditable');
+        titleElem?.classList.remove('editable');
+        descElem?.removeAttribute('contentEditable');
+        descElem?.classList.remove('editable');
+        if (this.subgroupTitleEditingMenuItem) {
+            this.subgroupTitleEditingMenuItem.classList.remove('active');
+            this.subgroupTitleEditingMenuItem.textContent =
+                this.subgroupTitleEditingMenuItem.getAttribute('defaultText');
+            this.subgroupTitleEditingMenuItem = null;
+        }
+    }
 
-        titleElem.addEventListener('blur', () => {
-            this.VIEW_MODEL.editSubgroupTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+    private listenerChangeSubgroupTitle(): void {
+        const container = this.getElementsByClassName(CLASS_SUBGROUP_HEAD_TITLE)[0] as HTMLElement;
+        const titleElem = container.querySelector<HTMLElement>(":scope > h3")!;
+        const descriptionElem = container.querySelector<HTMLElement>(":scope > span")!;
+
+        titleElem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
         });
 
-        descriptionElem.addEventListener('blur', () => {
+        descriptionElem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+
+        // focusout bubbles from any child — only save when focus leaves the container entirely
+        container.addEventListener('focusout', (e: FocusEvent) => {
+            if (container.contains(e.relatedTarget as Node)) return;
             this.VIEW_MODEL.editSubgroupTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+            this.exitSubgroupTitleEditing();
         });
     }
 

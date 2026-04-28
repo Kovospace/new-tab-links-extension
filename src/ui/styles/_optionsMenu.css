@@ -29,6 +29,7 @@ options-menu.align-right {
 options-menu-item {
     position: relative;
     white-space: nowrap;
+    cursor: pointer;
     padding: 0.5em;
     text-align: left;
     display: block;

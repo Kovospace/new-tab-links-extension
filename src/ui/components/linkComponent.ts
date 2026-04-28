@@ -12,7 +12,7 @@ import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
 
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
-import { contextMenu } from "../partials/contextMenu";
+import { contextMenu, ContextMenuAction } from "../partials/contextMenu";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
@@ -117,19 +117,17 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             const img = this.querySelector<HTMLImageElement>('img');
             if (!img) return;
 
-            const src = img.src;
-            // const isDefaultOrBroken =
-            //     src.endsWith('favicon-default.svg') ||
-            //     src.endsWith('favicon-broken.svg');
-
-            // if (!isDefaultOrBroken) return; // let native context menu through
-
             e.preventDefault();
 
             const anchor = this.querySelector<HTMLAnchorElement>('a');
             const url = anchor?.href ?? this.DTO.url;
 
-            contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, [
+            // link actions
+            const actions: ContextMenuAction[] = [
+                {
+                    label: 'Copy link URL',
+                    onClick: () => navigator.clipboard.writeText(this.DTO.url)
+                },
                 {
                     label: 'Edit link',
                     onClick: () => {
@@ -139,20 +137,40 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                     }
                 },
                 {
-                    label: 'Delete link',
-                    danger: true,
-                    onClick: () => {
-                        this.VIEW_MODEL.deleteLink();
-                    }
-                },
-                {
                     label: 'Refresh icon',
                     onClick: async () => {
                         const newSrc = await FaviconsHandler.refreshIcon(url);
                         if (newSrc && img.isConnected) img.src = newSrc;
                     }
                 }
-            ]);
+            ];
+
+            // move to / from subgroup link actions
+            if (this.DTO.subGroupId) {
+                actions.push({
+                    label: 'Move out of subgroup',
+                    onClick: () => this.VIEW_MODEL.moveLinkOutOfSubgroup()
+                });
+            } else {
+                const subgroups = this.VIEW_MODEL.getSubgroupsForGroup();
+                subgroups.forEach(sg => {
+                    actions.push({
+                        label: `Move to "${sg.title}"`,
+                        onClick: () => this.VIEW_MODEL.moveLinkToSubgroup(sg.id)
+                    });
+                });
+            }
+
+            // delete link action
+            actions.push({
+                label: 'Delete link',
+                danger: true,
+                onClick: () => {
+                    this.VIEW_MODEL.deleteLink();
+                }
+            });
+
+            contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, actions);
         });
     }
 
