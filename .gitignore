@@ -2,3 +2,5 @@ node_modules
 dist
 .idea
 package-lock.json
+dist.crx
+dist.pem
