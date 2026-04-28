@@ -14,6 +14,7 @@ export abstract class AbstractComponent<
 > extends HTMLElement {
 
     private viewModelConstructor!: ViewModelConstructor<TEMPLATE_DTO_TYPE, VIEW_MODEL_TYPE>;
+    private initialized = false;
 
     protected LOG!: Logger;
     protected REPOSITORY!: AppStateRepository;
@@ -42,6 +43,8 @@ export abstract class AbstractComponent<
 
     private performInitialization() {
         if (!this.isConnected || !this.REPOSITORY || !this.DTO) return;
+        if (this.initialized) return;
+        this.initialized = true;
         this.VIEW_MODEL = new this.viewModelConstructor(this.DTO, this.REPOSITORY);
         this.VIEW_MODEL.initialize();
         this.id = this.DTO.id;

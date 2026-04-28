@@ -9,7 +9,8 @@ export const toWorkspaceDTO = (workspace: Environment): WorkspaceDTO => ({
 export const toGroupDTO = (group: Group): GroupDTO => ({
     id: group.id,
     title: group.title,
-    description: group.description
+    description: group.description,
+    order: group.order ?? 0
 });
 
 export const toLinkDTO = (link: Link | undefined): LinkDTO | null => {
@@ -36,5 +37,6 @@ export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     position: subgroup.position,
     type: "subgroup",
     groupId: subgroup.groupId,
-    workspaceId: subgroup.environmentId
+    workspaceId: subgroup.environmentId,
+    collapsed: subgroup.collapsed
 });

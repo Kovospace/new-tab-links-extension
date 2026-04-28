@@ -39,8 +39,8 @@
  *
  * @remarks
  * - This function performs an identity-based diff, not a deep content comparison.
- * - Element order is preserved based on the incoming `dtos` order only for newly
- *   created elements; existing elements are not reordered.
+ * - Element order follows the incoming `dtos` array; existing elements are moved
+ *   into the correct position if the order has changed.
  * - The key stored on the DOM element must remain stable between renders.
  */
 export function handleReactiveRendering<
@@ -66,12 +66,15 @@ export function handleReactiveRendering<
 
     for (const dto of dtos) {
         const keyValueFromDto = getElementKeyValueFromDto(dto);
-        if (!existing.has(keyValueFromDto)) {
+        if (existing.has(keyValueFromDto)) {
+            // Move existing element to the end to enforce DTO order
+            parentElement.appendChild(existing.get(keyValueFromDto)!);
+            existing.delete(keyValueFromDto);
+        } else {
             const childElement = createChildElement(dto);
             (childElement[elementKey] as unknown as string) = keyValueFromDto;
             parentElement.appendChild(childElement);
         }
-        existing.delete(keyValueFromDto);
     }
 
     existing.forEach(el => el.remove());

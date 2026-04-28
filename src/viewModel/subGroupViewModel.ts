@@ -33,7 +33,8 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
             .values(attrs.links)
             .filter((link: Link) => link.subGroupId === this.DTO.id)
             .map(toLinkDTO)
-            .filter((link): link is LinkDTO => link !== null);
+            .filter((link): link is LinkDTO => link !== null)
+            .sort((a, b) => a.position - b.position);
 
         // console.log(this.DTO.id);
         // console.log(result);
@@ -69,6 +70,11 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
 
     public moveSubgroupDown(): void {
         this.REPOSITORY.moveSubgroupDown(this.DTO.id);
+    }
+
+    public toggleCollapsed(): void {
+        this.REPOSITORY.toggleSubgroupCollapsed(this.DTO.id);
+        // state$ is intentionally not fired — the component toggles the class directly
     }
 
     public addLink(title: string | null, url: string | null): void {

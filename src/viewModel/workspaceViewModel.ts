@@ -77,6 +77,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
             Object
                 .values(state.groups)
                 .filter((group: Group) => group.environmentId === currentWorkspaceId)
+                .sort((a: Group, b: Group) => (a.order ?? 0) - (b.order ?? 0))
                 .map(toGroupDTO));
 
         // Update active flag on profiles when the loaded profile changes
