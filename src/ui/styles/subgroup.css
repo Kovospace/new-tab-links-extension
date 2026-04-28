@@ -42,7 +42,6 @@ link-subgroup-head > div.cls-subgroup-head-title {
 }
 
 link-subgroup-head > div.cls-subgroup-head-actions {
-    margin-left: auto;
     display: flex;
     flex-direction: column;
 }
@@ -84,6 +83,11 @@ link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-act
     overflow: hidden;
     transition: max-width 0.25s ease-in-out;
     margin-right: 0.25em;
+    margin-left: auto;
+}
+
+link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions > button {
+  margin: 0 0.175em;
 }
 
 link-group-body.managed > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions {
