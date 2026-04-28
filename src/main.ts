@@ -78,6 +78,9 @@ export const ACT_ADD_LINK: string = "action-add-link";
 // Sub-group component
 export const ACT_EDIT_SUBGROUP: string = "action-edit-subgroup";
 export const ACT_OPEN_ALL_SUBGROUP_LINKS = "action-open-all-subgroup-links"
+export const ACT_SUBGROUP_MOVE_UP: string = "act-subgroup-move-up";
+export const ACT_SUBGROUP_MOVE_DOWN: string = "act-subgroup-move-down";
+export const CLASS_SUBGROUP_MOVE_ACTIONS: string = "cls-subgroup-move-actions";
 
 // Link component
 export const ACT_LINK_MOVE_UP: string = "act-link-move-up";

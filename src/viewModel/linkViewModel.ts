@@ -52,13 +52,10 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO> {
     }
 
     public moveLinkUp() {
-        if (this.DTO.position <= 0) {
-            return;
-        }
-        this.REPOSITORY.editLink(this.DTO.url, this.DTO.title, this.DTO.id, this.DTO.groupId, this.DTO.subGroupId, this.DTO.workspaceId, this.DTO.position - 1);
+        this.REPOSITORY.moveLinkUp(this.DTO.id);
     }
 
     public moveLinkDown() {
-        this.REPOSITORY.editLink(this.DTO.url, this.DTO.title, this.DTO.id, this.DTO.groupId, this.DTO.subGroupId, this.DTO.workspaceId, this.DTO.position + 1);
+        this.REPOSITORY.moveLinkDown(this.DTO.id);
     }
 }

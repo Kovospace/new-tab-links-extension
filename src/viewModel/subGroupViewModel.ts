@@ -62,6 +62,15 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
         this.REPOSITORY.ceaseSubgroup(id);
     }
 
+    public moveSubgroupUp(): void {
+        if (this.DTO.position <= 0) return;
+        this.REPOSITORY.moveSubgroupUp(this.DTO.id);
+    }
+
+    public moveSubgroupDown(): void {
+        this.REPOSITORY.moveSubgroupDown(this.DTO.id);
+    }
+
     public addLink(title: string | null, url: string | null): void {
         if (!title) {
             //TODO validations for user
