@@ -87,7 +87,6 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             [
                 {
                     actionTitle: "Add link",
-                    dangerous: false,
                     onClick: () => {
                         event?.stopPropagation();
                         this.VIEW_MODEL.addLink(
@@ -96,36 +95,30 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 },
                 {
                     actionTitle: "Expand / Collapse group",
-                    dangerous: false,
                     onClick: () => this.actionSubgroupFold(event)
                 },
                 {
                     actionTitle: "Open all links in grouped tabs",
-                    dangerous: false,
                     onClick: () => {
                         this.actionOpenSubGroupLinks();
                     }
                 },
                 {
                     actionTitle: "Open all links in separated tabs",
-                    dangerous: false,
                     onClick: () => {
                         this.actionOpenSubGroupLinksIsolated();
                     }
                 },
                 {
                     actionTitle: "Edit subgroup title & description",
-                    dangerous: false,
                     onClick: () => this.toggleSubgroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Manage links",
-                    dangerous: false,
                     onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Move all links out of subgroup",
-                    dangerous: false,
                     onClick: () => this.VIEW_MODEL.moveLinksOutOfSubgroup(this.id)
                 },
                 {

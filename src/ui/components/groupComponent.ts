@@ -63,23 +63,19 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             [
                 {
                     actionTitle: "Add link",
-                    dangerous: false,
                     onClick: () => this.actionAddLink()
                 },
                 {
                     actionTitle: "Add subgroup",
-                    dangerous: false,
                     onClick: () => this.VIEW_MODEL.addSubGroup(
                         prompt("Give subgroup title"), prompt("Give subgroup description"))
                 },
                 {
                     actionTitle: "Edit Group title",
-                    dangerous: false,
                     onClick: () => this.toggleGroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
                     actionTitle: "Manage links",
-                    dangerous: false,
                     onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
@@ -206,6 +202,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
     private toggleLinksManagementOptions(menuItem: HTMLElement) {
         this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.toggle("managed");
+        menuItem.classList.toggle("active");
         if (this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
             setTimeout(() => { menuItem.textContent = "Finish group links editing" }, 250);
         } else {
