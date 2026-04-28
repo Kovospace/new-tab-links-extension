@@ -75,6 +75,18 @@ link-subgroup-body > link-container:first-child {
     margin-top: 0.75em;
 }
 
+/* Link count badge — visible only when the subgroup is collapsed */
+.cls-subgroup-link-count {
+    display: none;
+    font-size: 0.75em;
+    opacity: 0.6;
+    margin-top: 0.25em;
+}
+
+link-subgroup:has(link-subgroup-body.rolled) .cls-subgroup-link-count {
+    display: inline;
+}
+
 /* Move buttons — hidden by default, revealed when parent group is in managed mode */
 link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions {
     display: flex;

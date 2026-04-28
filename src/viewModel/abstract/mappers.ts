@@ -36,5 +36,6 @@ export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     position: subgroup.position,
     type: "subgroup",
     groupId: subgroup.groupId,
-    workspaceId: subgroup.environmentId
+    workspaceId: subgroup.environmentId,
+    collapsed: subgroup.collapsed
 });

@@ -111,6 +111,7 @@ export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
 // Subgroup component
 export const CLASS_SUBGROUP_HEAD_TITLE = "cls-subgroup-head-title";
 export const CLASS_SUBGROUP_HEAD_ACTIONS = "cls-subgroup-head-actions";
+export const CLASS_SUBGROUP_LINK_COUNT = "cls-subgroup-link-count";
 
 // Link component
 export const CLASS_LINK_ACTIONS_CONTAINER = "cls-link-actions-container";

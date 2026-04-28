@@ -16,6 +16,7 @@ import {
     ACT_EDIT_GROUP,
     CLASS_SUBGROUP_HEAD_TITLE,
     CLASS_SUBGROUP_HEAD_ACTIONS,
+    CLASS_SUBGROUP_LINK_COUNT,
     ACT_OPEN_ALL_SUBGROUP_LINKS,
     ELEM_SUBGROUP,
     ACT_SUBGROUP_MOVE_UP,
@@ -51,6 +52,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         // this.appendChild(separator);
 
         const bodyElem: HTMLElement = document.createElement(ELEM_SUBGROUP_BODY);
+        if (subgroupDto.collapsed) bodyElem.classList.add("rolled");
         this.appendChild(bodyElem);
 
         // subgroup head
@@ -59,8 +61,11 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
         const subgroupTitle = renderTextContainer("h3", this.DTO.title);
         const subgroupDescription = renderTextContainer("span", this.DTO.description);
+        const linkCount = renderTextContainer("span", `${String(subgroupDto.links?.length ?? 0)} hidden items`);
+        linkCount.classList.add(CLASS_SUBGROUP_LINK_COUNT);
         subgroupInfoContainer.appendChild(subgroupTitle);
         subgroupInfoContainer.appendChild(subgroupDescription);
+        subgroupInfoContainer.appendChild(linkCount);
 
         // Move-up / Move-down buttons — visible only when the parent group is in "managed" mode
         const moveActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_MOVE_ACTIONS]);
@@ -95,7 +100,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                 },
                 {
                     actionTitle: "Expand / Collapse group",
-                    onClick: () => this.actionSubgroupFold(event)
+                    onClick: () => this.actionSubgroupFold()
                 },
                 {
                     actionTitle: "Open all links in grouped tabs",
@@ -159,18 +164,14 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     private listenerOnHeadClick(thisElem: HTMLElement): void {
         thisElem
             .getElementsByTagName(ELEM_SUBGROUP_HEAD)[0]
-            .addEventListener('click', () => this.actionSubgroupFold(event));
+            .addEventListener('click', () => this.actionSubgroupFold());
     }
 
-    private actionSubgroupFold(event: Event | undefined): void {
-        if (!event) {
-            return;
-        }
-        const elem: HTMLElement = event.target as HTMLElement;
-        if (!elem) {
-            return;
-        }
-        elem.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("rolled");
+    private actionSubgroupFold(): void {
+        const body = this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0];
+        if (!body) return;
+        body.classList.toggle("rolled");
+        this.VIEW_MODEL.toggleCollapsed();
     }
 
     private actionOpenSubGroupLinks(): void {

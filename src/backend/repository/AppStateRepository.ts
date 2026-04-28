@@ -84,6 +84,11 @@ export class AppStateRepository {
         return this.state;
     }
 
+    /** Persists state to storage without firing state$ — use when the UI updates itself directly. */
+    private async saveQuiet(): Promise<void> {
+        await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
+    }
+
     private checkEnvironmentExists(id: string): boolean {
         return id in this.state.environments;
     }
@@ -303,6 +308,19 @@ export class AppStateRepository {
             }
         };
         return this.save();
+    }
+
+    toggleSubgroupCollapsed(id: string): void {
+        const sg = this.state.subgroups[id];
+        if (!sg) return;
+        this.state = {
+            ...this.state,
+            subgroups: {
+                ...this.state.subgroups,
+                [id]: { ...sg, collapsed: !sg.collapsed }
+            }
+        };
+        this.saveQuiet();
     }
 
     editSubGroup(id: string, title: string, description: string): Promise<AppState> {
