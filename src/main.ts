@@ -27,6 +27,7 @@ import './ui/styles/subgroup.css'
 import './ui/styles/link.css'
 
 import './ui/styles/_optionsMenu.css'
+import './ui/styles/_inputDialog.css'
 
 /**
  *  Custom HTML elements names
