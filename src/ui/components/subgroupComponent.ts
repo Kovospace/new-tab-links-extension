@@ -27,6 +27,7 @@ import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 import { OptionsMenu } from "../partials/optionsMenu"
+import {InputDialog} from "../partials/inputDialog";
 
 
 
@@ -34,7 +35,12 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     private subgroupTitleEditingMenuItem: HTMLElement | null = null;
 
-    protected render(parentElem: HTMLElement) {
+    private addLinkDialog: InputDialog = new InputDialog(
+        "Add link",
+        { "Link title": "string", "URL": "string" },
+        ({ linkTitle, url }) => this.VIEW_MODEL.addLink(linkTitle, url));
+
+protected render(parentElem: HTMLElement) {
 
         this.VIEW_MODEL.observables.subgroup
             .subscribe((subGroup: SubgroupDTO) => this.renderSubGroup(parentElem, subGroup));
@@ -50,17 +56,14 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         const headElem: HTMLElement = document.createElement(ELEM_SUBGROUP_HEAD);
         this.appendChild(headElem);
 
-        // const separator: HTMLElement = document.createElement("hr");
-        // this.appendChild(separator);
-
         const bodyElem: HTMLElement = document.createElement(ELEM_SUBGROUP_BODY);
         if (subgroupDto.collapsed) bodyElem.classList.add("rolled");
         this.appendChild(bodyElem);
 
-        // subgroup head
+        // Subgroup head
+        // subgroup heading texts
         const subgroupInfoContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_TITLE]);
         headElem.appendChild(subgroupInfoContainer);
-
         const subgroupTitle = renderTextContainer("h3", this.DTO.title);
         const subgroupDescription = renderTextContainer("span", this.DTO.description);
         const count = subgroupDto.links?.length ?? 0;
@@ -84,9 +87,11 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupDown(); }
         ));
 
+        // subgroup actions
         const subgroupActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_ACTIONS]);
         headElem.appendChild(subgroupActionsContainer);
 
+        // subgroup actions - open menu button
         new OptionsMenu(
             subgroupActionsContainer,
             {
@@ -99,8 +104,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                     actionTitle: "Add link",
                     onClick: () => {
                         event?.stopPropagation();
-                        this.VIEW_MODEL.addLink(
-                            prompt("Give link title"), prompt("Give link URL"));
+                        this.addLinkDialog.show();
                     }
                 },
                 {
@@ -144,6 +148,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             ]
         );
 
+        // subgroup actions - open all subgroup links in new tabs button
         subgroupActionsContainer.appendChild(renderButton(
             ICON.OPEN_GROUPED,
             this.DTO.id,
@@ -155,6 +160,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             }
         ));
 
+        // subgroup body
         // subgroup links
         if (!subgroupDto.links) {
          return;
