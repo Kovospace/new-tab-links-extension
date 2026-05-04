@@ -40,8 +40,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         { "Link title": "string", "URL": "string" },
         ({ linkTitle, url }) => this.VIEW_MODEL.addLink(linkTitle, url));
 
-protected render(parentElem: HTMLElement) {
-
+    protected render(parentElem: HTMLElement) {
         this.VIEW_MODEL.observables.subgroup
             .subscribe((subGroup: SubgroupDTO) => this.renderSubGroup(parentElem, subGroup));
     }

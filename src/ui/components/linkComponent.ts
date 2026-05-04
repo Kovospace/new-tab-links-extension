@@ -13,8 +13,14 @@ import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
 import { contextMenu, ContextMenuAction } from "../partials/contextMenu";
+import {InputDialog} from "../partials/inputDialog";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
+
+    private editLinkDialog: InputDialog = new InputDialog(
+        "Edit link",
+        { "Title": "string", "URL": "string" },
+        ({ title, url }) => this.VIEW_MODEL.editLink(title, url));
 
     protected render(parentElem: HTMLElement) {
 
@@ -98,11 +104,9 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             }));
 
         linkActionsDiv.appendChild(renderButton(
-            ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Delete link", onClick => {
+            ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Edit link", onClick => {
                 event?.stopPropagation();
-                const title = prompt("Update title", this.DTO.title);
-                const url = prompt("Update URL", this.DTO.url);
-                this.VIEW_MODEL.editLink(title, url);
+                this.editLinkDialog.show({ title: this.DTO.title, url: this.DTO.url });
             }));
     }
 
@@ -130,11 +134,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 },
                 {
                     label: 'Edit link',
-                    onClick: () => {
-                        const title = prompt("Update title", this.DTO.title);
-                        const url2 = prompt("Update URL", this.DTO.url);
-                        this.VIEW_MODEL.editLink(title, url2);
-                    }
+                    onClick: () => this.editLinkDialog.show({ title: this.DTO.title, url: this.DTO.url })
                 },
                 {
                     label: 'Refresh icon',

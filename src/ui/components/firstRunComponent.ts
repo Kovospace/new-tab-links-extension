@@ -1,11 +1,17 @@
 import {AppStateRepository} from "../../backend/repository/AppStateRepository";
 import {FirstRunViewModel} from "../../viewModel/firstRunViewModel"
 import { ACT_FIRST_WORKSPACE, ACT_IMPORT_LINKS, ACT_LOAD_DEFAUTLS } from "../../main"
+import {InputDialog} from "../partials/inputDialog";
 
 export class FirstRunComponent extends HTMLElement {
 
     private REPOSITORY!: AppStateRepository;
     private VIEW_MODEL!: FirstRunViewModel;
+
+    private addWorkspaceDialog: InputDialog = new InputDialog(
+        "Add workspace",
+        { "Workspace name": "string" },
+        ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(workspaceName, "Default workspace"));
 
     initialize(repository: AppStateRepository): void {
         this.REPOSITORY = repository;
@@ -61,9 +67,7 @@ export class FirstRunComponent extends HTMLElement {
         }
 
         addFirstWorkspaceButton!.addEventListener('click', () => {
-            this.VIEW_MODEL.addWorkspace(
-                prompt("Give a name for workspace"),
-                "Default workspace");
+            this.addWorkspaceDialog.show();
         });
 
         importButton!.addEventListener('click', () => {

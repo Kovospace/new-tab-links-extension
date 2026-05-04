@@ -46,8 +46,8 @@ export class InputDialog {
     this.onConfirm = onConfirm;
   }
 
-  show(): void {
-    this.dialogEl = this.build(this.title);
+  show(prefill?: FieldValues): void {
+    this.dialogEl = this.build(this.title, prefill);
     document.body.appendChild(this.dialogEl);
     this.dialogEl.showModal();
     this.dialogEl.querySelector<HTMLInputElement>('input')?.focus();
@@ -59,7 +59,7 @@ export class InputDialog {
     this.dialogEl.close();
   }
 
-  private build(title?: string): HTMLDialogElement {
+  private build(title?: string, prefill?: FieldValues): HTMLDialogElement {
     const dialog = document.createElement('dialog');
     dialog.classList.add('input-dialog');
 
@@ -88,6 +88,7 @@ export class InputDialog {
       labelEl.textContent = label;
 
       const input = buildInput(type, fieldId, label);
+      if (prefill?.[toCamelCase(label)] !== undefined) input.value = prefill[toCamelCase(label)];
 
       wrapper.appendChild(labelEl);
       wrapper.appendChild(input);
