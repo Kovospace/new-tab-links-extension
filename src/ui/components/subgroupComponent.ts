@@ -37,11 +37,10 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     private addLinkDialog: InputDialog = new InputDialog(
         "Add link",
-        { "Link title": "string", "URL": "string" },
+        { "Link title": "string", "URL": "url" },
         ({ linkTitle, url }) => this.VIEW_MODEL.addLink(linkTitle, url));
 
-protected render(parentElem: HTMLElement) {
-
+    protected render(parentElem: HTMLElement) {
         this.VIEW_MODEL.observables.subgroup
             .subscribe((subGroup: SubgroupDTO) => this.renderSubGroup(parentElem, subGroup));
     }

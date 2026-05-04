@@ -1,7 +1,6 @@
 import { toggleOverlay } from './wrappedHtmlElements';
 
-export type FieldType = 'string';
-// future: 'number' | 'url' | 'boolean' | ...
+export type FieldType = 'string' | 'url';
 
 export type FieldMap = Record<string, FieldType>;
 
@@ -19,16 +18,17 @@ function toCamelCase(label: string): string {
     .join('');
 }
 
+function normalizeUrl(value: string): string {
+  const trimmed = value.trim();
+  return trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+}
+
 function buildInput(type: FieldType, id: string, placeholder: string): HTMLInputElement {
   const input = document.createElement('input');
   input.id = id;
   input.placeholder = placeholder;
   input.classList.add('editable', 'input-dialog__input');
-  switch (type) {
-    case 'string':
-    default:
-      input.type = 'text';
-  }
+  input.type = 'text';
   return input;
 }
 
@@ -46,8 +46,8 @@ export class InputDialog {
     this.onConfirm = onConfirm;
   }
 
-  show(): void {
-    this.dialogEl = this.build(this.title);
+  show(prefill?: FieldValues): void {
+    this.dialogEl = this.build(this.title, prefill);
     document.body.appendChild(this.dialogEl);
     this.dialogEl.showModal();
     this.dialogEl.querySelector<HTMLInputElement>('input')?.focus();
@@ -59,7 +59,7 @@ export class InputDialog {
     this.dialogEl.close();
   }
 
-  private build(title?: string): HTMLDialogElement {
+  private build(title?: string, prefill?: FieldValues): HTMLDialogElement {
     const dialog = document.createElement('dialog');
     dialog.classList.add('input-dialog');
 
@@ -74,7 +74,7 @@ export class InputDialog {
     form.method = 'dialog';
     form.classList.add('input-dialog__form');
 
-    const inputRefs: Array<{ camelKey: string; el: HTMLInputElement }> = [];
+    const inputRefs: Array<{ camelKey: string; type: FieldType; el: HTMLInputElement }> = [];
 
     Object.entries(this.fields).forEach(([label, type], idx) => {
       const fieldId = `input-dialog-field-${idx}`;
@@ -88,12 +88,13 @@ export class InputDialog {
       labelEl.textContent = label;
 
       const input = buildInput(type, fieldId, label);
+      if (prefill?.[toCamelCase(label)] !== undefined) input.value = prefill[toCamelCase(label)];
 
       wrapper.appendChild(labelEl);
       wrapper.appendChild(input);
       form.appendChild(wrapper);
 
-      inputRefs.push({ camelKey: toCamelCase(label), el: input });
+      inputRefs.push({ camelKey: toCamelCase(label), type, el: input });
     });
 
     const actions = document.createElement('div');
@@ -139,10 +140,10 @@ export class InputDialog {
     return dialog;
   }
 
-  private confirm(inputRefs: Array<{ camelKey: string; el: HTMLInputElement }>): void {
+  private confirm(inputRefs: Array<{ camelKey: string; type: FieldType; el: HTMLInputElement }>): void {
     const values: FieldValues = {};
-    for (const { camelKey, el } of inputRefs) {
-      values[camelKey] = el.value;
+    for (const { camelKey, type, el } of inputRefs) {
+      values[camelKey] = type === 'url' ? normalizeUrl(el.value) : el.value;
     }
     this.hide();
     this.onConfirm(values);

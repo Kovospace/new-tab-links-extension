@@ -26,8 +26,26 @@ import { OptionsMenu } from "../partials/optionsMenu"
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
+import {InputDialog} from "../partials/inputDialog";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
+
+    private currentWorkspaceId: string = "";
+
+    private addWorkspaceDialog: InputDialog = new InputDialog(
+        "Add workspace",
+        { "Workspace name": "string" },
+        ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(workspaceName));
+
+    private createProfileDialog: InputDialog = new InputDialog(
+        "Create profile",
+        { "Profile name": "string" },
+        ({ profileName }) => this.VIEW_MODEL.createProfile(profileName));
+
+    private addGroupDialog: InputDialog = new InputDialog(
+        "Add group",
+        { "Group name": "string" },
+        ({ groupName }) => this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName));
 
     render(parentElem: HTMLElement) {
 
@@ -81,7 +99,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             "Add new workspace",
             onClick => {
                 this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
-                this.VIEW_MODEL.addWorkspace(prompt("Give a name for workspace"));
+                this.addWorkspaceDialog.show();
             }
         ));
 
@@ -125,7 +143,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                     },
                     {
                         actionTitle: `${ICON.ADD} Create new profile`,
-                        onClick: () => this.VIEW_MODEL.createProfile(prompt("Profile name?"))
+                        onClick: () => this.createProfileDialog.show()
                     }
                 ]);
             });
@@ -302,7 +320,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     private actionAddGroup(workspaceId: string): void {
         this.LOG.debug("add group clicked");
-        this.VIEW_MODEL.addGroup(workspaceId, prompt("Group name?"));
+        this.currentWorkspaceId = workspaceId;
+        this.addGroupDialog.show();
     }
 
     private listenerChangeWorkspaceName() {

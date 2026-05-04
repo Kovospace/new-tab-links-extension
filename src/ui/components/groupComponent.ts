@@ -27,12 +27,23 @@ import { LinkComponent } from "./linkComponent"
 import { SubgroupComponent } from "./subgroupComponent"
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../../ui/partials/wrappedHtmlElements"
 import {OptionsMenu} from "../partials/optionsMenu";
+import {InputDialog} from "../partials/inputDialog";
 
 
 
 export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> {
 
     private groupTitleEditingMenuItem: HTMLElement | null = null;
+
+    private addSubgroupDialog: InputDialog = new InputDialog(
+        "Add subgroup",
+        { "Subgroup title": "string", "Subgroup description": "string" },
+        ({ subgroupTitle, subgroupDescription }) => this.VIEW_MODEL.addSubGroup(subgroupTitle, subgroupDescription));
+
+    private addLinkDialog: InputDialog = new InputDialog(
+        "Add link",
+        { "URL": "url", "Name": "string" },
+        ({ url, name }) => this.VIEW_MODEL.addLink(url, name, this.id));
 
     render(parentElem: HTMLElement): void {
 
@@ -69,8 +80,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 },
                 {
                     actionTitle: "Add subgroup",
-                    onClick: () => this.VIEW_MODEL.addSubGroup(
-                        prompt("Give subgroup title"), prompt("Give subgroup description"))
+                    onClick: () => this.addSubgroupDialog.show()
                 },
                 {
                     actionTitle: "Edit Group title",
@@ -163,7 +173,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         this.LOG.debug(
             "render",
             "add link to group: " + this.title + " with id: " + this.id + " clicked");
-        this.VIEW_MODEL.addLink(prompt("Give URL"), prompt("Give name"), this.id);
+        this.addLinkDialog.show();
     }
 
     private renderLink(link: LinkDTO): HTMLElement {
