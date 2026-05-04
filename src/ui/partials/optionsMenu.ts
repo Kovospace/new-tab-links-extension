@@ -155,6 +155,7 @@ export class OptionsMenu {
 
     private attachListeners() {
         document.addEventListener("mousedown", (event) => {
+            if (document.querySelector('dialog[open]')) return;
             if (
                 !this.menuElement.contains(event.target as Node) &&
                 !this.openingElement.contains(event.target as Node)

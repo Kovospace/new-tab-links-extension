@@ -19,7 +19,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
     private editLinkDialog: InputDialog = new InputDialog(
         "Edit link",
-        { "Title": "string", "URL": "string" },
+        { "Title": "string", "URL": "url" },
         ({ title, url }) => this.VIEW_MODEL.editLink(title, url));
 
     protected render(parentElem: HTMLElement) {
