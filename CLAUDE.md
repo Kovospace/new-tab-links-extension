@@ -102,3 +102,14 @@ Defined in `src/main.ts`: custom element tag names and worker message type const
 
 ### Workflow
 - After completing each set of changes, run `npm run build` to build the extension so I can test it in the browser.
+
+## Agents & Hooks
+
+- **`backend-sync` agent** (`.claude/agents/backend-sync.md`) — for the planned sync backend:
+  impact analysis of backend/data-model changes on the extension, and implementing them here.
+  Invoke it for anything touching sync, the storage contract, or work that must stay in step
+  with a branch in the backend repository.
+- **Branch policy** — pushes go to `feature/**` or `bugfix/**` branches only, named to match the
+  corresponding backend-repo branch; `main`/`master` are reached through PRs only. A `PreToolUse`
+  hook (`.claude/hooks/block-push-to-main.sh`, wired in `.claude/settings.json`) denies any
+  `git push` whose destination is `main` or `master`.
