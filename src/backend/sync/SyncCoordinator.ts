@@ -12,6 +12,7 @@ import { RefreshChannel } from "./RefreshChannel";
 import { SessionRepository, sessionRepository, SyncSession } from "./SessionRepository";
 import { MappedSnapshot, SyncSnapshotMapper } from "./SyncSnapshotMapper";
 import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRepository";
+import { SyncOperation } from "./SyncContracts";
 
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
@@ -24,6 +25,20 @@ const PULL_DEBOUNCE = 400;
 
 /** What the account menu can say about synchronisation. */
 export type SyncActivity = "idle" | "working" | "offline";
+
+/**
+ *  Why a push is happening, which decides whether it is allowed to delete.
+ *
+ *  A device that has just merged with an account it had never seen holds a picture built from
+ *  one snapshot and its own contents. Nothing in that picture is evidence that the user
+ *  removed anything, so a deletion computed there is a bug in the merge rather than an
+ *  instruction, and is refused. Every later push is a genuine difference against a state the
+ *  server confirmed, where an absent record really does mean the user deleted it.
+ */
+type PushOccasion = "first-contact" | "steady-state";
+
+/** The push that ends a first merge with an account. */
+const FIRST_CONTACT: PushOccasion = "first-contact";
 
 /**
  *  Keeps this device and the account in step.
@@ -189,24 +204,28 @@ export class SyncCoordinator {
             return;
         }
 
-        const remoteByName = new Map(
-            snapshot.profiles.map(profile => [this.asName(profile.name), profile]));
+        const candidatesByName = this.groupRemoteProfilesByName(snapshot.profiles);
+        const unpairedRemoteProfiles = new Map(
+            snapshot.profiles.map(profile => [profile.id, profile]));
 
         for (const local of this.profiles.getProfiles()) {
-            const remote = remoteByName.get(this.asName(local.name));
+            const remote = this.takeRemoteCounterpart(
+                candidatesByName, unpairedRemoteProfiles, local);
 
             if (!remote) {
                 continue;   // The account has never seen it; the push below creates it.
             }
             await this.mergeOneProfile(local, remote, snapshot);
-            remoteByName.delete(this.asName(local.name));
         }
 
         // Whatever is left is a profile this device has never had; take it as it stands.
-        for (const remote of remoteByName.values()) {
+        // Every remote profile leaves this loop present locally, which is what makes the push
+        // below incapable of reading the account's own profiles as deletions.
+        for (const remote of unpairedRemoteProfiles.values()) {
             await this.profiles.upsertProfile(remote);
             await this.appState.saveProfileData(
-                remote.id, snapshot.dataByProfileId[remote.id]);
+                remote.id,
+                snapshot.dataByProfileId[remote.id] ?? SyncSnapshotMapper.emptyProfileData());
         }
 
         // The baseline is what the account holds, not what this device now holds, so the push
@@ -217,7 +236,64 @@ export class SyncCoordinator {
         });
 
         await this.reloadActiveProfile();
-        await this.push();
+        await this.push(FIRST_CONTACT);
+    }
+
+    /**
+     *  Collects the account's profiles under the name they pair by, keeping every one.
+     *
+     *  Building a Map straight from the snapshot looked equivalent and was not: duplicate
+     *  keys overwrite, so an account holding more than one profile called "Default" kept only
+     *  the last of them here. The others were then neither merged into nor copied down, while
+     *  the baseline still listed them - and a baseline record with no local counterpart is
+     *  exactly what the change set sends as a deletion. That is how a second device could
+     *  delete the first device's profile outright.
+     *
+     *  @param profiles the account's profiles, in the order the snapshot gave them
+     *  @return the profiles of each name, in that same order
+     */
+    private groupRemoteProfilesByName(profiles: ProfileMeta[]): Map<string, ProfileMeta[]> {
+
+        const byName = new Map<string, ProfileMeta[]>();
+
+        for (const profile of profiles) {
+            const sameName = byName.get(this.asName(profile.name));
+            if (sameName) {
+                sameName.push(profile);
+            } else {
+                byName.set(this.asName(profile.name), [profile]);
+            }
+        }
+        return byName;
+    }
+
+    /**
+     *  Claims the account's profile a local one should merge into, or nothing.
+     *
+     *  Where several profiles share a name they are claimed in snapshot order, which is the
+     *  account's own display order, so the oldest is paired first and a device with two
+     *  profiles of one name pairs each of them exactly once.
+     *
+     *  @param candidatesByName the account's profiles grouped by name; claimed ones are removed
+     *  @param unpaired         every account profile not yet claimed, keyed by identifier
+     *  @param local            the profile on this device looking for a counterpart
+     *  @return the counterpart, or null when the account has no unclaimed profile of that name
+     */
+    private takeRemoteCounterpart(
+        candidatesByName: Map<string, ProfileMeta[]>,
+        unpaired: Map<string, ProfileMeta>,
+        local: ProfileMeta
+    ): ProfileMeta | null {
+
+        const candidates = candidatesByName.get(this.asName(local.name)) ?? [];
+
+        while (candidates.length > 0) {
+            const candidate = candidates.shift()!;
+            if (unpaired.delete(candidate.id)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     /** Merges one local profile into its counterpart on the account. */
@@ -263,8 +339,10 @@ export class SyncCoordinator {
      *
      *  The baseline only moves on once the server has confirmed the batch, so a failure here
      *  costs nothing but time: the same difference is computed again next time.
+     *
+     *  @param occasion why this push is happening, which decides whether it may delete
      */
-    private async push(): Promise<void> {
+    private async push(occasion: PushOccasion = "steady-state"): Promise<void> {
 
         const session = this.sessions.getSession();
         if (!session) {
@@ -282,11 +360,28 @@ export class SyncCoordinator {
         }
 
         const current = await this.readEverythingLocally();
-        const operations = ChangeSetBuilder.build(
+        const everything = ChangeSetBuilder.build(
             baseline, current.profiles, current.dataByProfileId);
+
+        const withheld = occasion === FIRST_CONTACT
+            ? everything.filter(operation => operation.op === "delete")
+            : [];
+        const operations = withheld.length > 0
+            ? everything.filter(operation => operation.op !== "delete")
+            : everything;
+
+        if (withheld.length > 0) {
+            // A merge is supposed to leave this device holding everything the account holds,
+            // so a deletion here means the merge dropped something and the difference is
+            // describing that mistake rather than the user's intent. Sending it would destroy
+            // data this device has never shown anyone. The pull that follows repairs it.
+            this.LOG.error("push",
+                `Withheld ${withheld.length} deletions computed at first contact`);
+        }
 
         if (operations.length === 0) {
             this.activity$.set("idle");
+            await this.recoverFromWithheldDeletions(withheld);
             return;
         }
 
@@ -313,8 +408,32 @@ export class SyncCoordinator {
             return;
         }
 
+        if (withheld.length > 0) {
+            // The baseline must not record a state the account is not in: the records those
+            // deletions named are still on the server and are still missing here.
+            await this.recoverFromWithheldDeletions(withheld);
+            return;
+        }
+
         await this.baselines.store(session.userId, current);
         this.activity$.set("idle");
+    }
+
+    /**
+     *  Repairs a device that computed deletions it was not entitled to make.
+     *
+     *  Nothing about the local state can be trusted to describe the account after this, so it
+     *  is not patched up piecemeal: the account is read back in full and written over what is
+     *  here, which is the same remedy a remapped identifier gets.
+     *
+     *  @param withheld the deletions that were not sent; no repair is needed when empty
+     */
+    private async recoverFromWithheldDeletions(withheld: SyncOperation[]): Promise<void> {
+        if (withheld.length === 0) {
+            return;
+        }
+        this.LOG.warn("recoverFromWithheldDeletions", "Re-reading the account to repair");
+        await this.pull();
     }
 
     /** Takes the account's state as authoritative and writes it over what is here. */
@@ -525,14 +644,30 @@ export class SyncCoordinator {
      *
      *  The seeded profile is the reason this exists: its identifier is the literal string
      *  "default" on every installation ever made.
+     *
+     *  One such profile is not moved but forgotten: an unstorable identifier with nothing
+     *  stored under it. There is nothing to carry across, so minting an identifier for it
+     *  would put a profile on the account that the user never made and that no device can
+     *  ever show anything in. It is only ever the registry's seeded entry reappearing after
+     *  this method already renamed it once, which is why the last profile is never dropped -
+     *  a device with one empty profile is a first run, not a stray.
      */
     private async giveProfileAStorableIdentifier(profile: ProfileMeta): Promise<void> {
 
         if (isStorableIdentifier(profile.id)) {
             return;
         }
-        const replacement = uid();
         const data = await this.appState.readProfileData(profile.id);
+
+        if (!data && this.profiles.getProfiles().length > 1) {
+            this.LOG.log("giveProfileAStorableIdentifier",
+                `Forgetting empty profile ${profile.id} instead of pushing it`);
+            await this.profiles.removeProfile(profile.id);
+            await this.appState.discardProfileData(profile.id);
+            return;
+        }
+
+        const replacement = uid();
         const wasActive = this.appState.getActiveProfileId() === profile.id;
 
         await this.profiles.upsertProfile({ ...profile, id: replacement });

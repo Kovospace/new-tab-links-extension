@@ -1,6 +1,17 @@
 import { Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
 import { SyncEntityKind, SyncOperation } from "./SyncContracts";
 
+/**
+ *  The order deletions have to reach the backend in: a record is never removed while
+ *  something still points at it.
+ *
+ *  Profiles come last rather than first. Profile deletions are collected before any of the
+ *  records beneath them, so without this the batch asked the backend to delete a profile
+ *  whose environments it had not been told about yet.
+ */
+const DELETION_ORDER: SyncEntityKind[] =
+    ["link", "subgroup", "group", "environment", "profile"];
+
 /** What the device believes the account already holds. */
 export interface SyncBaseline {
 
@@ -63,7 +74,20 @@ export class ChangeSetBuilder {
                 upserts,
                 deletes);
         }
-        return [...upserts, ...deletes];
+        return [...upserts, ...this.childrenFirst(deletes)];
+    }
+
+    /**
+     *  Puts deletions in dependency order, children before their parents.
+     *
+     *  A stable sort, so two records of the same kind keep the order they were collected in.
+     *
+     *  @param deletes the deletions, in whatever order they were collected
+     *  @return the same deletions, safe to apply one after another
+     */
+    private static childrenFirst(deletes: SyncOperation[]): SyncOperation[] {
+        return [...deletes].sort((one, other) =>
+            DELETION_ORDER.indexOf(one.type) - DELETION_ORDER.indexOf(other.type));
     }
 
     // ----------------------------------------------------------------- profiles
