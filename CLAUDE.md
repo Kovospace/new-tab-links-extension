@@ -109,9 +109,27 @@ Defined in `src/main.ts`: custom element tag names and worker message type const
   impact analysis of backend/data-model changes on the extension, and implementing them here.
   Invoke it for anything touching sync, the storage contract, or work that must stay in step
   with the backend repository.
-- **Backend repository** — `git@github.com:Kovospace/new-tab-links-backend.git`, checked out
-  locally at `/home/kovo/IdeaProjects/new-tab-links-backend` (reachable from sessions here via
-  `permissions.additionalDirectories` in the gitignored `.claude/settings.local.json`).
+- **Sibling repositories**, each reached through a **user-level** agent in `~/.claude/agents/`,
+  because a project-scoped agent is invisible from another checkout. Each points at that repo's
+  own agent file, resolves its own checkout, and never edits this one.
+
+  | Send it to | Agent | Local path |
+  |---|---|---|
+  | the backend (Spring Boot) | **`backend-developer`** | `/home/kovo/IdeaProjects/new-tab-links-backend` |
+  | the website (Angular) | **`frontend-developer`** | `/home/kovo/IdeaProjects/new-tab-links-frontend` |
+  | the cluster (GitOps) | **`devops-engineer`** | `/home/kovo/IdeaProjects/kovostack-infra-gitops` |
+
+  This extension has one too — **`extension-developer`** — which is how the other three reach it;
+  it points at `backend-sync.md` above and covers the whole repo, not only sync work. The backend
+  remote is `git@github.com:Kovospace/new-tab-links-backend.git`; all three are reachable from
+  sessions here via `permissions.additionalDirectories` in the gitignored
+  `.claude/settings.local.json`.
+- **mirrord does not apply here.** The other two repos use it to run a local process inside the
+  cluster; this extension runs inside Chrome, which mirrord cannot reach. To develop against real
+  data, run the backend under mirrord (`new-tab-links-backend/.mirrord/README.md`) and point this
+  extension at `http://localhost:8080`, adding that origin to the manifest's host permissions —
+  or call the public API directly, since the deployed backend already allows
+  `chrome-extension://*` as a CORS origin.
 - **Branch policy** — pushes go to `feature/**` or `bugfix/**` branches only, named to match the
   corresponding backend-repo branch; `main`/`master` are reached through PRs only. A `PreToolUse`
   hook (`.claude/hooks/block-push-to-main.sh`, wired in `.claude/settings.json`) denies any
