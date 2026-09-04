@@ -1,6 +1,6 @@
 import { toggleOverlay } from './wrappedHtmlElements';
 
-export type FieldType = 'string' | 'url';
+export type FieldType = 'string' | 'url' | 'password';
 
 export type FieldMap = Record<string, FieldType>;
 
@@ -28,7 +28,7 @@ function buildInput(type: FieldType, id: string, placeholder: string): HTMLInput
   input.id = id;
   input.placeholder = placeholder;
   input.classList.add('editable', 'input-dialog__input');
-  input.type = 'text';
+  input.type = type === 'password' ? 'password' : 'text';
   return input;
 }
 

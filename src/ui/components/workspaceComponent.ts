@@ -16,11 +16,12 @@ import {
 import { WorkspaceDTO, GroupDTO, ProfileDTO } from "../../viewModel/abstract/dtos";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
+import { AccountDTO, SyncAccountViewModel } from "../../viewModel/syncAccountViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent";
 import { GroupComponent } from "./groupComponent";
-import { OptionsMenu } from "../partials/optionsMenu"
+import { OptionsMenu, OptionsMenuItem } from "../partials/optionsMenu"
 
 // utils
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
@@ -31,6 +32,21 @@ import {InputDialog} from "../partials/inputDialog";
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
     private currentWorkspaceId: string = "";
+
+    /** Account section of the application menu; not tied to AppState, hence its own view model. */
+    private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
+
+    private logInDialog: InputDialog = new InputDialog(
+        "Log in",
+        { "Username or email": "string", "Password": "password" },
+        ({ usernameOrEmail, password }) => this.accountViewModel.logIn(usernameOrEmail, password));
+
+    // the field is labelled the way the website labels it ("Your connect code"), so the user
+    // recognises what to paste, while the menu entry keeps the wording of the sync feature
+    private syncCodeDialog: InputDialog = new InputDialog(
+        "Enter sync code",
+        { "Connect code": "string" },
+        ({ connectCode }) => this.accountViewModel.connectWithCode(connectCode));
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         "Add workspace",
@@ -148,23 +164,67 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 ]);
             });
 
-        // application / user account menu
-        new OptionsMenu(
+        // application / user account menu - rebuilt reactively from the sync session
+        const accountMenu = new OptionsMenu(
             headerElemRightContent,
             {
                 openMenuButtonId: `application-menu`,
                 openMenuButtonClass: ACT_APP_MENU,
                 openMenuButtonTooltipText: "Application menu"
             },
-            [
-                {
-                    actionTitle: "User",
-                    dangerous: false,
-                    onClick: () => {}
-                }
-            ],
+            [],
             {}
         );
+
+        this.accountViewModel.initialize();
+        this.accountViewModel.observables.account
+            .subscribe((account: AccountDTO) => accountMenu.updateOptions(
+                account.signedIn
+                    ? this.buildSignedInAccountMenuItems(account)
+                    : this.buildSignedOutAccountMenuItems()));
+    }
+
+    /**
+     *  Application menu while no account is connected: the three ways of getting one.
+     */
+    private buildSignedOutAccountMenuItems(): OptionsMenuItem[] {
+        return [
+            {
+                actionTitle: "Log in",
+                onClick: () => this.logInDialog.show()
+            },
+            {
+                actionTitle: "Register",
+                onClick: () => this.accountViewModel.openRegistrationPage()
+            },
+            {
+                actionTitle: "Enter sync code",
+                onClick: () => this.syncCodeDialog.show()
+            }
+        ];
+    }
+
+    /**
+     *  Application menu while an account is connected. The first entry is a label naming the
+     *  signed-in user, not an action. Logging out stops synchronising and keeps every link.
+     */
+    private buildSignedInAccountMenuItems(account: AccountDTO): OptionsMenuItem[] {
+        return [
+            {
+                actionTitle: `${ICON.USER} ${account.username}`,
+                noBorder: true,
+                onClick: () => {}
+            },
+            {
+                actionTitle: account.syncStatus ?? "",
+                noBorder: true,
+                onClick: () => {}
+            },
+            {
+                actionTitle: "Log out",
+                onClick: () => this.accountViewModel.logOut()
+            }
+        ];
     }
 
     /**

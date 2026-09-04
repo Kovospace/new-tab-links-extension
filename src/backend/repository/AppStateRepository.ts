@@ -14,6 +14,23 @@ export class AppStateRepository {
     private state!: AppState;
     //private initialState!: AppState;
     readonly state$ = new ObservableValue<AppState>(appStateInit);
+
+    /**
+     * Fires the active profile's identifier every time this profile's data is written,
+     * whether or not the UI was notified.
+     *
+     * Kept separate from state$ on purpose. state$ exists to redraw the page and is
+     * deliberately not fired by saveQuiet(), because the component that triggered the change
+     * has already updated itself - but a change that skips the redraw is still a change the
+     * backend has to hear about. Subscribing to state$ instead would silently never
+     * synchronise a collapsed subgroup.
+     *
+     * It carries the profile identifier rather than the state so that a subscriber cannot be
+     * fooled by two consecutive saves of deep-equal data into thinking nothing happened.
+     */
+    readonly persisted$ = new ObservableValue<{ profileId: string; at: number }>(
+        { profileId: "", at: 0 });
+
     private datasource = new ChromeStorageWrapper()
 
     /**
@@ -81,12 +98,37 @@ export class AppStateRepository {
     private async save(): Promise<AppState> {
         await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
         this.state$.set(this.state);
+        this.announcePersisted();
         return this.state;
     }
 
     /** Persists state to storage without firing state$ — use when the UI updates itself directly. */
     private async saveQuiet(): Promise<void> {
         await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
+        this.announcePersisted();
+    }
+
+    /** Tells the synchronisation layer that this profile's stored data has moved on. */
+    private announcePersisted(): void {
+        this.persisted$.set({ profileId: this.state.activeProfileId, at: Date.now() });
+    }
+
+    /**
+     * Reads a profile's stored data without loading it or disturbing the active one.
+     * Used by synchronisation, which has to reason about profiles the user is not looking at.
+     */
+    public async readProfileData(profileId: string): Promise<ProfileData | null> {
+        const saved = await this.datasource.get<AppState>(APP_STATE_PREFIX + profileId);
+        if (!saved) {
+            return null;
+        }
+        const { environments, groups, subgroups, links, activeEnvironmentId } = saved;
+        return { environments, groups, subgroups, links, activeEnvironmentId };
+    }
+
+    /** Forgets a profile's stored data entirely; the registry entry is not this class's business. */
+    public async discardProfileData(profileId: string): Promise<void> {
+        await this.datasource.save(APP_STATE_PREFIX + profileId, null);
     }
 
     private checkEnvironmentExists(id: string): boolean {

@@ -1,5 +1,8 @@
 import { appStateRepository } from "./backend/repository/AppStateRepository";
 import { profileRepository } from "./backend/repository/ProfileRepository";
+import { installationIdentity } from "./backend/sync/InstallationIdentity";
+import { sessionRepository } from "./backend/sync/SessionRepository";
+import { syncCoordinator } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
 import { WorkspaceDTO } from "./viewModel/abstract/dtos"
@@ -63,6 +66,8 @@ export const ELEM_OPTIONS_MENU_ITEM = "options-menu-item";
 export const ACT_FIRST_WORKSPACE: string = "act-first-workspace";
 export const ACT_IMPORT_LINKS: string = "act-import-links";
 export const ACT_LOAD_DEFAUTLS: string = "act-load-defaults";
+export const ACT_FIRST_RUN_CONNECT_CODE: string = "act-first-run-connect-code";
+export const ACT_FIRST_RUN_LOG_IN: string = "act-first-run-log-in";
 
 // Workspace component
 export const ACT_APP_MENU: string = "action-app-menu";
@@ -130,10 +135,20 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
 
+    // identity of this installation and the signed-in account, if any - both are read
+    // before anything renders so the application menu draws its final state at once
+    await installationIdentity.init();
+    await sessionRepository.init();
+
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();
     // initialize "app data" object and repository, WAIT FOR IT !!!
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
+
+    // Synchronisation watches the repositories above, so it starts after them. It is not
+    // awaited to completion: a signed-in device pushes and pulls in the background while the
+    // page renders what it already has, and the page redraws itself when the account answers.
+    await syncCoordinator.start();
 
     // create custom HTML element ONLY THAT WAY otherwise (innerHTML() method or
     // raw in html file) construction of object happens before initialized "repository"
@@ -146,6 +161,15 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
         const guideElem = document.createElement(ELEM_FIRSTRUN) as FirstRunComponent;
         guideElem.initialize(appStateRepository);
         rootContainerElem.appendChild(guideElem);
+
+        // This screen is chosen once, from the state as it stands right now, but an account
+        // that already has links may still be arriving over the network. When it lands there
+        // is a workspace to show and this screen is the wrong one, so start again.
+        appStateRepository.state$.subscribe(state => {
+            if (Object.keys(state.environments).length > 0) {
+                window.location.reload();
+            }
+        });
 
     } else {
 

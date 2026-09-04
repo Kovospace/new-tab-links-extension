@@ -89,6 +89,51 @@ export class ProfileRepository {
         this.profiles$.set(Object.values(this.registry.profiles));
     }
 
+    /** Every profile this device knows about, in registry order. */
+    public getProfiles(): ProfileMeta[] {
+        return Object.values(this.registry.profiles);
+    }
+
+    /**
+     * Adds a profile, or updates one, under an identifier chosen elsewhere.
+     *
+     * createProfile() mints its own identifier, which is right when the user creates a
+     * profile here but wrong for one that already exists on the account: that one has to keep
+     * the identifier every other device knows it by.
+     */
+    public async upsertProfile(meta: ProfileMeta): Promise<void> {
+        this.registry = {
+            ...this.registry,
+            profiles: { ...this.registry.profiles, [meta.id]: meta }
+        };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
+    /**
+     * Removes a profile whatever its identifier, including the seeded default one.
+     *
+     * deleteProfile() refuses the default profile, which is the right answer to a user
+     * clicking delete - it would leave them with none. This is for synchronisation, which
+     * removes a profile only because it is gone from the account or because it has just been
+     * re-created under the identifier the account uses, and in both cases a replacement
+     * already exists.
+     */
+    public async removeProfile(id: string): Promise<void> {
+        const profiles = { ...this.registry.profiles };
+        delete profiles[id];
+
+        this.registry = {
+            ...this.registry,
+            profiles,
+            activeProfileId: this.registry.activeProfileId === id
+                ? Object.keys(profiles)[0] ?? this.registry.activeProfileId
+                : this.registry.activeProfileId
+        };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
     private async saveRegistry(): Promise<void> {
         await this.datasource.save(PROFILE_REGISTRY_KEY, this.registry);
     }

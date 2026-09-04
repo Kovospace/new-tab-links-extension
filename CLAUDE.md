@@ -33,16 +33,55 @@ UI (Web Components) → ViewModel → Repository → Datasource (chrome.storage.
 - **`src/backend/datasource/`** — `ChromeStorageWrapper` persists state to `chrome.storage.local`. `IndexedDB` and `InMemoryGopnikCache` are additional datasource implementations.
 - **`src/backend/worker/`** — Background service worker handles async tasks (favicon fetching, opening tab groups). Workers extend `BackgroundWorker` and communicate via `chrome.runtime.sendMessage`.
 - **`src/utils/observableValue.ts`** — Custom reactive primitive using `fast-deep-equal` for change detection. Core to the reactive data flow.
+- **`src/backend/sync/`** — synchronization with the NewTabLinks backend. See below.
+
+### Synchronization (`src/backend/sync/`)
+
+Two-way, and entirely in the page — never the service worker, which MV3 stops after thirty
+seconds of quiet. Nothing here blocks the user, and being offline is an ordinary state.
+
+```
+SyncCoordinator          orchestrates; everything below is its collaborator
+├── SessionRepository    tokens, published so the menu redraws itself
+├── BackendApiClient     bearer, 401 -> refresh -> retry once, "offline" as a value not a throw
+├── SyncBaselineRepository   what the account is believed to hold, per account
+├── ChangeSetBuilder     the difference between that baseline and now = what to push
+├── SyncSnapshotMapper   the backend's flat snapshot <-> per-profile ProfileData
+├── ProfileMergeEngine   first contact only: joins local data to the account's
+├── RefreshChannel       minimal STOMP over WebSocket; no library, no new dependency
+└── LocalIdentifierNormalizer   makes identifiers storable, and freshens imported ones
+```
+
+Rules that are load-bearing, and easy to break by accident:
+
+- **Push, then pull. Always in that order.** A pull replaces a profile wholesale, so pulling
+  first silently discards anything made offline.
+- **The baseline only advances when the server confirms.** That is what makes a failed push
+  cost nothing: the same difference is simply computed again next time.
+- **No tombstones, deliberately.** A record absent from the snapshot has been deleted; a record
+  absent from local state is a deletion to push. Nothing needs to remember what once existed.
+- **Identifiers must be UUIDs.** The backend keys its rows by `uuid`. The seeded profile was
+  once literally `"default"` and the example data `"env-1"`, so `LocalIdentifierNormalizer`
+  rewrites anything unstorable before the first push. `uid()` mints UUIDv7 - time-ordered, so
+  it does not scatter the server's B-tree.
+- **`persisted$`, not `state$`, is what synchronization listens to.** `state$` is for redrawing
+  and is deliberately not fired by `saveQuiet()`; subscribing to it would never synchronize a
+  collapsed subgroup.
+- **Which profile and which workspace are open is per-device and never synchronized.** The data
+  under them is shared; the choice is not.
 
 ### Data Model (`AppStateEntity.ts`)
 
 ```
-AppState
-├── environments: Record<string, Environment>   ← "workspaces"
-├── groups: Record<string, Group>               ← belong to an Environment
-├── subgroups: Record<string, Subgroup>         ← belong to a Group, collapsible
-└── links: Record<string, Link>                 ← belong to Group, optionally Subgroup
+Profile (registry in ProfileRepository, data stored per profile)
+└── AppState / ProfileData
+    ├── environments: Record<string, Environment>   ← "workspaces"
+    ├── groups: Record<string, Group>               ← belong to an Environment
+    ├── subgroups: Record<string, Subgroup>         ← belong to a Group, collapsible
+    └── links: Record<string, Link>                 ← belong to Group, optionally Subgroup
 ```
+
+The backend mirrors this exactly, profiles included.
 
 All entities use string UUIDs as keys. Links have a `position` field for ordering.
 
