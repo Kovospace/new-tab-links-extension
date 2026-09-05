@@ -225,7 +225,17 @@ export class SyncCoordinator {
             await this.profiles.upsertProfile(remote);
             await this.appState.saveProfileData(
                 remote.id,
-                snapshot.dataByProfileId[remote.id] ?? SyncSnapshotMapper.emptyProfileData());
+                // Through withLocalWorkspaceChoice, exactly as applySnapshot writes a profile.
+                // A mapped snapshot names no open workspace - that choice is per-device and
+                // never synchronised, so every profile arrives with activeEnvironmentId null -
+                // and this device has no previous choice for a profile it has never held. What
+                // it needs is the first workspace, not none: a profile stored with workspaces
+                // but naming none open reports itself as empty, which sends the page to the
+                // first-run screen and, before this was fixed, into a reload loop.
+                await this.withLocalWorkspaceChoice(
+                    remote.id,
+                    snapshot.dataByProfileId[remote.id]
+                        ?? SyncSnapshotMapper.emptyProfileData()));
         }
 
         // The baseline is what the account holds, not what this device now holds, so the push
