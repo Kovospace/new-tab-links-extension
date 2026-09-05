@@ -65,6 +65,18 @@ export const WEBSITE_PATHS = {
  */
 export const DEVICE_NAME_HEADER: string = "X-Device-Name";
 
+/**
+ *  Header carrying this installation's own identifier, which is what the backend keys a device
+ *  on. See its ClientRequestHeaders.INSTALLATION_ID.
+ *
+ *  The device name cannot do that job and never could: it is built from navigator.platform,
+ *  which is frozen and names the operating system, so every installation on one machine sends
+ *  the same string - and the browser name the backend parses out of the user agent is no better,
+ *  because Chromium forks impersonate Chrome there deliberately. Two Chromium browsers on one
+ *  machine used to collapse into a single device, and signing that device out signed out both.
+ */
+export const INSTALLATION_ID_HEADER: string = "X-Installation-Id";
+
 /** Absolute URL of a backend endpoint. */
 export function buildApiUrl(endpointPath: string): string {
     return `${SYNC_CONFIGURATION.apiBaseUrl}${endpointPath}`;

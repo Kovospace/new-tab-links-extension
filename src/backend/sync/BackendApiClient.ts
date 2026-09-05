@@ -1,4 +1,7 @@
-import { AUTH_ENDPOINTS, DEVICE_NAME_HEADER, SYNC_ENDPOINTS, buildApiUrl } from "./SyncConfiguration";
+import {
+    AUTH_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER, SYNC_ENDPOINTS, buildApiUrl
+} from "./SyncConfiguration";
+import { installationIdentity } from "./InstallationIdentity";
 import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
 import { SessionRepository, sessionRepository, TokenPairDto } from "./SessionRepository";
 import { Logger } from "../../utils/logger";
@@ -49,6 +52,24 @@ interface ApiErrorResponseDto {
 function resolveDeviceName(): string {
     const platform = navigator.platform?.trim();
     return platform ? `Browser extension on ${platform}` : "Browser extension";
+}
+
+/**
+ *  This installation's identifier, or nothing when it is not available yet.
+ *
+ *  It is what the backend keys a device on, so sending it is what stops two browsers on one
+ *  machine from being recorded as one device. Missing it is not worth failing a call over: the
+ *  backend then falls back to matching on the names, which is what it did before this header
+ *  existed. In practice it is always there - main.ts awaits installationIdentity.init() before
+ *  anything can reach this client - and the guard is here so that a caller which somehow runs
+ *  earlier degrades instead of throwing.
+ */
+function resolveInstallationId(): string | null {
+    try {
+        return installationIdentity.getInstallationId();
+    } catch (notInitialisedYet) {
+        return null;
+    }
 }
 
 /**
@@ -193,6 +214,10 @@ export class BackendApiClient {
             "Content-Type": "application/json",
             [DEVICE_NAME_HEADER]: resolveDeviceName()
         };
+        const installationId = resolveInstallationId();
+        if (installationId) {
+            headers[INSTALLATION_ID_HEADER] = installationId;
+        }
         if (accessToken) {
             headers["Authorization"] = `Bearer ${accessToken}`;
         }
