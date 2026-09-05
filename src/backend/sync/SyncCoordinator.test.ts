@@ -17,6 +17,11 @@ const REAL_ENVIRONMENT = "0199cccc-0000-7000-8000-00000000000c";
 const REAL_GROUP = "0199dddd-0000-7000-8000-00000000000d";
 const REAL_LINK = "0199eeee-0000-7000-8000-00000000000e";
 
+/** A profile the account has and this device has never held, under a name of its own. */
+const REMOTE_ONLY_PROFILE = "0199ffff-0000-7000-8000-00000000000f";
+const REMOTE_ONLY_ENVIRONMENT = "01991111-0000-7000-8000-000000000011";
+const REMOTE_ONLY_GROUP = "01992222-0000-7000-8000-000000000022";
+
 const NOW = "2026-01-01T00:00:00Z";
 
 function profileDto(id: string, name: string, position: number): SnapshotProfileDto {
@@ -50,6 +55,25 @@ function accountWith(...alsoNamedDefault: string[]): SyncSnapshot {
         }],
         capturedAt: NOW
     };
+}
+
+/**
+ *  An account holding, besides the profile this device pairs with by name, a second profile
+ *  under a name of its own that has workspaces in it. That one is never paired, so it takes
+ *  the "carry it down as it stands" path rather than the merge.
+ */
+function accountWithAProfileThisDeviceHasNeverHad(): SyncSnapshot {
+    const snapshot = accountWith();
+    snapshot.profiles.push(profileDto(REMOTE_ONLY_PROFILE, "Work", 1));
+    snapshot.environments.push({
+        id: REMOTE_ONLY_ENVIRONMENT, ownerId: "owner", profileId: REMOTE_ONLY_PROFILE,
+        name: "Clients", description: null, position: 0, createdAt: NOW, updatedAt: NOW
+    });
+    snapshot.groups.push({
+        id: REMOTE_ONLY_GROUP, environmentId: REMOTE_ONLY_ENVIRONMENT, name: "Invoices",
+        description: null, position: 0, createdAt: NOW, updatedAt: NOW
+    });
+    return snapshot;
 }
 
 describe("SyncCoordinator, first contact with an account", () => {
@@ -179,5 +203,29 @@ describe("SyncCoordinator, first contact with an account", () => {
 
         const carried = await appState.readProfileData(PHANTOM_PROFILE);
         expect(carried).not.toBeNull();
+    });
+
+    it("opens a workspace in a profile carried down that this device has never had", async () => {
+        // A mapped snapshot names no open workspace - that is per-device and never
+        // synchronised - so a profile carried down whole arrived holding workspaces while
+        // naming none. Stored that way it reports itself as having no workspace at all, which
+        // sends the page to the first-run screen; the reload guard on that screen then
+        // reloaded it several times a second for as long as the tab was open.
+        const coordinator = await coordinatorFor(accountWithAProfileThisDeviceHasNeverHad());
+
+        await coordinator.synchronizeNow();
+
+        const carried = await appState.readProfileData(REMOTE_ONLY_PROFILE);
+        expect(Object.keys(carried?.environments ?? {})).toContain(REMOTE_ONLY_ENVIRONMENT);
+        expect(carried?.activeEnvironmentId).toBe(REMOTE_ONLY_ENVIRONMENT);
+    });
+
+    it("leaves a carried profile with no workspaces naming none", async () => {
+        // The empty case must stay empty rather than being given something to point at.
+        const coordinator = await coordinatorFor(accountWith(PHANTOM_PROFILE));
+
+        await coordinator.synchronizeNow();
+
+        expect((await appState.readProfileData(PHANTOM_PROFILE))?.activeEnvironmentId).toBeNull();
     });
 });
