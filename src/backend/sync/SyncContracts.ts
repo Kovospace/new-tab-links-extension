@@ -6,6 +6,33 @@
  *  particular. Only the fields this extension actually reads or sends are mirrored.
  */
 
+/**
+ *  The longest name the backend will store, for any record that has one.
+ *
+ *  Its `name` column is `varchar(120)` and the push DTO carries `@Size(max = 120)`, and that
+ *  annotation is validated over the whole request: one over-long name does not come back as a
+ *  rejected operation among the accepted ones, it fails the entire batch with a 400 and
+ *  nothing is applied. So a name is checked before it is allowed into local state, not after -
+ *  otherwise one long profile name would quietly stop every other change reaching the account.
+ */
+export const MAX_NAME_LENGTH = 120;
+
+/**
+ *  Whether a name can be stored, both here and on the account.
+ *
+ *  Blank is refused because the backend refuses it (`MISSING_REQUIRED_VALUE`), and over-long
+ *  because the backend refuses the whole batch for it. One predicate rather than the same two
+ *  comparisons written at each call site, so the rule cannot drift between the paths that
+ *  create a profile and the one that renames it.
+ *
+ *  @param name the name to check; leading and trailing whitespace is not significant
+ *  @return true when the name is storable as it stands
+ */
+export function isStorableName(name: string): boolean {
+    const trimmed = name.trim();
+    return trimmed.length > 0 && trimmed.length <= MAX_NAME_LENGTH;
+}
+
 /** What kind of record an operation is about. */
 export type SyncEntityKind = "profile" | "environment" | "group" | "subgroup" | "link";
 

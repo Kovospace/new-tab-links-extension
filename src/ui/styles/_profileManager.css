@@ -66,13 +66,22 @@ dialog.profile-manager {
     font-style: italic;
 }
 
-.profile-manager__delete {
+/* Rename sits beside delete rather than on the name itself: an editable-looking
+   name in a list whose other control deletes is one misplaced click from the
+   wrong outcome. */
+.profile-manager__row-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.25em;
+}
+
+.profile-manager__action {
     flex-shrink: 0;
     padding: 0.2em 0.5em;
     line-height: 1;
 }
 
-.profile-manager__delete:disabled {
+.profile-manager__action:disabled {
     opacity: 0.35;
     cursor: not-allowed;
 }

@@ -11,6 +11,9 @@ import {toGroupDTO} from "../viewModel/abstract/mappers"
 import {profileRepository} from "../backend/repository/ProfileRepository";
 import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
 
+// sync contract
+import {MAX_NAME_LENGTH, isStorableName} from "../backend/sync/SyncContracts";
+
 // utils
 import {ObservableValue} from "../utils/observableValue";
 
@@ -138,7 +141,14 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     public async createProfile(name: string | null) {
         this.LOG.debug("createProfile", `name: ${name}`);
         if (!name) return;
+
+        if (!isStorableName(name)) {
+            this.reportUnstorableName(name);
+            return;
+        }
+
         const meta = await profileRepository.createProfile(name);
+        if (!meta) return;
         this.switchProfile(meta.id);
     }
 
@@ -149,9 +159,35 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         const name = prompt("Name for the imported profile?");
         if (!name) return;
 
+        // Checked before the profile is created, so a refused name leaves nothing behind -
+        // an empty profile with no data under it is exactly the stray this cannot afford
+        // to produce.
+        if (!isStorableName(name)) {
+            this.reportUnstorableName(name);
+            return;
+        }
+
         const meta = await profileRepository.createProfile(name);
+        if (!meta) return;
         await this.REPOSITORY.saveProfileData(meta.id, data);
         this.switchProfile(meta.id);
+    }
+
+    /**
+     * Says why a profile name was refused.
+     *
+     * Worth saying rather than swallowing: the length is not something the user can see, and a
+     * create that appeared to do nothing would simply be tried again with the same name.
+     *
+     * @param name the name that was refused
+     */
+    private reportUnstorableName(name: string): void {
+        const trimmed = name.trim();
+        alert(trimmed.length === 0
+            ? "A profile needs a name."
+            : `A profile name can be at most ${MAX_NAME_LENGTH} characters, and that one is `
+                + `${trimmed.length}. Your account cannot store it, and keeping it here would `
+                + "stop every other change reaching your other devices.");
     }
 
     public exportCurrentProfile() {

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "./ProfileRepository";
 import { readFakeStorage, seedFakeStorage } from "../../test/chromeStorageStub";
+import { MAX_NAME_LENGTH } from "../sync/SyncContracts";
 
 const PROFILE_REGISTRY_KEY = "profile_registry";
 
@@ -86,5 +87,123 @@ describe("ProfileRepository.init", () => {
         await profiles.init();
 
         expect(profiles.profiles$.get().map(profile => profile.id)).toEqual([only]);
+    });
+});
+
+describe("ProfileRepository.renameProfile", () => {
+
+    let profiles: ProfileRepository;
+
+    beforeEach(async () => {
+        profiles = new ProfileRepository();
+        await profiles.init();
+    });
+
+    it("persists the new name", async () => {
+        await profiles.renameProfile("default", "Home");
+
+        expect(readFakeStorage<StoredRegistry>(PROFILE_REGISTRY_KEY)?.profiles["default"].name)
+            .toBe("Home");
+    });
+
+    it("publishes the change, which is what schedules the push to the account", async () => {
+        // SyncCoordinator subscribes to profiles$ and to nothing else in this repository, so a
+        // rename that only wrote storage would stay on this device for ever.
+        const seen: string[] = [];
+        profiles.profiles$.subscribe(list => seen.push(list.map(p => p.name).join(",")));
+
+        await profiles.renameProfile("default", "Home");
+
+        expect(seen).toContain("Home");
+    });
+
+    it("leaves the identifier and the creation time alone", async () => {
+        const before = profiles.getProfiles()[0];
+
+        await profiles.renameProfile("default", "Home");
+
+        const after = profiles.getProfiles()[0];
+        expect(after.id).toBe(before.id);
+        expect(after.createdAt).toBe(before.createdAt);
+    });
+
+    it("ignores a profile it does not have", async () => {
+        await profiles.renameProfile("0199aaaa-0000-7000-8000-00000000000a", "Ghost");
+
+        expect(profiles.getProfiles().map(profile => profile.name)).toEqual(["Default"]);
+    });
+
+    it("does not republish when the name is the one it already has", async () => {
+        // profiles$ is what wakes synchronisation up. Firing it for a rename that renamed
+        // nothing would push a change set the server has already been told about.
+        let publications = 0;
+        profiles.profiles$.subscribe(() => publications++);
+        const baseline = publications;
+
+        await profiles.renameProfile("default", "Default");
+
+        expect(publications).toBe(baseline);
+    });
+});
+
+describe("ProfileRepository.renameProfile ordering", () => {
+
+    it("does not move the profile among the others", async () => {
+        // The change set sends each profile's index as its `position`, and the backend writes
+        // that position on every upsert. A rename that reordered the registry would therefore
+        // reorder the profiles on the account as a side effect of changing a label.
+        const profiles = new ProfileRepository();
+        await profiles.init();
+
+        const second = (await profiles.createProfile("Second"))!;
+        const third = (await profiles.createProfile("Third"))!;
+
+        await profiles.renameProfile(second.id, "Renamed");
+
+        expect(profiles.getProfiles().map(profile => profile.id))
+            .toEqual(["default", second.id, third.id]);
+    });
+});
+
+describe("ProfileRepository name limits", () => {
+
+    let profiles: ProfileRepository;
+
+    beforeEach(async () => {
+        profiles = new ProfileRepository();
+        await profiles.init();
+    });
+
+    it("refuses to create a profile whose name the account could not store", async () => {
+        // Not cosmetic. The backend validates the name length over the whole push request, so
+        // an over-long one fails the entire batch with a 400 rather than being rejected on its
+        // own - it would sit here stopping every other change from syncing.
+        expect(await profiles.createProfile("x".repeat(MAX_NAME_LENGTH + 1))).toBeNull();
+
+        expect(profiles.getProfiles()).toHaveLength(1);
+    });
+
+    it("refuses to create a profile with a blank name", async () => {
+        expect(await profiles.createProfile("   ")).toBeNull();
+
+        expect(profiles.getProfiles()).toHaveLength(1);
+    });
+
+    it("creates a profile whose name is exactly the maximum length", async () => {
+        const longest = "x".repeat(MAX_NAME_LENGTH);
+
+        expect((await profiles.createProfile(longest))?.name).toBe(longest);
+    });
+
+    it("trims the name it is given", async () => {
+        expect((await profiles.createProfile("  Work  "))?.name).toBe("Work");
+    });
+
+    it("refuses an unstorable rename even when the caller does not check", async () => {
+        // The view model checks too, because it is the one that can say why. This is the
+        // backstop that holds whoever calls.
+        await profiles.renameProfile("default", "x".repeat(MAX_NAME_LENGTH + 1));
+
+        expect(profiles.getProfiles()[0].name).toBe("Default");
     });
 });

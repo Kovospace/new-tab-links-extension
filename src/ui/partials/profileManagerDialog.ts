@@ -1,5 +1,7 @@
 import { ManagedProfileDTO, ProfileManagerViewModel } from '../../viewModel/profileManagerViewModel';
 import { confirmByTypingPhrase, confirmDestructiveAction } from './confirmations';
+import { InputDialog } from './inputDialog';
+import { MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 
 /** What has to be typed before every other profile is deleted at once. */
@@ -9,12 +11,16 @@ const DELETE_ALL_PHRASE = 'delete all profiles';
  * The profile manager: every profile the account has, and the ability to remove one or all.
  *
  * It is a <dialog> wearing the input dialog's frame rather than a screen of its own, because it
- * is opened from the profiles menu and answers one question - which of these do I want to keep.
- * Nothing here creates or renames a profile; that is what the menu above it is for.
+ * is opened from the profiles menu and answers one question - which of these do I want to keep,
+ * and under what name. Creating a profile is still the menu's job; this screen only acts on the
+ * profiles that already exist.
  *
  * **Why it exists.** The profiles menu could switch, export, import and create, and never
- * delete, so a profile - including one the extension itself created by accident - could not be
- * got rid of from inside the extension at all.
+ * delete or rename, so a profile - including one the extension itself created by accident -
+ * could not be got rid of, or corrected, from inside the extension at all.
+ *
+ * Renaming is offered on every row, deletion on every row but the active one. That asymmetry is
+ * the point: a rename cannot lose anything, so it needs no ceremony and no switching first.
  */
 export class ProfileManagerDialog {
 
@@ -139,9 +145,16 @@ export class ProfileManagerDialog {
     text.appendChild(name);
     text.appendChild(contents);
 
+    const renameBtn = document.createElement('button');
+    renameBtn.type = 'button';
+    renameBtn.classList.add('profile-manager__action');
+    renameBtn.textContent = ICON.EDIT;
+    renameBtn.title = `Rename ${profile.name}`;
+    renameBtn.addEventListener('click', () => void this.renameOne(profile));
+
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
-    deleteBtn.classList.add('danger', 'profile-manager__delete');
+    deleteBtn.classList.add('danger', 'profile-manager__action');
     deleteBtn.textContent = ICON.DELETE;
 
     if (profile.active) {
@@ -154,9 +167,48 @@ export class ProfileManagerDialog {
       deleteBtn.addEventListener('click', () => void this.deleteOne(profile));
     }
 
+    const actions = document.createElement('div');
+    actions.classList.add('profile-manager__row-actions');
+    actions.appendChild(renameBtn);
+    actions.appendChild(deleteBtn);
+
     row.appendChild(text);
-    row.appendChild(deleteBtn);
+    row.appendChild(actions);
     return row;
+  }
+
+  /**
+   * Asks for a new name for one profile and applies it.
+   *
+   * The field is prefilled with the name it has, because a rename is nearly always an edit of
+   * the existing name rather than a fresh one. Cancelling, an unchanged name and an empty one
+   * all end the same way - nothing happens - so there is nothing here to confirm.
+   *
+   * A name too long for the account is the one refusal worth saying out loud. The view model
+   * would drop it silently, and a user whose rename appeared to do nothing would simply try
+   * again; the length is not something they can see.
+   */
+  private async renameOne(profile: ManagedProfileDTO): Promise<void> {
+    const answer = await new InputDialog(
+      'Rename profile',
+      { 'Profile name': 'string' },
+      () => { /* the answer is taken from ask(), below */ })
+      .ask({ profileName: profile.name });
+
+    const name = answer?.profileName?.trim();
+    if (!name || name === profile.name) return;
+
+    if (name.length > MAX_NAME_LENGTH) {
+      await confirmDestructiveAction(
+        'That name is too long',
+        `A profile name can be at most ${MAX_NAME_LENGTH} characters, and that one is `
+        + `${name.length}. Your account cannot store it, and keeping it here would stop every `
+        + 'other change reaching your other devices.',
+        'Close');
+      return;
+    }
+
+    await this.viewModel.renameProfile(profile.id, name);
   }
 
   private note(text: string): HTMLElement {

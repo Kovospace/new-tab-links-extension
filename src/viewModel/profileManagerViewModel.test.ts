@@ -5,6 +5,7 @@ import { ProfileRepository } from "../backend/repository/ProfileRepository";
 import { appStateInit } from "../backend/datasource/init/AppStateInit";
 import { ProfileManagerViewModel } from "./profileManagerViewModel";
 import { emptyProfile, environment, link, profileOf } from "../test/profileDataFixtures";
+import { MAX_NAME_LENGTH } from "../backend/sync/SyncContracts";
 
 const OTHER = "0199bbbb-0000-7000-8000-00000000000b";
 const THIRD = "0199cccc-0000-7000-8000-00000000000c";
@@ -59,6 +60,81 @@ describe("ProfileManagerViewModel", () => {
         expect(rows.find(row => row.id === OTHER)?.contentsLabel).toBe("empty");
         expect(rows.find(row => row.id === THIRD)?.empty).toBe(false);
         expect(rows.find(row => row.id === THIRD)?.contentsLabel).toBe("1 workspace, 3 links");
+    });
+
+    it("renames a profile without touching its identifier or its data", async () => {
+        // The identifier is what the account, the baseline and every other device key the
+        // profile by. A rename that changed it would read to synchronisation as a deletion
+        // and a creation, and the data would go with the deleted one.
+        await addProfile(OTHER, "Spare", 2);
+        await manager.refresh();
+
+        expect(await manager.renameProfile(OTHER, "Work")).toBe(true);
+
+        expect(profiles.getProfiles().find(profile => profile.id === OTHER)?.name).toBe("Work");
+        expect(Object.keys((await appState.readProfileData(OTHER))!.links)).toHaveLength(2);
+    });
+
+    it("renames the profile being displayed, unlike deleting it", async () => {
+        // Nothing is lost and nothing is switched, so there is no reason to make the user
+        // move off the profile first the way deletion does.
+        await manager.refresh();
+
+        expect(await manager.renameProfile("default", "Home")).toBe(true);
+
+        expect(profiles.getProfiles().find(profile => profile.id === "default")?.name)
+            .toBe("Home");
+    });
+
+    it("refuses a name that is blank once trimmed", async () => {
+        await manager.refresh();
+
+        expect(await manager.renameProfile("default", "   ")).toBe(false);
+
+        expect(profiles.getProfiles().find(profile => profile.id === "default")?.name)
+            .toBe("Default");
+    });
+
+    it("trims the name it is given", async () => {
+        await manager.refresh();
+
+        await manager.renameProfile("default", "  Home  ");
+
+        expect(profiles.getProfiles().find(profile => profile.id === "default")?.name)
+            .toBe("Home");
+    });
+
+    it("refuses a name too long for the account to store", async () => {
+        // Not cosmetic. The backend validates @Size(max = 120) over the whole push request, so
+        // an over-long name 400s the entire batch rather than being rejected on its own - one
+        // long profile name would stop every other change reaching the account.
+        await manager.refresh();
+
+        expect(await manager.renameProfile("default", "x".repeat(MAX_NAME_LENGTH + 1)))
+            .toBe(false);
+
+        expect(profiles.getProfiles().find(profile => profile.id === "default")?.name)
+            .toBe("Default");
+    });
+
+    it("accepts a name of exactly the maximum length", async () => {
+        await manager.refresh();
+
+        const longest = "x".repeat(MAX_NAME_LENGTH);
+        expect(await manager.renameProfile("default", longest)).toBe(true);
+
+        expect(profiles.getProfiles().find(profile => profile.id === "default")?.name)
+            .toBe(longest);
+    });
+
+    it("keeps the list current after a rename", async () => {
+        await addProfile(OTHER, "Spare", 0);
+        await manager.refresh();
+
+        await manager.renameProfile(OTHER, "Work");
+
+        expect(manager.observables.profiles.get().find(row => row.id === OTHER)?.name)
+            .toBe("Work");
     });
 
     it("deletes a profile and forgets what it held", async () => {

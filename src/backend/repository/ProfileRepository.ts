@@ -3,6 +3,7 @@ import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageW
 import { ObservableValue } from "../../utils/observableValue";
 import { DEFAULT_PROFILE_ID } from "../datasource/init/AppStateInit";
 import { uid } from "./AppStateRepositoryUtils";
+import { isStorableName } from "../sync/SyncContracts";
 import { Logger } from "../../utils/logger";
 
 const PROFILE_REGISTRY_KEY = "profile_registry";
@@ -94,9 +95,26 @@ export class ProfileRepository {
         // profiles$ content unchanged — only active flag, handled by AppStateRepository.state$
     }
 
-    public async createProfile(name: string): Promise<ProfileMeta> {
+    /**
+     * Creates a profile, or refuses to when its name could not be stored.
+     *
+     * The check is here rather than only in the callers because this is the one door every
+     * new profile comes through - the profiles menu, an import, and anything added later.
+     * A name the account cannot take does not merely fail to reach it: an over-long one fails
+     * the entire push with a 400, so it would sit in local state stopping every other change
+     * from syncing until someone found it. It is easier to never let it in.
+     *
+     * @param name the name to give the profile; surrounding whitespace is dropped
+     * @return the profile, or null when the name was not storable
+     */
+    public async createProfile(name: string): Promise<ProfileMeta | null> {
+        if (!isStorableName(name)) {
+            this.LOG.debug("createProfile", `Refusing unstorable profile name of length ${name.trim().length}`);
+            return null;
+        }
+
         const id = uid();
-        const meta: ProfileMeta = { id, name, createdAt: Date.now() };
+        const meta: ProfileMeta = { id, name: name.trim(), createdAt: Date.now() };
         this.registry = {
             ...this.registry,
             profiles: { ...this.registry.profiles, [id]: meta }
@@ -104,6 +122,42 @@ export class ProfileRepository {
         await this.saveRegistry();
         this.profiles$.set(Object.values(this.registry.profiles));
         return meta;
+    }
+
+    /**
+     * Gives a profile a different name, leaving everything else about it alone.
+     *
+     * The identifier is deliberately untouched. It is what the account, the baseline and every
+     * other device key the profile by, so renaming has to be a name change and nothing else -
+     * a new identifier would read to synchronisation as a deletion and a creation, and would
+     * take the profile's data with it.
+     *
+     * Firing profiles$ is what tells synchronisation there is something to push; the change
+     * set turns the differing name into an upsert of the same row.
+     *
+     * @param id   the profile to rename
+     * @param name the new name, already trimmed and checked by the caller
+     */
+    public async renameProfile(id: string, name: string): Promise<void> {
+        const existing = this.registry.profiles[id];
+        if (!existing) {
+            this.LOG.debug("renameProfile", `Profile ${id} not found in registry`);
+            return;
+        }
+        // The caller checks too, because it is the one that can say why to the user. This is
+        // the backstop that makes the rule hold whoever calls.
+        if (!isStorableName(name)) {
+            this.LOG.debug("renameProfile", `Refusing unstorable profile name of length ${name.trim().length}`);
+            return;
+        }
+        if (existing.name === name) return;
+
+        this.registry = {
+            ...this.registry,
+            profiles: { ...this.registry.profiles, [id]: { ...existing, name } }
+        };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
     }
 
     public async deleteProfile(id: string): Promise<void> {

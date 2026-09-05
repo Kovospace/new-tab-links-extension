@@ -2,6 +2,7 @@ import { AppStateRepository, appStateRepository } from "../backend/repository/Ap
 import { ProfileMeta } from "../backend/entity/AppStateEntity";
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 
+import { isStorableName } from "../backend/sync/SyncContracts";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 
@@ -70,6 +71,46 @@ export class ProfileManagerViewModel {
             this.profiles.getProfiles().map(profile => this.describe(profile, activeProfileId)));
 
         this.observables.profiles.set(rows);
+    }
+
+    /**
+     *  Gives one profile a different name.
+     *
+     *  Renaming is offered for every profile including the active one, which is the difference
+     *  between this and deletion: nothing is lost, nothing is switched, and the profile on
+     *  screen stays the profile on screen. The name is only a label - the account keys the
+     *  profile by its identifier, which this never touches.
+     *
+     *  Synchronisation notices by itself, the same way a deletion is noticed: the registry's
+     *  observable fires and the change set turns the differing name into an upsert.
+     *
+     *  Names are not required to be unique. Two profiles called the same thing are awkward but
+     *  legitimate, and the account has no such constraint either; the manager's contents
+     *  column is what tells two same-named profiles apart.
+     *
+     *  They are, however, required to fit. A name the backend cannot store fails the whole
+     *  push with a 400 rather than being refused on its own, so an over-long one would stop
+     *  every other change reaching the account for as long as it stayed in local state. It is
+     *  refused here instead, before it can get in.
+     *
+     *  @param profileId the profile to rename
+     *  @param name      the name the user typed; surrounding whitespace is dropped
+     *  @return true when the name was applied
+     */
+    public async renameProfile(profileId: string, name: string): Promise<boolean> {
+        const trimmed = name.trim();
+
+        if (!isStorableName(trimmed)) {
+            this.LOG.debug("renameProfile",
+                `Refusing an unstorable name of ${trimmed.length} characters`);
+            return false;
+        }
+
+        await this.profiles.renameProfile(profileId, trimmed);
+        this.LOG.log("renameProfile", `Renamed profile ${profileId} to "${trimmed}"`);
+
+        await this.refresh();
+        return true;
     }
 
     /**
