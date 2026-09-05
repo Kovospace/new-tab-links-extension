@@ -9,9 +9,22 @@ npm install          # Install dependencies
 npm run dev          # Start Vite dev server
 npm run build        # Build extension to /dist (unpacked Chrome extension)
 npm run preview      # Preview built extension
+npm test             # Run the test suite once (Vitest)
+npm run test:watch   # Re-run the affected tests as files change
 ```
 
-No test suite exists yet (`npm test` exits with error by design).
+Tests run on **Vitest** in a jsdom environment, from `src/**/*.test.ts` beside the code they
+cover. `src/test/chromeStorageStub.ts` fakes `chrome.storage.local` in memory and is reset before
+every test, so repositories are exercised as themselves rather than against a mocked wrapper.
+
+What is covered is the synchronisation layer, because that is where a bug costs a user their
+links: the merge rules, the change set, identifier rewriting, the profile registry, and first
+contact with an account. The UI components are not covered.
+
+**A regression test has to fail against the bug it names.** Every test here that claims to pin a
+past defect was checked by restoring the old behaviour and watching it fail - two of them passed
+against the reverted code on the first attempt and were rewritten. A test that cannot fail is
+worse than no test, because it is read as a guarantee.
 
 To load the extension in Chrome: open `chrome://extensions`, enable Developer Mode, click "Load unpacked", select the `/dist` folder.
 
