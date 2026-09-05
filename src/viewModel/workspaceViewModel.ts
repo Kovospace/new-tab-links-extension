@@ -54,8 +54,13 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
 
         const currentWorkspaceId: string = state.activeEnvironmentId!;
         if (!currentWorkspaceId) {
-            // no active workspace - first run or all deleted
+            // No active workspace - first run, or every workspace was deleted. Reloading picks
+            // the right screen. Returning matters as much as reloading: a reload is a request,
+            // not a stop, and the rest of this method dereferences environments[undefined],
+            // which threw "Cannot read properties of undefined (reading 'name')" out of a
+            // subscriber on every pass of the reload loop.
             window.location.reload();
+            return;
         }
 
         this.observables.workspaces.set(

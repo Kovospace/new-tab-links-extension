@@ -152,11 +152,24 @@ export class AppStateRepository {
         return this.state.activeEnvironmentId;
     }
 
+    /**
+     * The workspace to show, or null when this profile genuinely has none.
+     *
+     * It asks getCurrentEnvironmentId() rather than reading activeEnvironmentId itself,
+     * because that method is the one that repairs the field: a profile can hold workspaces
+     * while naming none as open, or name one that has since been deleted, and in both cases
+     * the first workspace it has is the right answer.
+     *
+     * This used to return null the moment activeEnvironmentId was unset, which short-circuited
+     * that repair and reported "no workspaces" for a profile full of them. main.ts reads this
+     * to decide between the first-run screen and the application, so a profile pulled from the
+     * account - which arrives with no opinion about which workspace is open, that being a
+     * per-device choice - was shown the first-run screen, and the reload guard on that screen
+     * then reloaded the page for ever.
+     */
     getCurrentEnvironment(): Environment | null {
-        if (!this.state.activeEnvironmentId) {
-            return null;
-        }
-        return this.getCurrentEnvironmentId() ? this.state.environments[this.state.activeEnvironmentId] : null;
+        const id = this.getCurrentEnvironmentId();
+        return id ? this.state.environments[id] : null;
     }
 
     getGroups(workspaceId: string) {

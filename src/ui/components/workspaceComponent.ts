@@ -82,6 +82,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // page body - workspace titlebar
         this.VIEW_MODEL.observables.workspace
             .subscribe((workspace: WorkspaceDTO) => {
+                // The observable starts unset and subscribe() replays whatever it holds, so a
+                // view model that failed before its first set() would otherwise be dereferenced
+                // here - which is the second half of the "reading 'id'" pair this screen threw.
+                if (!workspace) return;
                 this.id = workspace.id; // exception, because this is root template
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();

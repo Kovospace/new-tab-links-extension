@@ -166,8 +166,21 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
         // This screen is chosen once, from the state as it stands right now, but an account
         // that already has links may still be arriving over the network. When it lands there
         // is a workspace to show and this screen is the wrong one, so start again.
+        //
+        // Only when it *lands*, though. subscribe() replays the current value to a new
+        // subscriber, and the current value is the very state that chose this screen; acting
+        // on that replay would reload into the same decision and reload again, several times
+        // a second, for as long as the tab was open. So the replay is skipped and the reload
+        // is fired at most once.
+        let replayed = false;
+        let reloading = false;
         appStateRepository.state$.subscribe(state => {
-            if (Object.keys(state.environments).length > 0) {
+            if (!replayed) {
+                replayed = true;
+                return;
+            }
+            if (!reloading && Object.keys(state.environments).length > 0) {
+                reloading = true;
                 window.location.reload();
             }
         });
