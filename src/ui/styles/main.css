@@ -1,26 +1,33 @@
-html {
-
-}
-
-html * {
+* {
     box-sizing: border-box;
 }
 
+/*
+   The page is exactly one viewport tall and never scrolls itself.
+
+   Everything below follows from that. header and footer are laid out in the normal flow and
+   are simply always on screen, because there is nowhere for them to scroll to; main takes the
+   space between them and scrolls its own contents. That is what puts main's horizontal
+   scrollbar directly above the footer instead of at the bottom of a taller page, and what lets
+   header and footer span the width however far right the link groups run.
+
+   The alternative - pinning header and footer with position:fixed over a scrolling page - puts
+   the horizontal scrollbar at the bottom of the document, underneath the footer, and needs
+   padding on main to stand in for the space the two no longer occupy. This needs neither.
+*/
 html > body {
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-    height: auto;
+    height: 100%;
     font-family: sans-serif;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 div.overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    /* inset rather than 100vw/100vh: those units count the scrollbar's width as part of the
+       viewport, so the overlay came out wider than the space it covers. */
+    inset: 0;
     background: rgba(0, 0, 0, 0.33);
     backdrop-filter: blur(1px);
     -webkit-backdrop-filter: blur(1px); /* Safari */
@@ -36,13 +43,32 @@ div.overlay.hidden {
     visibility: hidden;
 }
 
+/*
+   Both bars size to their own content and never shrink, so main gets whatever is left.
+
+   flex-basis was 1em - a height neither of them has. It was survivable only because a flex
+   item will not shrink below its content, so the declared basis was quietly overridden by
+   every bar that had anything in it. auto asks for what they actually measure.
+*/
 header,
 footer {
     padding: 0.5em;
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: 1em;
+    flex: 0 0 auto;
 }
+
+/*
+   A row, not two floats.
+
+   The two halves used to be floated left and right, which took them out of flow and left the
+   header with no content height of its own - it stood up only because of the 1em basis above.
+   Asking for the header's real height would have collapsed it onto the workspace beneath.
+*/
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 
 header > div > div,
 header > div > span {
@@ -54,23 +80,29 @@ header > div > div {
     margin-right: 0.25em;
 }
 
-header > div.cls-workspace-header-left {
-    float: left;
-}
-
-header > div.cls-workspace-header-right {
-    float: right;
-}
-
 header > div > span {
     margin-right: 0.5em;
 }
 
+/*
+   The one scrolling box on the page.
+
+   min-height: 0 is what makes it work. A flex item refuses by default to shrink below its
+   own content, so main would grow to fit the link groups and push the footer off the bottom
+   however tall they got; 0 lets it be given the space that is left and scroll the rest.
+
+   overflow is auto rather than scroll, so a bar appears on the axis that actually overflows
+   and neither appears when nothing does.
+*/
 main {
-    padding: 0em 1em;
+    display: flex;
+    padding: 0 1em;
     flex-grow: 1;
-    flex-shrink: 0;
+    flex-shrink: 1;
     flex-basis: auto;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-width: thin;
 }
 
 button {
@@ -124,6 +156,37 @@ html.dark header,
 html.dark footer {
     background-color: var(--color-component-background);
     color: var(--color-component-text);
+}
+
+/*
+   The scrollbars on main, in the theme rather than the platform's.
+
+   Two declarations for the same thing: scrollbar-color is the standard and is what Firefox
+   and current Chrome honour, ::-webkit-scrollbar is what older Chrome understands, and a
+   browser that reads the first ignores the second. The track is left transparent so the bars
+   sit on the page's own background instead of drawing a channel across it.
+*/
+html.dark main {
+    scrollbar-color: var(--color-button-background) transparent;
+}
+
+html.dark main::-webkit-scrollbar {
+    width: 0.75em;
+    height: 0.75em;
+}
+
+html.dark main::-webkit-scrollbar-track,
+html.dark main::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+html.dark main::-webkit-scrollbar-thumb {
+    background-color: var(--color-button-background);
+    border-radius: var(--radius-normal);
+}
+
+html.dark main::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-button-background-hover);
 }
 
 html.dark button {

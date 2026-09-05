@@ -1,3 +1,17 @@
+/*
+   A closed menu is display:none, not visibility:hidden.
+
+   visibility:hidden keeps the box: the menu is still laid out, still absolutely positioned
+   under its button, and still hangs a couple of hundred pixels off to the right of the last
+   group. main is a scroll container, so that overhang counts towards its scrollable overflow
+   and it grew a horizontal scrollbar while the groups themselves still had room to spare -
+   the flex layout was never the cause. display:none is the only value that takes the box out
+   of layout altogether.
+
+   The fade survives it: `display` is animated as a discrete property, so it flips to none only
+   after the opacity transition has run, and @starting-style gives the appearing menu an
+   opacity to fade up from. Both are Chrome 117+, which an MV3 extension can rely on.
+*/
 options-menu {
     position: absolute;
     z-index: 101; /* more than overlay */
@@ -9,16 +23,22 @@ options-menu {
     border: 0.25em solid var(--color-document-background);
     box-shadow: 0 0 0 0.0625em var(--color-component-framing);
     margin-top:0.5em;
+    display: none;
     opacity: 0;
-    visibility: hidden;
     transition:
             opacity var(--time-transition-medium) ease,
-            visibility var(--time-transition-medium) ease;
+            display var(--time-transition-medium) allow-discrete;
 }
 
 options-menu.visible {
+    display: block;
     opacity: 1;
-    visibility: visible;
+}
+
+@starting-style {
+    options-menu.visible {
+        opacity: 0;
+    }
 }
 
 options-menu.align-right {

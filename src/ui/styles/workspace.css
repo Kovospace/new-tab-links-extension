@@ -1,5 +1,9 @@
 workspace-plane {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: fit-content;
 }
 
 
@@ -46,11 +50,11 @@ workspace-plane-body > link-group {
 }
 
 workspace-plane-body > link-group:first-child {
-    margin-left: 0em;
+    margin-left: 0;
 }
 
 workspace-plane-body > link-group:last-child {
-    margin-right: 0em;
+    margin-right: 0;
 }
 
 
