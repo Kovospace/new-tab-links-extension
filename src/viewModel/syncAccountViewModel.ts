@@ -1,0 +1,316 @@
+// data layer
+import { ApiResult, backendApiClient, BackendApiClient } from "../backend/sync/BackendApiClient";
+import { SessionRepository, sessionRepository, SyncSession, TokenPairDto } from "../backend/sync/SessionRepository";
+import { buildWebsiteUrl, WEBSITE_PATHS } from "../backend/sync/SyncConfiguration";
+import { SyncActivity, syncCoordinator } from "../backend/sync/SyncCoordinator";
+import { DeviceNameReconciler, DeviceNameVerdict } from "../backend/sync/DeviceNameReconciler";
+import { installationIdentity } from "../backend/sync/InstallationIdentity";
+import { ChoiceDialog } from "../ui/partials/choiceDialog";
+import { InputDialog } from "../ui/partials/inputDialog";
+
+// utils
+import { Logger } from "../utils/logger";
+import { ObservableValue } from "../utils/observableValue";
+
+/** What the application menu needs to know about the signed-in account. */
+export interface AccountDTO {
+    signedIn: boolean;
+    username: string | null;
+
+    /** What to tell the user about synchronisation right now. */
+    syncStatus: string | null;
+}
+
+/**
+ *  View model behind the account section of the application menu.
+ *
+ *  It does not extend AbstractViewModel on purpose: that base class exists to map AppState
+ *  onto a component's DTO, and the account has nothing to do with AppState — a user's links
+ *  are the same whether they are signed in or not. What it does share is the shape the rest
+ *  of the view models have, an "observables" bag plus an initialize(), so that a component
+ *  binds to it exactly the way it binds to any other.
+ */
+export class SyncAccountViewModel {
+
+    private LOG: Logger = new Logger("SyncAccountViewModel");
+
+    private apiClient: BackendApiClient;
+    private sessions: SessionRepository;
+    private deviceNames: DeviceNameReconciler;
+
+    public readonly observables = {
+        account: new ObservableValue<AccountDTO>(
+            { signedIn: false, username: null, syncStatus: null })
+    };
+
+    /** Last known session and synchronisation state, combined into the DTO on any change. */
+    private session: SyncSession | null = null;
+    private activity: SyncActivity = "idle";
+
+    /**
+     *  @param apiClient  talks to the backend; the singleton in normal use.
+     *  @param sessions   holds the tokens; the singleton in normal use.
+     */
+    constructor(
+        apiClient: BackendApiClient = backendApiClient,
+        sessions: SessionRepository = sessionRepository
+    ) {
+        this.apiClient = apiClient;
+        this.sessions = sessions;
+        this.deviceNames = new DeviceNameReconciler(apiClient, sessions);
+    }
+
+    /** Starts publishing the account state; fires immediately with the current session. */
+    public initialize(): void {
+        this.sessions.session$.subscribe((session: SyncSession | null) => {
+            this.session = session;
+            this.publishAccount();
+        });
+        syncCoordinator.activity$.subscribe((activity: SyncActivity) => {
+            this.activity = activity;
+            this.publishAccount();
+        });
+    }
+
+    /** Combines who is signed in with how synchronisation is faring. */
+    private publishAccount(): void {
+        this.observables.account.set({
+            signedIn: this.session !== null,
+            username: this.session?.username ?? null,
+            syncStatus: this.session === null ? null : this.describeActivity()
+        });
+    }
+
+    /**
+     *  Wording for the synchronisation state.
+     *
+     *  Being offline is stated plainly and without alarm: it is an ordinary condition for a
+     *  browser extension, nothing the user has to act on, and the changes they make meanwhile
+     *  are sent as soon as the connection returns.
+     */
+    private describeActivity(): string {
+        switch (this.activity) {
+            case "working":
+                return "Synchronising...";
+            case "offline":
+                return "Offline - changes will be sent later";
+            default:
+                return "Synchronised";
+        }
+    }
+
+    /** Opens the website's registration page in a new tab; the extension hosts no such form. */
+    public openRegistrationPage(): void {
+        const url = buildWebsiteUrl(WEBSITE_PATHS.register);
+        this.LOG.debug("openRegistrationPage", url);
+        chrome.tabs.create({ url });
+    }
+
+    /**
+     *  Signs in with a username or email address and a password.
+     *
+     *  @param usernameOrEmail what the user typed to identify themselves
+     *  @param password        their password
+     *  @param deviceName      what to call this installation in the account's device list;
+     *                         optional, and blank means keep the automatic label
+     */
+    public async logIn(
+        usernameOrEmail: string | null,
+        password: string | null,
+        deviceName?: string | null
+    ): Promise<void> {
+
+        if (!usernameOrEmail || !usernameOrEmail.trim() || !password) {
+            this.report("Both the username or email address and the password are required.");
+            return;
+        }
+        this.LOG.debug("logIn", `as ${usernameOrEmail}`);
+
+        // Named before signing in, not after: the name travels in the header the sign-in itself
+        // sends, so the device row is created carrying it rather than being renamed a moment later.
+        await installationIdentity.setName(deviceName);
+
+        const result = await this.apiClient.logInWithPassword(usernameOrEmail.trim(), password);
+        await this.storeIssuedTokens(result, "Signing in failed.");
+    }
+
+    /**
+     *  Signs in with the connect code the website shows to a signed-in user.
+     *
+     *  @param code       the code from the website's devices page
+     *  @param deviceName what to call this installation in the account's device list; optional,
+     *                    and blank means keep the automatic label
+     */
+    public async connectWithCode(code: string | null, deviceName?: string | null): Promise<void> {
+        if (!code || !code.trim()) {
+            this.report("Enter the code shown on the website's devices page.");
+            return;
+        }
+        this.LOG.debug("connectWithCode", "redeeming connect code");
+        await installationIdentity.setName(deviceName);
+
+        const result = await this.apiClient.redeemConnectCode(code.trim());
+        await this.storeIssuedTokens(result, "That code was not accepted.");
+    }
+
+    /**
+     *  Signs out: revokes the session on the server and forgets the tokens here.
+     *
+     *  Local data is never touched — the user keeps every workspace, group and link they
+     *  have, they simply stop being synchronised. The local session is cleared even when
+     *  the server cannot be reached, because the user asked to be signed out.
+     */
+    public async logOut(): Promise<void> {
+        this.LOG.debug("logOut", "signing out");
+        const result = await this.apiClient.logOut();
+        await this.sessions.clear();
+        if (result.outcome === "offline") {
+            this.report(
+                "Signed out on this device, but the server could not be reached, "
+                + "so this device may still be listed on your account.");
+        }
+    }
+
+    /** Stores a freshly issued token pair, or tells the user why there is none. */
+    private async storeIssuedTokens(
+        result: ApiResult<TokenPairDto>,
+        failureHeadline: string
+    ): Promise<void> {
+        if (result.outcome === "success") {
+            const session = await this.sessions.storeTokenPair(result.data);
+            this.LOG.log("storeIssuedTokens", `Signed in as ${session.username}`);
+            await this.reconcileDeviceName();
+            return;
+        }
+        this.LOG.warn("storeIssuedTokens", `${failureHeadline} ${result.message}`);
+        this.report(`${failureHeadline}\n\n${result.message}`);
+    }
+
+    /**
+     *  Settles what the name the user chose means, now that the account can be asked.
+     *
+     *  Runs after every successful sign-in and does nothing at all in the ordinary case, which
+     *  is a user who typed no name or typed one nobody else is using. It is deliberately not
+     *  allowed to fail a sign-in: the tokens are already stored and synchronisation is already
+     *  under way by the time this runs, so the worst outcome here is a device list with two
+     *  rows of the same name in it.
+     */
+    private async reconcileDeviceName(): Promise<void> {
+
+        const verdict = await this.deviceNames.assess(installationIdentity.getName());
+
+        switch (verdict.kind) {
+            case "settled":
+                return;
+
+            case "returning":
+                // The name belongs to a device that is signed out, which is what a reinstall
+                // looks like. Nothing is being taken away from anyone, so it is not worth a
+                // question - the row is adopted and the user is simply told.
+                if (await this.deviceNames.takeOver(verdict.to)) {
+                    this.report(
+                        `Welcome back. This device was signed out of "${verdict.to.deviceName}" `
+                        + "before, so it has picked up where it left off rather than being "
+                        + "added to your account a second time.");
+                }
+                return;
+
+            case "taken":
+                await this.resolveNameAlreadyInUse(verdict.by.deviceName, verdict);
+                return;
+        }
+    }
+
+    /**
+     *  Asks what to do about a name another signed-in device is already using.
+     *
+     *  Three answers, and none of them is wrong. Taking over is the reinstall case and the
+     *  reason "overwrite" was ever wanted. Renaming is for somebody who simply reached for a
+     *  name that was taken. Doing nothing is a real answer too: names may repeat, so a user who
+     *  wants two devices called the same thing is allowed to have them, and dismissing the
+     *  dialog leaves exactly that.
+     *
+     *  @param takenName the name in question
+     *  @param verdict   the device already carrying it
+     */
+    private async resolveNameAlreadyInUse(
+        takenName: string,
+        verdict: Extract<DeviceNameVerdict, { kind: "taken" }>
+    ): Promise<void> {
+
+        const answer = await new ChoiceDialog<"take-over" | "rename" | "keep">(
+            "That name is already in use",
+            `"${takenName}" is another device on your account, and it is signed in right now. `
+            + "If that device is this one, reinstalled, take it over - you keep its history and "
+            + "the old installation is signed out. Otherwise pick a different name, or keep "
+            + "both: two devices are allowed to share a name.",
+            [
+                { label: "This is that device", value: "take-over", danger: true },
+                { label: "Use another name", value: "rename" },
+                { label: "Keep both", value: "keep" }
+            ]).ask();
+
+        if (answer === "take-over") {
+            if (await this.deviceNames.takeOver(verdict.by)) {
+                this.report(`This device is now "${takenName}", and the installation that held `
+                    + "it has been signed out.");
+            }
+            return;
+        }
+
+        if (answer === "rename") {
+            await this.askForAnotherDeviceName();
+        }
+        // "keep", and dismissal, both mean leave it: the duplicate is what the user asked for.
+    }
+
+    /**
+     *  Collects a different name and applies it to this device.
+     *
+     *  Awaited rather than left to a callback, because the first-run screen reloads the page
+     *  as soon as signing in resolves and would otherwise tear this dialog off mid-answer.
+     *
+     *  Deliberately not recursive. If the replacement is taken as well, the user is told and
+     *  left alone rather than being asked the same question again - a dialog that reappears
+     *  until an answer satisfies it is a trap, and a duplicate name breaks nothing.
+     */
+    private async askForAnotherDeviceName(): Promise<void> {
+        const answer = await new InputDialog(
+            "Name this device",
+            { "Device name": "string" },
+            () => undefined
+        ).ask();
+
+        if (answer) {
+            await this.applyAnotherDeviceName(answer["deviceName"]);
+        }
+    }
+
+    /**
+     *  Stores and sends a replacement name.
+     *
+     *  @param deviceName the new name, which may be blank to fall back to the automatic label
+     */
+    private async applyAnotherDeviceName(deviceName: string | null): Promise<void> {
+        await installationIdentity.setName(deviceName);
+
+        const chosen = installationIdentity.getName();
+        if (!chosen) {
+            // Cleared rather than replaced. The automatic label returns on the next call that
+            // carries a device name; renaming the row to it here would be inventing a decision.
+            return;
+        }
+        if (!await this.deviceNames.renameThisDevice(chosen)) {
+            this.report("This device was not renamed - the server could not be reached.");
+        }
+    }
+
+    /**
+     *  Tells the user something went wrong. Deliberately the same blocking alert the rest of
+     *  this codebase uses (firstRunViewModel, the menu's danger confirmation) — there is no
+     *  notification component yet, and inventing one is not part of this work.
+     */
+    private report(message: string): void {
+        alert(message);
+    }
+}

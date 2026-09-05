@@ -5,7 +5,7 @@ import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
 import { ICON, renderButton } from "../partials/wrappedHtmlElements"
 import { toggleOverlay } from "../partials/wrappedHtmlElements";
 
-type OptionsMenuItem = {
+export type OptionsMenuItem = {
     actionTitle: string,
     dangerous?: boolean,
     active?: boolean,

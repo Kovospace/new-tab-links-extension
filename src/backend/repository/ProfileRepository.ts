@@ -23,32 +23,61 @@ export class ProfileRepository {
     public async init(): Promise<void> {
         this.LOG = new Logger("ProfileRepository");
         const saved = await this.datasource.get<ProfileRegistry>(PROFILE_REGISTRY_KEY);
+
         if (saved) {
             this.registry = saved;
-            // Ensure the default profile always exists in the registry
-            if (!this.registry.profiles[DEFAULT_PROFILE_ID]) {
-                this.registry.profiles[DEFAULT_PROFILE_ID] = {
-                    id: DEFAULT_PROFILE_ID,
-                    name: "Default",
-                    createdAt: 0
-                };
-                await this.saveRegistry();
-            }
+            await this.repairRegistryIfUnusable();
         } else {
             // First run — seed registry with the default profile
-            this.registry = {
-                activeProfileId: DEFAULT_PROFILE_ID,
-                profiles: {
-                    [DEFAULT_PROFILE_ID]: {
-                        id: DEFAULT_PROFILE_ID,
-                        name: "Default",
-                        createdAt: 0
-                    }
-                }
-            };
+            this.registry = this.seededRegistry();
             await this.saveRegistry();
         }
         this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
+    /**
+     * Puts a profile back only when there is genuinely not one left, and points the active
+     * profile at something that exists.
+     *
+     * This used to re-add the seeded "default" profile whenever it was absent, which read as
+     * harmless and was not. Synchronisation deliberately removes that profile: the literal
+     * string "default" is not a UUID and the backend cannot store it, so the profile is
+     * renamed to a real identifier once and the old entry dropped. Re-adding it here meant
+     * every start produced an empty profile the user never made, which synchronisation then
+     * gave a storable identifier and pushed — one junk profile named "Default" on
+     * the account per new tab page opened. Those duplicates are what made a second device
+     * merge against the wrong profile and delete the real one.
+     */
+    private async repairRegistryIfUnusable(): Promise<void> {
+
+        if (Object.keys(this.registry.profiles).length === 0) {
+            this.LOG.debug("repairRegistryIfUnusable", "Registry holds no profiles; reseeding");
+            this.registry = this.seededRegistry();
+            await this.saveRegistry();
+            return;
+        }
+
+        if (!this.registry.profiles[this.registry.activeProfileId]) {
+            const survivor = Object.keys(this.registry.profiles)[0];
+            this.LOG.debug("repairRegistryIfUnusable",
+                `Active profile is gone; falling back to ${survivor}`);
+            this.registry = { ...this.registry, activeProfileId: survivor };
+            await this.saveRegistry();
+        }
+    }
+
+    /** A registry holding nothing but the seeded default profile. */
+    private seededRegistry(): ProfileRegistry {
+        return {
+            activeProfileId: DEFAULT_PROFILE_ID,
+            profiles: {
+                [DEFAULT_PROFILE_ID]: {
+                    id: DEFAULT_PROFILE_ID,
+                    name: "Default",
+                    createdAt: 0
+                }
+            }
+        };
     }
 
     public getActiveProfileId(): string {
@@ -85,6 +114,51 @@ export class ProfileRepository {
         const profiles = { ...this.registry.profiles };
         delete profiles[id];
         this.registry = { ...this.registry, profiles };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
+    /** Every profile this device knows about, in registry order. */
+    public getProfiles(): ProfileMeta[] {
+        return Object.values(this.registry.profiles);
+    }
+
+    /**
+     * Adds a profile, or updates one, under an identifier chosen elsewhere.
+     *
+     * createProfile() mints its own identifier, which is right when the user creates a
+     * profile here but wrong for one that already exists on the account: that one has to keep
+     * the identifier every other device knows it by.
+     */
+    public async upsertProfile(meta: ProfileMeta): Promise<void> {
+        this.registry = {
+            ...this.registry,
+            profiles: { ...this.registry.profiles, [meta.id]: meta }
+        };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
+    /**
+     * Removes a profile whatever its identifier, including the seeded default one.
+     *
+     * deleteProfile() refuses the default profile, which is the right answer to a user
+     * clicking delete - it would leave them with none. This is for synchronisation, which
+     * removes a profile only because it is gone from the account or because it has just been
+     * re-created under the identifier the account uses, and in both cases a replacement
+     * already exists.
+     */
+    public async removeProfile(id: string): Promise<void> {
+        const profiles = { ...this.registry.profiles };
+        delete profiles[id];
+
+        this.registry = {
+            ...this.registry,
+            profiles,
+            activeProfileId: this.registry.activeProfileId === id
+                ? Object.keys(profiles)[0] ?? this.registry.activeProfileId
+                : this.registry.activeProfileId
+        };
         await this.saveRegistry();
         this.profiles$.set(Object.values(this.registry.profiles));
     }
