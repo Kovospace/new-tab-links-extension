@@ -5,8 +5,17 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "noEmit": true,
-    "lib": ["DOM", "ES2020"],
-    "types": ["chrome"]
+    "lib": [
+      "DOM",
+      "ES2020"
+    ],
+    "types": [
+      "chrome",
+      "node"
+    ],
+    "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }
