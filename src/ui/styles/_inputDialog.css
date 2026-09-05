@@ -65,3 +65,28 @@ html.dark dialog.input-dialog {
 .input-dialog__actions > button {
   padding: 0.5em;
 }
+
+/* ---------------------------------------------------------------------------
+   Choice dialog
+   
+   Shares the frame, heading and button row of the input dialog, because it is
+   the same object asking a different kind of question. What it adds is a body
+   of prose - an input dialog has labels, this one has to explain a situation
+   before it can ask about it - and a button row that wraps, since three
+   answers do not always fit the width two were sized for.
+   --------------------------------------------------------------------------- */
+
+dialog.choice-dialog {
+    max-width: 32em;
+}
+
+.choice-dialog__message {
+    margin: 0;
+    padding: 0.75em;
+    line-height: 1.5;
+}
+
+.choice-dialog__actions {
+    flex-wrap: wrap;
+    padding: 0 0.75em 0.75em;
+}

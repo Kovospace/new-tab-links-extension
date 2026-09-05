@@ -1,5 +1,6 @@
 import {
-    AUTH_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER, SYNC_ENDPOINTS, buildApiUrl
+    AUTH_ENDPOINTS, DEVICE_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER, SYNC_ENDPOINTS,
+    buildApiUrl
 } from "./SyncConfiguration";
 import { installationIdentity } from "./InstallationIdentity";
 import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
@@ -7,7 +8,7 @@ import { SessionRepository, sessionRepository, TokenPairDto } from "./SessionRep
 import { Logger } from "../../utils/logger";
 
 /** HTTP methods the backend accepts. */
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  *  Outcome of a call to the backend.
@@ -22,6 +23,20 @@ export type ApiResult<PAYLOAD> =
     | { outcome: "success"; data: PAYLOAD }
     | { outcome: "rejected"; status: number; message: string }
     | { outcome: "offline"; message: string };
+
+/**
+ *  One row of the account's device list, as the backend's UserDeviceDto returns it.
+ *  Only the fields this extension reads are mirrored.
+ */
+export interface UserDeviceDto {
+    id: string;
+    deviceName: string;
+    browserName: string;
+    lastUsedAt: string;
+
+    /** Whether that device still holds a usable session. A clash only matters when it does. */
+    signedIn: boolean;
+}
 
 /** Shown when the backend could not be reached at all. */
 const OFFLINE_MESSAGE = "The synchronisation server could not be reached. Check your connection and try again.";
@@ -44,12 +59,19 @@ interface ApiErrorResponseDto {
 }
 
 /**
- *  Names the machine for the user's device list. A browser cannot read its host's name, so
- *  this is only ever a hint; the backend derives the browser itself from the user agent and
- *  falls back to "Unnamed device" when nothing usable arrives. Naming a device properly is
- *  deliberately left to later work (see TODOS.md).
+ *  Names this installation for the user's device list.
+ *
+ *  The name the user chose wins when there is one. Otherwise it falls back to the automatic
+ *  label, which is a hint and not much of one: a browser cannot read its host's name, and
+ *  navigator.platform names the operating system, so every installation on one machine produces
+ *  the same string. That is exactly why naming exists - but it is optional, so this has to work
+ *  without it.
  */
 function resolveDeviceName(): string {
+    const chosen = installationIdentity.getName();
+    if (chosen) {
+        return chosen;
+    }
     const platform = navigator.platform?.trim();
     return platform ? `Browser extension on ${platform}` : "Browser extension";
 }
@@ -130,6 +152,25 @@ export class BackendApiClient {
         return this.send<void>(
             AUTH_ENDPOINTS.logout,
             this.buildRequest("POST", { refreshToken: session.refreshToken }));
+    }
+
+    /** Lists the devices the account has been signed in from. */
+    public listDevices(): Promise<ApiResult<UserDeviceDto[]>> {
+        return this.sendAuthenticated<UserDeviceDto[]>(DEVICE_ENDPOINTS.list, "GET");
+    }
+
+    /** Changes what one device is called; the label only, never what identifies it. */
+    public renameDevice(deviceId: string, name: string): Promise<ApiResult<void>> {
+        return this.sendAuthenticated<void>(
+            DEVICE_ENDPOINTS.rename(deviceId), "PATCH", { name });
+    }
+
+    /**
+     *  Adopts a device row this installation did not create, signing out whichever installation
+     *  held it. For a reinstall: the row the user recognises survives, with its history.
+     */
+    public takeOverDevice(deviceId: string): Promise<ApiResult<void>> {
+        return this.sendAuthenticated<void>(DEVICE_ENDPOINTS.takeOver(deviceId), "POST");
     }
 
     /** Fetches everything the account holds, as flat collections. */

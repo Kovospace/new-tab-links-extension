@@ -14,6 +14,9 @@ export interface TokenPairDto {
     refreshToken: string;
     userId: string;
     username: string;
+
+    /** Device row this sign-in was recorded against; absent from an older backend. */
+    deviceId?: string;
 }
 
 /**
@@ -27,6 +30,14 @@ export interface SyncSession {
     refreshToken: string;
     userId: string;
     username: string;
+
+    /**
+     *  Which row in the account's device list this installation is.
+     *
+     *  Kept because the list is the only place the names of the account's other devices can be
+     *  read, and telling a clash from this device's own entry needs to know which entry that is.
+     */
+    deviceId: string | null;
     /** Epoch milliseconds at which the access token stops being accepted. */
     accessTokenExpiresAt: number;
 }
@@ -74,12 +85,30 @@ export class SessionRepository {
             refreshToken: tokenPair.refreshToken,
             userId: tokenPair.userId,
             username: tokenPair.username,
+            deviceId: tokenPair.deviceId ?? this.session?.deviceId ?? null,
             accessTokenExpiresAt: Date.now() + (tokenPair.accessTokenExpiresInSeconds * 1000)
         };
         this.session = session;
         await this.datasource.save(SESSION_KEY, session);
         this.session$.set(session);
         return session;
+    }
+
+    /**
+     *  Records which device row this installation is, after a take-over moved it to another.
+     *
+     *  The tokens are untouched: taking a device over re-points them at the row that survives
+     *  rather than issuing new ones, so the only thing that changed here is which row they name.
+     *
+     *  @param deviceId the row this installation now holds
+     */
+    public async rememberDeviceId(deviceId: string): Promise<void> {
+        if (!this.session) {
+            return;
+        }
+        this.session = { ...this.session, deviceId };
+        await this.datasource.save(SESSION_KEY, this.session);
+        this.session$.set(this.session);
     }
 
     /**

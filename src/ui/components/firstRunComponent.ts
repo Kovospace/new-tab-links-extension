@@ -21,15 +21,19 @@ export class FirstRunComponent extends HTMLElement {
         { "Workspace name": "string" },
         ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(workspaceName, "Default workspace"));
 
+    // "Device name" is optional and last, so the required fields stay where the eye starts.
+    // Leaving it blank keeps the automatic label; it earns its place only for somebody running
+    // several browsers on one machine, where the automatic labels are all identical.
     private connectCodeDialog: InputDialog = new InputDialog(
         "Enter sync code",
-        { "Connect code": "string" },
-        ({ connectCode }) => this.connectAccount(connectCode));
+        { "Connect code": "string", "Device name": "string" },
+        ({ connectCode, deviceName }) => this.connectAccount(connectCode, deviceName));
 
     private logInDialog: InputDialog = new InputDialog(
         "Log in",
-        { "Username or email": "string", "Password": "password" },
-        ({ usernameOrEmail, password }) => this.logIn(usernameOrEmail, password));
+        { "Username or email": "string", "Password": "password", "Device name": "string" },
+        ({ usernameOrEmail, password, deviceName }) =>
+            this.logIn(usernameOrEmail, password, deviceName));
 
     initialize(repository: AppStateRepository): void {
         this.REPOSITORY = repository;
@@ -139,14 +143,21 @@ export class FirstRunComponent extends HTMLElement {
     }
 
     /** Redeems the code from the website's devices page, then shows what arrived. */
-    private async connectAccount(code: string | null): Promise<void> {
-        await this.ACCOUNT_VIEW_MODEL.connectWithCode(code);
+    private async connectAccount(
+        code: string | null,
+        deviceName?: string | null
+    ): Promise<void> {
+        await this.ACCOUNT_VIEW_MODEL.connectWithCode(code, deviceName);
         this.restartIfSignedIn();
     }
 
     /** Signs in with a password, then shows what arrived. */
-    private async logIn(usernameOrEmail: string | null, password: string | null): Promise<void> {
-        await this.ACCOUNT_VIEW_MODEL.logIn(usernameOrEmail, password);
+    private async logIn(
+        usernameOrEmail: string | null,
+        password: string | null,
+        deviceName?: string | null
+    ): Promise<void> {
+        await this.ACCOUNT_VIEW_MODEL.logIn(usernameOrEmail, password, deviceName);
         this.restartIfSignedIn();
     }
 

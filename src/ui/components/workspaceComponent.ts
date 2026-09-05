@@ -36,17 +36,22 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
 
+    // "Device name" is optional and last, so the required fields stay where the eye starts.
+    // Leaving it blank keeps the automatic label; it earns its place only for somebody running
+    // several browsers on one machine, where the automatic labels are all identical.
     private logInDialog: InputDialog = new InputDialog(
         "Log in",
-        { "Username or email": "string", "Password": "password" },
-        ({ usernameOrEmail, password }) => this.accountViewModel.logIn(usernameOrEmail, password));
+        { "Username or email": "string", "Password": "password", "Device name": "string" },
+        ({ usernameOrEmail, password, deviceName }) =>
+            this.accountViewModel.logIn(usernameOrEmail, password, deviceName));
 
     // the field is labelled the way the website labels it ("Your connect code"), so the user
     // recognises what to paste, while the menu entry keeps the wording of the sync feature
     private syncCodeDialog: InputDialog = new InputDialog(
         "Enter sync code",
-        { "Connect code": "string" },
-        ({ connectCode }) => this.accountViewModel.connectWithCode(connectCode));
+        { "Connect code": "string", "Device name": "string" },
+        ({ connectCode, deviceName }) =>
+            this.accountViewModel.connectWithCode(connectCode, deviceName));
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         "Add workspace",

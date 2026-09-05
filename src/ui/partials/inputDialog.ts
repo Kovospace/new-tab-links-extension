@@ -39,6 +39,7 @@ export class InputDialog {
   private readonly onConfirm: (values: FieldValues) => void;
 
   private dialogEl: HTMLDialogElement | null = null;
+  private pendingAnswer: ((values: FieldValues | null) => void) | null = null;
 
   constructor(title: string | null | undefined, fields: FieldMap, onConfirm: (values: FieldValues) => void) {
     this.title = title ?? undefined;
@@ -52,6 +53,34 @@ export class InputDialog {
     this.dialogEl.showModal();
     this.dialogEl.querySelector<HTMLInputElement>('input')?.focus();
     toggleOverlay(true);
+  }
+
+  /**
+   * Shows the dialog and waits for it to be finished with, rather than calling back.
+   *
+   * The callback form cannot be waited on, and a caller that has to know when the user is done
+   * needs to - the first-run screen reloads the page the moment signing in resolves, and a
+   * dialog opened during that would be torn off the screen mid-answer. Confirming still runs
+   * the constructor's callback, so nothing that already uses show() changes.
+   *
+   * @param prefill values to put in the fields before showing them
+   * @return the entered values, or null when the dialog was cancelled or dismissed
+   */
+  ask(prefill?: FieldValues): Promise<FieldValues | null> {
+    return new Promise<FieldValues | null>(resolve => {
+      let answered = false;
+      const settle = (values: FieldValues | null): void => {
+        if (answered) return;
+        answered = true;
+        resolve(values);
+      };
+
+      this.pendingAnswer = settle;
+      this.show(prefill);
+      // Covers every way out that is not the OK button: Cancel, Escape and the backdrop all
+      // end in the element's own close event.
+      this.dialogEl?.addEventListener('close', () => settle(null));
+    });
   }
 
   hide(): void {
@@ -146,6 +175,9 @@ export class InputDialog {
       values[camelKey] = type === 'url' ? normalizeUrl(el.value) : el.value;
     }
     this.hide();
+    const answer = this.pendingAnswer;
+    this.pendingAnswer = null;
     this.onConfirm(values);
+    answer?.(values);
   }
 }

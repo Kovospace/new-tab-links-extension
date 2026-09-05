@@ -48,6 +48,13 @@ export const AUTH_ENDPOINTS = {
     extensionConnect: "/api/v1/auth/extension-connect"
 } as const;
 
+/** Endpoints for the account's list of devices. */
+export const DEVICE_ENDPOINTS = {
+    list: "/api/v1/users/me/devices",
+    rename: (deviceId: string): string => `/api/v1/users/me/devices/${deviceId}`,
+    takeOver: (deviceId: string): string => `/api/v1/users/me/devices/${deviceId}/take-over`
+} as const;
+
 /** Synchronisation endpoints of the backend. */
 export const SYNC_ENDPOINTS = {
     snapshot: "/api/v1/sync/snapshot",
