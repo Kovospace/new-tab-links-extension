@@ -28,6 +28,7 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../par
 import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 import {InputDialog} from "../partials/inputDialog";
+import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -164,7 +165,12 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                     },
                     {
                         actionTitle: `${ICON.ADD} Create new profile`,
+                        noBorder: true,
                         onClick: () => this.createProfileDialog.show()
+                    },
+                    {
+                        actionTitle: `${ICON.EDIT} Manage profiles`,
+                        onClick: () => void new ProfileManagerDialog().show()
                     }
                 ]);
             });

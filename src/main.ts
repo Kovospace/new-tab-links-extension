@@ -31,6 +31,7 @@ import './ui/styles/link.css'
 
 import './ui/styles/_optionsMenu.css'
 import './ui/styles/_inputDialog.css'
+import './ui/styles/_profileManager.css'
 
 /**
  *  Custom HTML elements names

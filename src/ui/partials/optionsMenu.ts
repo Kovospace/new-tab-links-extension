@@ -5,15 +5,29 @@ import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
 import { ICON, renderButton } from "../partials/wrappedHtmlElements"
 import { toggleOverlay } from "../partials/wrappedHtmlElements";
 
-export type OptionsMenuItem = {
+/**
+ *  A divider between groups of actions. It carries no label and nothing happens when it is
+ *  clicked, which is why it is a separate shape rather than an action with empty fields: the
+ *  renderer already returns early for one, and a single type with every field optional made
+ *  `actionTitle` and `onClick` optional for real menu items too.
+ */
+export type OptionsMenuSeparator = {
+    separator: true,
+    noBorder?: boolean
+}
+
+/** Something the user can pick out of the menu. */
+export type OptionsMenuAction = {
     actionTitle: string,
     dangerous?: boolean,
     active?: boolean,
-    separator?: boolean,
     noBorder?: boolean,
     dangerConfirmation?: string,
+    separator?: false,
     onClick: () => void
 }
+
+export type OptionsMenuItem = OptionsMenuSeparator | OptionsMenuAction
 
 type MenuRenderData = {
     openMenuButtonId: string,

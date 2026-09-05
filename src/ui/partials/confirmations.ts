@@ -1,0 +1,66 @@
+import { ChoiceDialog } from './choiceDialog';
+import { InputDialog } from './inputDialog';
+
+/**
+ * The two ways this UI asks "are you sure", and the difference between them.
+ *
+ * Both guard a deletion, and they are deliberately not the same guard. A yes/no is dismissed by
+ * reflex, which is fine when the answer undoes one row the user can see, and is not fine when it
+ * removes several at once - so the second one cannot be answered by reflex at all: it asks for a
+ * phrase, and the only way to produce it is to have read the sentence above it.
+ */
+
+/**
+ * Asks a yes/no question about something destructive.
+ *
+ * @param title   heading, naming what is about to happen
+ * @param message the question, in full sentences
+ * @param confirmLabel wording of the button that goes ahead; says what it does, never "OK"
+ * @return true when the user confirmed
+ */
+export async function confirmDestructiveAction(
+  title: string,
+  message: string,
+  confirmLabel: string
+): Promise<boolean> {
+  const answer = await new ChoiceDialog<'yes' | 'no'>(title, message, [
+    { label: confirmLabel, value: 'yes', danger: true },
+    { label: 'Cancel', value: 'no' }
+  ]).ask();
+
+  return answer === 'yes';
+}
+
+/**
+ * Asks the user to type a phrase before something destructive happens.
+ *
+ * The phrase is compared with surrounding space removed and case folded. Being strict about
+ * either would only punish somebody who has already demonstrated they mean it - the point of
+ * this is that the sentence was read, not that it was transcribed.
+ *
+ * @param title        heading, naming what is about to happen
+ * @param message      what will happen, stated plainly and in full
+ * @param requiredPhrase what has to be typed
+ * @param confirmLabel wording of the button that goes ahead
+ * @return true when the phrase was typed correctly
+ */
+export async function confirmByTypingPhrase(
+  title: string,
+  message: string,
+  requiredPhrase: string,
+  confirmLabel: string
+): Promise<boolean> {
+  const acknowledged = await confirmDestructiveAction(title, message, confirmLabel);
+  if (!acknowledged) return false;
+
+  const answer = await new InputDialog(
+    title,
+    { [`Type "${requiredPhrase}" to confirm`]: 'string' },
+    () => undefined
+  ).ask();
+
+  if (!answer) return false;
+
+  const typed = Object.values(answer)[0] ?? '';
+  return typed.trim().toLowerCase() === requiredPhrase.trim().toLowerCase();
+}

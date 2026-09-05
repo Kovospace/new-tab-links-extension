@@ -142,11 +142,14 @@ export class ProfileRepository {
     /**
      * Removes a profile whatever its identifier, including the seeded default one.
      *
-     * deleteProfile() refuses the default profile, which is the right answer to a user
-     * clicking delete - it would leave them with none. This is for synchronisation, which
-     * removes a profile only because it is gone from the account or because it has just been
-     * re-created under the identifier the account uses, and in both cases a replacement
-     * already exists.
+     * deleteProfile() refuses the seeded profile on the grounds that a user clicking delete
+     * would otherwise be left with none. That guard is in the wrong place: it protects an
+     * identifier rather than the invariant, and the identifier it protects is exactly the one
+     * a stray profile carries. This method protects nothing, and its callers hold the
+     * invariant themselves - synchronisation removes a profile only when the account no
+     * longer has it or when a replacement has just been created under the identifier the
+     * account uses, and the profile manager never offers the active profile for deletion, so
+     * one always survives.
      */
     public async removeProfile(id: string): Promise<void> {
         const profiles = { ...this.registry.profiles };
