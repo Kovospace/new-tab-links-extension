@@ -64,6 +64,13 @@ According to research this is possible even without any nasty permissions, think
   - if no links are opened yet and tab group does not exists, it will be created
   - this setting is in conflict with "open links in separate tabs" - make it grayed out and inactive if this is active
 
+### [middle] add validations and constraints to all modal dialogs
+- when creating workspace, groups, link, or subGroup there should always be at least "required" constraints 
+  for at least 1 field
+- validations follows the contraints
+- now validations in viewModel goes to the console, this info should go to the user at first - ideally modal should
+  not be allowed to be submitted
+
 
 ## DO NOT DO, Must be decided, too complex and few fallpoints - but still vital if done on fisrt release
 
