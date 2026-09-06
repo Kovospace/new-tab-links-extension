@@ -101,13 +101,13 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
 
     // workspace actions
 
-    public addWorkspace(title: string | null) {
-        this.LOG.debug("addWorkspace", `title: ${title}`);
+    public addWorkspace(title: string | null, description: string | undefined) {
+        this.LOG.debug("addWorkspace", `title: ${title}, description: ${description}`);
         if (!title) {
             this.LOG.debug("addWorkspace", "User did not provided a title");
             return;
         }
-        this.REPOSITORY.addWorkspace(title);
+        this.REPOSITORY.addWorkspace(title, description);
     }
 
     public editWorkspaceTitle(id: string, title: string, description?: string) {
@@ -211,7 +211,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
 
     // other actions
 
-    public addGroup(workspaceId: string, title: string | null) {
+    public addGroup(workspaceId: string, title: string | null, description: string | undefined) {
         this.LOG.debug("addGroup", `title: ${title}`);
         if (!workspaceId) {
             console.error("ID of workspace to be created group in is not defined");
@@ -221,7 +221,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
             console.log("No group will be created because user does not provided name");
             return;
         }
-        this.REPOSITORY.createGroup(title, workspaceId);
+        this.REPOSITORY.createGroup(title, workspaceId, description);
     }
 
 }

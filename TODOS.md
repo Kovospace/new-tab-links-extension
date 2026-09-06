@@ -88,3 +88,10 @@ Note: needs permission "chrome.session"
 ### [small] for group menu, add "migrate to workspace"
 - new menu item "Migrarte to other workspace" should appear
 - when clicked, modal dialog with dropdown with available workspace selction should occur
+
+### [small] group description when creating group
+- add description field to group creation dialog too
+
+### [small] workspace description when creating workspace
+- add description field to workspace creation dialog too
+

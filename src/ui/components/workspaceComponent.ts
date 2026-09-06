@@ -56,8 +56,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         "Add workspace",
-        { "Workspace name": "string" },
-        ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(workspaceName));
+        { "Workspace name": "string", "Workspace description": "string" },
+        ({ workspaceName, workspaceTitle }) =>
+          this.VIEW_MODEL.addWorkspace(workspaceName, workspaceTitle));
 
     private createProfileDialog: InputDialog = new InputDialog(
         "Create profile",
@@ -66,8 +67,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     private addGroupDialog: InputDialog = new InputDialog(
         "Add group",
-        { "Group name": "string" },
-        ({ groupName }) => this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName));
+        { "Group name": "string", "Group description": "string"},
+        ({ groupName, groupDescription }) =>
+          this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName, groupDescription));
 
     render(parentElem: HTMLElement) {
 

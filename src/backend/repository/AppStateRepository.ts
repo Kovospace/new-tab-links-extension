@@ -275,7 +275,7 @@ export class AppStateRepository {
     /**
      *  Create group in given workspace or in current workspace if parameter omitted
      */
-    createGroup(title: string, environmentId: string): Promise<AppState> {
+    createGroup(title: string, environmentId: string, description?: string | undefined): Promise<AppState> {
         const id = uid();
         if (!environmentId) {
             // in that case it is not possible for environment to not exists
@@ -289,6 +289,7 @@ export class AppStateRepository {
                     id: id,
                     environmentId: environmentId,
                     title: title,
+                    description: description,
                     createdAt: Date.now(),
                     order: this.getOrderForNewGroup(environmentId)
                 } satisfies Group
