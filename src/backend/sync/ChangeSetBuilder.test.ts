@@ -145,4 +145,46 @@ describe("ChangeSetBuilder", () => {
 
         expect(operations).toEqual([]);
     });
+
+    it("pushes a subgroup whose catch-links setting was flipped", () => {
+        // The setting belongs to the subgroup rather than to the device it was set on, so
+        // turning it on has to reach the account - and it is the only field that changed.
+        const before = profileOf({ subgroups: [subgroup("sub", "Reading", "grp", "env")] });
+        const after = profileOf({
+            subgroups: [subgroup("sub", "Reading", "grp", "env", 0,
+                { catchLinksIntoTabGroup: true })]
+        });
+
+        const operations = ChangeSetBuilder.build(
+            baselineOf(before),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: after });
+
+        expect(operations).toEqual([{
+            op: "upsert", type: "subgroup", id: "sub",
+            parentGroupId: "grp",
+            name: "Reading",
+            description: null,
+            collapsed: false,
+            defaultCollapsed: false,
+            catchLinksIntoTabGroup: true,
+            position: 0
+        }]);
+    });
+
+    it("says a subgroup stored before the setting existed is not catching", () => {
+        // Absent locally and false on the account are the same thing, and a subgroup that
+        // has simply never been touched must not push on every synchronisation.
+        const stored = subgroup("sub", "Reading", "grp", "env");
+        delete stored.catchLinksIntoTabGroup;
+        const before = profileOf({ subgroups: [stored] });
+        const after = profileOf({ subgroups: [subgroup("sub", "Reading", "grp", "env")] });
+
+        const operations = ChangeSetBuilder.build(
+            baselineOf(before),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: after });
+
+        expect(operations).toEqual([]);
+    });
 });

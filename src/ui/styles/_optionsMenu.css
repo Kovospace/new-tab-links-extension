@@ -106,6 +106,16 @@ options-menu-item.active {
     background-color: var(--color-button-active-background);
 }
 
+/* A setting rather than a command: the box says what it is now. */
+options-menu-item.checkable::before {
+    content: "\2610";
+    margin-right: 0.4em;
+}
+
+options-menu-item.checkable.active::before {
+    content: "\2611";
+}
+
 options-menu-item:first-child {
     border-top-left-radius: var(--radius-normal);
     border-top-right-radius: var(--radius-normal);

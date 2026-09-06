@@ -5,10 +5,9 @@ import { DEFAULT_PROFILE_ID } from "../datasource/init/AppStateInit";
 import { uid } from "./AppStateRepositoryUtils";
 import { isStorableName } from "../sync/SyncContracts";
 import { Logger } from "../../utils/logger";
+import { PROFILE_REGISTRY_KEY } from "../datasource/chromeStorage/storageKeys";
 
-const PROFILE_REGISTRY_KEY = "profile_registry";
-
-interface ProfileRegistry {
+export interface ProfileRegistry {
     activeProfileId: string;
     profiles: Record<string, ProfileMeta>;
 }

@@ -74,6 +74,8 @@ export interface SyncOperation {
     collapsed?: boolean;
     /** Whether a subgroup starts folded away. */
     defaultCollapsed?: boolean;
+    /** Whether a subgroup pulls tabs opened on its links into its tab group. */
+    catchLinksIntoTabGroup?: boolean;
 
     /** Zero based position among the record's siblings. */
     position?: number;
@@ -147,6 +149,8 @@ export interface SnapshotSubgroupDto {
     position: number;
     collapsed: boolean;
     defaultCollapsed: boolean;
+    /** Absent from a backend that does not store this yet, and read as off when it is. */
+    catchLinksIntoTabGroup?: boolean;
     createdAt: string;
     updatedAt: string;
 }

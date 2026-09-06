@@ -72,6 +72,10 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
         this.REPOSITORY.moveSubgroupDown(this.DTO.id);
     }
 
+    public toggleCatchLinksIntoTabGroup(): void {
+        this.REPOSITORY.toggleSubgroupCatchLinksIntoTabGroup(this.DTO.id);
+    }
+
     public toggleCollapsed(): void {
         this.REPOSITORY.toggleSubgroupCollapsed(this.DTO.id);
         // state$ is intentionally not fired — the component toggles the class directly

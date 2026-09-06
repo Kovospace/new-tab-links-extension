@@ -4,8 +4,7 @@ import {uid} from "./AppStateRepositoryUtils";
 import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit, emptyProfileData} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"
-
-const APP_STATE_PREFIX = "app_state_";
+import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
 
 export class AppStateRepository {
 
@@ -438,8 +437,29 @@ export class AppStateRepository {
                     type: "subgroup",
                     collapsed: true,
                     defaultCollapsed: true,
+                    catchLinksIntoTabGroup: false,
                     position: this.getPositionForNewItem(groupId)
                 } satisfies Subgroup
+            }
+        };
+        return this.save();
+    }
+
+    /**
+     * Turns the subgroup's "catch links into tab group" setting on or off.
+     *
+     * Saved loudly, unlike the collapsed flag: the setting is shown as a state in the
+     * subgroup menu, so the page has to redraw, and the background listener reads it back
+     * out of storage.
+     */
+    toggleSubgroupCatchLinksIntoTabGroup(id: string): Promise<AppState> {
+        const subgroup = this.state.subgroups[id];
+        if (!subgroup) return Promise.resolve(this.state);
+        this.state = {
+            ...this.state,
+            subgroups: {
+                ...this.state.subgroups,
+                [id]: { ...subgroup, catchLinksIntoTabGroup: !subgroup.catchLinksIntoTabGroup }
             }
         };
         return this.save();

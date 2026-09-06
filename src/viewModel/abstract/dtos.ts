@@ -34,6 +34,7 @@ export interface LinkDTO extends GroupItemDTO {
 export interface SubgroupDTO extends GroupItemDTO {
     links?: LinkDTO[] | null;
     collapsed: boolean;
+    catchLinksIntoTabGroup: boolean;
 }
 
 export interface ProfileDTO extends ViewModelDTO {

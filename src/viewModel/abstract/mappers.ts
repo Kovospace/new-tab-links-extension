@@ -38,5 +38,6 @@ export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     type: "subgroup",
     groupId: subgroup.groupId,
     workspaceId: subgroup.environmentId,
-    collapsed: subgroup.collapsed
+    collapsed: subgroup.collapsed,
+    catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false
 });
