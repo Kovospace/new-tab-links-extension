@@ -4,6 +4,7 @@ Note for agents:
 - each task into its feature branch
 - if makes logical sense, each root level bullet should be 1 commit
 
+
 ## Must be done before release
 
 ### [small] Add "upgrade to premium" to app menu (three dots upper right corner)
@@ -55,6 +56,12 @@ According to research this is possible even without any nasty permissions, think
 - ordered by time, include device name if tab was closed on another device than in current
 - after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
 - signalize by icon of green folder that some of this closed tabs may already be bookmarked
+
+### [small] assign link which is in some subgroup into tab group automatically
+- add one more setting (checkbox) into subgroup settings like "catch all links into tab group"
+  - when active, the link opened from elsewhere or single link opened from subgroup will always be grouped
+  - if no links are opened yet and tab group does not exists, it will be created
+  - this setting is in conflict with "open links in separate tabs" - make it grayed out and inactive if this is active
 
 
 ## DO NOT DO, Must be decided, too complex and few fallpoints - but still vital if done on fisrt release
