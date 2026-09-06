@@ -6,7 +6,7 @@ Note for agents:
 - after doing the task, move to done
 
 
-## Must be done before release
+## Features that must be done before release
 
 ### [small] Add "upgrade to premium" to app menu (three dots upper right corner)
 - displayed when user is logged in after "synchronised"
@@ -72,6 +72,8 @@ According to research this is possible even without any nasty permissions, think
   not be allowed to be submitted
 
 
+## BUGFIXING
+
 ## DO NOT DO, Must be decided, too complex and few fallpoints - but still vital if done on fisrt release
 
 ### [big] History panel
@@ -91,6 +93,17 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### changing the order of links on group if subgroup is between them
+- case: at the group from the top:
+  - link1
+  - subgroup with links
+  - link2
+- i want to achieve:
+  - link1
+  - link2
+  - subgroup
+- links 1 and 2 are repatedly swapped like subGroup is not counted
 
 ### [small] for group menu, add "migrate to workspace"
 - new menu item "Migrarte to other workspace" should appear
