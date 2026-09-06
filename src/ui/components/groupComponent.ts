@@ -42,7 +42,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
     private addLinkDialog: InputDialog = new InputDialog(
         "Add link",
-        { "URL": "url", "Name": "string" },
+        { "Name": "string", "URL": "url" },
         ({ url, name }) => this.VIEW_MODEL.addLink(url, name, this.id));
 
     render(parentElem: HTMLElement): void {
