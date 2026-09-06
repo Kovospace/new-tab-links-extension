@@ -19,7 +19,7 @@ import {
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { LinkViewModel } from "../../viewModel/linkViewModel";
 import { SubGroupViewModel } from "../../viewModel/subGroupViewModel";
-import { GroupDTO, GroupItemDTO, LinkDTO, SubgroupDTO } from "../../viewModel/abstract/dtos"
+import { GroupDTO, GroupItemDTO, LinkDTO, SubgroupDTO, WorkspaceDTO } from "../../viewModel/abstract/dtos"
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent"
@@ -28,6 +28,7 @@ import { SubgroupComponent } from "./subgroupComponent"
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../../ui/partials/wrappedHtmlElements"
 import {OptionsMenu} from "../partials/optionsMenu";
 import {InputDialog} from "../partials/inputDialog";
+import {SelectDialog} from "../partials/selectDialog";
 
 
 
@@ -97,6 +98,10 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: "Move group right",
                     onClick: () => this.VIEW_MODEL.moveGroupDown()
+                },
+                {
+                    actionTitle: "Migrate to other workspace",
+                    onClick: () => void this.actionMigrateToWorkspace()
                 },
                 {
                     actionTitle: "Delete group",
@@ -174,6 +179,31 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             "render",
             "add link to group: " + this.title + " with id: " + this.id + " clicked");
         this.addLinkDialog.show();
+    }
+
+    /**
+     * Asks which workspace this group should move into, and moves it there.
+     *
+     * The dialog is built here rather than kept as a field like the others, because its
+     * options are the profile's workspaces as they stand at the moment it is opened - one
+     * built at construction time would still be offering a workspace that has since been
+     * renamed or deleted.
+     */
+    private async actionMigrateToWorkspace(): Promise<void> {
+        const workspaces: WorkspaceDTO[] = this.VIEW_MODEL.getWorkspacesToMigrateInto();
+        if (workspaces.length === 0) {
+            // Worth saying: a menu item that does nothing when clicked reads as a broken one,
+            // and the reason it did nothing is not visible anywhere on the screen.
+            alert("There is no other workspace to move this group into. Add one first.");
+            return;
+        }
+        const chosenWorkspaceId: string | null = await new SelectDialog<string>(
+            "Migrate group to another workspace",
+            "Target workspace",
+            workspaces.map(workspace => ({ label: workspace.title, value: workspace.id })),
+            "Migrate"
+        ).ask();
+        this.VIEW_MODEL.migrateToWorkspace(chosenWorkspaceId);
     }
 
     private renderLink(link: LinkDTO): HTMLElement {

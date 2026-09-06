@@ -1,11 +1,11 @@
 
 // data layer
-import {AppState, Link, Subgroup} from "../backend/entity/AppStateEntity";
+import {AppState, Environment, Link, Subgroup} from "../backend/entity/AppStateEntity";
 
 // model layer
 import {AbstractViewModel} from "../viewModel/abstract/abstractViewModel"
-import {GroupDTO, GroupItemDTO, SubgroupDTO, LinkDTO} from "../viewModel/abstract/dtos"
-import {toSubGroupDTO, toLinkDTO} from "../viewModel/abstract/mappers"
+import {GroupDTO, GroupItemDTO, SubgroupDTO, LinkDTO, WorkspaceDTO} from "../viewModel/abstract/dtos"
+import {toSubGroupDTO, toLinkDTO, toWorkspaceDTO} from "../viewModel/abstract/mappers"
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
@@ -114,6 +114,36 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
             return;
         }
         this.REPOSITORY.createLink(url, title, groupId, subGroupId);
+    }
+
+    /**
+     * The workspaces this group could be moved into: every one of the loaded profile except
+     * the one it is already in.
+     *
+     * Read on demand rather than published as an observable, because it is only ever wanted
+     * at the moment the menu item is picked - and a list held in an observable would be one
+     * more thing to keep in step with a workspace being renamed or deleted.
+     */
+    public getWorkspacesToMigrateInto(): WorkspaceDTO[] {
+        const currentWorkspaceId = this.REPOSITORY.getCurrentEnvironmentId();
+        return this.REPOSITORY
+            .getWorkspaces()
+            .filter((workspace: Environment) => workspace.id !== currentWorkspaceId)
+            .map(toWorkspaceDTO);
+    }
+
+    /**
+     * Moves this group, with its subgroups and links, into another workspace.
+     *
+     * @param workspaceId the workspace to move into
+     */
+    public migrateToWorkspace(workspaceId: string | null): void {
+        this.LOG.debug("migrateToWorkspace", `groupId: ${this.DTO.id}, workspaceId: ${workspaceId}`);
+        if (!workspaceId) {
+            this.LOG.debug("migrateToWorkspace", "no workspace chosen");
+            return;
+        }
+        this.REPOSITORY.moveGroupToWorkspace(this.DTO.id, workspaceId);
     }
 
     public moveGroupUp(): void {

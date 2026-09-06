@@ -3,6 +3,7 @@
 Note for agents: 
 - each task into its feature branch
 - if makes logical sense, each root level bullet should be 1 commit
+- after doing the task, move to done
 
 
 ## Must be done before release
@@ -83,3 +84,7 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [small] for group menu, add "migrate to workspace"
+- new menu item "Migrarte to other workspace" should appear
+- when clicked, modal dialog with dropdown with available workspace selction should occur
