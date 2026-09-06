@@ -116,3 +116,146 @@ describe("ProfileMergeEngine", () => {
         expect(merged.merged.environments["mine"].order).toBe(1);
     });
 });
+
+/**
+ *  A device that synchronised this account once and then signed out keeps the account's
+ *  identifiers - signing out clears the baseline and deliberately keeps the data - so signing
+ *  back in merges two copies of the same records rather than two strangers.
+ *
+ *  Every test here is a rename or a move that another device made in the meantime. Pairing by
+ *  name could not see any of them: the name lookup missed, the local copy was carried over
+ *  under the identifier it shared with the account's record, and it overwrote it in the merged
+ *  map. The merge then pushed that as an upsert - first contact withholds deletions, not
+ *  upserts - and the device that made the edit pulled its own work away.
+ */
+describe("ProfileMergeEngine, a device rejoining an account it once synchronised", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e001";
+    const GRP = "0199aaaa-0000-7000-8000-000000009001";
+    const SUB = "0199aaaa-0000-7000-8000-000000008001";
+    const LNK = "0199aaaa-0000-7000-8000-000000007001";
+
+    it("takes the account's name for a workspace this device renamed elsewhere", () => {
+        const local = profileOf({ environments: [environment(ENV, "Work")] });
+        const remote = profileOf({ environments: [environment(ENV, "Job")] });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.environments)).toEqual([ENV]);
+        expect(merged.merged.environments[ENV].name).toBe("Job");
+    });
+
+    it("takes the account's title for a group renamed elsewhere", () => {
+        const local = profileOf({ groups: [group(GRP, "Work stuff", ENV)] });
+        const remote = profileOf({ groups: [group(GRP, "Job", ENV)] });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.groups)).toEqual([GRP]);
+        expect(merged.merged.groups[GRP].title).toBe("Job");
+    });
+
+    it("takes the account's title for a subgroup renamed elsewhere", () => {
+        const local = profileOf({ subgroups: [subgroup(SUB, "Reading", GRP, ENV)] });
+        const remote = profileOf({ subgroups: [subgroup(SUB, "To read", GRP, ENV)] });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.subgroups)).toEqual([SUB]);
+        expect(merged.merged.subgroups[SUB].title).toBe("To read");
+    });
+
+    it("takes the account's title and address for a link edited elsewhere", () => {
+        const local = profileOf({ links: [link(LNK, "Salary", "https://old.test", GRP, ENV)] });
+        const remote = profileOf({ links: [link(LNK, "Payroll", "https://new.test", GRP, ENV)] });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.links)).toEqual([LNK]);
+        expect(merged.merged.links[LNK].title).toBe("Payroll");
+        expect(merged.merged.links[LNK].url).toBe("https://new.test");
+    });
+
+    it("follows a group moved to another workspace elsewhere", () => {
+        // The scope a group pairs in is its workspace plus its title, so moving it between
+        // workspaces defeated name pairing just as thoroughly as renaming it.
+        const other = "0199aaaa-0000-7000-8000-00000000e002";
+        const local = profileOf({
+            environments: [environment(ENV, "Work"), environment(other, "Home")],
+            groups: [group(GRP, "Reading", ENV)]
+        });
+        const remote = profileOf({
+            environments: [environment(ENV, "Work"), environment(other, "Home")],
+            groups: [group(GRP, "Reading", other)]
+        });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.groups)).toEqual([GRP]);
+        expect(merged.merged.groups[GRP].environmentId).toBe(other);
+    });
+
+    it("follows a link moved into a subgroup elsewhere", () => {
+        const local = profileOf({ links: [link(LNK, "Docs", "https://d.test", GRP, ENV)] });
+        const remote = profileOf({
+            links: [link(LNK, "Docs", "https://d.test", GRP, ENV, { subGroupId: SUB })]
+        });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.links)).toEqual([LNK]);
+        expect(merged.merged.links[LNK].subGroupId).toBe(SUB);
+    });
+
+    it("keeps what this device made while it was signed out", () => {
+        // The other half of the rule: identity settles the records both sides hold, and
+        // everything else this device has is still carried across rather than dropped.
+        const mine = "0199aaaa-0000-7000-8000-000000007002";
+        const local = profileOf({
+            groups: [group(GRP, "Work stuff", ENV)],
+            links: [
+                link(LNK, "Salary", "https://old.test", GRP, ENV),
+                link(mine, "Added offline", "https://mine.test", GRP, ENV, { position: 1 })
+            ]
+        });
+        const remote = profileOf({
+            groups: [group(GRP, "Job", ENV)],
+            links: [link(LNK, "Payroll", "https://new.test", GRP, ENV)]
+        });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.links).sort()).toEqual([LNK, mine].sort());
+        expect(merged.merged.links[mine].title).toBe("Added offline");
+        expect(merged.merged.links[LNK].title).toBe("Payroll");
+    });
+
+    it("still pairs by name when the account has never seen the identifier", () => {
+        // Two devices that have never met share no identifiers, and the name is all they can
+        // agree on. That path is untouched.
+        const local = profileOf({ environments: [environment("localId", "work")] });
+        const remote = profileOf({ environments: [environment("remoteId", "Work")] });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.environments)).toEqual(["remoteId"]);
+        expect(merged.adoptedIds["localId"]).toBe("remoteId");
+    });
+
+    it("does not let a second local record claim a name identity already settled", () => {
+        // The account renamed GRP to "Job"; this device separately has a group of its own
+        // that happens to be called "Job". They are not the same group, and collapsing the
+        // second into the first would lose it.
+        const mine = "0199aaaa-0000-7000-8000-000000009002";
+        const local = profileOf({
+            groups: [group(GRP, "Work stuff", ENV, 0), group(mine, "Job", ENV, 1)]
+        });
+        const remote = profileOf({ groups: [group(GRP, "Job", ENV, 0)] });
+
+        const merged = ProfileMergeEngine.merge(local, remote);
+
+        expect(Object.keys(merged.merged.groups).sort()).toEqual([GRP, mine].sort());
+        expect(merged.merged.groups[GRP].title).toBe("Job");
+        expect(merged.merged.groups[mine].title).toBe("Job");
+    });
+});

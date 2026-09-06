@@ -208,9 +208,17 @@ export class SyncCoordinator {
         const unpairedRemoteProfiles = new Map(
             snapshot.profiles.map(profile => [profile.id, profile]));
 
+        // Identity settles what it can before any name is compared, and for every profile at
+        // once rather than one at a time. A profile the account holds under the same
+        // identifier is that profile whatever either end calls it - and doing this in the loop
+        // below would leave the outcome to the order the profiles happen to come in, where a
+        // differently named profile could be claimed by name by whichever local profile was
+        // considered first.
+        const pairedByIdentity = this.pairProfilesByIdentity(unpairedRemoteProfiles);
+
         for (const local of this.profiles.getProfiles()) {
-            const remote = this.takeRemoteCounterpart(
-                candidatesByName, unpairedRemoteProfiles, local);
+            const remote = pairedByIdentity.get(local.id)
+                ?? this.takeRemoteCounterpart(candidatesByName, unpairedRemoteProfiles, local);
 
             if (!remote) {
                 continue;   // The account has never seen it; the push below creates it.
@@ -278,11 +286,40 @@ export class SyncCoordinator {
     }
 
     /**
+     *  Pairs off every profile the account holds under an identifier this device also has.
+     *
+     *  Those are the same profile seen from two sides, however differently the two ends name
+     *  it, which is the case a device that synchronised once and then signed out is entirely
+     *  made of: it kept the account's identifiers when its baseline was cleared. Claimed
+     *  profiles are removed from `unpaired`, so nothing can afterwards take one by name.
+     *
+     *  @param unpaired every account profile not yet claimed, keyed by identifier; mutated
+     *  @return local identifier -> the account's profile it is the same profile as
+     */
+    private pairProfilesByIdentity(
+        unpaired: Map<string, ProfileMeta>
+    ): Map<string, ProfileMeta> {
+
+        const paired = new Map<string, ProfileMeta>();
+
+        for (const local of this.profiles.getProfiles()) {
+            const sameIdentifier = unpaired.get(local.id);
+            if (sameIdentifier) {
+                unpaired.delete(local.id);
+                paired.set(local.id, sameIdentifier);
+            }
+        }
+        return paired;
+    }
+
+    /**
      *  Claims the account's profile a local one should merge into, or nothing.
      *
-     *  Where several profiles share a name they are claimed in snapshot order, which is the
-     *  account's own display order, so the oldest is paired first and a device with two
-     *  profiles of one name pairs each of them exactly once.
+     *  Only profiles the account has never heard of get this far - identity has already
+     *  settled the rest - so the name is all there is to go on, which is what two devices
+     *  that have never met can agree on. Where several profiles share a name they are claimed
+     *  in snapshot order, which is the account's own display order, so the oldest is paired
+     *  first and a device with two profiles of one name pairs each of them exactly once.
      *
      *  @param candidatesByName the account's profiles grouped by name; claimed ones are removed
      *  @param unpaired         every account profile not yet claimed, keyed by identifier

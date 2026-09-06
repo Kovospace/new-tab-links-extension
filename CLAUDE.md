@@ -77,6 +77,16 @@ Rules that are load-bearing, and easy to break by accident:
   once literally `"default"` and the example data `"env-1"`, so `LocalIdentifierNormalizer`
   rewrites anything unstorable before the first push. `uid()` mints UUIDv7 - time-ordered, so
   it does not scatter the server's B-tree.
+- **The merge matches on the identifier; the name is only a fallback.** Both ends holding a
+  record under the same uuid means one record described two ways, and the account's
+  description wins. Only a record the account has never heard of is matched by name, which is
+  all two devices that have never met can agree on. Matching on the name first was a data-loss
+  bug: signing out clears the baseline and keeps the data, so a device that comes back still
+  has the account's identifiers, and anything renamed or moved elsewhere meanwhile failed to
+  match, took the "carry it over under its own identifier" branch, and overwrote the account's
+  record in the merged map - then pushed it as an upsert, which first contact does not withhold.
+  Identity is settled for a whole entity kind before any name is compared, so the outcome
+  cannot depend on the order records happen to be iterated in.
 - **`persisted$`, not `state$`, is what synchronization listens to.** `state$` is for redrawing
   and is deliberately not fired by `saveQuiet()`; subscribing to it would never synchronize a
   collapsed subgroup.

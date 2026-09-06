@@ -228,4 +228,93 @@ describe("SyncCoordinator, first contact with an account", () => {
 
         expect((await appState.readProfileData(PHANTOM_PROFILE))?.activeEnvironmentId).toBeNull();
     });
+
+    /**
+     *  Signing out clears the baseline and keeps the data, so a device that comes back holds
+     *  the account's own identifiers and takes the first-contact path again. A profile
+     *  renamed on the other device in the meantime then paired by nothing: the account's copy
+     *  was carried down whole over this device's, and whatever this device alone had in that
+     *  profile went with it.
+     */
+    describe("a profile renamed on another device", () => {
+
+        const LOCAL_ONLY_LINK = "01993333-0000-7000-8000-000000000033";
+        const SEEDED_PROFILE = "01994444-0000-7000-8000-000000000044";
+
+        /** Drops everything this device came with, so a registry can be built deliberately. */
+        async function forgetEverythingLocal(): Promise<void> {
+            for (const existing of profiles.getProfiles()) {
+                await profiles.removeProfile(existing.id);
+                await appState.discardProfileData(existing.id);
+            }
+        }
+
+        /** REAL_PROFILE under the name it had before the other device renamed it, with a
+         *  link of its own in it. Appended to whatever the registry already holds. */
+        async function holdRenamedProfile(): Promise<void> {
+            await profiles.upsertProfile(
+                { id: REAL_PROFILE, name: "Old name", createdAt: 0 });
+            await profiles.setActiveProfile(REAL_PROFILE);
+            await appState.saveProfileData(REAL_PROFILE, {
+                environments: {
+                    [REAL_ENVIRONMENT]: {
+                        id: REAL_ENVIRONMENT, name: "Default", createdAt: 0, order: 0
+                    }
+                },
+                groups: {
+                    [REAL_GROUP]: {
+                        id: REAL_GROUP, title: "Work", environmentId: REAL_ENVIRONMENT,
+                        createdAt: 0, order: 0
+                    }
+                },
+                subgroups: {},
+                links: {
+                    [LOCAL_ONLY_LINK]: {
+                        id: LOCAL_ONLY_LINK, title: "Added while signed out",
+                        url: "https://offline.test", environmentId: REAL_ENVIRONMENT,
+                        groupId: REAL_GROUP, type: "link", position: 1, createdAt: 0
+                    }
+                },
+                activeEnvironmentId: REAL_ENVIRONMENT
+            });
+            await appState.switchProfile(REAL_PROFILE);
+        }
+
+        it("keeps what this device added to it while it was signed out", async () => {
+            // The data loss. Nothing paired the two copies of this profile, so the account's
+            // was carried down whole over this device's, and the link made offline was gone
+            // before the difference that would have pushed it was ever computed.
+            await forgetEverythingLocal();
+            await holdRenamedProfile();
+            const coordinator = await coordinatorFor(accountWith());
+
+            await coordinator.synchronizeNow();
+
+            const stored = await appState.readProfileData(REAL_PROFILE);
+            expect(Object.keys(stored?.links ?? {}).sort())
+                .toEqual([REAL_LINK, LOCAL_ONLY_LINK].sort());
+        });
+
+        it("is not stolen by another local profile that happens to match by name", async () => {
+            // Why identity is settled for every profile at once rather than inside the loop.
+            // This device also has its seeded "Default", and the account's profile is now
+            // called "Default" too. Pairing one profile at a time leaves the outcome to the
+            // order the registry hands them over: the seeded one is considered first, takes
+            // the account's profile by name, and the profile that actually *is* that profile
+            // is left with nothing to pair with and its own identifier already spoken for.
+            await forgetEverythingLocal();
+            // The seeded profile is registered first, so it is the one a loop that pairs as
+            // it goes reaches first - which is the whole point of the case.
+            await profiles.upsertProfile(
+                { id: SEEDED_PROFILE, name: "Default", createdAt: 0 });
+            await holdRenamedProfile();
+            const coordinator = await coordinatorFor(accountWith());
+
+            await coordinator.synchronizeNow();
+
+            const stored = await appState.readProfileData(REAL_PROFILE);
+            expect(Object.keys(stored?.links ?? {})).toContain(LOCAL_ONLY_LINK);
+            expect(Object.keys(stored?.links ?? {})).toContain(REAL_LINK);
+        });
+    });
 });
