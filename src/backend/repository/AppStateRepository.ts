@@ -179,6 +179,15 @@ export class AppStateRepository {
             .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
 
+    /**
+     *  All workspaces of the loaded profile, in the order the workspace switcher shows them.
+     */
+    getWorkspaces(): Environment[] {
+        return Object
+            .values(this.state.environments)
+            .sort((a: Environment, b: Environment) => a.createdAt - b.createdAt);
+    }
+
     // Workspace operations
 
     /**
@@ -327,6 +336,78 @@ export class AppStateRepository {
             .values(this.state.subgroups)
             .filter(subgroup => subgroup.groupId === id)
             .forEach(subgroup => this.deleteSubGroup(subgroup.id));
+        return this.save();
+    }
+
+    /**
+     *  Moves a group, with everything under it, into another workspace.
+     *
+     *  Subgroups and links repeat their group's `environmentId` rather than deriving it, and
+     *  the group body is filtered on that field - so a group whose own workspace changed while
+     *  its contents did not would arrive at the target empty and leave its links behind,
+     *  reachable from nowhere. They are rewritten here for the same reason a pulled snapshot
+     *  derives them from the group: the group is what decides which workspace they are in.
+     *
+     *  The group lands at the end of the target workspace, and the gap it leaves behind is
+     *  closed so the source workspace keeps a contiguous order sequence.
+     */
+    moveGroupToWorkspace(id: string, targetEnvironmentId: string): Promise<AppState> {
+
+        this.LOG.debug("moveGroupToWorkspace", `id: ${id}, target: ${targetEnvironmentId}`);
+
+        const group = this.state.groups[id];
+        if (!group || !this.checkEnvironmentExists(targetEnvironmentId)) {
+            console.error(`Cannot move group ${id} into workspace ${targetEnvironmentId}`);
+            return Promise.resolve(this.state);
+        }
+        if (group.environmentId === targetEnvironmentId) {
+            return Promise.resolve(this.state);
+        }
+
+        const sourceEnvironmentId = group.environmentId;
+        const vacatedOrder = group.order ?? 0;
+
+        const updatedGroups: Record<string, Group> = {
+            [id]: {
+                ...group,
+                environmentId: targetEnvironmentId,
+                order: this.getOrderForNewGroup(targetEnvironmentId)
+            }
+        };
+        Object
+            .values(this.state.groups)
+            .filter(sibling => sibling.id !== id
+                && sibling.environmentId === sourceEnvironmentId
+                && (sibling.order ?? 0) > vacatedOrder)
+            .forEach(sibling => {
+                updatedGroups[sibling.id] = { ...sibling, order: (sibling.order ?? 0) - 1 };
+            });
+
+        const updatedSubgroups: Record<string, Subgroup> = {};
+        Object
+            .values(this.state.subgroups)
+            .filter(subgroup => subgroup.groupId === id)
+            .forEach(subgroup => {
+                updatedSubgroups[subgroup.id] = {
+                    ...subgroup,
+                    environmentId: targetEnvironmentId
+                };
+            });
+
+        const updatedLinks: Record<string, Link> = {};
+        Object
+            .values(this.state.links)
+            .filter(link => link.groupId === id)
+            .forEach(link => {
+                updatedLinks[link.id] = { ...link, environmentId: targetEnvironmentId };
+            });
+
+        this.state = {
+            ...this.state,
+            groups: { ...this.state.groups, ...updatedGroups },
+            subgroups: { ...this.state.subgroups, ...updatedSubgroups },
+            links: { ...this.state.links, ...updatedLinks }
+        };
         return this.save();
     }
 

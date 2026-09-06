@@ -90,3 +90,23 @@ dialog.choice-dialog {
     flex-wrap: wrap;
     padding: 0 0.75em 0.75em;
 }
+
+/* ---------------------------------------------------------------------------
+   Select dialog
+
+   Also the input dialog's frame, with a dropdown where the text fields are.
+   The dropdown carries .editable like every other field, so it already has the
+   text field's colours; what is left is the framing the native control loses
+   once it is coloured, and the colours of the list it opens - that list is
+   painted by the platform and does not inherit them.
+   --------------------------------------------------------------------------- */
+
+.input-dialog__select {
+    box-shadow: inset 0 0 0 0.0625em var(--color-component-framing);
+    cursor: pointer;
+}
+
+.input-dialog__select > option {
+    background-color: var(--color-textfield-background);
+    color: var(--color-textfield-text);
+}
