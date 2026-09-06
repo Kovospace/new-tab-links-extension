@@ -108,6 +108,15 @@ The backend mirrors this exactly, profiles included.
 
 All entities use string UUIDs as keys. Links have a `position` field for ordering.
 
+**Root-level links and subgroups of a group share one `position` sequence.** A link that is
+not in a subgroup is ordered against that group's subgroups, not only against its sibling
+links - which is how the group view model renders them. Anything that inserts into or reorders
+that sequence has to count both kinds; counting only links is what let a link step through a
+subgroup and land on its position. Links inside a subgroup are their own sequence.
+Reordering renumbers the whole scope from index 0 rather than adding one to a position,
+because stored data is not guaranteed to be a clean `0..n-1`: subgroups were once created at
+position 0 whatever the group already held.
+
 ### UI Component Hierarchy
 
 ```

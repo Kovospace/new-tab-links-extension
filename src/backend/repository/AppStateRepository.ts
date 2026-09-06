@@ -414,9 +414,8 @@ export class AppStateRepository {
 
     // Subgroup operations
 
-    //TODO assign position to new subgroup
     /**
-     *  Deletes the whole sub-groups and its links
+     *  Create new sub-group at the end of the given group
      */
     createSubGroup(
         groupId: string,
@@ -439,8 +438,7 @@ export class AppStateRepository {
                     type: "subgroup",
                     collapsed: true,
                     defaultCollapsed: true,
-                    //TODO
-                    position: 0
+                    position: this.getPositionForNewItem(groupId)
                 } satisfies Subgroup
             }
         };
@@ -533,7 +531,7 @@ export class AppStateRepository {
             `groupId: ${groupId}, subGroupId: ${subGroupId}, title: ${title}, url: ${url}`);
 
         const id: string = uid();
-        const nextPosition: number = this.getPositionForNewLink(groupId, subGroupId);
+        const nextPosition: number = this.getPositionForNewItem(groupId, subGroupId);
 
         this.state = {
             ...this.state,
@@ -560,22 +558,17 @@ export class AppStateRepository {
      *  Edit any non-readonly property of link
      */
     editLink(url: string, title: string, id: string, groupId: string,
-             subGroupId?: string, workspaceId?: string, position?: number
+             subGroupId?: string, workspaceId?: string
     ): Promise<AppState> {
 
         this.LOG.debug(
             "editLink",
             `workspaceId: ${workspaceId}, groupId: ${groupId}, subGroupId: ${subGroupId}, 
-            id: ${id}, title: ${title}, url: ${url}, position: ${position}`);
+            id: ${id}, title: ${title}, url: ${url}`);
 
-        let linksToEdit: Record<string, Link> = {
+        const linksToEdit: Record<string, Link> = {
             [id]: this.state.links[id]
         };
-
-        if (position !== undefined && position !== null && linksToEdit[id].position !== position) {
-            linksToEdit = this.getRepositionedLinks(
-                id, linksToEdit[id].position, position, groupId, subGroupId);
-        }
 
         if (!workspaceId) {
             workspaceId = this.getCurrentEnvironmentId()!;
@@ -624,7 +617,7 @@ export class AppStateRepository {
         const link = this.state.links[linkId];
         if (!link || link.subGroupId) return Promise.resolve(this.state);
 
-        const newPosition = this.getPositionForNewLink(link.groupId, targetSubGroupId);
+        const newPosition = this.getPositionForNewItem(link.groupId, targetSubGroupId);
 
         const updatedLinks: Record<string, Link> = {};
         Object.entries(this.state.links)
@@ -676,7 +669,7 @@ export class AppStateRepository {
 
         this.state = { ...this.state, links: { ...this.state.links, ...compactedLinks } };
 
-        const newPosition = this.getPositionForNewLink(link.groupId, undefined);
+        const newPosition = this.getPositionForNewItem(link.groupId, undefined);
 
         this.state = {
             ...this.state,
@@ -689,16 +682,11 @@ export class AppStateRepository {
     }
 
     moveLinkUp(id: string): Promise<AppState> {
-        const link = this.state.links[id];
-        if (!link || link.position <= 0) return Promise.resolve(this.state);
-        return this.editLink(link.url, link.title, id, link.groupId, link.subGroupId, link.environmentId, link.position - 1);
+        return this.moveWithinPositionScope(id, -1);
     }
 
     moveLinkDown(id: string): Promise<AppState> {
-        const link = this.state.links[id];
-        if (!link) return Promise.resolve(this.state);
-        if (link.position >= this.getMaxPositionInScope(link.groupId, link.subGroupId)) return Promise.resolve(this.state);
-        return this.editLink(link.url, link.title, id, link.groupId, link.subGroupId, link.environmentId, link.position + 1);
+        return this.moveWithinPositionScope(id, 1);
     }
 
     moveGroupUp(id: string): Promise<AppState> {
@@ -752,81 +740,99 @@ export class AppStateRepository {
     }
 
     moveSubgroupUp(id: string): Promise<AppState> {
-        const sg = this.state.subgroups[id];
-        if (!sg || sg.position <= 0) return Promise.resolve(this.state);
-        return this.editSubgroupPosition(id, sg.position - 1, sg.groupId);
+        return this.moveWithinPositionScope(id, -1);
     }
 
     moveSubgroupDown(id: string): Promise<AppState> {
-        const sg = this.state.subgroups[id];
-        if (!sg) return Promise.resolve(this.state);
-        if (sg.position >= this.getMaxPositionInScope(sg.groupId)) return Promise.resolve(this.state);
-        return this.editSubgroupPosition(id, sg.position + 1, sg.groupId);
+        return this.moveWithinPositionScope(id, 1);
     }
 
     /**
-     * Moves a subgroup to a new position within its group, shifting all sibling
-     * root-level links and subgroups that occupy the range between old and new position.
-     * Links inside subgroups are not affected (they have their own position scope).
+     * Moves a link or a subgroup one step within the sequence it is ordered in.
+     *
+     * Where that sequence is depends on the item: links inside a subgroup are ordered only
+     * against each other, while root-level links and subgroups share a single sequence. That
+     * shared sequence is the whole point - a link stepping over a subgroup has to trade
+     * positions with the subgroup, not with the next link behind it.
+     *
+     * The step is taken as an index into the ordered scope and the whole scope is renumbered
+     * from it, rather than adding one to a position. Position arithmetic assumes the sequence
+     * is already a clean 0..n-1, and it frequently is not: subgroups were created at position
+     * 0 whatever the group already held, so a move also has to repair what it walks over.
      */
-    private editSubgroupPosition(id: string, newPosition: number, groupId: string): Promise<AppState> {
-        const currentPosition = this.state.subgroups[id].position;
-        if (currentPosition === newPosition) return Promise.resolve(this.state);
+    private moveWithinPositionScope(itemId: string, offset: -1 | 1): Promise<AppState> {
+        const item: GroupItem | undefined = this.state.links[itemId] ?? this.state.subgroups[itemId];
+        if (!item) return Promise.resolve(this.state);
 
-        const shift = (pos: number): number => {
-            if (newPosition < currentPosition && pos >= newPosition && pos < currentPosition) return pos + 1;
-            if (newPosition > currentPosition && pos <= newPosition && pos > currentPosition) return pos - 1;
-            return pos;
-        };
+        const scope = this.getItemsInPositionScope(item);
+        const currentIndex = scope.findIndex(scopeItem => scopeItem.id === itemId);
+        const targetIndex = currentIndex + offset;
+        if (currentIndex < 0 || targetIndex < 0 || targetIndex >= scope.length) {
+            return Promise.resolve(this.state);
+        }
 
-        const updatedLinks: Record<string, Link> = {};
-        Object.entries(this.state.links)
-            .filter(([_, link]) => link.groupId === groupId && !link.subGroupId)
-            .forEach(([linkId, link]) => {
-                updatedLinks[linkId] = { ...link, position: shift(link.position) };
-            });
+        const reordered = [...scope];
+        reordered.splice(targetIndex, 0, ...reordered.splice(currentIndex, 1));
 
-        const updatedSubgroups: Record<string, Subgroup> = {};
-        Object.entries(this.state.subgroups)
-            .filter(([_, sg]) => sg.groupId === groupId)
-            .forEach(([sgId, sg]) => {
-                updatedSubgroups[sgId] = sgId === id
-                    ? { ...sg, position: newPosition }
-                    : { ...sg, position: shift(sg.position) };
-            });
+        const links = { ...this.state.links };
+        const subgroups = { ...this.state.subgroups };
+        reordered.forEach((scopeItem, position) => {
+            if (links[scopeItem.id]) {
+                links[scopeItem.id] = { ...links[scopeItem.id], position };
+            } else {
+                subgroups[scopeItem.id] = { ...subgroups[scopeItem.id], position };
+            }
+        });
 
-        this.state = {
-            ...this.state,
-            links: { ...this.state.links, ...updatedLinks },
-            subgroups: { ...this.state.subgroups, ...updatedSubgroups }
-        };
+        this.state = { ...this.state, links, subgroups };
         return this.save();
     }
 
     /**
-     * Returns the highest position value among all items that share the same
-     * position scope as the given location.
+     * Everything the given item is ordered against, in the order the group renders it.
      *
-     * - Inside a subgroup: only links within that subgroup are compared.
-     * - Root level of a group: root-level links (no subGroupId) AND subgroups
-     *   are compared together, because they share the same position sequence.
+     * Items sharing a position are broken apart the way the group view model breaks them -
+     * links before subgroups, oldest first - so renumbering a sequence that holds duplicates
+     * leaves the user looking at what they were already looking at.
      */
-    private getMaxPositionInScope(groupId: string, subGroupId?: string): number {
+    private getItemsInPositionScope(item: GroupItem): GroupItem[] {
+        const subGroupId = this.state.links[item.id]?.subGroupId;
+        const scope: GroupItem[] = subGroupId
+            ? Object.values(this.state.links).filter(link => link.subGroupId === subGroupId)
+            : [
+                ...Object.values(this.state.links)
+                    .filter(link => link.groupId === item.groupId && !link.subGroupId),
+                ...Object.values(this.state.subgroups)
+                    .filter(sg => sg.groupId === item.groupId)
+            ];
+
+        return scope.sort((a, b) =>
+            a.position - b.position
+            || Number(a.type === "subgroup") - Number(b.type === "subgroup")
+            || a.createdAt - b.createdAt);
+    }
+
+    /**
+     * The positions already taken in the sequence the given location belongs to.
+     *
+     * - Inside a subgroup: only the links of that subgroup.
+     * - Root level of a group: root-level links (no subGroupId) AND subgroups together,
+     *   because they are one sequence.
+     */
+    private getPositionsInScope(groupId: string, subGroupId?: string | null): number[] {
         if (subGroupId) {
-            const positions = Object.values(this.state.links)
-                .filter(l => l.subGroupId === subGroupId)
-                .map(l => l.position);
-            return positions.length === 0 ? 0 : Math.max(...positions);
+            return Object.values(this.state.links)
+                .filter(link => link.subGroupId === subGroupId)
+                .map(link => link.position);
         }
-        const positions = [
+        return [
             ...Object.values(this.state.links)
-                .filter(l => l.groupId === groupId && !l.subGroupId)
-                .map(l => l.position),
+                .filter(link => link.groupId === groupId && !link.subGroupId)
+                .map(link => link.position),
             ...Object.values(this.state.subgroups)
                 .filter(sg => sg.groupId === groupId)
                 .map(sg => sg.position)
         ];
-        return positions.length === 0 ? 0 : Math.max(...positions);
     }
 
     private getOrderForNewGroup(environmentId: string): number {
@@ -838,68 +844,14 @@ export class AppStateRepository {
         return orders.length === 0 ? 0 : Math.max(...orders) + 1;
     }
 
-    private getPositionForNewLink(groupId: string, subGroupId: string | null | undefined): number {
-        const positions = Object.values(this.state.links)
-            .filter(link => {
-                if (subGroupId !== undefined && subGroupId !== null && subGroupId !== "") {
-                    return link.subGroupId === subGroupId;
-                }
-                return link.groupId === groupId;
-            })
-            .map(link => link.position)
-            .filter((p): p is number => p !== undefined);
-
+    /**
+     * The position a newly created link or subgroup takes: behind everything already in its
+     * sequence. A new root-level link has to clear the group's subgroups as well as its
+     * links, and a new subgroup has to clear both too.
+     */
+    private getPositionForNewItem(groupId: string, subGroupId?: string | null): number {
+        const positions = this.getPositionsInScope(groupId, subGroupId);
         return positions.length === 0 ? 0 : Math.max(...positions) + 1;
-    }
-
-    private getRepositionedLinks(
-        currentLinkId: string, currentPosition: number, newPosition: number,
-        groupId: string, subGroupId: string | null | undefined
-    ): Record<string, Link> {
-
-        const updatedLinks: Record<string, Link> = {};
-
-        Object
-            .entries(this.state.links)
-            .filter(([_, link]) => {
-                if (subGroupId) {
-                    return link.subGroupId === subGroupId
-                }
-                return link.groupId === groupId;
-            })
-            .forEach(([id, link]) => {
-                // presúvaný link
-                if (id === currentLinkId) {
-                    updatedLinks[id] = {
-                        ...link,
-                        position: newPosition
-                    };
-                    return;
-                }
-                let updatedPosition = link.position;
-                // presun nahor (napr. z 5 → 2)
-                if (
-                    newPosition < currentPosition &&
-                    link.position >= newPosition &&
-                    link.position < currentPosition
-                ) {
-                    updatedPosition = link.position + 1;
-                }
-                // presun nadol (napr. z 2 → 5)
-                if (
-                    newPosition > currentPosition &&
-                    link.position <= newPosition &&
-                    link.position > currentPosition
-                ) {
-                    updatedPosition = link.position - 1;
-                }
-                updatedLinks[id] = {
-                    ...link,
-                    position: updatedPosition
-                };
-            });
-
-        return updatedLinks;
     }
 }
 
