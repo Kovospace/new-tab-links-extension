@@ -93,6 +93,29 @@ Rules that are load-bearing, and easy to break by accident:
 - **Which profile and which workspace are open is per-device and never synchronized.** The data
   under them is shared; the choice is not.
 
+### Background service worker (`src/backend/worker/`)
+
+Two kinds of thing live there, and they are not the same kind:
+
+- **Request/response modules** extending `BackgroundWorker`, reached from the page through
+  `sendToWorkerThread` and routed by `target` in `background.ts`.
+- **Event listeners**, registered at the worker's top level. `linkTabGroupCatcher` is the
+  first: it watches `chrome.tabs.onUpdated` and pulls a tab that navigates to a link of a
+  subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group. Registration has
+  to happen during the worker's own evaluation - that is what Chrome restarts a stopped
+  worker for. Anything registered later only runs while the worker is already awake.
+
+MV3 stops the worker after thirty seconds of quiet, so it holds no state between events:
+the catcher re-reads the active profile out of `chrome.storage.local` on every navigation,
+through the keys in `datasource/chromeStorage/storageKeys.ts` (shared with the repositories,
+which is why the background bundle now has an import of its own - both entry points use that
+module, and Rollup gives them a shared chunk).
+
+A subgroup's tab group is found by title within one window and created only when absent
+(`worker/module/tabGroups.ts`), so opening a whole subgroup and catching its links one at a
+time land in the same group. Grouping calls are queued, because two tabs finishing at once
+would otherwise each create a group of the same name.
+
 ### Data Model (`AppStateEntity.ts`)
 
 ```
@@ -104,7 +127,12 @@ Profile (registry in ProfileRepository, data stored per profile)
     └── links: Record<string, Link>                 ← belong to Group, optionally Subgroup
 ```
 
-The backend mirrors this exactly, profiles included.
+The backend mirrors this exactly, profiles included. **A new field on an entity has to be
+threaded through five places** or it is silently lost: the entity here, `SyncContracts`
+(both `SyncOperation` and the snapshot DTO), `ChangeSetBuilder` (or it is never pushed),
+`SyncSnapshotMapper` (or every pull wipes it), and the backend itself. A field deliberately
+left out of `ChangeSetBuilder` stays device-local and cannot by itself cause a push - the
+comparison is on the operation that would be sent, not on the stored record.
 
 All entities use string UUIDs as keys. Links have a `position` field for ordering.
 

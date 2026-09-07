@@ -322,3 +322,70 @@ describe("AppStateRepository root-level ordering", () => {
         expect(created.position).toBe(3);
     });
 });
+
+/**
+ *  A subgroup can ask that tabs landing on its links join its tab group. The setting is read
+ *  by the background service worker straight out of storage, so what matters here is that it
+ *  is written, that it survives, and that a subgroup starts without it.
+ */
+describe("AppStateRepository.toggleSubgroupCatchLinksIntoTabGroup", () => {
+
+    const ENV = "env-work";
+    const GROUP = "grp-one";
+
+    let profiles: ProfileRepository;
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        profiles = new ProfileRepository();
+        await profiles.init();
+
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+
+        await profiles.upsertProfile({ id: OTHER, name: "Catching", createdAt: 0 });
+        await appState.saveProfileData(OTHER, profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "One", ENV, 0)],
+            subgroups: [subgroup("sub-one", "Reading", GROUP, ENV)],
+            activeEnvironmentId: ENV
+        }));
+        await appState.switchProfile(OTHER);
+    });
+
+    it("turns the setting on and off again", async () => {
+        const on = await appState.toggleSubgroupCatchLinksIntoTabGroup("sub-one");
+        expect(on.subgroups["sub-one"].catchLinksIntoTabGroup).toBe(true);
+
+        const off = await appState.toggleSubgroupCatchLinksIntoTabGroup("sub-one");
+        expect(off.subgroups["sub-one"].catchLinksIntoTabGroup).toBe(false);
+    });
+
+    it("turns on a subgroup stored before the setting existed", async () => {
+        // Nothing in storage carries the field yet, and undefined is not false to a toggle
+        // written carelessly.
+        const stored = appState.state$.get();
+        delete stored.subgroups["sub-one"].catchLinksIntoTabGroup;
+
+        const state = await appState.toggleSubgroupCatchLinksIntoTabGroup("sub-one");
+
+        expect(state.subgroups["sub-one"].catchLinksIntoTabGroup).toBe(true);
+    });
+
+    it("creates a subgroup with the setting off", async () => {
+        // The user asked for this default explicitly: a new subgroup must not start
+        // capturing tabs from around the browser.
+        const state = await appState.createSubGroup(GROUP, ENV, "Fresh");
+
+        const created = Object.values(state.subgroups).find(sg => sg.title === "Fresh")!;
+        expect(created.catchLinksIntoTabGroup).toBe(false);
+    });
+
+    it("does nothing for a subgroup that is not there", async () => {
+        const before = appState.state$.get();
+
+        const state = await appState.toggleSubgroupCatchLinksIntoTabGroup("sub-deleted-elsewhere");
+
+        expect(state.subgroups).toEqual(before.subgroups);
+    });
+});

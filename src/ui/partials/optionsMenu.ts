@@ -21,6 +21,14 @@ export type OptionsMenuAction = {
     actionTitle: string,
     dangerous?: boolean,
     active?: boolean,
+    /**
+     *  Draws the item as a checkbox, ticked while `active`.
+     *
+     *  For an item that is a setting rather than a command: the menu is where its current
+     *  value is read, so the highlight `active` gives on its own is not enough to say
+     *  whether picking it would turn the thing on or off.
+     */
+    checkable?: boolean,
     noBorder?: boolean,
     dangerConfirmation?: string,
     separator?: false,
@@ -143,6 +151,9 @@ export class OptionsMenu {
         optionElem.setAttribute('defaultText', option.actionTitle);
         if (option.dangerous) {
             optionElem.classList.add("danger");
+        }
+        if (option.checkable) {
+            optionElem.classList.add("checkable");
         }
         if (option.active) {
             optionElem.classList.add("active");

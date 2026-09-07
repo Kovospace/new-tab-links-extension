@@ -74,6 +74,14 @@ export interface Subgroup extends GroupItem {
     collapsed: boolean;
     defaultCollapsed: boolean;
     description?: string;
+
+    /**
+     * Whether a tab that lands on one of this subgroup's links should be pulled into the
+     * subgroup's Chrome tab group, wherever in the browser it was opened from.
+     *
+     * Absent means off, which is what every subgroup stored before this existed says.
+     */
+    catchLinksIntoTabGroup?: boolean;
 }
 
 export interface Link extends GroupItem {

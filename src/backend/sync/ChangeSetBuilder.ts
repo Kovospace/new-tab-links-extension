@@ -177,6 +177,7 @@ export class ChangeSetBuilder {
                 description: subgroup.description ?? null,
                 collapsed: subgroup.collapsed,
                 defaultCollapsed: subgroup.defaultCollapsed,
+                catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false,
                 position: subgroup.position
             }),
             upserts, deletes);

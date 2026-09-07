@@ -51,11 +51,13 @@ export function group(id: string, title: string, environmentId: string, order = 
 }
 
 export function subgroup(
-    id: string, title: string, groupId: string, environmentId: string, position = 0
+    id: string, title: string, groupId: string, environmentId: string, position = 0,
+    extras: { catchLinksIntoTabGroup?: boolean } = {}
 ): Subgroup {
     return {
         id, title, groupId, environmentId, position, createdAt: 0,
-        type: "subgroup", collapsed: false, defaultCollapsed: false
+        type: "subgroup", collapsed: false, defaultCollapsed: false,
+        catchLinksIntoTabGroup: extras.catchLinksIntoTabGroup ?? false
     };
 }
 

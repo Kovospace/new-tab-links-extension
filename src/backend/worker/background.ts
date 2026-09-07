@@ -3,6 +3,7 @@ import { BackgroundWorker } from './abstract/BackgroundWorker'
 import { FavIconWorker } from './module/favIconWorker'
 import {OpenGroupedTabsWorker} from "./module/openGroupedTabsWorker";
 import {OpenTabsWorker} from "./module/openTabsWorker";
+import {registerLinkTabGroupCatcher} from "./module/linkTabGroupCatcher";
 
 type ModuleConstructor = new () => BackgroundWorker<any, any>;
 
@@ -51,3 +52,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   router.dispatch(message).then(sendResponse);
   return true; // asynchronous
 });
+
+// Registered here, at the top level, because that is what Chrome restarts a stopped
+// service worker for. A listener attached any later would only ever run while the worker
+// happened to be awake already.
+registerLinkTabGroupCatcher();

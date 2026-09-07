@@ -16,6 +16,8 @@ Note for agents:
 - implement settings page as the modal dialog, the same way how functionality "Manage profiles" is implemented
 - data structure for settings off course, synchronized too
 - first setting will be: "enable drag & drop"
+- when "open links in separate tabs" lands here, it has to grey out a subgroup's "catch links
+  into tab group" while it is on - the two contradict each other
 - in application menu (three dots upper right corner) it should be the last item and add separator before it
 
 ### [medium] Bookmarking currently opened webpage
@@ -58,12 +60,6 @@ According to research this is possible even without any nasty permissions, think
 - after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
 - signalize by icon of green folder that some of this closed tabs may already be bookmarked
 
-### [small] assign link which is in some subgroup into tab group automatically
-- add one more setting (checkbox) into subgroup settings like "catch all links into tab group"
-  - when active, the link opened from elsewhere or single link opened from subgroup will always be grouped
-  - if no links are opened yet and tab group does not exists, it will be created
-  - this setting is in conflict with "open links in separate tabs" - make it grayed out and inactive if this is active
-
 ### [middle] add validations and constraints to all modal dialogs
 - when creating workspace, groups, link, or subGroup there should always be at least "required" constraints 
   for at least 1 field
@@ -93,6 +89,15 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [small] assign link which is in some subgroup into tab group automatically
+- "Catch links into tab group" in the subgroup menu, drawn as a checkbox, off for a new subgroup
+- caught in the background service worker on the navigation itself, so a link opened from a
+  bookmark, another page or the address bar is grouped just as one clicked in the new tab page is
+- the tab group is found by the subgroup's title in that window and created only when absent;
+  opening the whole subgroup now joins that same group instead of making a second one
+- NOT done: greying it out against "open links in separate tabs" - that setting does not exist
+  yet, see the settings task above
 
 ### changing the order of links on group if subgroup is between them
 - case: at the group from the top:

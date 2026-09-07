@@ -106,7 +106,8 @@ export class SyncSnapshotMapper {
                 position: subgroup.position,
                 createdAt: this.toEpochMilliseconds(subgroup.createdAt),
                 collapsed: subgroup.collapsed,
-                defaultCollapsed: subgroup.defaultCollapsed
+                defaultCollapsed: subgroup.defaultCollapsed,
+                catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false
             } satisfies Subgroup;
         }
 
