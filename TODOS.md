@@ -15,7 +15,10 @@ Note for agents:
 ### [medium] Add "settings" to application menu
 - implement settings page as the modal dialog, the same way how functionality "Manage profiles" is implemented
 - data structure for settings off course, synchronized too
-- first setting will be: "enable drag & drop"
+- divide settings into groups
+  - group sections should be able to "fold"
+  - add first groups "UI and behaviour"
+- first setting will be: "enable drag & drop" - add under "UI and behavior" group
 - when "open links in separate tabs" lands here, it has to grey out a subgroup's "catch links
   into tab group" while it is on - the two contradict each other
 - in application menu (three dots upper right corner) it should be the last item and add separator before it
@@ -61,6 +64,9 @@ Note for agents:
 - add possibility to have "tell me more" button if tip si some feature tht needs further expalanation
   - the url will resolve to the page where "tutorials" will be - 
     - just add url field into json with translations and if it is there, the button is displayed
+
+### [big] i18n of extension
+- there is a lot of string in a lot of places that needs to be collected and redirected into json files
 
 
 ## BUGFIXING
