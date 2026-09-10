@@ -39,6 +39,9 @@ const TOLERANCE = 2;
  */
 export function fitWindowToOpenDialog(): () => void {
 
+    /** The dialog being followed, so a window resize can be answered without one being open. */
+    let watched: HTMLElement | null = null;
+
     const sizes = new ResizeObserver(entries => {
         for (const entry of entries) {
             void applySize(entry.target as HTMLElement);
@@ -46,6 +49,7 @@ export function fitWindowToOpenDialog(): () => void {
     });
 
     const watch = (element: HTMLElement): void => {
+        watched = element;
         sizes.observe(element);
         void applySize(element);
     };
@@ -63,9 +67,22 @@ export function fitWindowToOpenDialog(): () => void {
     });
     added.observe(document.body, { childList: true });
 
+    // The window changing size is the other half of this. A bar the browser adds after the
+    // page has loaded takes its height out of the viewport without the dialog changing at
+    // all, and a dialog already clamped to the viewport shrinks with it rather than asking
+    // for more room. Answering the resize catches both.
+    const windowResized = (): void => {
+        const dialog = document.querySelector<HTMLElement>("dialog[open]") ?? watched;
+        if (dialog) {
+            void applySize(dialog);
+        }
+    };
+    window.addEventListener("resize", windowResized);
+
     return () => {
         sizes.disconnect();
         added.disconnect();
+        window.removeEventListener("resize", windowResized);
     };
 }
 
@@ -119,6 +136,9 @@ let resizing = false;
 
 /** A layout that happened while a resize was in flight, and still has to be answered. */
 let missed: HTMLElement | null = null;
+
+/** The last size asked of the browser, which is not always the size it gave. */
+let lastRequested: { width: number; height: number } | null = null;
 
 /**
  *  Makes the window the size of one element, plus the browser's framing.
@@ -182,6 +202,15 @@ async function resizeOnce(element: HTMLElement): Promise<void> {
             && Math.abs(height - frame.height) <= TOLERANCE) {
             return;
         }
+
+        // The same size asked for twice means the browser gave what it could and no more -
+        // a window cannot be taller than the screen. Asking again would only start a loop,
+        // since each attempt is itself a resize and would come straight back here. The
+        // dialog is clamped to the window and scrolls, so the form stays usable.
+        if (lastRequested?.width === width && lastRequested?.height === height) {
+            return;
+        }
+        lastRequested = { width, height };
 
         LOG.debug("resizeOnce",
             `${frame.width}x${frame.height} -> ${width}x${height} `
