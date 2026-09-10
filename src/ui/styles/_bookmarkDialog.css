@@ -13,6 +13,16 @@ dialog.bookmark-dialog {
        width that answered the window's would chase it down a few pixels at a time. */
     width: 30em;
     max-width: none;
+
+    /*
+       Never taller than the window it is in. The window is sized to this dialog, so normally
+       there is nothing to clamp - but a browser is free to refuse the resize, and on a short
+       screen it cannot obey it, and the form must not answer that by hiding its buttons below
+       the fold. It scrolls itself instead, and the fitter reads scrollHeight, so a clamped
+       dialog still asks for the window it wants.
+    */
+    max-height: calc(100vh - 1.5em);
+    overflow-y: auto;
 }
 
 .bookmark-dialog__form {

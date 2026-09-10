@@ -87,14 +87,19 @@ interface WindowFrame {
 }
 
 async function currentWindowFrame(): Promise<WindowFrame | null> {
+
     const current = await chrome.windows.getCurrent();
-    if (current.id === undefined || current.width === undefined || current.height === undefined) {
+    if (current.id === undefined) {
         return null;
     }
+
+    // A window the browser describes without a size is still resizable; `outerWidth` is the
+    // page's own view of the same thing, and at the zoom of 1 this almost always is, the two
+    // agree.
     return {
         id: current.id,
-        width: current.width,
-        height: current.height,
+        width: current.width ?? window.outerWidth,
+        height: current.height ?? window.outerHeight,
         zoom: await pageZoom()
     };
 }
@@ -163,15 +168,24 @@ async function resizeOnce(element: HTMLElement): Promise<void> {
         const framingWidth = frame.width - (window.innerWidth * frame.zoom);
         const framingHeight = frame.height - (window.innerHeight * frame.zoom);
 
-        const width = Math.round(
-            ((element.offsetWidth + (MARGIN * 2)) * frame.zoom) + framingWidth);
-        const height = Math.round(
-            ((element.offsetHeight + (MARGIN * 2)) * frame.zoom) + framingHeight);
+        // scrollHeight, not only offsetHeight: a dialog too tall for the window it is in is
+        // clamped by its own max-height and scrolls, and its laid-out height would then be
+        // the window's - so it would ask for the size it already has and stay clipped. What
+        // it wants is the height of its contents.
+        const wantedWidth = Math.max(element.offsetWidth, element.scrollWidth);
+        const wantedHeight = Math.max(element.offsetHeight, element.scrollHeight);
+
+        const width = Math.round(((wantedWidth + (MARGIN * 2)) * frame.zoom) + framingWidth);
+        const height = Math.round(((wantedHeight + (MARGIN * 2)) * frame.zoom) + framingHeight);
 
         if (Math.abs(width - frame.width) <= TOLERANCE
             && Math.abs(height - frame.height) <= TOLERANCE) {
             return;
         }
+
+        LOG.debug("resizeOnce",
+            `${frame.width}x${frame.height} -> ${width}x${height} `
+            + `(dialog ${wantedWidth}x${wantedHeight}, zoom ${frame.zoom})`);
 
         await chrome.windows.update(frame.id, { width, height });
 
