@@ -158,6 +158,18 @@ feature needs no permission the extension did not already have.
   windows API's own device-independent pixels, converting the page's CSS pixels with the page
   zoom, since `chrome.windows` is not scaled by zoom and the page is.
 
+### The strip at the bottom of the new tab page is not ours
+
+Chrome 138 added a **footer to the new tab page** which names the extension that overrode it,
+next to a "Customize Chrome" button; Brave inherits it and says "Personalize Brave". It is
+browser UI drawn below the page's web contents - it has its own scrollbar, which is what makes
+it look like a second document - and no manifest key or API removes it from the extension's
+side. A user hides it by right-clicking it ("Hide footer on New Tab page") or through Customize
+Chrome; a fleet does it with the `NTPFooterExtensionAttributionEnabled` policy.
+
+It appears only on the new tab page, never in the bookmarking window. Anything that looks like
+it there is the tab behind that window. Do not go looking for it in this codebase.
+
 ### Data Model (`AppStateEntity.ts`)
 
 ```
