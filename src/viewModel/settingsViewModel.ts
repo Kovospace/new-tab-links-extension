@@ -83,6 +83,13 @@ const CATEGORIES: CategoryDefinition[] = [
                 explanation:
                     "Rearrange links, groups and subgroups by dragging them. Not built yet; "
                     + "turning this on now only stores the choice."
+            },
+            {
+                key: "hideTips",
+                title: "Hide tips",
+                explanation:
+                    "Stop showing the tips along the bottom of the page. This is where they "
+                    + "come back from."
             }
         ]
     }

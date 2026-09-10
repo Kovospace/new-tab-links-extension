@@ -109,6 +109,15 @@ export interface SyncOperation {
      */
     enableDragAndDrop?: boolean;
 
+    /**
+     *  Whether this profile has dismissed the tips on the workspace background.
+     *
+     *  Carried on every profile upsert, for the reason above: an upsert replaces every
+     *  synchronised field, so an operation without it turns the setting off rather than
+     *  leaving it alone.
+     */
+    hideTips?: boolean;
+
     /** Whether a subgroup is folded away right now. */
     collapsed?: boolean;
     /** Whether a subgroup starts folded away. */
@@ -178,6 +187,8 @@ export interface SnapshotProfileDto {
      *  here for the window in which it did not, and read as off in that case.
      */
     enableDragAndDrop?: boolean;
+    /** Same again: absent only from a backend that does not store it yet, and read as off. */
+    hideTips?: boolean;
     createdAt: string;
     updatedAt: string;
 }

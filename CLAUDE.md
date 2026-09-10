@@ -181,6 +181,28 @@ Chrome; a fleet does it with the `NTPFooterExtensionAttributionEnabled` policy.
 It appears only on the new tab page, never in the bookmarking window. Anything that looks like
 it there is the tab behind that window. Do not go looking for it in this codebase.
 
+### Tips on the workspace background (`ui/tips/`)
+
+One dimmed sentence along the bottom of the workspace, in the page footer - which held an
+empty span before this. The footer rather than the columns themselves on purpose: a tip drawn
+behind the columns is unreadable as soon as somebody has enough of them, and one drawn over
+them is in the way.
+
+- The tips are **JSON, not code** (`ui/tips/tips.json`), one entry per tip with a sentence per
+  language, so adding one is adding an entry and a translator can be handed a file. It is
+  imported rather than fetched, so a malformed entry is a build error rather than an empty
+  strip on somebody's new tab page.
+- An optional `url` on a tip draws a "tell me more" button. A path is resolved against the
+  website (`buildWebsiteUrl`), so the tutorials can move without every tip being rewritten;
+  anything with a scheme is taken as it stands.
+- A tip is chosen **at random on every page load**, and the arrows step through the rest. The
+  position is deliberately not stored: remembering it would mean the same tip every morning,
+  and it would make pressing an arrow a write to the profile and so a push to the account.
+- **Dismissing is a profile setting** (`hideTips`), not a device one, so it follows the user
+  and Settings is the way back - which is what the confirmation says. It is named for hiding
+  rather than for showing because every setting defaults to off, and off has to mean the
+  behaviour a profile had before the setting existed.
+
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 
 Every creation and rename goes through `InputDialog`, and each of its fields may declare

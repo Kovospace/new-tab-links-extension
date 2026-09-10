@@ -31,6 +31,7 @@ import {InputDialog} from "../partials/inputDialog";
 import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncContracts";
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
+import {TipsBar} from "../partials/tipsBar";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -401,14 +402,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     }
 
     /**
-     *  Application footer content
+     *  Application footer content: the tips along the bottom of the workspace.
+     *
+     *  The footer rather than the columns themselves, deliberately. A tip drawn behind the
+     *  columns is unreadable the moment somebody has enough of them, and one drawn over them
+     *  is in the way; the footer is on the same screen, always visible, and belongs to
+     *  nothing else - it held an empty span before this.
      */
     private renderFooter() {
         const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
-
-        const dummyTextElem = document.createElement("span");
-        dummyTextElem.title = "tiririri";
-        footerElem.appendChild(dummyTextElem);
+        new TipsBar().render(footerElem);
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

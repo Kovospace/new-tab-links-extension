@@ -69,7 +69,7 @@ describe("SettingsViewModel", () => {
         settings.toggleCategory(firstCategory().key);
 
         expect(published).toBe(before);
-        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false });
+        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false, hideTips: false });
     });
 
     it("keeps a folded category folded while the settings on it change", async () => {

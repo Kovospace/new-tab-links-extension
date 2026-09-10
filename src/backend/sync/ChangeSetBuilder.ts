@@ -136,6 +136,7 @@ export class ChangeSetBuilder {
             op: "upsert", type: "profile", id: profile.id,
             name: profile.name,
             enableDragAndDrop: settingsOf(profile).enableDragAndDrop,
+            hideTips: settingsOf(profile).hideTips,
             position
         };
     }

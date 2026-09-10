@@ -225,7 +225,7 @@ describe("ChangeSetBuilder, profile settings", () => {
             baselineOf(),
             [{
                 id: PROFILE_ID, name: "Default", createdAt: 0,
-                settings: { enableDragAndDrop: true }
+                settings: { enableDragAndDrop: true, hideTips: false }
             }],
             { [PROFILE_ID]: emptyProfile() });
 
@@ -235,7 +235,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("says nothing about a profile whose settings did not change", () => {
-        const settings = { enableDragAndDrop: true };
+        const settings = { enableDragAndDrop: true, hideTips: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -264,7 +264,7 @@ describe("ChangeSetBuilder, profile settings", () => {
         // an upsert replaces every synchronised field. So an operation built for some other
         // reason - a rename, a reorder - that forgot the settings would not be neutral: it
         // would turn the setting off, on every device the account reaches.
-        const settings = { enableDragAndDrop: true };
+        const settings = { enableDragAndDrop: true, hideTips: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -289,7 +289,7 @@ describe("ChangeSetBuilder, profile settings", () => {
                 { id: PROFILE_ID, name: "Default", createdAt: 0 },
                 {
                     id: created, name: "Fresh", createdAt: 0,
-                    settings: { enableDragAndDrop: true }
+                    settings: { enableDragAndDrop: true, hideTips: false }
                 }
             ],
             { [PROFILE_ID]: emptyProfile(), [created]: emptyProfile() });
