@@ -39,9 +39,15 @@ const MENU_ITEM_LINK = "bookmark-link";
 /** Only pages worth keeping a link to; the menu stays out of the way everywhere else. */
 const BOOKMARKABLE_PATTERNS = ["http://*/*", "https://*/*"];
 
-/** Size of the window the form is drawn in; the form is fixed-width and short. */
-const POPUP_WIDTH = 560;
-const POPUP_HEIGHT = 420;
+/**
+ *  The size the window opens at.
+ *
+ *  Only a starting point: the page measures the form once it is laid out and sizes the window
+ *  to it (`utils/windowFitter.ts`), because the form's height depends on whether the chosen
+ *  group has subgroups. These are close to the common case, so the correction is not seen.
+ */
+const POPUP_WIDTH = 520;
+const POPUP_HEIGHT = 360;
 
 /** Registers the command listener. Call once, from the service worker's top level. */
 export function registerBookmarkCommand(): void {

@@ -6,6 +6,7 @@ import { BookmarkViewModel } from "./viewModel/bookmarkViewModel";
 import { BookmarkDialog } from "./ui/partials/bookmarkDialog";
 import { ChoiceDialog } from "./ui/partials/choiceDialog";
 import { readBookmarkRequest } from "./utils/bookmarkRequest";
+import { fitWindowToOpenDialog } from "./utils/windowFitter";
 
 /**
  *  CSS files
@@ -27,6 +28,10 @@ import './ui/styles/_bookmarkDialog.css'
  *  form in. So the worker opens this page in a small window and hands over the tab's details
  *  in the address; everything below is the same repository layer the new tab page uses.
  *
+ *  The window is sized to the dialog rather than to a guess, because the form's height is not
+ *  knowable in advance: the subgroup dropdown is there only for a group that has subgroups.
+ *  See `utils/windowFitter.ts`.
+ *
  *  What it deliberately does not start is synchronisation. This window lives for a few seconds
  *  and holds no session or baseline of its own; the link it stores moves the profile on in
  *  storage, and the next new tab page to synchronise computes that difference against the
@@ -47,6 +52,10 @@ import './ui/styles/_bookmarkDialog.css'
     await profileRepository.init();
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
+    // Started before there is a dialog: it watches for one, and follows whichever is open -
+    // the form, or the notice below when there is nowhere to put a bookmark.
+    const stopFitting = fitWindowToOpenDialog();
+
     const viewModel = new BookmarkViewModel();
 
     if (!viewModel.canBookmark()) {
@@ -59,11 +68,13 @@ import './ui/styles/_bookmarkDialog.css'
             + "and a group, and the shortcut will have somewhere to save to.",
             [{ label: "Close", value: 'ok' }]
         ).ask();
+        stopFitting();
         window.close();
         return;
     }
 
     await new BookmarkDialog(request, viewModel).show();
+    stopFitting();
     window.close();
 
 })();

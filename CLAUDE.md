@@ -150,6 +150,13 @@ feature needs no permission the extension did not already have.
   ignored, which also stops a pull from being pushed straight back.
 - Which workspace the link goes into is not asked: it is the one open on this device. The
   group is chosen, and the subgroup dropdown appears only when that group has subgroups.
+- **The window sizes itself to the dialog** (`utils/windowFitter.ts`), because that second
+  dropdown makes the form's height unknowable when the worker opens the window. A
+  ResizeObserver on the dialog resizes the window to match. Two things keep it stable: the
+  dialog's width is fixed in CSS rather than a share of the viewport - a dialog that answered
+  the window's width would chase it down a few pixels at a time - and the sum is done in the
+  windows API's own device-independent pixels, converting the page's CSS pixels with the page
+  zoom, since `chrome.windows` is not scaled by zoom and the page is.
 
 ### Data Model (`AppStateEntity.ts`)
 

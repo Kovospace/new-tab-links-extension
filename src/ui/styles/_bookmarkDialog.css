@@ -9,7 +9,10 @@
    --------------------------------------------------------------------------- */
 
 dialog.bookmark-dialog {
-    min-width: 30em;
+    /* A fixed width, not a share of the viewport. The window is sized to this dialog, so a
+       width that answered the window's would chase it down a few pixels at a time. */
+    width: 30em;
+    max-width: none;
 }
 
 .bookmark-dialog__form {
