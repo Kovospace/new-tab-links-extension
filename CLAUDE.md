@@ -99,11 +99,13 @@ Two kinds of thing live there, and they are not the same kind:
 
 - **Request/response modules** extending `BackgroundWorker`, reached from the page through
   `sendToWorkerThread` and routed by `target` in `background.ts`.
-- **Event listeners**, registered at the worker's top level. `linkTabGroupCatcher` is the
-  first: it watches `chrome.tabs.onUpdated` and pulls a tab that navigates to a link of a
-  subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group. Registration has
-  to happen during the worker's own evaluation - that is what Chrome restarts a stopped
-  worker for. Anything registered later only runs while the worker is already awake.
+- **Event listeners**, registered at the worker's top level. Registration has to happen
+  during the worker's own evaluation - that is what Chrome restarts a stopped worker for.
+  Anything registered later only runs while the worker is already awake. There are two:
+  - `linkTabGroupCatcher` watches `chrome.tabs.onUpdated` and pulls a tab that navigates to
+    a link of a subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group.
+  - `bookmarkCurrentPage` watches `chrome.commands.onCommand` for the keyboard shortcut
+    declared in the manifest, and opens the bookmarking window on the active tab.
 
 MV3 stops the worker after thirty seconds of quiet, so it holds no state between events:
 the catcher re-reads the active profile out of `chrome.storage.local` on every navigation,
@@ -115,6 +117,29 @@ A subgroup's tab group is found by title within one window and created only when
 (`worker/module/tabGroups.ts`), so opening a whole subgroup and catching its links one at a
 time land in the same group. Grouping calls are queued, because two tabs finishing at once
 would otherwise each create a group of the same name.
+
+### Bookmarking the current page (`src/bookmark.html`)
+
+A second page of the extension, opened by the service worker in a small window when the
+`bookmark-current-page` command is pressed. It exists because the two halves of the job live
+in different places: only the worker can see the tab the user is looking at, and only a page
+can draw a form. Injecting the form into the visited site is what this avoids, and is why the
+feature needs no permission the extension did not already have.
+
+- The tab's url, title and favicon travel in the address, built and read back through
+  `utils/bookmarkRequest.ts` - the one contract between the two ends. Only http(s) is
+  offered; a `chrome://` page, the new tab page included, is not bookmarkable.
+- The window starts the repositories and nothing else. **It deliberately does not
+  synchronise**: it holds no session and lives for seconds. The link it stores moves the
+  stored profile on, and the next new tab page to synchronise pushes that difference, exactly
+  as it would for anything made offline.
+- **`AppStateRepository` adopts writes made in another page** (`chrome.storage.onChanged`),
+  which is what a second page made necessary: without it a new tab page that was already open
+  neither shows the new link nor keeps it - its next save puts its own older copy back over
+  the stored one. A write the repository made itself is deep-equal to what it holds and is
+  ignored, which also stops a pull from being pushed straight back.
+- Which workspace the link goes into is not asked: it is the one open on this device. The
+  group is chosen, and the subgroup dropdown appears only when that group has subgroups.
 
 ### Data Model (`AppStateEntity.ts`)
 
@@ -162,7 +187,8 @@ Defined in `src/main.ts`: custom element tag names and worker message type const
 ## Tech Stack
 
 - **TypeScript** 5.9.3 (strict mode), targeting ES2020
-- **Vite** 7.3.1 — two entry points: `src/main.ts` (UI) and `src/backend/worker/background.ts` (service worker)
+- **Vite** 7.3.1 — three entry points: `src/main.ts` (new tab page), `src/bookmark.ts`
+  (the bookmarking window) and `src/backend/worker/background.ts` (service worker)
 - **Web Components** — no UI framework; components use native `customElements.define`
 - **CSS** — plain CSS with variables in `src/ui/styles/__variables.css`; each component has its own stylesheet
 - **`fast-deep-equal`** — sole runtime dependency, used by `ObservableValue`

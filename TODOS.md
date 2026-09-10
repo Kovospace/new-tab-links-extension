@@ -20,22 +20,6 @@ Note for agents:
   into tab group" while it is on - the two contradict each other
 - in application menu (three dots upper right corner) it should be the last item and add separator before it
 
-### [medium] Bookmarking currently opened webpage
-According to research this is possible even without any nasty permissions, thinkg needed:
-- extension should declare extension command to for example "CTRL + SHIFT + D"
-- worker will open some UI modal dialog with form with:
-    - Name: pre-filled
-    - URL: pre-filled
-    - favicon image (left to columns with inputs)
-    - name of current workspace just for information
-    - group select dropdown
-        - another subgroup dropdown if is detected that given group contains at least one subgroup
-    - "save" button
-      Layout of modal dialog:
-    - left column: favicon
-    - center column: labels, text aligned to the right
-    - right column: form fields
-
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
@@ -67,6 +51,17 @@ According to research this is possible even without any nasty permissions, think
 - now validations in viewModel goes to the console, this info should go to the user at first - ideally modal should
   not be allowed to be submitted
 
+### [small] add tips to the columns screen background
+- the tips will be stored in json with translations - as array, there may be more and more of them towards the future
+- displayed 
+- add close button that will appear after the tip whem mouse hovering it
+  - when clicked, show modal dialog asking user if he wants to hide them
+  - add buttons for "next tip" and "previous tip" - all of them together with remove visible on mouseover
+- show random tip on every new tab open
+- add possibility to have "tell me more" button if tip si some feature tht needs further expalanation
+  - the url will resolve to the page where "tutorials" will be - 
+    - just add url field into json with translations and if it is there, the button is displayed
+
 
 ## BUGFIXING
 
@@ -89,6 +84,22 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [medium] Bookmarking currently opened webpage
+- command "bookmark-current-page" declared in the manifest, suggested Ctrl+Shift+D (Cmd+Shift+D
+  on a Mac); Chrome may hand the key to somebody else, and it is then rebindable at
+  chrome://extensions/shortcuts
+- no new permission: the worker reads the tab it can already see and opens the extension's own
+  small window on it, rather than injecting a form into the visited page
+- the form is the modal dialog described here - favicon on the left, labels right-aligned in the
+  middle, fields on the right - with name and URL pre-filled, the open workspace stated, a group
+  dropdown, and a subgroup dropdown that appears only for a group that has subgroups
+- pressing the shortcut again re-uses the window it already opened, on the new page
+- a profile with no group says so instead of inventing a workspace
+- NOT done: the window does not synchronise by itself. It stores the link and the next new tab
+  page pushes it, the way anything made offline is pushed
+- needed on the way: AppStateRepository now adopts a write made in another page, or a new tab
+  page left open would overwrite the bookmark with its own older copy
 
 ### [small] assign link which is in some subgroup into tab group automatically
 - "Catch links into tab group" in the subgroup menu, drawn as a checkbox, off for a new subgroup

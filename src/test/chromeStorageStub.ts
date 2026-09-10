@@ -12,9 +12,29 @@ import { beforeEach, vi } from "vitest";
  */
 const storedValues = new Map<string, unknown>();
 
-/** Empties the fake storage; called automatically before each test. */
+/**
+ *  Listeners registered through chrome.storage.onChanged.
+ *
+ *  The real API tells every page of the extension about a write, which is how a new tab page
+ *  hears about a link the bookmarking window stored. A test creating two repositories over
+ *  this one map is those two pages, so the notification has to be here too - and it is
+ *  delivered in a later microtask, as the real one is delivered in a later task, so that
+ *  nothing accidentally depends on it having happened before `set` returns.
+ */
+type StorageChange = { oldValue?: unknown; newValue?: unknown };
+type ChangeListener = (changes: Record<string, StorageChange>, areaName: string) => void;
+
+const changeListeners = new Set<ChangeListener>();
+
+/** Empties the fake storage and forgets the listeners; called automatically before each test. */
 export function clearFakeStorage(): void {
     storedValues.clear();
+    changeListeners.clear();
+}
+
+/** Lets a test wait for the notifications a write set off. */
+export function flushStorageNotifications(): Promise<void> {
+    return new Promise(resolve => queueMicrotask(() => queueMicrotask(() => resolve())));
 }
 
 /** Puts a value in place before a test runs, as though a previous session had written it. */
@@ -42,15 +62,29 @@ const chromeStub = {
                 callback(values);
             },
             set(values: Record<string, unknown>, callback: () => void): void {
+                const changes: Record<string, StorageChange> = {};
                 for (const [key, value] of Object.entries(values)) {
+                    changes[key] = { oldValue: storedValues.get(key), newValue: value };
                     storedValues.set(key, value);
                 }
                 callback();
+                queueMicrotask(() => changeListeners
+                    .forEach(listener => listener(changes, "local")));
+            }
+        },
+        onChanged: {
+            addListener(listener: ChangeListener): void {
+                changeListeners.add(listener);
             }
         }
     },
     tabs: {
         create: vi.fn()
+    },
+    runtime: {
+        // Only the address of a page inside the extension; the bookmarking window is opened
+        // by one, and building it is worth a test of its own.
+        getURL: (path: string) => `chrome-extension://newtabgroupedlinks/${path}`
     }
 };
 

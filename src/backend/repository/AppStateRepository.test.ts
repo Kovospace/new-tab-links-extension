@@ -4,6 +4,9 @@ import { AppStateRepository } from "./AppStateRepository";
 import { ProfileRepository } from "./ProfileRepository";
 import { appStateInit } from "../datasource/init/AppStateInit";
 import { environment, group, link, profileOf, subgroup } from "../../test/profileDataFixtures";
+import { appStateKey } from "../datasource/chromeStorage/storageKeys";
+import { flushStorageNotifications, readFakeStorage } from "../../test/chromeStorageStub";
+import { AppState } from "../entity/AppStateEntity";
 
 const OTHER = "0199bbbb-0000-7000-8000-00000000000b";
 
@@ -387,5 +390,77 @@ describe("AppStateRepository.toggleSubgroupCatchLinksIntoTabGroup", () => {
         const state = await appState.toggleSubgroupCatchLinksIntoTabGroup("sub-deleted-elsewhere");
 
         expect(state.subgroups).toEqual(before.subgroups);
+    });
+});
+
+
+/**
+ *  Two pages of this extension can now hold the same profile at once: the new tab page and the
+ *  small window the bookmarking shortcut opens. Each keeps the state in memory, so a write by
+ *  one is invisible to the other until it is adopted - and an unadopted write is not merely
+ *  unseen, it is overwritten by the next thing the other page saves.
+ */
+describe("AppStateRepository adopting a write made in another page", () => {
+
+    const WORKSPACE = "0199aaaa-0000-7000-8000-00000000e001";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g001";
+
+    /** The new tab page: opened first, and left open. */
+    let openPage: AppStateRepository;
+
+    /** The bookmarking window: opened over the same storage a moment later. */
+    let otherPage: AppStateRepository;
+
+    let profileId: string;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        profileId = profiles.getActiveProfileId();
+
+        openPage = new AppStateRepository();
+        await openPage.init(appStateInit, profileId);
+        await openPage.replaceCurrentProfileData(profileOf({
+            environments: [environment(WORKSPACE, "Work")],
+            groups: [group(GROUP, "Reading", WORKSPACE)],
+            activeEnvironmentId: WORKSPACE
+        }));
+
+        otherPage = new AppStateRepository();
+        await otherPage.init(appStateInit, profileId);
+    });
+
+    it("shows a link the other page stored", async () => {
+        await otherPage.createLink("https://example.com/", "Example", GROUP);
+        await flushStorageNotifications();
+
+        const links = Object.values(openPage.state$.get().links);
+        expect(links.map(one => one.url)).toEqual(["https://example.com/"]);
+    });
+
+    it("keeps that link when it saves something of its own next", async () => {
+        // The regression this exists for. Without adopting the write, the page that was
+        // already open still holds a profile with no such link, and the very next save -
+        // any save, this one is only the cheapest to write - puts that older picture back
+        // over the stored one, and the bookmark is gone.
+        await otherPage.createLink("https://example.com/", "Example", GROUP);
+        await flushStorageNotifications();
+
+        await openPage.createLink("https://another.example/", "Another", GROUP);
+
+        const stored = readFakeStorage<AppState>(appStateKey(profileId))!;
+        expect(Object.values(stored.links).map(one => one.url).sort())
+            .toEqual(["https://another.example/", "https://example.com/"]);
+    });
+
+    it("ignores a write to a profile it does not hold", async () => {
+        const before = openPage.state$.get();
+
+        await openPage.saveProfileData("0199aaaa-0000-7000-8000-00000000p002", profileOf({
+            environments: [environment("env-elsewhere", "Elsewhere")]
+        }));
+        await flushStorageNotifications();
+
+        expect(openPage.state$.get()).toEqual(before);
     });
 });
