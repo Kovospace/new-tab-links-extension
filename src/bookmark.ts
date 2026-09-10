@@ -3,10 +3,8 @@ import { profileRepository } from "./backend/repository/ProfileRepository";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 
 import { BookmarkViewModel } from "./viewModel/bookmarkViewModel";
-import { BookmarkDialog } from "./ui/partials/bookmarkDialog";
-import { ChoiceDialog } from "./ui/partials/choiceDialog";
-import { readBookmarkRequest } from "./utils/bookmarkRequest";
-import { fitWindowToOpenDialog } from "./utils/windowFitter";
+import { BookmarkForm, renderNotice } from "./ui/partials/bookmarkForm";
+import { requestForActiveTab, takePendingBookmark } from "./utils/bookmarkRequest";
 
 /**
  *  CSS files
@@ -18,21 +16,23 @@ import './ui/styles/reset.css'
 import './ui/styles/main.css'
 
 import './ui/styles/_inputDialog.css'
-import './ui/styles/_bookmarkDialog.css'
+import './ui/styles/_bookmarkPanel.css'
 
 /**
- *  The window that keeps the page the user is looking at.
+ *  The popup that keeps the page the user is looking at.
  *
- *  It is a second entry point rather than a mode of the new tab page: the keyboard shortcut is
- *  pressed on some other site, and the service worker that catches it has no DOM to draw a
- *  form in. So the worker opens this page in a small window and hands over the tab's details
- *  in the address; everything below is the same repository layer the new tab page uses.
+ *  It is the extension's action popup: the bubble the browser draws under the toolbar icon,
+ *  opened by that icon, by the keyboard shortcut through `_execute_action`, and by the
+ *  right-click menu through `chrome.action.openPopup()`. The browser sizes it to this
+ *  document and furnishes it with nothing, which is why the form is drawn inline rather than
+ *  in a dialog, and why nothing here measures anything.
  *
- *  The window is sized to the dialog rather than to a guess, because the form's height is not
- *  knowable in advance: the subgroup dropdown is there only for a group that has subgroups.
- *  See `utils/windowFitter.ts`.
+ *  **Where the page to bookmark comes from.** The right-click menu leaves a request in session
+ *  storage, because a popup takes no argument; the toolbar icon and the shortcut leave none,
+ *  and mean the tab the popup is standing on. Nothing left over can be answered late: a
+ *  request is taken rather than read, and expires.
  *
- *  What it deliberately does not start is synchronisation. This window lives for a few seconds
+ *  What it deliberately does not start is synchronisation. This popup lives for a few seconds
  *  and holds no session or baseline of its own; the link it stores moves the profile on in
  *  storage, and the next new tab page to synchronise computes that difference against the
  *  account and pushes it - exactly as it would for anything created while offline. An open new
@@ -41,10 +41,16 @@ import './ui/styles/_bookmarkDialog.css'
  */
 (async () => {
 
-    const request = readBookmarkRequest(window.location.search);
+    const host = document.body.getElementsByTagName("main")[0];
+
+    const request = await takePendingBookmark() ?? await requestForActiveTab();
 
     if (!request) {
-        // Nothing bookmarkable in the address; the page was opened by hand or by an old link.
+        await renderNotice(
+            host,
+            "Nothing to bookmark",
+            "This page cannot be kept as a link. Only ordinary web pages can - not the "
+            + "browser's own pages, and not the new tab page.");
         window.close();
         return;
     }
@@ -52,29 +58,22 @@ import './ui/styles/_bookmarkDialog.css'
     await profileRepository.init();
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
-    // Started before there is a dialog: it watches for one, and follows whichever is open -
-    // the form, or the notice below when there is nowhere to put a bookmark.
-    const stopFitting = fitWindowToOpenDialog();
-
     const viewModel = new BookmarkViewModel();
 
     if (!viewModel.canBookmark()) {
         // The first workspace and its first group are decisions made on the new tab page, and
         // creating them here - unasked, from a keyboard shortcut - would be a poor way to meet
         // the extension.
-        await new ChoiceDialog<'ok'>(
+        await renderNotice(
+            host,
             "Nowhere to put it",
-            "This profile has no group to keep a link in yet. Open a new tab, make a workspace "
-            + "and a group, and the shortcut will have somewhere to save to.",
-            [{ label: "Close", value: 'ok' }]
-        ).ask();
-        stopFitting();
+            "This profile has no group to keep a link in yet. Open a new tab, make a "
+            + "workspace and a group, and this will have somewhere to save to.");
         window.close();
         return;
     }
 
-    await new BookmarkDialog(request, viewModel).show();
-    stopFitting();
+    await new BookmarkForm(request, viewModel).render(host);
     window.close();
 
 })();

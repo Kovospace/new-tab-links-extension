@@ -86,21 +86,25 @@ Note: needs permission "chrome.session"
 # DONE
 
 ### [medium] Bookmarking currently opened webpage
-- two ways in: a right-click menu entry ("Bookmark this page with ...", and "Bookmark this
-  link with ..." over a link), and the command "bookmark-current-page" suggested at Alt+Shift+D
+- the form is the extension's action popup (toolbar bubble), opened three ways: the toolbar
+  icon, the keyboard shortcut (Alt+Shift+D, through `_execute_action`), and two right-click
+  entries - "Bookmark this page with ..." and, over a link, "Bookmark this link with ..."
 - Ctrl+Shift+D was asked for and cannot be had: Chrome and Brave both keep it for "bookmark all
-  tabs", and a suggested key the browser refuses leaves the command silently unbound. The menu
-  is what carries the feature; the key is rebindable at chrome://extensions/shortcuts
-- the worker reads the tab it can already see and opens the extension's own small window on it,
-  rather than injecting a form into the visited page; the only permission added is
-  "contextMenus", which has no install-time warning
-- the form is the modal dialog described here - favicon on the left, labels right-aligned in the
-  middle, fields on the right - with name and URL pre-filled, the open workspace stated, a group
-  dropdown, and a subgroup dropdown that appears only for a group that has subgroups
-- pressing the shortcut again re-uses the window it already opened, on the new page
+  tabs", and a suggested key the browser refuses leaves the command silently unbound. The key
+  is rebindable at chrome://extensions/shortcuts
+- it was a window of its own first, and that is what the popup replaced: a browser window comes
+  furnished with a title bar and, since Chrome 138, the new tab page footer naming the
+  extension, and it had to measure and resize itself. A popup has neither problem - it sizes
+  itself to the form. In exchange it closes when it loses focus
+- the layout is the one described here: favicon left, labels right-aligned in the middle,
+  fields right; name and URL pre-filled, the open workspace stated, a group dropdown, and a
+  subgroup dropdown that appears only for a group that has subgroups
 - a profile with no group says so instead of inventing a workspace
-- NOT done: the window does not synchronise by itself. It stores the link and the next new tab
+- the only permission added is "contextMenus", which has no install-time warning
+- NOT done: the popup does not synchronise by itself. It stores the link and the next new tab
   page pushes it, the way anything made offline is pushed
+- NOT done: no toolbar icon artwork - the manifest has no icons at all, so the browser draws
+  its generic one
 - needed on the way: AppStateRepository now adopts a write made in another page, or a new tab
   page left open would overwrite the bookmark with its own older copy
 

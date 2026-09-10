@@ -1,57 +1,80 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
-    buildBookmarkPageUrl,
     isBookmarkableUrl,
-    readBookmarkRequest
+    requestForActiveTab,
+    storePendingBookmark,
+    takePendingBookmark
 } from "./bookmarkRequest";
 
+/** The stub's tabs API, typed enough to say what the next query should answer. */
+const tabs = (globalThis as unknown as {
+    chrome: { tabs: { query: ReturnType<typeof vi.fn> } }
+}).chrome.tabs;
+
 /**
- *  The address is the whole handover between the service worker, which can see the tab, and
- *  the window, which can draw a form. Anything lost or mangled here reaches the user as a
- *  bookmark of the wrong page, or as a window that opens on nothing.
+ *  The handover between the service worker, which can see the tab, and the popup, which can
+ *  draw a form. A popup takes no argument, so the request is left where the popup will look
+ *  for it - and anything wrong here reaches the user as a bookmark of the wrong page, or of a
+ *  page they were looking at a quarter of an hour ago.
  */
 describe("bookmarkRequest", () => {
 
-    it("carries the page through the address unchanged", () => {
+    it("hands the page over as it was given", async () => {
         const request = {
             url: "https://example.com/search?q=a+b&lang=sk#top",
             title: "Example — hľadanie & výsledky",
             favIconUrl: "https://example.com/favicon.ico"
         };
 
-        const parsed = readBookmarkRequest(
-            new URL(buildBookmarkPageUrl(request)).search);
+        await storePendingBookmark(request);
 
-        expect(parsed).toEqual(request);
+        expect(await takePendingBookmark()).toEqual(request);
     });
 
-    it("leaves out a favicon too large to travel in an address", () => {
-        // A page may declare its icon as a data: URI holding the whole image. The window can
-        // ask the favicon worker instead, so an oversized one is dropped rather than carried.
-        const parsed = readBookmarkRequest(new URL(buildBookmarkPageUrl({
+    it("answers a request once", async () => {
+        // Taken, not read. A popup that is dismissed and opened again from the toolbar icon
+        // means "the page I am on now", and must not inherit the last right-click.
+        await storePendingBookmark({ url: "https://example.com/", title: "Example" });
+
+        expect(await takePendingBookmark()).not.toBeNull();
+        expect(await takePendingBookmark()).toBeNull();
+    });
+
+    it("refuses a request left behind a quarter of an hour ago", async () => {
+        vi.useFakeTimers();
+        try {
+            await storePendingBookmark({ url: "https://example.com/", title: "Example" });
+            vi.advanceTimersByTime(15 * 60 * 1000);
+
+            expect(await takePendingBookmark()).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("has nothing to answer when the worker left nothing", async () => {
+        expect(await takePendingBookmark()).toBeNull();
+    });
+
+    it("falls back to the tab the popup is standing on", async () => {
+        tabs.query.mockResolvedValueOnce([{
             url: "https://example.com/",
             title: "Example",
-            favIconUrl: `data:image/png;base64,${"A".repeat(4096)}`
-        })).search);
+            favIconUrl: "https://example.com/favicon.ico"
+        }]);
 
-        expect(parsed?.url).toBe("https://example.com/");
-        expect(parsed?.favIconUrl).toBeUndefined();
-    });
-
-    it("reads a page with no title as one with an empty name", () => {
-        const parsed = readBookmarkRequest(new URL(buildBookmarkPageUrl({
+        expect(await requestForActiveTab()).toEqual({
             url: "https://example.com/",
-            title: ""
-        })).search);
-
-        expect(parsed?.title).toBe("");
+            title: "Example",
+            favIconUrl: "https://example.com/favicon.ico"
+        });
     });
 
-    it("refuses an address that names nothing bookmarkable", () => {
-        expect(readBookmarkRequest("")).toBeNull();
-        expect(readBookmarkRequest("?url=chrome%3A%2F%2Fextensions")).toBeNull();
-        expect(readBookmarkRequest("?url=not-an-address")).toBeNull();
+    it("refuses a tab that is not an ordinary page", async () => {
+        tabs.query.mockResolvedValueOnce([{ url: "chrome://newtab/", title: "New tab" }]);
+
+        expect(await requestForActiveTab()).toBeNull();
     });
 
     it("offers only http and https", () => {

@@ -1,7 +1,6 @@
 import { BookmarkRequest } from '../../utils/bookmarkRequest';
 import { BookmarkTargetDTO, BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
-import { toggleOverlay } from './wrappedHtmlElements';
 
 /** Shown until the page's own icon arrives, and when none can be found. */
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
@@ -12,21 +11,22 @@ const NO_SUBGROUP = '(none)';
 /**
  * The form that keeps the page the user is looking at.
  *
- * It is a <dialog> wearing the input dialog's frame, like the profile manager, but it is the
- * only thing on its page: the shortcut is pressed on some other site, so this window exists
- * solely to ask this question and closes when it has an answer. That is why it resolves a
- * promise rather than calling back - the page has nothing else to do afterwards but close.
+ * It is the whole of its page, not a dialog on one. The page is the extension's action popup -
+ * the bubble the browser draws under the toolbar icon - and the browser sizes that bubble to
+ * the document it contains. A modal <dialog> is out of flow, so a page holding only one would
+ * measure as empty and the bubble would collapse to nothing. Rendering the form inline also
+ * means there is nothing to dismiss: closing the popup is the browser's job, and Escape does
+ * it without any of this being involved.
  *
  * The layout is three columns, as TODOS.md asks for: the page's icon on the left, the labels
  * in the middle against the fields, and the fields on the right. The workspace is a label
  * without a field because it is not a choice here - see BookmarkViewModel.
  */
-export class BookmarkDialog {
+export class BookmarkForm {
 
   private readonly viewModel: BookmarkViewModel;
   private readonly request: BookmarkRequest;
 
-  private dialogEl: HTMLDialogElement | null = null;
   private nameInput!: HTMLInputElement;
   private urlInput!: HTMLInputElement;
   private groupSelect!: HTMLSelectElement;
@@ -37,7 +37,7 @@ export class BookmarkDialog {
   private subgroups: BookmarkTargetDTO[] = [];
 
   /**
-   * @param request   the page to bookmark, as the service worker handed it over
+   * @param request   the page to bookmark
    * @param viewModel supplies the destinations and stores the link; injectable for testing
    */
   constructor(request: BookmarkRequest, viewModel: BookmarkViewModel = new BookmarkViewModel()) {
@@ -46,29 +46,24 @@ export class BookmarkDialog {
   }
 
   /**
-   * Shows the form and waits for it to be finished with.
+   * Draws the form and waits for it to be finished with.
    *
+   * @param host where to draw it; emptied first
    * @return true when the bookmark was stored, false when the user backed out
    */
-  public show(): Promise<boolean> {
+  public render(host: HTMLElement): Promise<boolean> {
     return new Promise<boolean>(resolve => {
+
       let answered = false;
-      // Every way out goes through here - the buttons, Escape, the backdrop - so the dialog
-      // is taken down exactly once however it was finished with.
       const settle = (saved: boolean): void => {
         if (answered) return;
         answered = true;
-        this.hide();
         resolve(saved);
       };
 
       this.groups = this.viewModel.getGroups();
-      this.dialogEl = this.build(settle);
-      document.body.appendChild(this.dialogEl);
-      // Cancel, Escape and the backdrop all end in the element's own close event.
-      this.dialogEl.addEventListener('close', () => settle(false));
-      this.dialogEl.showModal();
-      toggleOverlay(true);
+
+      host.replaceChildren(this.build(settle));
 
       // The name is what a user most often wants to shorten, so it is what is selected.
       this.nameInput.focus();
@@ -76,33 +71,23 @@ export class BookmarkDialog {
     });
   }
 
-  private hide(): void {
-    toggleOverlay(false);
-    // Closed before it is removed: a modal <dialog> lives in the browser's top layer, and
-    // taking the element out from under that leaves the layer holding a node nothing points at.
-    this.dialogEl?.close();
-    this.dialogEl?.remove();
-    this.dialogEl = null;
-  }
+  private build(settle: (saved: boolean) => void): HTMLElement {
 
-  private build(settle: (saved: boolean) => void): HTMLDialogElement {
-
-    const dialog = document.createElement('dialog');
-    dialog.classList.add('input-dialog', 'bookmark-dialog');
+    const panel = document.createElement('section');
+    panel.classList.add('bookmark-panel');
 
     const heading = document.createElement('h2');
     heading.classList.add('input-dialog__title');
     heading.textContent = 'Bookmark this page';
-    dialog.appendChild(heading);
+    panel.appendChild(heading);
 
     const form = document.createElement('form');
-    form.method = 'dialog';
-    form.classList.add('input-dialog__form', 'bookmark-dialog__form');
+    form.classList.add('bookmark-panel__form');
 
     // The icon is the left column; the labels and the fields are the two columns of the
     // grid beside it, which is also what keeps the labels aligned against their fields.
     const fields = document.createElement('div');
-    fields.classList.add('bookmark-dialog__fields');
+    fields.classList.add('bookmark-panel__fields');
 
     form.appendChild(this.buildIcon());
     form.appendChild(fields);
@@ -123,37 +108,32 @@ export class BookmarkDialog {
     this.renderSubgroups();
 
     fields.appendChild(this.buildActions(settle));
-    dialog.appendChild(form);
+    panel.appendChild(form);
 
-    // Enter anywhere in the form saves, the way it does in the input dialog.
-    form.addEventListener('keydown', (event: KeyboardEvent) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        void this.save(settle);
-      }
+    // Enter anywhere in the form saves, the way it does in the input dialog. The form is
+    // never submitted: there is nowhere to submit it to, and letting it try would reload
+    // the popup.
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      void this.save(settle);
     });
 
-    // click on the backdrop (outside the dialog box) dismisses it
-    dialog.addEventListener('click', (event: MouseEvent) => {
-      if (event.target === dialog) settle(false);
-    });
-
-    return dialog;
+    return panel;
   }
 
   /** The page's own icon, in the column to the left of everything else. */
   private buildIcon(): HTMLElement {
 
     const cell = document.createElement('div');
-    cell.classList.add('bookmark-dialog__icon');
+    cell.classList.add('bookmark-panel__icon');
 
     const img = document.createElement('img');
     img.width = 32;
     img.height = 32;
     img.alt = '';
     img.src = this.request.favIconUrl ?? ICON_DEFAULT;
-    // A tab's icon can be gone by the time this window opens, and a page may declare one
-    // Chrome never fetched. Either way the favicon worker knows how to find one.
+    // A tab's icon can be gone by the time this opens, and a page may declare one Chrome
+    // never fetched. Either way the favicon worker knows how to find one.
     img.addEventListener('error', () => { img.src = ICON_DEFAULT; });
     if (!this.request.favIconUrl) {
       FaviconsHandler
@@ -168,7 +148,7 @@ export class BookmarkDialog {
   /** The workspace the link is going into: stated, not chosen. */
   private buildWorkspaceLabel(): HTMLElement {
     const value = document.createElement('span');
-    value.classList.add('bookmark-dialog__value');
+    value.classList.add('bookmark-panel__value');
     value.textContent = this.viewModel.getWorkspaceName() ?? '';
     return value;
   }
@@ -202,10 +182,10 @@ export class BookmarkDialog {
     // The row is display: contents, so the label and the field land in the two columns of
     // the grid rather than in a box of their own - and hiding the row still hides both.
     const row = document.createElement('div');
-    row.classList.add('bookmark-dialog__row');
+    row.classList.add('bookmark-panel__row');
 
     const labelEl = document.createElement('label');
-    labelEl.classList.add('input-dialog__label', 'bookmark-dialog__label');
+    labelEl.classList.add('input-dialog__label', 'bookmark-panel__label');
     labelEl.textContent = label;
     if (field.id) {
       labelEl.htmlFor = field.id;
@@ -220,7 +200,7 @@ export class BookmarkDialog {
   private buildActions(settle: (saved: boolean) => void): HTMLElement {
 
     const actions = document.createElement('div');
-    actions.classList.add('input-dialog__actions', 'bookmark-dialog__actions');
+    actions.classList.add('input-dialog__actions', 'bookmark-panel__actions');
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
@@ -229,10 +209,9 @@ export class BookmarkDialog {
     cancelBtn.addEventListener('click', () => settle(false));
 
     const saveBtn = document.createElement('button');
-    saveBtn.type = 'button';
+    saveBtn.type = 'submit';
     saveBtn.textContent = 'Save';
     saveBtn.classList.add('add');
-    saveBtn.addEventListener('click', () => void this.save(settle));
 
     actions.appendChild(cancelBtn);
     actions.appendChild(saveBtn);
@@ -253,7 +232,7 @@ export class BookmarkDialog {
   }
 
   /**
-   * Stores the link and closes the window.
+   * Stores the link.
    *
    * A bookmark with no address is nothing at all, so an empty URL keeps the form open on the
    * offending field rather than storing a link that leads nowhere. An empty name is allowed
@@ -296,5 +275,46 @@ function fillOptions(select: HTMLSelectElement, labels: string[]): void {
     option.value = String(index);
     option.textContent = label;
     select.appendChild(option);
+  });
+}
+
+/**
+ * Says that there is nowhere to put a bookmark, and waits for that to be read.
+ *
+ * A notice rather than a dialog, for the same reason the form is: this is the whole page.
+ *
+ * @param host    where to draw it
+ * @param message what to say
+ */
+export function renderNotice(host: HTMLElement, title: string, message: string): Promise<void> {
+  return new Promise<void>(resolve => {
+
+    const panel = document.createElement('section');
+    panel.classList.add('bookmark-panel');
+
+    const heading = document.createElement('h2');
+    heading.classList.add('input-dialog__title');
+    heading.textContent = title;
+
+    const text = document.createElement('p');
+    text.classList.add('bookmark-panel__message');
+    text.textContent = message;
+
+    const actions = document.createElement('div');
+    actions.classList.add('input-dialog__actions', 'bookmark-panel__actions');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Close';
+    closeBtn.classList.add('add');
+    closeBtn.addEventListener('click', () => resolve());
+    actions.appendChild(closeBtn);
+
+    panel.appendChild(heading);
+    panel.appendChild(text);
+    panel.appendChild(actions);
+
+    host.replaceChildren(panel);
+    closeBtn.focus();
   });
 }

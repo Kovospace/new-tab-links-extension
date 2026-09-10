@@ -18,8 +18,12 @@
     "service_worker": "background.js",
     "type": "module"
   },
+  "action": {
+    "default_popup": "bookmark.html",
+    "default_title": "Bookmark this page"
+  },
   "commands": {
-    "bookmark-current-page": {
+    "_execute_action": {
       "suggested_key": {
         "default": "Alt+Shift+D",
         "mac": "Alt+Shift+D"

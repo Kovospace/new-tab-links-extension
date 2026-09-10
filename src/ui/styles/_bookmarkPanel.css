@@ -1,0 +1,104 @@
+/* ---------------------------------------------------------------------------
+   Bookmark panel
+
+   The bookmarking form, which is the whole of the action popup's page rather
+   than a dialog on one: the browser sizes that bubble to this document, so the
+   width here is the width of the popup, and the height follows the form.
+
+   Laid out in the three columns TODOS.md asks for: the page's icon, then the
+   labels, then the fields. The icon is a flex item beside the grid rather than
+   a third grid column, because it stands against all the rows at once and a
+   grid item cannot span rows that are only created as the form is filled.
+   --------------------------------------------------------------------------- */
+
+/*
+   The popup's page is not the new tab page: main.css lays that one out as a
+   full-height column that never scrolls, and here the document has to be
+   exactly as big as the form so the browser can size the bubble to it.
+*/
+html > body.popup {
+    display: block;
+    height: auto;
+    overflow: visible;
+}
+
+body.popup > main {
+    display: block;
+    padding: 0;
+    overflow: visible;
+}
+
+.bookmark-panel {
+    /* The popup is as wide as this. Comfortably inside the 800px a browser will
+       draw, and wide enough that an address is readable rather than a keyhole. */
+    width: 30em;
+    display: flex;
+    flex-direction: column;
+}
+
+.bookmark-panel__form {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1em;
+    padding: 1em;
+}
+
+.bookmark-panel__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Level with the first field rather than with its label. */
+    padding-top: 0.2em;
+}
+
+.bookmark-panel__icon > img {
+    width: 32px;
+    height: 32px;
+}
+
+.bookmark-panel__fields {
+    flex: 1;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5em 0.75em;
+}
+
+/* The row is only there to be shown or hidden as a whole; its two children are
+   what the grid places. */
+.bookmark-panel__row {
+    display: contents;
+}
+
+.bookmark-panel__row[hidden] {
+    display: none;
+}
+
+.bookmark-panel__label {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.bookmark-panel__value {
+    /* A stated value, not an editable one - no field framing, just the text. */
+    padding: 0.4em 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bookmark-panel__actions {
+    grid-column: 1 / -1;
+}
+
+/* The notice shown when there is nothing to bookmark, or nowhere to put it. */
+.bookmark-panel__message {
+    margin: 0;
+    padding: 1em;
+    line-height: 1.5;
+}
+
+.bookmark-panel__message + .bookmark-panel__actions {
+    padding: 0 1em 1em;
+}

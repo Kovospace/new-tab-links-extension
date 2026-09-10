@@ -104,11 +104,11 @@ Two kinds of thing live there, and they are not the same kind:
   Anything registered later only runs while the worker is already awake. There are two:
   - `linkTabGroupCatcher` watches `chrome.tabs.onUpdated` and pulls a tab that navigates to
     a link of a subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group.
-  - `bookmarkCurrentPage` watches `chrome.commands.onCommand` for the keyboard shortcut
-    declared in the manifest, and `chrome.contextMenus.onClicked` for the two right-click
-    entries; both open the bookmarking window. The entries themselves are created in
-    `chrome.runtime.onInstalled` - Chrome stores them and brings them back with the worker,
-    so creating them on every wake would fail on the identifier already being taken.
+  - `bookmarkCurrentPage` watches `chrome.contextMenus.onClicked` for the two right-click
+    entries and opens the bookmarking popup on what was clicked. The entries themselves are
+    created in `chrome.runtime.onInstalled` - Chrome stores them and brings them back with
+    the worker, so creating them on every wake would fail on the identifier already being
+    taken. The keyboard shortcut needs no code: `_execute_action` is the browser's own.
 
 MV3 stops the worker after thirty seconds of quiet, so it holds no state between events:
 the catcher re-reads the active profile out of `chrome.storage.local` on every navigation,
@@ -123,23 +123,28 @@ would otherwise each create a group of the same name.
 
 ### Bookmarking the current page (`src/bookmark.html`)
 
-A second page of the extension, opened by the service worker in a small window when the
-`bookmark-current-page` command is pressed. It exists because the two halves of the job live
-in different places: only the worker can see the tab the user is looking at, and only a page
-can draw a form. Injecting the form into the visited site is what this avoids, and is why the
-feature needs no permission the extension did not already have.
+The extension's **action popup** - the bubble the browser draws under the toolbar icon - and a
+second entry point of its own. It exists because the two halves of the job live in different
+places: only the service worker can see the tab the user is looking at, and only a page can
+draw a form. Injecting the form into the visited site is what this avoids, and is why the
+feature needs no permission beyond `contextMenus`.
 
-- The tab's url, title and favicon travel in the address, built and read back through
-  `utils/bookmarkRequest.ts` - the one contract between the two ends. Only http(s) is
-  offered; a `chrome://` page, the new tab page included, is not bookmarkable.
-- **The right-click menu is the way in that works, the shortcut is the accelerator.** A
-  browser keeps its own shortcuts: Ctrl+Shift+D bookmarks every open tab in Chrome and in
-  Brave, and a suggested key the browser refuses leaves the command silently unbound. So the
-  menu (`contextMenus` permission, no install-time warning) carries the feature, and the
-  suggested key is Alt+Shift+D, rebindable at chrome://extensions/shortcuts. Right-clicking a
-  link keeps that link rather than the page it sits on; a link has no title the worker can
-  read, so its name starts empty and saving it as it stands keeps the address as the name.
-- The window starts the repositories and nothing else. **It deliberately does not
+- **Three ways in, and only one of them is code here.** The toolbar icon and the keyboard
+  shortcut (`_execute_action`, suggested Alt+Shift+D) are opened by the browser itself. The
+  right-click entries go through `chrome.action.openPopup()`.
+- **A popup takes no argument**, so the worker leaves the page to bookmark in
+  `chrome.storage.session` and the popup takes it (`utils/bookmarkRequest.ts`). Taken, not
+  read, and stamped: a request a dismissed popup left behind is never answered later. A popup
+  opened from the toolbar icon finds nothing there, which means "the tab I am standing on"
+  and is asked for directly. Only http(s) is offered.
+- **Why not a window of its own.** It was one, and a window is a browser window: the browser
+  furnishes it with a title bar and, since Chrome 138, the new tab page footer. It also had
+  to measure and resize itself, since the subgroup dropdown makes the form's height unknowable
+  in advance. A popup has none of that furniture and sizes itself to the document - which is
+  why the form is rendered inline (`bookmarkForm.ts`) rather than in a `<dialog>`: a modal
+  dialog is out of flow, so the document would measure as empty and the bubble collapse.
+  The cost, accepted deliberately: a popup closes when it loses focus.
+- The popup starts the repositories and nothing else. **It deliberately does not
   synchronise**: it holds no session and lives for seconds. The link it stores moves the
   stored profile on, and the next new tab page to synchronise pushes that difference, exactly
   as it would for anything made offline.
@@ -150,13 +155,6 @@ feature needs no permission the extension did not already have.
   ignored, which also stops a pull from being pushed straight back.
 - Which workspace the link goes into is not asked: it is the one open on this device. The
   group is chosen, and the subgroup dropdown appears only when that group has subgroups.
-- **The window sizes itself to the dialog** (`utils/windowFitter.ts`), because that second
-  dropdown makes the form's height unknowable when the worker opens the window. A
-  ResizeObserver on the dialog resizes the window to match. Two things keep it stable: the
-  dialog's width is fixed in CSS rather than a share of the viewport - a dialog that answered
-  the window's width would chase it down a few pixels at a time - and the sum is done in the
-  windows API's own device-independent pixels, converting the page's CSS pixels with the page
-  zoom, since `chrome.windows` is not scaled by zoom and the page is.
 
 ### The strip at the bottom of the new tab page is not ours
 
@@ -217,7 +215,7 @@ Defined in `src/main.ts`: custom element tag names and worker message type const
 
 - **TypeScript** 5.9.3 (strict mode), targeting ES2020
 - **Vite** 7.3.1 — three entry points: `src/main.ts` (new tab page), `src/bookmark.ts`
-  (the bookmarking window) and `src/backend/worker/background.ts` (service worker)
+  (the bookmarking popup) and `src/backend/worker/background.ts` (service worker)
 - **Web Components** — no UI framework; components use native `customElements.define`
 - **CSS** — plain CSS with variables in `src/ui/styles/__variables.css`; each component has its own stylesheet
 - **`fast-deep-equal`** — sole runtime dependency, used by `ObservableValue`

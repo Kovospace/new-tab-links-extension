@@ -1,14 +1,20 @@
+import { PENDING_BOOKMARK_KEY } from "../backend/datasource/chromeStorage/storageKeys";
+
 /**
- *  What the service worker tells the bookmark page about the page being bookmarked.
+ *  What the service worker tells the bookmarking popup about the page to keep.
  *
- *  The keyboard shortcut is caught in the service worker, which is the only place that can
- *  see the tab the user is looking at, while the form has to be drawn by a page - a worker
- *  has no DOM, and putting the form on the visited site itself would mean injecting into
- *  every page the user opens. So the worker opens an extension page and hands it the tab's
- *  details in the address, the way it would hand them to any other window.
+ *  The popup is the browser's own bubble, opened from the toolbar icon, the keyboard shortcut
+ *  or `chrome.action.openPopup()`. None of those carry an argument - the popup's address is
+ *  fixed in the manifest - so the worker leaves the request where the popup will look for it
+ *  and opens the popup, and the popup takes it from there.
  *
- *  Kept here, beside `sendToWorker`, because both ends of that handover need it: the worker
- *  builds the address, the page reads it back.
+ *  **Session storage, not local.** A request is a few seconds of intent, not data: it must not
+ *  survive a browser restart and be answered days later. It is taken rather than read, so it
+ *  is answered once, and it is stamped so that one left behind by a popup the user dismissed
+ *  is not picked up by the next.
+ *
+ *  A popup opened from the toolbar icon finds nothing here, which is not an error: it means
+ *  "the page I am standing on", and the popup asks the browser for that itself.
  */
 
 /** The details of the page being bookmarked, as the form needs them. */
@@ -24,22 +30,19 @@ export interface BookmarkRequest {
     favIconUrl?: string;
 }
 
-/** The extension page that draws the bookmarking form. */
-export const BOOKMARK_PAGE = "bookmark.html";
-
-const PARAM_URL = "url";
-const PARAM_TITLE = "title";
-const PARAM_ICON = "icon";
+/** A request, and when it was made. */
+interface PendingBookmark extends BookmarkRequest {
+    at: number;
+}
 
 /**
- *  How long a favicon address may be before it is dropped from the handover.
+ *  How long a request stays answerable.
  *
- *  A tab's favicon is usually an ordinary address, but a page is free to declare it as a
- *  `data:` URI holding the whole image, and those run to tens of kilobytes. The page can ask
- *  the favicon worker for an icon by itself, so an oversized one is simply left out rather
- *  than carried through the address bar.
+ *  Long enough for the popup to open and read it, short enough that one left behind - the
+ *  popup refused to open, or was dismissed before it loaded - is never answered later, when
+ *  the user is looking at something else entirely.
  */
-const MAX_FAVICON_URL_LENGTH = 2048;
+const PENDING_LIFETIME = 15_000;
 
 /**
  *  Whether a page can be bookmarked at all.
@@ -60,36 +63,54 @@ export function isBookmarkableUrl(url: string | undefined): url is string {
     }
 }
 
-/** The address of the bookmark page, carrying the details of the page to bookmark. */
-export function buildBookmarkPageUrl(request: BookmarkRequest): string {
-    const params = new URLSearchParams();
-    params.set(PARAM_URL, request.url);
-    params.set(PARAM_TITLE, request.title);
-    if (request.favIconUrl && request.favIconUrl.length <= MAX_FAVICON_URL_LENGTH) {
-        params.set(PARAM_ICON, request.favIconUrl);
-    }
-    return `${chrome.runtime.getURL(BOOKMARK_PAGE)}?${params.toString()}`;
+/** Leaves a request for the popup that is about to open. */
+export async function storePendingBookmark(request: BookmarkRequest): Promise<void> {
+    const pending: PendingBookmark = { ...request, at: Date.now() };
+    await chrome.storage.session.set({ [PENDING_BOOKMARK_KEY]: pending });
 }
 
 /**
- *  Reads back what the worker put in the address.
+ *  Takes the request the worker left, if there is one worth answering.
  *
- *  @param search  `window.location.search` of the bookmark page
- *  @return the page to bookmark, or null when the address names nothing bookmarkable - which
- *          is what someone opening the page by hand would produce
+ *  Taken, not read: the request is removed whether or not it is still fresh, so it cannot be
+ *  answered twice or inherited by a later popup.
+ *
+ *  @return the page to bookmark, or null when the popup was opened without one - which is
+ *          what clicking the toolbar icon does
  */
-export function readBookmarkRequest(search: string): BookmarkRequest | null {
+export async function takePendingBookmark(): Promise<BookmarkRequest | null> {
 
-    const params = new URLSearchParams(search);
-    const url = params.get(PARAM_URL);
+    const stored = await chrome.storage.session.get(PENDING_BOOKMARK_KEY);
+    const pending = stored[PENDING_BOOKMARK_KEY] as PendingBookmark | undefined;
 
-    if (!isBookmarkableUrl(url ?? undefined)) {
+    if (pending) {
+        await chrome.storage.session.remove(PENDING_BOOKMARK_KEY);
+    }
+
+    if (!pending
+        || !isBookmarkableUrl(pending.url)
+        || Date.now() - pending.at > PENDING_LIFETIME) {
         return null;
     }
 
-    return {
-        url: url!,
-        title: params.get(PARAM_TITLE) ?? "",
-        favIconUrl: params.get(PARAM_ICON) ?? undefined
-    };
+    return { url: pending.url, title: pending.title, favIconUrl: pending.favIconUrl };
+}
+
+/**
+ *  The tab the popup is standing on, as a request.
+ *
+ *  This is what the toolbar icon and the keyboard shortcut mean: the popup opens over the
+ *  page the user is looking at, and that page is what they want kept.
+ *
+ *  @return the active tab as a request, or null when it is not something to keep a link to
+ */
+export async function requestForActiveTab(): Promise<BookmarkRequest | null> {
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab || !isBookmarkableUrl(tab.url)) {
+        return null;
+    }
+
+    return { url: tab.url, title: tab.title ?? "", favIconUrl: tab.favIconUrl };
 }

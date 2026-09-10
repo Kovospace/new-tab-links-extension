@@ -26,9 +26,13 @@ type ChangeListener = (changes: Record<string, StorageChange>, areaName: string)
 
 const changeListeners = new Set<ChangeListener>();
 
+/** The session storage area, which is emptied between tests along with the rest. */
+const sessionValues = new Map<string, unknown>();
+
 /** Empties the fake storage and forgets the listeners; called automatically before each test. */
 export function clearFakeStorage(): void {
     storedValues.clear();
+    sessionValues.clear();
     changeListeners.clear();
 }
 
@@ -76,10 +80,31 @@ const chromeStub = {
             addListener(listener: ChangeListener): void {
                 changeListeners.add(listener);
             }
+        },
+        /**
+         *  The session area, which the real API keeps for the length of a browser session
+         *  and answers with promises rather than callbacks. The bookmarking popup and the
+         *  service worker hand a request over through it.
+         */
+        session: {
+            async get(key: string): Promise<Record<string, unknown>> {
+                return sessionValues.has(key) ? { [key]: sessionValues.get(key) } : {};
+            },
+            async set(values: Record<string, unknown>): Promise<void> {
+                for (const [key, value] of Object.entries(values)) {
+                    sessionValues.set(key, value);
+                }
+            },
+            async remove(key: string): Promise<void> {
+                sessionValues.delete(key);
+            }
         }
     },
     tabs: {
-        create: vi.fn()
+        create: vi.fn(),
+        // Answers with no tabs unless a test says otherwise; the bookmarking popup asks
+        // which tab it is standing on.
+        query: vi.fn(async (_query: unknown) => [] as unknown[])
     },
     runtime: {
         // Only the address of a page inside the extension; the bookmarking window is opened
