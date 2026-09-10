@@ -225,7 +225,7 @@ describe("ChangeSetBuilder, profile settings", () => {
             baselineOf(),
             [{
                 id: PROFILE_ID, name: "Default", createdAt: 0,
-                settings: { enableDragAndDrop: true }
+                settings: { enableDragAndDrop: true, hideTips: false }
             }],
             { [PROFILE_ID]: emptyProfile() });
 
@@ -235,7 +235,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("says nothing about a profile whose settings did not change", () => {
-        const settings = { enableDragAndDrop: true };
+        const settings = { enableDragAndDrop: true, hideTips: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -263,8 +263,10 @@ describe("ChangeSetBuilder, profile settings", () => {
         // The backend reads an absent flag as false rather than as "leave it alone", because
         // an upsert replaces every synchronised field. So an operation built for some other
         // reason - a rename, a reorder - that forgot the settings would not be neutral: it
-        // would turn the setting off, on every device the account reaches.
-        const settings = { enableDragAndDrop: true };
+        // would turn the setting off, on every device the account reaches. Every setting has
+        // to be asserted here, not just the first one: they are what a second one added
+        // carelessly would silently stop carrying.
+        const settings = { enableDragAndDrop: true, hideTips: true };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -278,6 +280,7 @@ describe("ChangeSetBuilder, profile settings", () => {
         expect(profiles).toHaveLength(1);
         expect(profiles[0].name).toBe("Home");
         expect(profiles[0].enableDragAndDrop).toBe(true);
+        expect(profiles[0].hideTips).toBe(true);
     });
 
     it("carries the settings of a profile the account has never seen", () => {
@@ -289,7 +292,7 @@ describe("ChangeSetBuilder, profile settings", () => {
                 { id: PROFILE_ID, name: "Default", createdAt: 0 },
                 {
                     id: created, name: "Fresh", createdAt: 0,
-                    settings: { enableDragAndDrop: true }
+                    settings: { enableDragAndDrop: true, hideTips: false }
                 }
             ],
             { [PROFILE_ID]: emptyProfile(), [created]: emptyProfile() });

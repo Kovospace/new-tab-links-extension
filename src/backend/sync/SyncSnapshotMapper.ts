@@ -49,7 +49,10 @@ export class SyncSnapshotMapper {
                 // yet says nothing, and settingsOf() reads that as the defaults rather than
                 // as an instruction to turn anything on.
                 settings: settingsOf({
-                    settings: { enableDragAndDrop: profile.enableDragAndDrop ?? false }
+                    settings: {
+                        enableDragAndDrop: profile.enableDragAndDrop ?? false,
+                        hideTips: profile.hideTips ?? false
+                    }
                 })
             }));
 

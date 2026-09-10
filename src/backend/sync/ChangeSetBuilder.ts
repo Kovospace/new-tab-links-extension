@@ -135,7 +135,11 @@ export class ChangeSetBuilder {
         return {
             op: "upsert", type: "profile", id: profile.id,
             name: profile.name,
+            // Every setting, every time. The backend replaces every synchronised field on an
+            // upsert, so one left out here is not left alone - it is switched off, account
+            // wide, by whatever unrelated change caused the operation.
             enableDragAndDrop: settingsOf(profile).enableDragAndDrop,
+            hideTips: settingsOf(profile).hideTips,
             position
         };
     }

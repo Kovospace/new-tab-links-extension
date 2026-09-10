@@ -1,0 +1,95 @@
+/* ---------------------------------------------------------------------------
+   Tips bar
+
+   One sentence along the bottom of the workspace, dimmed and out of the way.
+   Its controls - previous, next, hide - are invisible until the pointer is over
+   the bar, so that the resting state is a sentence and nothing else.
+
+   They are hidden by opacity rather than by display: a row of buttons that
+   appears on hover would change the bar's width as the pointer arrives, and the
+   thing under the pointer would move.
+   --------------------------------------------------------------------------- */
+
+.tips-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 1em 1em;
+    border-radius: 0.5em;
+    background-color: var(--color-component-background);
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: fit-content;
+    margin: 0 auto;
+    margin-bottom: 1em;
+}
+
+.tips-bar::before {
+    content: 'TIP:';
+    font-weight: bold;
+}
+
+.tips-bar[hidden] {
+    display: none;
+}
+
+.tips-bar:hover {
+}
+
+.tips-bar__text {
+    /* A long tip ellipsises rather than pushing the controls off the screen. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tips-bar__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.125em;
+}
+
+/* The controls give up main.css's button styling, which is sized for the square
+   buttons in the group headers and would make a row of slabs out of these. */
+.tips-bar__control,
+html.dark .tips-bar__control {
+    min-width: 0;
+    margin: 0;
+    padding: 0 0.25em;
+    background: none;
+    border: none;
+    font-size: 1em;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+
+.tips-bar__control:hover,
+html.dark .tips-bar__control:hover {
+    background: none;
+    color: var(--color-button-active-background);
+}
+
+/* "Tell me more" is the one control that is not a symbol, and the one that is
+   always visible: it is part of the tip rather than a way of managing tips. */
+.tips-bar__more,
+html.dark .tips-bar__more {
+    min-width: 0;
+    margin: 0;
+    padding: 0 0.25em;
+    background: none;
+    border: none;
+    font-size: 1em;
+    font-weight: normal;
+    line-height: 1;
+    color: var(--color-button-active-background);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.tips-bar__more:hover,
+html.dark .tips-bar__more:hover {
+    background: none;
+    color: var(--color-button-active-background-hover);
+}

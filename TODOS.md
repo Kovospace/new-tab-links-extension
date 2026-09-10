@@ -24,21 +24,6 @@ Note for agents:
 - after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
 - signalize by icon of green folder that some of this closed tabs may already be bookmarked
 
-### [small] add tips to the columns screen background
-- the tips will be stored in json with translations - as array, there may be more and more of them towards the future
-- displayed 
-- add close button that will appear after the tip whem mouse hovering it
-  - when clicked, show modal dialog asking user if he wants to hide them
-  - add buttons for "next tip" and "previous tip" - all of them together with remove visible on mouseover
-- show random tip on every new tab open
-- add possibility to have "tell me more" button if tip si some feature tht needs further expalanation
-  - the url will resolve to the page where "tutorials" will be - 
-    - just add url field into json with translations and if it is there, the button is displayed
-
-### [big] i18n of extension
-- there is a lot of string in a lot of places that needs to be collected and redirected into json files
-
-
 ## BUGFIXING
 
 ## DO NOT DO, Must be decided, too complex and few fallpoints - but still vital if done on fisrt release
@@ -60,6 +45,25 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [small] add tips to the columns screen background
+- tips live in src/ui/tips/tips.json as an array, one sentence per language per tip; adding a
+  tip is adding an entry, and English is what everything falls back to
+- drawn in the page footer, dimmed, one line: behind the columns they would be unreadable as
+  soon as there are enough columns, and over them they would be in the way
+- a random tip on every new tab open; previous / next arrows step through the rest, and the
+  position is not remembered - storing it would mean the same tip every morning, and would
+  make pressing an arrow a write to the account
+- the arrows and the close button appear on hover (and on keyboard focus), the sentence alone
+  when the pointer is elsewhere
+- close asks first, and hiding is the profile setting "Hide tips" - so it follows the user to
+  every device, and Settings is the way back, which is what the question says
+- a tip with a "url" field gets a "tell me more" button. The url is per language, like the
+  sentence, because the tutorial it points at is a page in a language; a language with no
+  tutorial yet falls back to the English one. A path resolves against the website, so the
+  tutorials pages can move without every tip being rewritten
+- NOT done: no tutorials pages exist yet, so the one tip that has a url points at where they
+  will be
 
 ### [medium] Custom color for tab group
 - NOT as specced, and the reason is the browser: chrome.tabGroups.update() takes one of nine

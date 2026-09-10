@@ -52,6 +52,7 @@ div.overlay.hidden {
 */
 header,
 footer {
+    display: flex;
     padding: 0.5em;
     flex: 0 0 auto;
 }
@@ -152,8 +153,7 @@ html.dark {
     color: var(--color-document-text);
 }
 
-html.dark header,
-html.dark footer {
+html.dark header {
     background-color: var(--color-component-background);
     color: var(--color-component-text);
 }

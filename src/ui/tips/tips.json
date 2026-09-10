@@ -1,0 +1,65 @@
+[
+  {
+    "id": "catch-links-into-tab-group",
+    "text": {
+      "en": "A subgroup can pull tabs into its own tab group — open its menu and turn on \"Catch links into tab group\".",
+      "sk": "Podskupina vie ťahať karty do vlastnej skupiny kariet — v jej menu zapnite „Catch links into tab group“."
+    },
+    "url": {
+      "en": "/tutorials/tab-groups",
+      "sk": "/sk/navody/skupiny-kariet"
+    }
+  },
+  {
+    "id": "grouped-tabs-color",
+    "text": {
+      "en": "Each subgroup has a colour, and Chrome paints its tab group with it. Change it from the subgroup menu.",
+      "sk": "Každá podskupina má farbu a Chrome ňou zafarbí jej skupinu kariet. Zmeníte ju v menu podskupiny."
+    },
+    "url": {
+      "en": "/tutorials/tab-group-colours"
+    }
+  },
+  {
+    "id": "bookmark-shortcut",
+    "text": {
+      "en": "Right-click any page and choose \"Bookmark this page\" to keep it here without leaving the site.",
+      "sk": "Kliknite pravým tlačidlom na ktorúkoľvek stránku a zvoľte „Bookmark this page“ — uložíte ju bez opustenia webu."
+    }
+  },
+  {
+    "id": "profiles",
+    "text": {
+      "en": "Profiles are separate worlds: work links in one, home links in another, and nothing in between.",
+      "sk": "Profily sú oddelené svety: pracovné odkazy v jednom, domáce v druhom, a nič medzi tým."
+    }
+  },
+  {
+    "id": "workspaces",
+    "text": {
+      "en": "A profile can hold several workspaces. Switch between them from the buttons at the top left.",
+      "sk": "Profil môže mať viacero pracovných plôch. Prepínate ich tlačidlami vľavo hore."
+    }
+  },
+  {
+    "id": "open-whole-subgroup",
+    "text": {
+      "en": "\"Open all links in grouped tabs\" opens a whole subgroup at once, in one tab group.",
+      "sk": "„Open all links in grouped tabs“ otvorí celú podskupinu naraz, v jednej skupine kariet."
+    }
+  },
+  {
+    "id": "sync",
+    "text": {
+      "en": "Signed in, your links follow you: everything here is on every device you sign in on.",
+      "sk": "Po prihlásení vás odkazy sledujú: všetko odtiaľto máte na každom prihlásenom zariadení."
+    }
+  },
+  {
+    "id": "settings",
+    "text": {
+      "en": "These tips can be turned off — and back on — from Settings in the application menu.",
+      "sk": "Tieto tipy sa dajú vypnúť — aj znova zapnúť — v Nastaveniach v menu aplikácie."
+    }
+  }
+]

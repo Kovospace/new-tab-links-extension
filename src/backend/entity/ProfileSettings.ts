@@ -22,11 +22,21 @@ export interface ProfileSettings {
      *  be turned off by anyone it gets in the way of.
      */
     enableDragAndDrop: boolean;
+
+    /**
+     *  Whether the tips along the bottom of the workspace are dismissed.
+     *
+     *  Named for hiding rather than for showing, which is not a style choice: every setting
+     *  here defaults to off, and off has to mean the behaviour a profile had before the
+     *  setting existed. Tips were visible, so "visible" is what false must mean.
+     */
+    hideTips: boolean;
 }
 
 /** What a profile that has never been configured is set to. */
 export const DEFAULT_PROFILE_SETTINGS: ProfileSettings = {
-    enableDragAndDrop: false
+    enableDragAndDrop: false,
+    hideTips: false
 };
 
 /**
