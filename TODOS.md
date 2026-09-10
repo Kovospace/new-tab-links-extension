@@ -89,6 +89,11 @@ Note: needs permission "chrome.session"
   new entity kind, no snapshot collection and no merge rules: a change is a difference in the
   profile upsert the change set already sends. The dialog says which profile it is about,
   because that is the cost of it
+- settings are drawn in collapsible categories; the first is "UI and behavior", and it is
+  where "enable drag & drop" lives. Adding a setting is a line in the CATEGORIES list in
+  settingsViewModel.ts and nothing else; a category with nothing in it yet is not drawn
+- which categories are folded is not stored and not synchronised - it is how the screen is
+  being looked at, and a dialog opened again starts with the first category expanded
 - first setting is "enable drag & drop", off by default; nothing reads it yet, the dragging
   itself is still to be built
 - NOT done: "open links in separate tabs" and greying out a subgroup's "catch links into tab

@@ -1,5 +1,7 @@
-import { SettingDTO, SettingsDTO, SettingsViewModel } from '../../viewModel/settingsViewModel';
-import { toggleOverlay } from './wrappedHtmlElements';
+import {
+  SettingCategoryDTO, SettingDTO, SettingsDTO, SettingsViewModel
+} from '../../viewModel/settingsViewModel';
+import { ICON, toggleOverlay } from './wrappedHtmlElements';
 
 /**
  * The settings screen.
@@ -12,6 +14,12 @@ import { toggleOverlay } from './wrappedHtmlElements';
  * record, which is what carries them to the account without a store of their own; the cost of
  * that is that two profiles are two sets of preferences, and a screen that did not say so
  * would look broken to anyone who set something in one profile and switched to another.
+ *
+ * Settings are drawn in collapsible categories, of which "UI and behavior" is the first. One
+ * category is not worth folding away, but the list is going to grow - and a screen that has to
+ * be scrolled to find out what is on it is one people stop reading. Which categories are
+ * folded is the view model's, not the profile's: it is how the screen is being looked at, not
+ * something the user set.
  *
  * Each setting draws itself from a DTO, including whether it can be changed at all. Nothing
  * disables anything yet; that arrives with "open links in separate tabs", which contradicts a
@@ -108,7 +116,45 @@ export class SettingsDialog {
           + 'are signed in on.'
         : 'These apply to the profile you have open.'));
 
-    settings.settings.forEach(setting => this.listEl!.appendChild(this.buildRow(setting)));
+    settings.categories.forEach(
+      category => this.listEl!.appendChild(this.buildCategory(category)));
+  }
+
+  /**
+   * One category: a heading that folds it away, and the settings under it.
+   *
+   * The heading is a button rather than a clickable div, so that it is reachable by keyboard
+   * and announces itself as something that does something.
+   */
+  private buildCategory(category: SettingCategoryDTO): HTMLElement {
+
+    const section = document.createElement('section');
+    section.classList.add('settings-dialog__category');
+
+    const heading = document.createElement('button');
+    heading.type = 'button';
+    heading.classList.add('settings-dialog__category-head');
+    heading.setAttribute('aria-expanded', String(!category.collapsed));
+    heading.addEventListener('click', () => this.viewModel.toggleCategory(category.key));
+
+    const chevron = document.createElement('span');
+    chevron.classList.add('settings-dialog__chevron');
+    chevron.textContent = category.collapsed ? ICON.EXPAND : ICON.COLLAPSE;
+
+    const title = document.createElement('span');
+    title.textContent = category.title;
+
+    heading.appendChild(chevron);
+    heading.appendChild(title);
+    section.appendChild(heading);
+
+    const body = document.createElement('div');
+    body.classList.add('settings-dialog__category-body');
+    body.hidden = category.collapsed;
+    category.settings.forEach(setting => body.appendChild(this.buildRow(setting)));
+    section.appendChild(body);
+
+    return section;
   }
 
   /** One setting: a checkbox, its name, and what it does. */
