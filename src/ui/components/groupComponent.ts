@@ -29,6 +29,7 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../../
 import {OptionsMenu} from "../partials/optionsMenu";
 import {InputDialog} from "../partials/inputDialog";
 import {SelectDialog} from "../partials/selectDialog";
+import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 
 
 
@@ -38,12 +39,18 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
     private addSubgroupDialog: InputDialog = new InputDialog(
         "Add subgroup",
-        { "Subgroup title": "string", "Subgroup description": "string" },
+        {
+            "Subgroup title": { type: "string", required: true, maxLength: MAX_NAME_LENGTH },
+            "Subgroup description": { type: "string", maxLength: MAX_DESCRIPTION_LENGTH }
+        },
         ({ subgroupTitle, subgroupDescription }) => this.VIEW_MODEL.addSubGroup(subgroupTitle, subgroupDescription));
 
     private addLinkDialog: InputDialog = new InputDialog(
         "Add link",
-        { "Name": "string", "URL": "url" },
+        {
+            "Name": { type: "string", required: true, maxLength: MAX_TITLE_LENGTH },
+            "URL": { type: "url", required: true, maxLength: MAX_URL_LENGTH }
+        },
         ({ url, name }) => this.VIEW_MODEL.addLink(url, name, this.id));
 
     render(parentElem: HTMLElement): void {

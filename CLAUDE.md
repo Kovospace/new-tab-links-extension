@@ -19,7 +19,11 @@ every test, so repositories are exercised as themselves rather than against a mo
 
 What is covered is the synchronisation layer, because that is where a bug costs a user their
 links: the merge rules, the change set, identifier rewriting, the profile registry, and first
-contact with an account. The UI components are not covered.
+contact with an account. The UI components are not covered, with two deliberate exceptions:
+the field rules in `ui/partials/fieldValidation.ts`, which are the account's constraints
+applied early, and `InputDialog` itself, which is where they are wired to a button. jsdom has
+no working `<dialog>`, so that test stands `showModal`/`close` in - on the prototype, which is
+safe only because vitest gives every test file its own environment.
 
 **A regression test has to fail against the bug it names.** Every test here that claims to pin a
 past defect was checked by restoring the old behaviour and watching it fail - two of them passed
@@ -167,6 +171,29 @@ Chrome; a fleet does it with the `NTPFooterExtensionAttributionEnabled` policy.
 
 It appears only on the new tab page, never in the bookmarking window. Anything that looks like
 it there is the tab behind that window. Do not go looking for it in this codebase.
+
+### Dialog constraints (`ui/partials/fieldValidation.ts`)
+
+Every creation and rename goes through `InputDialog`, and each of its fields may declare
+constraints - `{ type, required, maxLength }` - beside the bare type it used to take. The
+dialog will not submit a form that breaks them: the confirming button is disabled, the offending
+field is named under itself, and Enter refuses too (a disabled button does not stop a keypress).
+
+**The limits are the backend's, and they are enforced here for a specific reason.** `@Size` is
+validated over the whole push request, so one over-long name does not come back as one rejected
+operation - it fails the entire batch with a 400, nothing is applied, and it then sits in local
+state stopping every other change from reaching the account until somebody finds it. The
+numbers live in `SyncContracts` beside the rest of the wire contract: `MAX_NAME_LENGTH` 120,
+`MAX_DESCRIPTION_LENGTH` 500, `MAX_TITLE_LENGTH` 200, `MAX_URL_LENGTH` 2048.
+
+A URL field also refuses `javascript:`, `data:`, `vbscript:` and `blob:`. A link is drawn as an
+anchor on the new tab page, which is an extension page, so a `javascript:` href clicked there
+runs with that page behind it. Any other scheme is allowed, `file:` and `mailto:` included, and
+a host is demanded only of http(s).
+
+The view models still refuse invalid input, but only as backstops for callers that are not a
+dialog: they log and return rather than telling the user, because the dialog is what tells the
+user now.
 
 ### Data Model (`AppStateEntity.ts`)
 

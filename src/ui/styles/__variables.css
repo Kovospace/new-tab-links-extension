@@ -17,6 +17,9 @@
     --color-button-add-background-hover: #0B0;
     --color-button-danger-background: #900;
     --color-button-danger-background-hover: #B00;
+    /* Danger as text rather than as a button: #900 is sized to be read as white
+       on, and is close to unreadable against #222 at 0.85em. */
+    --color-danger-text: #F66;
 
     --color-textfield-background: #444;
     --color-textfield-text: #eee;

@@ -55,11 +55,38 @@ html.dark dialog.input-dialog {
     border-radius: 0.25em;
 }
 
+/*
+   What is wrong with a field, under the field it is wrong with. Hidden until
+   the field has been touched or somebody has tried to confirm: a dialog that
+   opens already complaining about the fields nobody has reached yet reads as
+   broken rather than as helpful.
+*/
+.input-dialog__error {
+    font-size: 0.85em;
+    line-height: 1.35;
+    color: var(--color-danger-text);
+}
+
+.input-dialog__input--invalid {
+    box-shadow: inset 0 0 0 0.0625em var(--color-danger-text);
+}
+
 .input-dialog__actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.5em;
     padding-top: 0.25em;
+}
+
+/*
+   The confirming button while the form cannot be submitted. It stays visible
+   and stays where it is - a button that vanished or moved would leave the user
+   looking for it - and says it is not available by being unavailable.
+*/
+.input-dialog__actions > button:disabled,
+html.dark .input-dialog__actions > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .input-dialog__actions > button {

@@ -191,7 +191,7 @@ export class ProfileManagerDialog {
   private async renameOne(profile: ManagedProfileDTO): Promise<void> {
     const answer = await new InputDialog(
       'Rename profile',
-      { 'Profile name': 'string' },
+      { 'Profile name': { type: 'string', required: true, maxLength: MAX_NAME_LENGTH } },
       () => { /* the answer is taken from ask(), below */ })
       .ask({ profileName: profile.name });
 
