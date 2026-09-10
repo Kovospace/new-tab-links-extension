@@ -74,8 +74,14 @@ export interface SyncOperation {
      *  Whether this profile lets its links and groups be rearranged by dragging.
      *
      *  A profile's settings ride on the profile record rather than in a store of their own -
-     *  see `entity/ProfileSettings.ts`. Absent means the sender has nothing to say about it,
-     *  which a backend that does not know the field yet also produces.
+     *  see `entity/ProfileSettings.ts`.
+     *
+     *  **Every profile upsert has to carry it, including one that only renames.** An upsert
+     *  replaces every synchronised field, and the backend reads an absent flag as `false` -
+     *  the same rule `collapsed` and `catchLinksIntoTabGroup` are applied under. So an
+     *  operation built without this would not leave the account's value alone, it would turn
+     *  the setting off on every device. `ChangeSetBuilder.profileUpsert()` is the one place
+     *  that builds these, which is what keeps that true.
      */
     enableDragAndDrop?: boolean;
 
@@ -125,7 +131,10 @@ export interface SnapshotProfileDto {
     ownerId: string;
     name: string;
     position: number;
-    /** Absent from a backend that does not store this yet, and read as off when it is. */
+    /**
+     *  Always sent by a backend that stores it, which the deployed one now does. Optional
+     *  here for the window in which it did not, and read as off in that case.
+     */
     enableDragAndDrop?: boolean;
     createdAt: string;
     updatedAt: string;

@@ -237,6 +237,27 @@ describe("ChangeSetBuilder, profile settings", () => {
         expect(operations).toEqual([]);
     });
 
+    it("carries the settings of a profile that is only being renamed", () => {
+        // The backend reads an absent flag as false rather than as "leave it alone", because
+        // an upsert replaces every synchronised field. So an operation built for some other
+        // reason - a rename, a reorder - that forgot the settings would not be neutral: it
+        // would turn the setting off, on every device the account reaches.
+        const settings = { enableDragAndDrop: true };
+
+        const operations = ChangeSetBuilder.build(
+            {
+                profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0, settings }],
+                dataByProfileId: { [PROFILE_ID]: emptyProfile() }
+            },
+            [{ id: PROFILE_ID, name: "Home", createdAt: 0, settings }],
+            { [PROFILE_ID]: emptyProfile() });
+
+        const profiles = operations.filter(operation => operation.type === "profile");
+        expect(profiles).toHaveLength(1);
+        expect(profiles[0].name).toBe("Home");
+        expect(profiles[0].enableDragAndDrop).toBe(true);
+    });
+
     it("carries the settings of a profile the account has never seen", () => {
         const created = "0199cccc-0000-7000-8000-00000000000c";
 
