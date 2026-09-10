@@ -99,11 +99,16 @@ Two kinds of thing live there, and they are not the same kind:
 
 - **Request/response modules** extending `BackgroundWorker`, reached from the page through
   `sendToWorkerThread` and routed by `target` in `background.ts`.
-- **Event listeners**, registered at the worker's top level. `linkTabGroupCatcher` is the
-  first: it watches `chrome.tabs.onUpdated` and pulls a tab that navigates to a link of a
-  subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group. Registration has
-  to happen during the worker's own evaluation - that is what Chrome restarts a stopped
-  worker for. Anything registered later only runs while the worker is already awake.
+- **Event listeners**, registered at the worker's top level. Registration has to happen
+  during the worker's own evaluation - that is what Chrome restarts a stopped worker for.
+  Anything registered later only runs while the worker is already awake. There are two:
+  - `linkTabGroupCatcher` watches `chrome.tabs.onUpdated` and pulls a tab that navigates to
+    a link of a subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group.
+  - `bookmarkCurrentPage` watches `chrome.contextMenus.onClicked` for the two right-click
+    entries and opens the bookmarking popup on what was clicked. The entries themselves are
+    created in `chrome.runtime.onInstalled` - Chrome stores them and brings them back with
+    the worker, so creating them on every wake would fail on the identifier already being
+    taken. The keyboard shortcut needs no code: `_execute_action` is the browser's own.
 
 MV3 stops the worker after thirty seconds of quiet, so it holds no state between events:
 the catcher re-reads the active profile out of `chrome.storage.local` on every navigation,
@@ -115,6 +120,53 @@ A subgroup's tab group is found by title within one window and created only when
 (`worker/module/tabGroups.ts`), so opening a whole subgroup and catching its links one at a
 time land in the same group. Grouping calls are queued, because two tabs finishing at once
 would otherwise each create a group of the same name.
+
+### Bookmarking the current page (`src/bookmark.html`)
+
+The extension's **action popup** - the bubble the browser draws under the toolbar icon - and a
+second entry point of its own. It exists because the two halves of the job live in different
+places: only the service worker can see the tab the user is looking at, and only a page can
+draw a form. Injecting the form into the visited site is what this avoids, and is why the
+feature needs no permission beyond `contextMenus`.
+
+- **Three ways in, and only one of them is code here.** The toolbar icon and the keyboard
+  shortcut (`_execute_action`, suggested Alt+Shift+D) are opened by the browser itself. The
+  right-click entries go through `chrome.action.openPopup()`.
+- **A popup takes no argument**, so the worker leaves the page to bookmark in
+  `chrome.storage.session` and the popup takes it (`utils/bookmarkRequest.ts`). Taken, not
+  read, and stamped: a request a dismissed popup left behind is never answered later. A popup
+  opened from the toolbar icon finds nothing there, which means "the tab I am standing on"
+  and is asked for directly. Only http(s) is offered.
+- **Why not a window of its own.** It was one, and a window is a browser window: the browser
+  furnishes it with a title bar and, since Chrome 138, the new tab page footer. It also had
+  to measure and resize itself, since the subgroup dropdown makes the form's height unknowable
+  in advance. A popup has none of that furniture and sizes itself to the document - which is
+  why the form is rendered inline (`bookmarkForm.ts`) rather than in a `<dialog>`: a modal
+  dialog is out of flow, so the document would measure as empty and the bubble collapse.
+  The cost, accepted deliberately: a popup closes when it loses focus.
+- The popup starts the repositories and nothing else. **It deliberately does not
+  synchronise**: it holds no session and lives for seconds. The link it stores moves the
+  stored profile on, and the next new tab page to synchronise pushes that difference, exactly
+  as it would for anything made offline.
+- **`AppStateRepository` adopts writes made in another page** (`chrome.storage.onChanged`),
+  which is what a second page made necessary: without it a new tab page that was already open
+  neither shows the new link nor keeps it - its next save puts its own older copy back over
+  the stored one. A write the repository made itself is deep-equal to what it holds and is
+  ignored, which also stops a pull from being pushed straight back.
+- Which workspace the link goes into is not asked: it is the one open on this device. The
+  group is chosen, and the subgroup dropdown appears only when that group has subgroups.
+
+### The strip at the bottom of the new tab page is not ours
+
+Chrome 138 added a **footer to the new tab page** which names the extension that overrode it,
+next to a "Customize Chrome" button; Brave inherits it and says "Personalize Brave". It is
+browser UI drawn below the page's web contents - it has its own scrollbar, which is what makes
+it look like a second document - and no manifest key or API removes it from the extension's
+side. A user hides it by right-clicking it ("Hide footer on New Tab page") or through Customize
+Chrome; a fleet does it with the `NTPFooterExtensionAttributionEnabled` policy.
+
+It appears only on the new tab page, never in the bookmarking window. Anything that looks like
+it there is the tab behind that window. Do not go looking for it in this codebase.
 
 ### Data Model (`AppStateEntity.ts`)
 
@@ -162,7 +214,8 @@ Defined in `src/main.ts`: custom element tag names and worker message type const
 ## Tech Stack
 
 - **TypeScript** 5.9.3 (strict mode), targeting ES2020
-- **Vite** 7.3.1 — two entry points: `src/main.ts` (UI) and `src/backend/worker/background.ts` (service worker)
+- **Vite** 7.3.1 — three entry points: `src/main.ts` (new tab page), `src/bookmark.ts`
+  (the bookmarking popup) and `src/backend/worker/background.ts` (service worker)
 - **Web Components** — no UI framework; components use native `customElements.define`
 - **CSS** — plain CSS with variables in `src/ui/styles/__variables.css`; each component has its own stylesheet
 - **`fast-deep-equal`** — sole runtime dependency, used by `ObservableValue`

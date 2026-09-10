@@ -5,6 +5,7 @@ import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit, emptyProfileData} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"
 import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
+import deepEqual from "fast-deep-equal";
 
 export class AppStateRepository {
 
@@ -44,7 +45,48 @@ export class AppStateRepository {
         const saved = await this.datasource.get<AppState>(profileKey);
         this.state = saved ?? { ...initialState, activeProfileId: profileId };
         this.state$.set(this.state);
+        this.watchForExternalWrites();
         return this.save();
+    }
+
+    /**
+     * Adopts a write to the loaded profile made by another page of this extension.
+     *
+     * There is more than one page now: the new tab page and the bookmarking window, and both
+     * hold their own copy of the state in memory. Without this, a bookmark added in the small
+     * window would be invisible to a new tab page that was already open - and worse, the next
+     * thing done in that page would write its own older copy back over it.
+     *
+     * A write this repository made itself arrives here too, and is deep-equal to what is
+     * already held, so it is ignored - which also keeps a pull from being pushed straight
+     * back out again.
+     *
+     * chrome.storage.onChanged is absent in the tests, which fake the storage rather than the
+     * whole API, so its absence is not an error.
+     */
+    private watchForExternalWrites(): void {
+
+        if (!chrome.storage?.onChanged?.addListener) {
+            return;
+        }
+
+        chrome.storage.onChanged.addListener((changes, areaName) => {
+            if (areaName !== "local") {
+                return;
+            }
+            const incoming = changes[APP_STATE_PREFIX + this.state.activeProfileId]
+                ?.newValue as AppState | undefined;
+
+            if (!incoming || deepEqual(incoming, this.state)) {
+                return;
+            }
+            this.LOG.debug("watchForExternalWrites", "Adopting a write made in another page");
+            this.state = incoming;
+            this.state$.set(this.state);
+            // The stored data has moved on, and this page may be the only one signed in and
+            // synchronising - the window that wrote it does not synchronise at all.
+            this.announcePersisted();
+        });
     }
 
     getActiveProfileId(): string {
@@ -181,6 +223,16 @@ export class AppStateRepository {
     /**
      *  All workspaces of the loaded profile, in the order the workspace switcher shows them.
      */
+    /**
+     *  The subgroups of one group, in the order the group draws them.
+     */
+    getSubgroups(groupId: string): Subgroup[] {
+        return Object
+            .values(this.state.subgroups)
+            .filter((subgroup: Subgroup) => subgroup.groupId === groupId)
+            .sort((a, b) => a.position - b.position);
+    }
+
     getWorkspaces(): Environment[] {
         return Object
             .values(this.state.environments)

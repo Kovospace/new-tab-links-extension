@@ -23,22 +23,6 @@ Note for agents:
   into tab group" while it is on - the two contradict each other
 - in application menu (three dots upper right corner) it should be the last item and add separator before it
 
-### [medium] Bookmarking currently opened webpage
-According to research this is possible even without any nasty permissions, thinkg needed:
-- extension should declare extension command to for example "CTRL + SHIFT + D"
-- worker will open some UI modal dialog with form with:
-    - Name: pre-filled
-    - URL: pre-filled
-    - favicon image (left to columns with inputs)
-    - name of current workspace just for information
-    - group select dropdown
-        - another subgroup dropdown if is detected that given group contains at least one subgroup
-    - "save" button
-      Layout of modal dialog:
-    - left column: favicon
-    - center column: labels, text aligned to the right
-    - right column: form fields
-
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
@@ -70,6 +54,17 @@ According to research this is possible even without any nasty permissions, think
 - now validations in viewModel goes to the console, this info should go to the user at first - ideally modal should
   not be allowed to be submitted
 
+### [small] add tips to the columns screen background
+- the tips will be stored in json with translations - as array, there may be more and more of them towards the future
+- displayed 
+- add close button that will appear after the tip whem mouse hovering it
+  - when clicked, show modal dialog asking user if he wants to hide them
+  - add buttons for "next tip" and "previous tip" - all of them together with remove visible on mouseover
+- show random tip on every new tab open
+- add possibility to have "tell me more" button if tip si some feature tht needs further expalanation
+  - the url will resolve to the page where "tutorials" will be - 
+    - just add url field into json with translations and if it is there, the button is displayed
+
 ### [big] i18n of extension
 - there is a lot of string in a lot of places that needs to be collected and redirected into json files
 
@@ -95,6 +90,29 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [medium] Bookmarking currently opened webpage
+- the form is the extension's action popup (toolbar bubble), opened three ways: the toolbar
+  icon, the keyboard shortcut (Alt+Shift+D, through `_execute_action`), and two right-click
+  entries - "Bookmark this page with ..." and, over a link, "Bookmark this link with ..."
+- Ctrl+Shift+D was asked for and cannot be had: Chrome and Brave both keep it for "bookmark all
+  tabs", and a suggested key the browser refuses leaves the command silently unbound. The key
+  is rebindable at chrome://extensions/shortcuts
+- it was a window of its own first, and that is what the popup replaced: a browser window comes
+  furnished with a title bar and, since Chrome 138, the new tab page footer naming the
+  extension, and it had to measure and resize itself. A popup has neither problem - it sizes
+  itself to the form. In exchange it closes when it loses focus
+- the layout is the one described here: favicon left, labels right-aligned in the middle,
+  fields right; name and URL pre-filled, the open workspace stated, a group dropdown, and a
+  subgroup dropdown that appears only for a group that has subgroups
+- a profile with no group says so instead of inventing a workspace
+- the only permission added is "contextMenus", which has no install-time warning
+- NOT done: the popup does not synchronise by itself. It stores the link and the next new tab
+  page pushes it, the way anything made offline is pushed
+- NOT done: no toolbar icon artwork - the manifest has no icons at all, so the browser draws
+  its generic one
+- needed on the way: AppStateRepository now adopts a write made in another page, or a new tab
+  page left open would overwrite the bookmark with its own older copy
 
 ### [small] assign link which is in some subgroup into tab group automatically
 - "Catch links into tab group" in the subgroup menu, drawn as a checkbox, off for a new subgroup

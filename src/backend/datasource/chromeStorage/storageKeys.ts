@@ -16,3 +16,12 @@ export const APP_STATE_PREFIX = "app_state_";
 export function appStateKey(profileId: string): string {
     return APP_STATE_PREFIX + profileId;
 }
+
+/**
+ *  The page the bookmarking popup is about to be opened for.
+ *
+ *  Lives in `chrome.storage.session`, not local: it is a few seconds of intent between the
+ *  service worker and the popup, and must not outlive the browser session. See
+ *  `utils/bookmarkRequest.ts`.
+ */
+export const PENDING_BOOKMARK_KEY = "pending_bookmark";
