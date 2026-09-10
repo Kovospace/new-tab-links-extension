@@ -53,13 +53,14 @@ dialog.settings-dialog {
     background: none;
     border: none;
     border-radius: var(--radius-small);
-    font-size: 0.9em;
+    font-size: 0.875em;
     font-weight: bold;
     text-align: left;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    opacity: 0.85;
+    /*opacity: 0.85;*/
     cursor: pointer;
+    transition: background-color var(--time-transition-medium) ease-in-out;
 }
 
 /* main.css paints every button in the dark theme, and does it with a selector
@@ -101,6 +102,7 @@ html.dark .settings-dialog__category-head:active {
     padding: 0.5em;
     border-radius: var(--radius-small);
     background-color: var(--color-button-background);
+    transition: background-color var(--time-transition-medium) ease-in-out;
     cursor: pointer;
 }
 
@@ -137,5 +139,5 @@ html.dark .settings-dialog__category-head:active {
 }
 
 .settings-dialog__actions {
-    margin: 0.5em 0;
+    margin: 0.75em;
 }
