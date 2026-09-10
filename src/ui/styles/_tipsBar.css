@@ -1,13 +1,9 @@
 /* ---------------------------------------------------------------------------
    Tips bar
 
-   One sentence along the bottom of the workspace, dimmed and out of the way.
-   Its controls - previous, next, hide - are invisible until the pointer is over
-   the bar, so that the resting state is a sentence and nothing else.
-
-   They are hidden by opacity rather than by display: a row of buttons that
-   appears on hover would change the bar's width as the pointer arrives, and the
-   thing under the pointer would move.
+   One sentence at the bottom of the workspace plane, inside the scrolling area
+   rather than in the pinned page footer: the tips belong to the columns screen
+   and move with it.
    --------------------------------------------------------------------------- */
 
 .tips-bar {
@@ -23,6 +19,14 @@
     flex-basis: fit-content;
     margin: 0 auto;
     margin-bottom: 1em;
+    /*
+       Pushed to the bottom of the workspace plane, which stretches to the height
+       of the scrolling area: the card sits at the foot of the empty space when
+       there is little to show, and below the columns when there is a lot. It
+       scrolls with them - the page footer is pinned, and a tip that is always on
+       screen stops reading as a tip and starts reading as furniture.
+    */
+    margin-top: auto;
 }
 
 .tips-bar::before {

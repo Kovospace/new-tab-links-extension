@@ -114,8 +114,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         this.VIEW_MODEL.observables.groups
             .subscribe(groups => this.renderGroups(bodyElem, groups));
 
-        // page footer
-        this.renderFooter();
+        // tips, under the columns and inside the scrolling area rather than in the page
+        // footer: the footer never moves, and a line of advice that is always on screen
+        // stops reading as advice and starts reading as furniture.
+        this.renderTips();
     }
 
     attachListeners(parentElem: HTMLElement) {
@@ -402,16 +404,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     }
 
     /**
-     *  Application footer content: the tips along the bottom of the workspace.
+     *  The tips, at the bottom of the workspace plane.
      *
-     *  The footer rather than the columns themselves, deliberately. A tip drawn behind the
-     *  columns is unreadable the moment somebody has enough of them, and one drawn over them
-     *  is in the way; the footer is on the same screen, always visible, and belongs to
-     *  nothing else - it held an empty span before this.
+     *  Inside the plane rather than in the page footer, which is pinned: they belong to the
+     *  columns screen and scroll with it. The plane is a column that stretches to the height
+     *  of the scrolling area, so the bar sits at the bottom of the empty space when there is
+     *  little to show, and below the columns when there is a lot - see the stylesheet, where
+     *  `margin-top: auto` does that.
      */
-    private renderFooter() {
-        const footerElem: HTMLElement = document.body.getElementsByTagName("footer")[0];
-        new TipsBar().render(footerElem);
+    private renderTips() {
+        new TipsBar().render(this);
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

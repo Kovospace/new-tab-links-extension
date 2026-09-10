@@ -183,10 +183,12 @@ it there is the tab behind that window. Do not go looking for it in this codebas
 
 ### Tips on the workspace background (`ui/tips/`)
 
-One dimmed sentence along the bottom of the workspace, in the page footer - which held an
-empty span before this. The footer rather than the columns themselves on purpose: a tip drawn
-behind the columns is unreadable as soon as somebody has enough of them, and one drawn over
-them is in the way.
+A card at the bottom of the workspace plane, drawn by `TipsBar` into the `<workspace-plane>`
+element itself. Inside the scrolling area rather than in the page footer, which is pinned: the
+tips belong to the columns screen and move with it, and a line of advice that is always on
+screen stops reading as advice and starts reading as furniture. `margin-top: auto` in a plane
+that stretches to the height of the scrolling area is what puts it at the foot of the empty
+space when there is little to show, and below the columns when there is a lot.
 
 - The tips are **JSON, not code** (`ui/tips/tips.json`), one entry per tip with a sentence per
   language, so adding one is adding an entry and a translator can be handed a file. It is

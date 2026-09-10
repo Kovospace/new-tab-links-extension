@@ -49,8 +49,8 @@ Note: needs permission "chrome.session"
 ### [small] add tips to the columns screen background
 - tips live in src/ui/tips/tips.json as an array, one sentence per language per tip; adding a
   tip is adding an entry, and English is what everything falls back to
-- drawn in the page footer, dimmed, one line: behind the columns they would be unreadable as
-  soon as there are enough columns, and over them they would be in the way
+- drawn at the bottom of the workspace plane, inside the scrolling columns area rather than in
+  the page footer: the footer is pinned, and a tip that is always on screen reads as furniture
 - a random tip on every new tab open; previous / next arrows step through the rest, and the
   position is not remembered - storing it would mean the same tip every morning, and would
   make pressing an arrow a write to the account
