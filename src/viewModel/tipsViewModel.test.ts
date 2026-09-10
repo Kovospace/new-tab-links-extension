@@ -104,4 +104,50 @@ describe("the tips file", () => {
 
         expect(translated && textOf(translated, "sk")).toBe(translated?.text.sk);
     });
+
+    it("names every language of a tip's link in that tip's own text", () => {
+        // A link in a language the tip is not written in would send a reader to a page they
+        // cannot read while the sentence above it is in their own language.
+        for (const tip of TIPS) {
+            for (const language of Object.keys(tip.url ?? {})) {
+                expect(tip.text[language], `tip "${tip.id}" links in ${language} but does not speak it`)
+                    .toBeTruthy();
+            }
+        }
+    });
+});
+
+/**
+ *  A tip's link is per language, like its sentence: the tutorial it points at is a page on the
+ *  website, and that page has a language of its own.
+ */
+describe("a tip's link", () => {
+
+    const linked = TIPS.find(tip => tip.url?.sk)!;
+    const englishOnly = TIPS.find(tip => tip.url?.en && !tip.url?.sk)!;
+
+    it("takes the reader's own language when the tip has one", () => {
+        expect(urlOf(linked, "sk")).toContain(linked.url!.sk);
+        expect(urlOf(linked, "en")).toContain(linked.url!.en);
+    });
+
+    it("falls back to English rather than offering nothing", () => {
+        // An untranslated tutorial is still worth reading; hiding the button would be the
+        // less useful of the two.
+        expect(urlOf(englishOnly, "sk")).toContain(englishOnly.url!.en);
+    });
+
+    it("resolves a path against the website, so the tutorials can move", () => {
+        expect(urlOf(linked, "en")).toMatch(/^https?:\/\/[^/]+\//);
+    });
+
+    it("leaves an address that names its own scheme alone", () => {
+        expect(urlOf({ id: "x", text: { en: "x" }, url: { en: "https://elsewhere.test/a" } }, "en"))
+            .toBe("https://elsewhere.test/a");
+    });
+
+    it("offers nothing for a tip with no link at all", () => {
+        expect(urlOf({ id: "x", text: { en: "x" } }, "en")).toBeNull();
+        expect(urlOf({ id: "x", text: { en: "x" }, url: {} }, "en")).toBeNull();
+    });
 });

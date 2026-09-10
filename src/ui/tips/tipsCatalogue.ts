@@ -23,13 +23,17 @@ export interface Tip {
     text: Record<string, string>;
 
     /**
-     *  Where to read more, for a tip about something that needs more than a sentence.
+     *  Where to read more, by language code, for a tip needing more than a sentence.
+     *
+     *  Per language like the sentence is, because the tutorial it points at is a page on the
+     *  website and that page has a language of its own - the Slovak reader of a Slovak tip
+     *  should not be dropped onto the English write-up of it.
      *
      *  A path is resolved against the website, so the tutorials can move without every tip
-     *  being rewritten; anything with a scheme is taken as it stands. Absent means the tip
-     *  explains itself, and no button is offered.
+     *  being rewritten; anything with a scheme is taken as it stands. Absent - or an entry
+     *  with nothing in it - means the tip explains itself, and no button is offered.
      */
-    url?: string;
+    url?: Record<string, string>;
 }
 
 /** Every tip there is, in the order the file lists them. */
@@ -63,13 +67,21 @@ export function textOf(tip: Tip, language: string = currentLanguage()): string {
 /**
  *  Where a tip's "tell me more" should lead, or null when it leads nowhere.
  *
- *  @param tip the tip to read
+ *  Falls back to English the way the sentence does: a tutorial that has not been translated
+ *  yet is still worth offering, and the alternative - hiding the button for that reader - is
+ *  the less useful of the two.
+ *
+ *  @param tip      the tip to read
+ *  @param language the language wanted, as a base code
  */
-export function urlOf(tip: Tip): string | null {
-    if (!tip.url) {
+export function urlOf(tip: Tip, language: string = currentLanguage()): string | null {
+
+    const url = tip.url?.[language] ?? tip.url?.[FALLBACK_LANGUAGE];
+    if (!url) {
         return null;
     }
-    return tip.url.includes("://") ? tip.url : buildWebsiteUrl(tip.url);
+
+    return url.includes("://") ? url : buildWebsiteUrl(url);
 }
 
 /**

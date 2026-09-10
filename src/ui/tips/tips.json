@@ -5,13 +5,19 @@
       "en": "A subgroup can pull tabs into its own tab group — open its menu and turn on \"Catch links into tab group\".",
       "sk": "Podskupina vie ťahať karty do vlastnej skupiny kariet — v jej menu zapnite „Catch links into tab group“."
     },
-    "url": "/tutorials/tab-groups"
+    "url": {
+      "en": "/tutorials/tab-groups",
+      "sk": "/sk/navody/skupiny-kariet"
+    }
   },
   {
     "id": "grouped-tabs-color",
     "text": {
       "en": "Each subgroup has a colour, and Chrome paints its tab group with it. Change it from the subgroup menu.",
       "sk": "Každá podskupina má farbu a Chrome ňou zafarbí jej skupinu kariet. Zmeníte ju v menu podskupiny."
+    },
+    "url": {
+      "en": "/tutorials/tab-group-colours"
     }
   },
   {

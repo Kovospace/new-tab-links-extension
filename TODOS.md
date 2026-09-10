@@ -58,8 +58,10 @@ Note: needs permission "chrome.session"
   when the pointer is elsewhere
 - close asks first, and hiding is the profile setting "Hide tips" - so it follows the user to
   every device, and Settings is the way back, which is what the question says
-- a tip with a "url" field gets a "tell me more" button; a path resolves against the website,
-  so the tutorials pages can move without every tip being rewritten
+- a tip with a "url" field gets a "tell me more" button. The url is per language, like the
+  sentence, because the tutorial it points at is a page in a language; a language with no
+  tutorial yet falls back to the English one. A path resolves against the website, so the
+  tutorials pages can move without every tip being rewritten
 - NOT done: no tutorials pages exist yet, so the one tip that has a url points at where they
   will be
 

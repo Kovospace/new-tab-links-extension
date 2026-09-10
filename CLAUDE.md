@@ -192,9 +192,12 @@ them is in the way.
   language, so adding one is adding an entry and a translator can be handed a file. It is
   imported rather than fetched, so a malformed entry is a build error rather than an empty
   strip on somebody's new tab page.
-- An optional `url` on a tip draws a "tell me more" button. A path is resolved against the
-  website (`buildWebsiteUrl`), so the tutorials can move without every tip being rewritten;
-  anything with a scheme is taken as it stands.
+- An optional `url` on a tip draws a "tell me more" button, and is **per language like the
+  sentence is**: the tutorial it points at is a page on the website, and that page has a
+  language of its own. It falls back to English when a language has no tutorial yet, because
+  an untranslated write-up still beats no button. A path is resolved against the website
+  (`buildWebsiteUrl`), so the tutorials can move without every tip being rewritten; anything
+  with a scheme is taken as it stands.
 - A tip is chosen **at random on every page load**, and the arrows step through the rest. The
   position is deliberately not stored: remembering it would mean the same tip every morning,
   and it would make pressing an arrow a write to the profile and so a push to the account.
