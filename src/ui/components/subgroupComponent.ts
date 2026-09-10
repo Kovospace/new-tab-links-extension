@@ -28,6 +28,7 @@ import {LinkViewModel} from "../../viewModel/linkViewModel";
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 import { OptionsMenu } from "../partials/optionsMenu"
 import {InputDialog} from "../partials/inputDialog";
+import { MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 
 
 
@@ -37,7 +38,10 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     private addLinkDialog: InputDialog = new InputDialog(
         "Add link",
-        { "Link title": "string", "URL": "url" },
+        {
+            "Link title": { type: "string", required: true, maxLength: MAX_TITLE_LENGTH },
+            "URL": { type: "url", required: true, maxLength: MAX_URL_LENGTH }
+        },
         ({ linkTitle, url }) => this.VIEW_MODEL.addLink(linkTitle, url));
 
     protected render(parentElem: HTMLElement) {

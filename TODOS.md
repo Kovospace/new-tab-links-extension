@@ -36,13 +36,6 @@ Note for agents:
 - after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
 - signalize by icon of green folder that some of this closed tabs may already be bookmarked
 
-### [middle] add validations and constraints to all modal dialogs
-- when creating workspace, groups, link, or subGroup there should always be at least "required" constraints 
-  for at least 1 field
-- validations follows the contraints
-- now validations in viewModel goes to the console, this info should go to the user at first - ideally modal should
-  not be allowed to be submitted
-
 ### [small] add tips to the columns screen background
 - the tips will be stored in json with translations - as array, there may be more and more of them towards the future
 - displayed 
@@ -79,6 +72,21 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [middle] add validations and constraints to all modal dialogs
+- InputDialog fields now take constraints - { type, required, maxLength } - beside the bare
+  type; a required field is marked with * and the dialog will not submit while anything is
+  wrong: OK is disabled and Enter refuses too
+- the message appears under the field it is about, not in the console. It stays hidden until
+  the field has been touched or somebody tried to confirm, so a dialog does not open shouting
+- limits are the backend's own @Size values, kept in SyncContracts: name 120, description 500,
+  link title 200, url 2048. Enforcing them here is what stops one over-long name failing the
+  whole push with a 400 and blocking every other change from syncing
+- workspace, group, subgroup, link, profile name, log in and sync code dialogs all carry
+  required constraints on at least one field
+- URL fields refuse javascript:, data:, vbscript: and blob: - a link is an anchor on an
+  extension page - and assume https for an address typed without a scheme
+- view model validations are now logged backstops for callers that are not a dialog
 
 ### [medium] Add "settings" to application menu
 - "Settings" is the last item of the application menu, behind a separator, in both the

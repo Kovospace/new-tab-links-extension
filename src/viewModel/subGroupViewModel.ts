@@ -45,7 +45,8 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
     public editSubgroupTitle(id: string, title: string, description: string): void {
         title = title.trim();
         if (!title) {
-            console.error("Subgroup must have title");
+            // The dialog refuses to submit this; the backstop is for callers that are not it.
+            this.LOG.debug("editSubgroupTitle", "Refusing a subgroup with no title");
             return;
         }
         this.REPOSITORY.editSubGroup(id, title, description);

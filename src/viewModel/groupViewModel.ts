@@ -27,8 +27,6 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
 
     protected subscribed(attrs: AppState) {
 
-        console.log("event happened");
-
         const currentEnvironmentId = attrs.activeEnvironmentId!;
         const links: Link[] = Object.values(attrs.links);
         const subGroups: Subgroup[] = Object.values(attrs.subgroups);
@@ -75,8 +73,6 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
         result
             .sort((a, b) => a.position - b.position);
 
-        console.log("event happened end");
-
         this.observables.group.set({
             id: this.DTO.id,
             items: result,
@@ -88,7 +84,10 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
     public editGroupTitle(groupId: string, title: string, description: string) {
       title = title.trim();
       if (!title) {
-        console.error("Group must have title");
+        // The dialog refuses to submit this, so reaching here means a caller that did not go
+        // through one. Refusing rather than renaming the group to nothing.
+        this.LOG.debug("editGroupTitle", "Refusing a group with no title");
+        return;
       }
       this.REPOSITORY.renameGroup(groupId, title, description);
     }
@@ -101,16 +100,19 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
         this.LOG.debug(
             "addLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, url: ${url}, title: ${title}`);
+        // Backstops, all three. The dialog will not submit a link without a title or an
+        // address, so what these catch is a caller that did not come through the dialog -
+        // and the user is told by the dialog, not from here.
         if (!groupId) {
-            console.error("Link does not contain groupId where it should belong");
+            this.LOG.debug("addLink", "Refusing a link that names no group");
             return;
         }
         if (!url) {
-            console.log("Link does not contains any url");
+            this.LOG.debug("addLink", "Refusing a link with no address");
             return;
         }
         if (!title) {
-            console.log("Link does not contain any title");
+            this.LOG.debug("addLink", "Refusing a link with no title");
             return;
         }
         this.REPOSITORY.createLink(url, title, groupId, subGroupId);
@@ -156,15 +158,14 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
     }
 
     public addSubGroup(title: string | null, description?: string | null) {
-        // if (!groupId) {
-        //     console.error("groupId is missing for sub-group creation");
-        // }
         if (!title) {
-            console.log("subgroup title not provided for subgroup");
+            // The dialog refuses this; the backstop is for callers that are not the dialog.
+            this.LOG.debug("addSubGroup", "Refusing a subgroup with no title");
             return;
         }
         if (!description) {
-            console.log("description not provided for subgroup");
+            // Not a refusal: a description is optional, and one that was left blank simply
+            // is not passed on.
             this.REPOSITORY.createSubGroup(this.DTO.id, this.REPOSITORY.getCurrentEnvironmentId(), title);
             return;
         }

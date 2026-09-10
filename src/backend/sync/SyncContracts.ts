@@ -18,6 +18,21 @@
 export const MAX_NAME_LENGTH = 120;
 
 /**
+ *  The longest description the backend will store, for any record that has one.
+ *
+ *  `@Size(max = 500)` on the push DTO, and validated over the whole request exactly as the
+ *  name is - so the same argument applies: it is refused in the dialog rather than after the
+ *  fact, because one over-long description fails the entire batch.
+ */
+export const MAX_DESCRIPTION_LENGTH = 500;
+
+/** The longest link title the backend will store: `@Size(max = 200)`. */
+export const MAX_TITLE_LENGTH = 200;
+
+/** The longest address the backend will store: `@Size(max = 2048)`. */
+export const MAX_URL_LENGTH = 2048;
+
+/**
  *  Whether a name can be stored, both here and on the account.
  *
  *  Blank is refused because the backend refuses it (`MISSING_REQUIRED_VALUE`), and over-long

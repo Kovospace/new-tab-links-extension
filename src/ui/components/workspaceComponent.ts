@@ -28,6 +28,7 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../par
 import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 import {InputDialog} from "../partials/inputDialog";
+import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncContracts";
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
 
@@ -43,7 +44,11 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     // several browsers on one machine, where the automatic labels are all identical.
     private logInDialog: InputDialog = new InputDialog(
         "Log in",
-        { "Username or email": "string", "Password": "password", "Device name": "string" },
+        {
+            "Username or email": { type: "string", required: true },
+            "Password": { type: "password", required: true },
+            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+        },
         ({ usernameOrEmail, password, deviceName }) =>
             this.accountViewModel.logIn(usernameOrEmail, password, deviceName));
 
@@ -51,24 +56,33 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     // recognises what to paste, while the menu entry keeps the wording of the sync feature
     private syncCodeDialog: InputDialog = new InputDialog(
         "Enter sync code",
-        { "Connect code": "string", "Device name": "string" },
+        {
+            "Connect code": { type: "string", required: true },
+            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+        },
         ({ connectCode, deviceName }) =>
             this.accountViewModel.connectWithCode(connectCode, deviceName));
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         "Add workspace",
-        { "Workspace name": "string", "Workspace description": "string" },
+        {
+            "Workspace name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH },
+            "Workspace description": { type: "string", maxLength: MAX_DESCRIPTION_LENGTH }
+        },
         ({ workspaceName, workspaceTitle }) =>
           this.VIEW_MODEL.addWorkspace(workspaceName, workspaceTitle));
 
     private createProfileDialog: InputDialog = new InputDialog(
         "Create profile",
-        { "Profile name": "string" },
+        { "Profile name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH } },
         ({ profileName }) => this.VIEW_MODEL.createProfile(profileName));
 
     private addGroupDialog: InputDialog = new InputDialog(
         "Add group",
-        { "Group name": "string", "Group description": "string"},
+        {
+            "Group name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH },
+            "Group description": { type: "string", maxLength: MAX_DESCRIPTION_LENGTH }
+        },
         ({ groupName, groupDescription }) =>
           this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName, groupDescription));
 

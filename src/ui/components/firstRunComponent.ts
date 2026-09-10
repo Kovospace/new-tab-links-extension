@@ -9,6 +9,7 @@ import {
     ACT_LOAD_DEFAUTLS
 } from "../../main"
 import {InputDialog} from "../partials/inputDialog";
+import { MAX_NAME_LENGTH } from "../../backend/sync/SyncContracts";
 
 export class FirstRunComponent extends HTMLElement {
 
@@ -18,7 +19,7 @@ export class FirstRunComponent extends HTMLElement {
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         "Add workspace",
-        { "Workspace name": "string" },
+        { "Workspace name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH } },
         ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(workspaceName, "Default workspace"));
 
     // "Device name" is optional and last, so the required fields stay where the eye starts.
@@ -26,12 +27,19 @@ export class FirstRunComponent extends HTMLElement {
     // several browsers on one machine, where the automatic labels are all identical.
     private connectCodeDialog: InputDialog = new InputDialog(
         "Enter sync code",
-        { "Connect code": "string", "Device name": "string" },
+        {
+            "Connect code": { type: "string", required: true },
+            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+        },
         ({ connectCode, deviceName }) => this.connectAccount(connectCode, deviceName));
 
     private logInDialog: InputDialog = new InputDialog(
         "Log in",
-        { "Username or email": "string", "Password": "password", "Device name": "string" },
+        {
+            "Username or email": { type: "string", required: true },
+            "Password": { type: "password", required: true },
+            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+        },
         ({ usernameOrEmail, password, deviceName }) =>
             this.logIn(usernameOrEmail, password, deviceName));
 

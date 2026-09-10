@@ -104,7 +104,8 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     public addWorkspace(title: string | null, description: string | undefined) {
         this.LOG.debug("addWorkspace", `title: ${title}, description: ${description}`);
         if (!title) {
-            this.LOG.debug("addWorkspace", "User did not provided a title");
+            // The dialog refuses to submit this; the backstop is for callers that are not it.
+            this.LOG.debug("addWorkspace", "Refusing a workspace with no name");
             return;
         }
         this.REPOSITORY.addWorkspace(title, description);
@@ -113,8 +114,10 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     public editWorkspaceTitle(id: string, title: string, description?: string) {
         this.LOG.debug("editWorkspaceTitle", `id: ${id}, title: ${title}, description:${description}`);
         title = title.trim();
-        if (!title || title === "") {
-            console.error("Workspace name cannot be empty")
+        if (!title) {
+            // This used to log and then rename the workspace to an empty string anyway.
+            this.LOG.debug("editWorkspaceTitle", "Refusing a workspace with no name");
+            return;
         }
         this.REPOSITORY.renameWorkspace(id, title, description);
     }
@@ -214,11 +217,12 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     public addGroup(workspaceId: string, title: string | null, description: string | undefined) {
         this.LOG.debug("addGroup", `title: ${title}`);
         if (!workspaceId) {
-            console.error("ID of workspace to be created group in is not defined");
+            this.LOG.debug("addGroup", "Refusing a group that names no workspace");
             return;
         }
         if (!title) {
-            console.log("No group will be created because user does not provided name");
+            // The dialog refuses to submit this; the backstop is for callers that are not it.
+            this.LOG.debug("addGroup", "Refusing a group with no name");
             return;
         }
         this.REPOSITORY.createGroup(title, workspaceId, description);
