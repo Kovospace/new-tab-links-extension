@@ -8,6 +8,25 @@ workspace-plane {
 
 
 
+/*
+   The gap under the tips card - as padding on the plane, not as a margin on the
+   card, and that is not a matter of taste.
+
+   `main` is the scroll container, and what a scroll container can scroll to is
+   defined by its own padding box plus the *border* boxes of everything inside
+   it. Margins are not part of that. So a bottom margin on the last thing in the
+   plane shows up only while the page is not scrolling - when there is spare
+   room anyway - and vanishes exactly when it would be doing something: scrolled
+   to the end, the card sits flat against the bottom edge.
+
+   Padding is inside a border box, so it is counted. It is applied only when
+   there is a card to be spaced from, so hiding the tips does not leave a gap
+   under the columns.
+*/
+workspace-plane:has(> .tips-bar:not([hidden])) {
+    padding-bottom: 1em;
+}
+
 workspace-plane-head {
     display: flex;
     align-items: center;
@@ -44,6 +63,7 @@ workspace-plane-body {
 
 workspace-plane-body > link-group {
     margin: 0.5em;
+    margin-bottom: 1em;
     padding: 0.5em;
     border-radius: 0.5em;
     transition: background-color var(--time-transition-medium) ease-in-out;

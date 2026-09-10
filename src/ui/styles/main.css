@@ -106,6 +106,10 @@ main {
     scrollbar-width: thin;
 }
 
+footer {
+    display: none;
+}
+
 button {
     position: relative;
     min-width: 1.5em;
@@ -153,7 +157,9 @@ html.dark {
     color: var(--color-document-text);
 }
 
-html.dark header {
+html.dark header,
+html.dark footer
+{
     background-color: var(--color-component-background);
     color: var(--color-component-text);
 }

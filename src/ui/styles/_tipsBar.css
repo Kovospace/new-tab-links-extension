@@ -17,16 +17,13 @@
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: fit-content;
-    margin: 0 auto;
-    margin-bottom: 1em;
     /*
-       Pushed to the bottom of the workspace plane, which stretches to the height
-       of the scrolling area: the card sits at the foot of the empty space when
-       there is little to show, and below the columns when there is a lot. It
-       scrolls with them - the page footer is pinned, and a tip that is always on
-       screen stops reading as a tip and starts reading as furniture.
+       Top auto pushes the card to the foot of the plane; left and right centre
+       it. There is deliberately no bottom margin: the gap under the card is
+       padding on the plane instead, because a margin here is not part of what
+       the scrolling area can scroll to. See workspace.css.
     */
-    margin-top: auto;
+    margin: auto auto 0;
 }
 
 .tips-bar::before {
