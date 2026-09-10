@@ -29,6 +29,7 @@ import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 import {InputDialog} from "../partials/inputDialog";
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
+import {SettingsDialog} from "../partials/settingsDialog";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -217,7 +218,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             {
                 actionTitle: "Enter sync code",
                 onClick: () => this.syncCodeDialog.show()
-            }
+            },
+            ...this.settingsMenuItems()
         ];
     }
 
@@ -240,6 +242,24 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             {
                 actionTitle: "Log out",
                 onClick: () => this.accountViewModel.logOut()
+            },
+            ...this.settingsMenuItems()
+        ];
+    }
+
+    /**
+     *  Settings, last in the application menu whichever way that menu is built.
+     *
+     *  Last and behind a separator because it is the only entry there that is not about the
+     *  account - and it is written once rather than at the end of both menus, so it cannot
+     *  end up in two places or, worse, in only one of them.
+     */
+    private settingsMenuItems(): OptionsMenuItem[] {
+        return [
+            { separator: true },
+            {
+                actionTitle: "Settings",
+                onClick: () => new SettingsDialog().show()
             }
         ];
     }

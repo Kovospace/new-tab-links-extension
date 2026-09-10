@@ -70,6 +70,15 @@ export interface SyncOperation {
     /** Cached favicon address, for a link. */
     faviconUrl?: string | null;
 
+    /**
+     *  Whether this profile lets its links and groups be rearranged by dragging.
+     *
+     *  A profile's settings ride on the profile record rather than in a store of their own -
+     *  see `entity/ProfileSettings.ts`. Absent means the sender has nothing to say about it,
+     *  which a backend that does not know the field yet also produces.
+     */
+    enableDragAndDrop?: boolean;
+
     /** Whether a subgroup is folded away right now. */
     collapsed?: boolean;
     /** Whether a subgroup starts folded away. */
@@ -116,6 +125,8 @@ export interface SnapshotProfileDto {
     ownerId: string;
     name: string;
     position: number;
+    /** Absent from a backend that does not store this yet, and read as off when it is. */
+    enableDragAndDrop?: boolean;
     createdAt: string;
     updatedAt: string;
 }

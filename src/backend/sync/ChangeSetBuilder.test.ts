@@ -188,3 +188,70 @@ describe("ChangeSetBuilder", () => {
         expect(operations).toEqual([]);
     });
 });
+
+/**
+ *  Settings ride on the profile record rather than in a store of their own, which is what
+ *  lets them synchronise without a new entity kind - but only if the difference this class
+ *  computes actually notices them. A setting that never reaches the account is worse than one
+ *  that does not exist: the user sets it, sees it stick, and finds it missing on the machine
+ *  they set it for.
+ */
+describe("ChangeSetBuilder, profile settings", () => {
+
+    it("pushes a profile whose settings changed", () => {
+        const operations = ChangeSetBuilder.build(
+            baselineOf(),
+            [{
+                id: PROFILE_ID, name: "Default", createdAt: 0,
+                settings: { enableDragAndDrop: true }
+            }],
+            { [PROFILE_ID]: emptyProfile() });
+
+        const profiles = operations.filter(operation => operation.type === "profile");
+        expect(profiles).toHaveLength(1);
+        expect(profiles[0].enableDragAndDrop).toBe(true);
+    });
+
+    it("says nothing about a profile whose settings did not change", () => {
+        const settings = { enableDragAndDrop: true };
+
+        const operations = ChangeSetBuilder.build(
+            {
+                profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0, settings }],
+                dataByProfileId: { [PROFILE_ID]: emptyProfile() }
+            },
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0, settings }],
+            { [PROFILE_ID]: emptyProfile() });
+
+        expect(operations).toEqual([]);
+    });
+
+    it("reads a profile stored before settings existed as having them off", () => {
+        // Both ends say nothing, and both have to mean the same thing by it - otherwise every
+        // device would push its whole profile list once, for no change at all.
+        const operations = ChangeSetBuilder.build(
+            baselineOf(),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() });
+
+        expect(operations).toEqual([]);
+    });
+
+    it("carries the settings of a profile the account has never seen", () => {
+        const created = "0199cccc-0000-7000-8000-00000000000c";
+
+        const operations = ChangeSetBuilder.build(
+            baselineOf(),
+            [
+                { id: PROFILE_ID, name: "Default", createdAt: 0 },
+                {
+                    id: created, name: "Fresh", createdAt: 0,
+                    settings: { enableDragAndDrop: true }
+                }
+            ],
+            { [PROFILE_ID]: emptyProfile(), [created]: emptyProfile() });
+
+        const fresh = operations.find(operation => operation.id === created);
+        expect(fresh?.enableDragAndDrop).toBe(true);
+    });
+});

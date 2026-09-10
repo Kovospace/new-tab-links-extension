@@ -1,4 +1,6 @@
 import { ProfileMeta } from "../entity/AppStateEntity";
+import { ProfileSettings, settingsOf } from "../entity/ProfileSettings";
+import deepEqual from "fast-deep-equal";
 import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageWrapper";
 import { ObservableValue } from "../../utils/observableValue";
 import { DEFAULT_PROFILE_ID } from "../datasource/init/AppStateInit";
@@ -154,6 +156,54 @@ export class ProfileRepository {
         this.registry = {
             ...this.registry,
             profiles: { ...this.registry.profiles, [id]: { ...existing, name } }
+        };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
+    /**
+     * What a profile is set to do, with anything unsaid filled in with its default.
+     *
+     * @param id the profile to read; the active one when not given
+     */
+    public getSettings(id: string = this.registry.activeProfileId): ProfileSettings {
+        return settingsOf(this.registry.profiles[id]);
+    }
+
+    /**
+     * Changes some of a profile's settings, leaving the rest of it alone.
+     *
+     * Firing profiles$ is what tells synchronisation there is something to push, exactly as
+     * renaming does: the change set turns the differing settings into an upsert of the same
+     * profile row. That is the whole reason settings live on the profile record - nothing had
+     * to be taught about them but the two ends of the wire.
+     *
+     * @param changes the settings to change; anything not named is left as it was
+     * @param id      the profile to change; the active one when not given
+     */
+    public async updateSettings(
+        changes: Partial<ProfileSettings>,
+        id: string = this.registry.activeProfileId
+    ): Promise<void> {
+
+        const existing = this.registry.profiles[id];
+        if (!existing) {
+            this.LOG.debug("updateSettings", `Profile ${id} not found in registry`);
+            return;
+        }
+
+        const settings: ProfileSettings = { ...settingsOf(existing), ...changes };
+        if (deepEqual(settings, settingsOf(existing))) {
+            // Nothing moved. Saying so anyway would fire profiles$ and push an operation
+            // identical to the row the account already holds. Compared as a whole rather
+            // than field by field, so a setting added later is covered without this being
+            // remembered.
+            return;
+        }
+
+        this.registry = {
+            ...this.registry,
+            profiles: { ...this.registry.profiles, [id]: { ...existing, settings } }
         };
         await this.saveRegistry();
         this.profiles$.set(Object.values(this.registry.profiles));

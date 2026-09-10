@@ -3,13 +3,19 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { ProfileRepository } from "./ProfileRepository";
 import { readFakeStorage, seedFakeStorage } from "../../test/chromeStorageStub";
 import { MAX_NAME_LENGTH } from "../sync/SyncContracts";
+import { ProfileSettings } from "../entity/ProfileSettings";
 
 const PROFILE_REGISTRY_KEY = "profile_registry";
 
 /** The registry shape ProfileRepository persists; mirrored here so a test can seed one. */
 interface StoredRegistry {
     activeProfileId: string;
-    profiles: Record<string, { id: string; name: string; createdAt: number }>;
+    profiles: Record<string, {
+        id: string;
+        name: string;
+        createdAt: number;
+        settings?: ProfileSettings;
+    }>;
 }
 
 function registry(activeProfileId: string, ...ids: string[]): StoredRegistry {
@@ -205,5 +211,67 @@ describe("ProfileRepository name limits", () => {
         await profiles.renameProfile("default", "x".repeat(MAX_NAME_LENGTH + 1));
 
         expect(profiles.getProfiles()[0].name).toBe("Default");
+    });
+});
+
+/**
+ *  Settings are stored on the profile record, which is what carries them to the account. Two
+ *  things have to hold for that: they have to survive being written, and writing them has to
+ *  be published - synchronisation watches profiles$ and nothing else here, so a setting that
+ *  only reached storage would stay on this device for ever.
+ */
+describe("ProfileRepository settings", () => {
+
+    let profiles: ProfileRepository;
+
+    beforeEach(async () => {
+        profiles = new ProfileRepository();
+        await profiles.init();
+    });
+
+    it("reads a profile that has never been configured as having everything off", () => {
+        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false });
+    });
+
+    it("persists a setting onto the profile record", async () => {
+        await profiles.updateSettings({ enableDragAndDrop: true });
+
+        expect(readFakeStorage<StoredRegistry>(PROFILE_REGISTRY_KEY)
+            ?.profiles["default"].settings)
+            .toEqual({ enableDragAndDrop: true });
+        expect(profiles.getSettings().enableDragAndDrop).toBe(true);
+    });
+
+    it("publishes the change, which is what schedules the push to the account", async () => {
+        let published = 0;
+        profiles.profiles$.subscribe(() => published++);
+        const before = published;
+
+        await profiles.updateSettings({ enableDragAndDrop: true });
+
+        expect(published).toBeGreaterThan(before);
+    });
+
+    it("says nothing when the setting is already what it is being set to", async () => {
+        // Every publication is a push. Ticking a box that is already ticked - which is what a
+        // dialog redrawing itself can produce - must not send an operation identical to the
+        // row the account already holds.
+        await profiles.updateSettings({ enableDragAndDrop: true });
+
+        let published = 0;
+        profiles.profiles$.subscribe(() => published++);
+        const before = published;
+
+        await profiles.updateSettings({ enableDragAndDrop: true });
+
+        expect(published).toBe(before);
+    });
+
+    it("leaves the rest of the profile alone", async () => {
+        await profiles.updateSettings({ enableDragAndDrop: true });
+
+        const stored = readFakeStorage<StoredRegistry>(PROFILE_REGISTRY_KEY)?.profiles["default"];
+        expect(stored?.name).toBe("Default");
+        expect(stored?.id).toBe("default");
     });
 });

@@ -1,3 +1,5 @@
+import { ProfileSettings } from "./ProfileSettings";
+
 export interface User {
     id: string;
     username: string;
@@ -23,6 +25,12 @@ export interface ProfileMeta {
     id: string;
     name: string;
     createdAt: number;
+
+    /**
+     * What this profile is set to do. Absent for a profile stored before settings existed,
+     * and for one that has never been configured; read it through `settingsOf()`.
+     */
+    settings?: ProfileSettings;
 }
 
 /**
