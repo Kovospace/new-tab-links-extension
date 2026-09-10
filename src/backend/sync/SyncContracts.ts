@@ -33,6 +33,15 @@ export const MAX_TITLE_LENGTH = 200;
 export const MAX_URL_LENGTH = 2048;
 
 /**
+ *  The longest tab group colour name the backend will store: `@Size(max = 16)`.
+ *
+ *  Nothing here comes close - the longest of Chrome's nine is "yellow" - and it is written
+ *  down so that it stays that way: the backend takes any string rather than an enum, on
+ *  purpose, so that a colour a future Chrome adds needs no release there.
+ */
+export const MAX_COLOR_LENGTH = 16;
+
+/**
  *  Whether a name can be stored, both here and on the account.
  *
  *  Blank is refused because the backend refuses it (`MISSING_REQUIRED_VALUE`), and over-long
@@ -113,6 +122,15 @@ export interface SyncOperation {
      *  Null, not absent and not a default, for a subgroup that has never been given one - the
      *  account has to be able to hold "no colour", because that is what every subgroup stored
      *  before colours existed is in, and the device that next sees it assigns one.
+     *
+     *  **Every subgroup upsert has to carry it**, for the same reason the profile's settings
+     *  flag does: an upsert replaces every synchronised field, so an operation built without
+     *  it - a rename, a reorder - would not leave the account's colour alone, it would clear
+     *  it on every device. One place builds these operations, which is what keeps that true.
+     *
+     *  The backend stores it as a plain string of at most `MAX_COLOR_LENGTH`, so a colour a
+     *  future Chrome adds needs no backend release. Over-long is not one rejected operation
+     *  but a 400 for the whole batch, exactly as an over-long name is.
      */
     color?: string | null;
 

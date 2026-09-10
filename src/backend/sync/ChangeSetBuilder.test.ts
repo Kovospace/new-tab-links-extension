@@ -173,6 +173,27 @@ describe("ChangeSetBuilder", () => {
         }]);
     });
 
+    it("carries the colour of a subgroup that is only being renamed", () => {
+        // The backend replaces every synchronised field on an upsert, so an operation that
+        // did not carry the colour would clear it - on every device - because somebody
+        // renamed the subgroup.
+        const before = profileOf({
+            subgroups: [{ ...subgroup("sub", "Reading", "grp", "env"), color: "purple" }]
+        });
+        const after = profileOf({
+            subgroups: [{ ...subgroup("sub", "Later", "grp", "env"), color: "purple" }]
+        });
+
+        const operations = ChangeSetBuilder.build(
+            baselineOf(before),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: after });
+
+        expect(operations).toHaveLength(1);
+        expect(operations[0].name).toBe("Later");
+        expect(operations[0].color).toBe("purple");
+    });
+
     it("says a subgroup stored before the setting existed is not catching", () => {
         // Absent locally and false on the account are the same thing, and a subgroup that
         // has simply never been touched must not push on every synchronisation.

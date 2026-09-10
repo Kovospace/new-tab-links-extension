@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     chooseTabGroupColor, isTabGroupColor, swatchOf, TAB_GROUP_COLORS
 } from "./TabGroupColors";
+import { MAX_COLOR_LENGTH } from "../sync/SyncContracts";
 
 /** Picks the nth candidate deterministically, so a test can say which one it wants. */
 const picks = (index: number) => () => index / TAB_GROUP_COLORS.length;
@@ -70,6 +71,14 @@ describe("the palette itself", () => {
         expect(TAB_GROUP_COLORS.map(swatch => swatch.color).sort()).toEqual([
             "blue", "cyan", "green", "grey", "orange", "pink", "purple", "red", "yellow"
         ]);
+    });
+
+    it("has no name the account could not store", () => {
+        // The backend takes a plain string of at most 16 characters, and an over-long one is
+        // not one rejected operation but a 400 for the entire push.
+        for (const swatch of TAB_GROUP_COLORS) {
+            expect(swatch.color.length).toBeLessThanOrEqual(MAX_COLOR_LENGTH);
+        }
     });
 
     it("recognises its own colours and nothing else", () => {
