@@ -15,6 +15,17 @@ link-subgroup:hover {
     background-color: var(--color-component-background-hover);
 }
 
+/*
+   The subgroup's colour, which is the colour Chrome paints its tab group. Worth
+   showing here so the page and the tab strip agree about which group is which -
+   as a bar down the side of the heading rather than a background, because the
+   nine colours are chosen to be told apart in a tab strip, not to be read on.
+*/
+link-subgroup-head {
+    border-left: 0.25em solid var(--subgroup-color, transparent);
+    padding-left: 0.5em;
+}
+
 link-subgroup > hr {
     display: block;
     height: 0.125em;

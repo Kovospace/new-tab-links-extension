@@ -196,6 +196,10 @@ export class ChangeSetBuilder {
                 collapsed: subgroup.collapsed,
                 defaultCollapsed: subgroup.defaultCollapsed,
                 catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false,
+                // Null rather than a default: a colour is not a flag, and "never given one"
+                // is a state the account has to be able to hold - it is what every subgroup
+                // stored before colours existed is in.
+                color: subgroup.color ?? null,
                 position: subgroup.position
             }),
             upserts, deletes);

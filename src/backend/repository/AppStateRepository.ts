@@ -5,6 +5,7 @@ import {ObservableValue} from "../../utils/observableValue";
 import {appStateInit, emptyProfileData} from "../datasource/init/AppStateInit";
 import {Logger} from "../../utils/logger"
 import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
+import {chooseTabGroupColor, TabGroupColor} from "../entity/TabGroupColors";
 import deepEqual from "fast-deep-equal";
 
 export class AppStateRepository {
@@ -490,6 +491,10 @@ export class AppStateRepository {
                     collapsed: true,
                     defaultCollapsed: true,
                     catchLinksIntoTabGroup: false,
+                    // Given a colour at birth rather than when it is first opened as tabs:
+                    // the heading is tinted with it straight away, and a colour that appeared
+                    // only once the subgroup had been used would look like a glitch.
+                    color: this.colorForNewSubgroup(),
                     position: this.getPositionForNewItem(groupId)
                 } satisfies Subgroup
             }
@@ -515,6 +520,38 @@ export class AppStateRepository {
             }
         };
         return this.save();
+    }
+
+    /**
+     * Paints a subgroup's tab group a different colour.
+     *
+     * Saved loudly: the heading is tinted with it, so the page has to redraw, and the change
+     * has to reach the account like any other property of the subgroup.
+     */
+    setSubgroupColor(id: string, color: TabGroupColor): Promise<AppState> {
+        const subgroup = this.state.subgroups[id];
+        if (!subgroup || subgroup.color === color) return Promise.resolve(this.state);
+        this.state = {
+            ...this.state,
+            subgroups: {
+                ...this.state.subgroups,
+                [id]: { ...subgroup, color }
+            }
+        };
+        return this.save();
+    }
+
+    /**
+     * The colour a subgroup created now should take: one nothing in this profile is using,
+     * or the least-used when every colour is taken. See `chooseTabGroupColor`.
+     *
+     * The whole profile is counted rather than the workspace or the group, because a tab
+     * group is a thing in the browser: two subgroups of the same colour are confusing side
+     * by side in the tab strip however far apart they are on the page.
+     */
+    private colorForNewSubgroup(): TabGroupColor {
+        return chooseTabGroupColor(
+            Object.values(this.state.subgroups).map(subgroup => subgroup.color));
     }
 
     toggleSubgroupCollapsed(id: string): void {

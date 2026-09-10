@@ -144,3 +144,17 @@ options-menu-item.separator:hover {
     background-color: inherit;
     cursor: default;
 }
+
+/*
+   A colour in front of a menu item, for the item whose subject is a colour:
+   "Grouped tabs color" says what it does, the circle says what it is set to.
+*/
+options-menu-item > span.options-menu__swatch {
+    display: inline-block;
+    width: 0.75em;
+    height: 0.75em;
+    margin-right: 0.5em;
+    border-radius: var(--radius-circular);
+    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+    vertical-align: baseline;
+}

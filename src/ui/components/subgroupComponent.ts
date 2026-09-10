@@ -29,6 +29,8 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../par
 import { OptionsMenu } from "../partials/optionsMenu"
 import {InputDialog} from "../partials/inputDialog";
 import { MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
+import { ColorPickerDialog } from "../partials/colorPickerDialog";
+import { swatchOf } from "../../backend/entity/TabGroupColors";
 
 
 
@@ -55,6 +57,10 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     }
 
     private renderSubGroup(parentElem: HTMLElement, subgroupDto: SubgroupDTO) {
+
+        // The subgroup's colour, handed to the stylesheet rather than applied here: the
+        // heading, and anything else that comes to want it, then reads one custom property.
+        this.style.setProperty("--subgroup-color", swatchOf(subgroupDto.color).hex);
 
         const headElem: HTMLElement = document.createElement(ELEM_SUBGROUP_HEAD);
         this.appendChild(headElem);
@@ -127,22 +133,15 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                     }
                 },
                 {
-                    separator: true
-                },
-                {
                     actionTitle: "Catch links into tab group",
                     checkable: true,
                     active: subgroupDto.catchLinksIntoTabGroup,
                     onClick: () => this.VIEW_MODEL.toggleCatchLinksIntoTabGroup()
                 },
                 {
-                    separator: true
-                },
-                {
-                    actionTitle: "Catch links into tab group",
-                    checkable: true,
-                    active: subgroupDto.catchLinksIntoTabGroup,
-                    onClick: () => this.VIEW_MODEL.toggleCatchLinksIntoTabGroup()
+                    actionTitle: "Grouped tabs color",
+                    swatchColor: swatchOf(subgroupDto.color).hex,
+                    onClick: () => void this.actionPickColor(subgroupDto)
                 },
                 {
                     actionTitle: "Edit subgroup title & description",
@@ -217,7 +216,23 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             return;
         }
         OpenSubgroupAsGroupedTabsHandler.handleGroupedTabsOpen(
-            this.DTO.links.map(link => link.url), this.DTO.title);
+            this.DTO.links.map(link => link.url), this.DTO.title, this.DTO.color);
+    }
+
+    /**
+     *  Asks which colour this subgroup's tab group should be, and applies the answer.
+     *
+     *  A group already open in the tab strip is repainted too, in every window it is open in.
+     *  Storing the colour and leaving the visible group as it was would look like the picker
+     *  had not worked.
+     */
+    private async actionPickColor(subgroupDto: SubgroupDTO): Promise<void> {
+        const chosen = await new ColorPickerDialog(subgroupDto.title, subgroupDto.color).ask();
+        if (!chosen) {
+            return;
+        }
+        this.VIEW_MODEL.setColor(chosen);
+        await OpenSubgroupAsGroupedTabsHandler.handleGroupRecolor(subgroupDto.title, chosen);
     }
 
     private toggleSubgroupTitleEditable(menuItem: HTMLElement): void {

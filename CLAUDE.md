@@ -125,6 +125,15 @@ A subgroup's tab group is found by title within one window and created only when
 time land in the same group. Grouping calls are queued, because two tabs finishing at once
 would otherwise each create a group of the same name.
 
+**A subgroup carries the colour its tab group is painted** (`entity/TabGroupColors.ts`), and
+there are exactly nine of them because `chrome.tabGroups.update()` takes a name out of its own
+list and refuses everything else. A palette of our own - sixteen swatches, a wheel, a hex box,
+as TODOS.md originally asked for - could be shown but never applied, so the picker offers what
+the browser will honour and says so. A new subgroup is given a colour nothing else in the
+profile is using, at random; once all nine are taken, at random among the least used. Changing
+one repaints the group already open, in every window, rather than waiting for it to be made
+again.
+
 ### Bookmarking the current page (`src/bookmark.html`)
 
 The extension's **action popup** - the bubble the browser draws under the toolbar icon - and a

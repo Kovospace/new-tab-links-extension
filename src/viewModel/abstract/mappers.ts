@@ -1,5 +1,6 @@
 import {Environment, Group, Subgroup, Link} from "../../backend/entity/AppStateEntity";
 import {GroupDTO, WorkspaceDTO, LinkDTO, SubgroupDTO} from "./dtos";
+import { DEFAULT_TAB_GROUP_COLOR } from "../../backend/entity/TabGroupColors";
 
 export const toWorkspaceDTO = (workspace: Environment): WorkspaceDTO => ({
     id: workspace.id,
@@ -39,5 +40,9 @@ export const toSubGroupDTO = (subgroup: Subgroup): SubgroupDTO => ({
     groupId: subgroup.groupId,
     workspaceId: subgroup.environmentId,
     collapsed: subgroup.collapsed,
-    catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false
+    catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false,
+    // A subgroup stored before colours existed has none. The DTO always has one, because
+    // every place that reads it - the heading, the swatch, the tab group - needs a colour
+    // rather than a decision; the stored record is given one when it is next changed.
+    color: subgroup.color ?? DEFAULT_TAB_GROUP_COLOR
 });

@@ -29,6 +29,13 @@ export type OptionsMenuAction = {
      *  whether picking it would turn the thing on or off.
      */
     checkable?: boolean,
+    /**
+     *  Draws a filled circle of this colour before the text.
+     *
+     *  For an item whose subject is a colour: "Grouped tabs color" says what it does, and the
+     *  circle says what it is set to, which no wording can do as quickly.
+     */
+    swatchColor?: string,
     noBorder?: boolean,
     dangerConfirmation?: string,
     separator?: false,
@@ -149,6 +156,14 @@ export class OptionsMenu {
         }
         optionElem.textContent = option.actionTitle;
         optionElem.setAttribute('defaultText', option.actionTitle);
+        if (option.swatchColor) {
+            // Before the text, and inserted rather than appended, so it reads as "this
+            // colour, that action".
+            const swatch = document.createElement('span');
+            swatch.classList.add('options-menu__swatch');
+            swatch.style.backgroundColor = option.swatchColor;
+            optionElem.insertBefore(swatch, optionElem.firstChild);
+        }
         if (option.dangerous) {
             optionElem.classList.add("danger");
         }

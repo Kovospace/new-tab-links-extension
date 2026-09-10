@@ -1,5 +1,6 @@
 import { Environment, Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
 import { settingsOf } from "../entity/ProfileSettings";
+import { isTabGroupColor } from "../entity/TabGroupColors";
 import { SyncSnapshot } from "./SyncContracts";
 
 /** One account's data, taken apart into the profiles this extension stores separately. */
@@ -114,7 +115,11 @@ export class SyncSnapshotMapper {
                 createdAt: this.toEpochMilliseconds(subgroup.createdAt),
                 collapsed: subgroup.collapsed,
                 defaultCollapsed: subgroup.defaultCollapsed,
-                catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false
+                catchLinksIntoTabGroup: subgroup.catchLinksIntoTabGroup ?? false,
+                // Anything the account holds that this version does not recognise is dropped
+                // rather than kept: the colour is handed to chrome.tabGroups, which refuses a
+                // name it does not know, and a subgroup with none is simply given one.
+                color: isTabGroupColor(subgroup.color) ? subgroup.color : undefined
             } satisfies Subgroup;
         }
 

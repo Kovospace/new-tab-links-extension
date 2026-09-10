@@ -1,4 +1,5 @@
 import { ProfileSettings } from "./ProfileSettings";
+import { TabGroupColor } from "./TabGroupColors";
 
 export interface User {
     id: string;
@@ -90,6 +91,15 @@ export interface Subgroup extends GroupItem {
      * Absent means off, which is what every subgroup stored before this existed says.
      */
     catchLinksIntoTabGroup?: boolean;
+
+    /**
+     * The colour Chrome paints this subgroup's tab group, and the colour the new tab page
+     * tints its heading. One of nine names - see `TabGroupColors.ts`.
+     *
+     * Absent means it has never been given one, which is what every subgroup stored before
+     * this existed says; it is assigned one the next time it is drawn.
+     */
+    color?: TabGroupColor;
 }
 
 export interface Link extends GroupItem {
