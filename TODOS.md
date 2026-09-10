@@ -86,11 +86,14 @@ Note: needs permission "chrome.session"
 # DONE
 
 ### [medium] Bookmarking currently opened webpage
-- command "bookmark-current-page" declared in the manifest, suggested Ctrl+Shift+D (Cmd+Shift+D
-  on a Mac); Chrome may hand the key to somebody else, and it is then rebindable at
-  chrome://extensions/shortcuts
-- no new permission: the worker reads the tab it can already see and opens the extension's own
-  small window on it, rather than injecting a form into the visited page
+- two ways in: a right-click menu entry ("Bookmark this page with ...", and "Bookmark this
+  link with ..." over a link), and the command "bookmark-current-page" suggested at Alt+Shift+D
+- Ctrl+Shift+D was asked for and cannot be had: Chrome and Brave both keep it for "bookmark all
+  tabs", and a suggested key the browser refuses leaves the command silently unbound. The menu
+  is what carries the feature; the key is rebindable at chrome://extensions/shortcuts
+- the worker reads the tab it can already see and opens the extension's own small window on it,
+  rather than injecting a form into the visited page; the only permission added is
+  "contextMenus", which has no install-time warning
 - the form is the modal dialog described here - favicon on the left, labels right-aligned in the
   middle, fields on the right - with name and URL pre-filled, the open workspace stated, a group
   dropdown, and a subgroup dropdown that appears only for a group that has subgroups

@@ -10,6 +10,7 @@
     "storage",
     "tabs",
     "tabGroups",
+    "contextMenus",
     "favicon"
   ],
   "host_permissions": ["<all_urls>"],
@@ -20,8 +21,8 @@
   "commands": {
     "bookmark-current-page": {
       "suggested_key": {
-        "default": "Ctrl+Shift+D",
-        "mac": "Command+Shift+D"
+        "default": "Alt+Shift+D",
+        "mac": "Alt+Shift+D"
       },
       "description": "Bookmark the current page"
     }

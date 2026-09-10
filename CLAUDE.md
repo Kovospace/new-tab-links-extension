@@ -105,7 +105,10 @@ Two kinds of thing live there, and they are not the same kind:
   - `linkTabGroupCatcher` watches `chrome.tabs.onUpdated` and pulls a tab that navigates to
     a link of a subgroup marked `catchLinksIntoTabGroup` into that subgroup's tab group.
   - `bookmarkCurrentPage` watches `chrome.commands.onCommand` for the keyboard shortcut
-    declared in the manifest, and opens the bookmarking window on the active tab.
+    declared in the manifest, and `chrome.contextMenus.onClicked` for the two right-click
+    entries; both open the bookmarking window. The entries themselves are created in
+    `chrome.runtime.onInstalled` - Chrome stores them and brings them back with the worker,
+    so creating them on every wake would fail on the identifier already being taken.
 
 MV3 stops the worker after thirty seconds of quiet, so it holds no state between events:
 the catcher re-reads the active profile out of `chrome.storage.local` on every navigation,
@@ -129,6 +132,13 @@ feature needs no permission the extension did not already have.
 - The tab's url, title and favicon travel in the address, built and read back through
   `utils/bookmarkRequest.ts` - the one contract between the two ends. Only http(s) is
   offered; a `chrome://` page, the new tab page included, is not bookmarkable.
+- **The right-click menu is the way in that works, the shortcut is the accelerator.** A
+  browser keeps its own shortcuts: Ctrl+Shift+D bookmarks every open tab in Chrome and in
+  Brave, and a suggested key the browser refuses leaves the command silently unbound. So the
+  menu (`contextMenus` permission, no install-time warning) carries the feature, and the
+  suggested key is Alt+Shift+D, rebindable at chrome://extensions/shortcuts. Right-clicking a
+  link keeps that link rather than the page it sits on; a link has no title the worker can
+  read, so its name starts empty and saving it as it stands keeps the address as the name.
 - The window starts the repositories and nothing else. **It deliberately does not
   synchronise**: it holds no session and lives for seconds. The link it stores moves the
   stored profile on, and the next new tab page to synchronise pushes that difference, exactly
