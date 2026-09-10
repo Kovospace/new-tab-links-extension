@@ -9,7 +9,7 @@ import {
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
-    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT,
+    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ELEM_WORKSPACE_FOOTER,
 } from "../../main"
 
 // data/model layer
@@ -91,8 +91,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         const headElem: HTMLElement = document.createElement(ELEM_WORKSPACE_HEAD);
         const bodyElem: HTMLElement = document.createElement(ELEM_WORKSPACE_BODY);
+        const footElem: HTMLElement = document.createElement(ELEM_WORKSPACE_FOOTER);
         this.appendChild(headElem);
         this.appendChild(bodyElem);
+        this.appendChild(footElem);
 
         // page header
         this.renderHeader();
@@ -117,7 +119,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // tips, under the columns and inside the scrolling area rather than in the page
         // footer: the footer never moves, and a line of advice that is always on screen
         // stops reading as advice and starts reading as furniture.
-        this.renderTips();
+        this.renderTips(footElem);
     }
 
     attachListeners(parentElem: HTMLElement) {
@@ -412,8 +414,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      *  little to show, and below the columns when there is a lot - see the stylesheet, where
      *  `margin-top: auto` does that.
      */
-    private renderTips() {
-        new TipsBar().render(this);
+    private renderTips(parentElem: HTMLElement) {
+        new TipsBar().render(parentElem);
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

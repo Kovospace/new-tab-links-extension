@@ -44,6 +44,7 @@ export const ELEM_FIRSTRUN: string = 'first-run';
 export const ELEM_WORKSPACE = "workspace-plane";
 export const ELEM_WORKSPACE_HEAD = "workspace-plane-head";
 export const ELEM_WORKSPACE_BODY = "workspace-plane-body";
+export const ELEM_WORKSPACE_FOOTER = "workspace-plane-footer";
 
 export const ELEM_GROUP: string = "link-group";
 export const ELEM_GROUP_HEAD: string = "link-group-head";

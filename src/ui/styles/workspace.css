@@ -87,3 +87,11 @@ html.dark workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover))
     background-color: var(--color-component-background-hover);
 }
 
+
+
+workspace-plane-footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+

@@ -17,13 +17,7 @@
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: fit-content;
-    /*
-       Top auto pushes the card to the foot of the plane; left and right centre
-       it. There is deliberately no bottom margin: the gap under the card is
-       padding on the plane instead, because a margin here is not part of what
-       the scrolling area can scroll to. See workspace.css.
-    */
-    margin: auto auto 0;
+    margin: auto auto 1em;
 }
 
 .tips-bar::before {
