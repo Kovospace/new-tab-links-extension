@@ -93,5 +93,8 @@ workspace-plane-footer {
     display: flex;
     flex-direction: row;
     align-items: center;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto;
 }
 
