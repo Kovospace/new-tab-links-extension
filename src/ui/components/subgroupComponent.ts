@@ -133,9 +133,6 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                     }
                 },
                 {
-                    separator: true
-                },
-                {
                     actionTitle: "Catch links into tab group",
                     checkable: true,
                     active: subgroupDto.catchLinksIntoTabGroup,
