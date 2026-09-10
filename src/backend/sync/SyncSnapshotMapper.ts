@@ -1,4 +1,5 @@
 import { Environment, Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
+import { settingsOf } from "../entity/ProfileSettings";
 import { SyncSnapshot } from "./SyncContracts";
 
 /** One account's data, taken apart into the profiles this extension stores separately. */
@@ -42,7 +43,13 @@ export class SyncSnapshotMapper {
             .map(profile => ({
                 id: profile.id,
                 name: profile.name,
-                createdAt: this.toEpochMilliseconds(profile.createdAt)
+                createdAt: this.toEpochMilliseconds(profile.createdAt),
+                // Settings ride on the profile record. A backend that does not store them
+                // yet says nothing, and settingsOf() reads that as the defaults rather than
+                // as an instruction to turn anything on.
+                settings: settingsOf({
+                    settings: { enableDragAndDrop: profile.enableDragAndDrop ?? false }
+                })
             }));
 
         const dataByProfileId: Record<string, ProfileData> = {};

@@ -12,17 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [medium] Add "settings" to application menu
-- implement settings page as the modal dialog, the same way how functionality "Manage profiles" is implemented
-- data structure for settings off course, synchronized too
-- divide settings into groups
-  - group sections should be able to "fold"
-  - add first groups "UI and behaviour"
-- first setting will be: "enable drag & drop" - add under "UI and behavior" group
-- when "open links in separate tabs" lands here, it has to grey out a subgroup's "catch links
-  into tab group" while it is on - the two contradict each other
-- in application menu (three dots upper right corner) it should be the last item and add separator before it
-
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
@@ -90,6 +79,25 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [medium] Add "settings" to application menu
+- "Settings" is the last item of the application menu, behind a separator, in both the
+  signed-in and the signed-out menu
+- modal dialog, built the same way "Manage profiles" is - same frame, opened from the menu,
+  its own view model over the profile registry
+- settings belong to the PROFILE and ride on the profile record, so they synchronise with no
+  new entity kind, no snapshot collection and no merge rules: a change is a difference in the
+  profile upsert the change set already sends. The dialog says which profile it is about,
+  because that is the cost of it
+- settings are drawn in collapsible categories; the first is "UI and behavior", and it is
+  where "enable drag & drop" lives. Adding a setting is a line in the CATEGORIES list in
+  settingsViewModel.ts and nothing else; a category with nothing in it yet is not drawn
+- which categories are folded is not stored and not synchronised - it is how the screen is
+  being looked at, and a dialog opened again starts with the first category expanded
+- first setting is "enable drag & drop", off by default; nothing reads it yet, the dragging
+  itself is still to be built
+- NOT done: "open links in separate tabs" and greying out a subgroup's "catch links into tab
+  group" against it - that setting does not exist yet either
 
 ### [medium] Bookmarking currently opened webpage
 - the form is the extension's action popup (toolbar bubble), opened three ways: the toolbar

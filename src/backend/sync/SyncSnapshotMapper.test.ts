@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SyncSnapshotMapper } from "./SyncSnapshotMapper";
-import { SnapshotSubgroupDto, SyncSnapshot } from "./SyncContracts";
+import { SnapshotProfileDto, SnapshotSubgroupDto, SyncSnapshot } from "./SyncContracts";
 
 const NOW = "2026-01-01T00:00:00Z";
 
@@ -63,5 +63,52 @@ describe("SyncSnapshotMapper, the catch-links setting", () => {
         // simply omits the field. Undefined must not reach the service worker, which reads
         // the stored subgroup rather than a DTO.
         expect(mappedSubgroup(accountWithSubgroup({})).catchLinksIntoTabGroup).toBe(false);
+    });
+});
+
+/** An account holding one profile, described however the test needs it described. */
+function accountWithProfile(profile: Partial<SnapshotProfileDto>): SyncSnapshot {
+    return {
+        owner: { id: "owner", username: "kovo" },
+        profiles: [{
+            id: PROFILE, ownerId: "owner", name: "Default", position: 0,
+            createdAt: NOW, updatedAt: NOW,
+            ...profile
+        }],
+        environments: [],
+        groups: [],
+        subgroups: [],
+        links: [],
+        capturedAt: NOW
+    };
+}
+
+const mappedProfile = (snapshot: SyncSnapshot) =>
+    SyncSnapshotMapper.toProfiles(snapshot).profiles[0];
+
+/**
+ *  A profile's settings arrive on the profile record, which is the whole reason they need no
+ *  entity kind of their own. A pull replaces a profile wholesale, so a mapper that dropped
+ *  them would turn every setting off again on the next pull - and the pull that follows every
+ *  push means the user would watch it happen seconds after setting it.
+ */
+describe("SyncSnapshotMapper, profile settings", () => {
+
+    it("takes the settings the account holds", () => {
+        expect(mappedProfile(accountWithProfile({ enableDragAndDrop: true })).settings)
+            .toEqual({ enableDragAndDrop: true });
+    });
+
+    it("reads a backend that does not store settings yet as having them off", () => {
+        // The field is absent, not false, and absent must not arrive as undefined: a profile
+        // whose settings are undefined compares differently from one whose settings are the
+        // defaults, and the difference would be pushed straight back.
+        expect(mappedProfile(accountWithProfile({})).settings)
+            .toEqual({ enableDragAndDrop: false });
+    });
+
+    it("keeps an account that has them off, off", () => {
+        expect(mappedProfile(accountWithProfile({ enableDragAndDrop: false })).settings)
+            .toEqual({ enableDragAndDrop: false });
     });
 });

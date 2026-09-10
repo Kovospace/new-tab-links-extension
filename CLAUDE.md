@@ -179,6 +179,17 @@ Profile (registry in ProfileRepository, data stored per profile)
     └── links: Record<string, Link>                 ← belong to Group, optionally Subgroup
 ```
 
+A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to
+do, as opposed to what it holds. They live on the profile record rather than in a store of
+their own, which is what lets them synchronise with no new entity kind, no snapshot collection
+and no merge rules - a settings change is simply a difference in the profile upsert the change
+set already sends, and `profiles$` firing is what schedules it. The price, paid knowingly: two
+profiles are two sets of preferences. Every setting is a boolean defaulting to off and is read
+through `settingsOf()`, never straight off the profile: a profile stored before a setting
+existed says nothing about it, and so does an account whose backend does not know it yet, and
+both have to read as the default rather than as `undefined` - the two compare differently, and
+the difference would be pushed.
+
 The backend mirrors this exactly, profiles included. **A new field on an entity has to be
 threaded through five places** or it is silently lost: the entity here, `SyncContracts`
 (both `SyncOperation` and the snapshot DTO), `ChangeSetBuilder` (or it is never pushed),

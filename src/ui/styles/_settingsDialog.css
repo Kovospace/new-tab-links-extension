@@ -1,0 +1,143 @@
+/* ---------------------------------------------------------------------------
+   Settings
+
+   The input dialog's frame again, and the profile manager's list beneath it -
+   opening either from a menu should not feel like leaving the menu. What is its
+   own is the row: a checkbox against a name with a sentence under it, because a
+   setting nobody can explain to themselves is a setting nobody touches.
+
+   Rows sit in collapsible categories. One category does not need folding away,
+   but the list is going to grow, and a screen you have to scroll to find out
+   what is on it is one people stop reading.
+   --------------------------------------------------------------------------- */
+
+dialog.settings-dialog {
+    min-width: 26em;
+    max-width: 34em;
+}
+
+.settings-dialog__list {
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh;
+    /* A long list scrolls inside the dialog rather than pushing its buttons off
+       the bottom of the screen. */
+    overflow-y: auto;
+    padding: 0.5em 0.75em;
+    gap: 0.25em;
+}
+
+.settings-dialog__note {
+    margin: 0 0 0.5em;
+    font-size: 0.85em;
+    opacity: 0.75;
+    line-height: 1.4;
+}
+
+.settings-dialog__category {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+}
+
+/* A real button: the whole heading is the target, and it is reachable by
+   keyboard. It gives up the button styling from main.css, which is sized for
+   the small square buttons in the group headers. */
+.settings-dialog__category-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    width: 100%;
+    margin: 0;
+    padding: 0.35em 0.25em;
+    background: none;
+    border: none;
+    border-radius: var(--radius-small);
+    font-size: 0.875em;
+    font-weight: bold;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    /*opacity: 0.85;*/
+    cursor: pointer;
+    transition: background-color var(--time-transition-medium) ease-in-out;
+}
+
+/* main.css paints every button in the dark theme, and does it with a selector
+   heavier than a single class - so the heading has to say so at least as
+   loudly, or it comes out as a grey slab across the dialog. */
+html.dark .settings-dialog__category-head,
+html.dark .settings-dialog__category-head:hover,
+html.dark .settings-dialog__category-head:active {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.settings-dialog__category-head:hover {
+    opacity: 1;
+}
+
+.settings-dialog__chevron {
+    /* Fixed width so the title does not shift as the chevron changes shape. */
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+}
+
+.settings-dialog__category-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    padding-bottom: 0.5em;
+}
+
+.settings-dialog__category-body[hidden] {
+    display: none;
+}
+
+.settings-dialog__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75em;
+    padding: 0.5em;
+    border-radius: var(--radius-small);
+    background-color: var(--color-button-background);
+    transition: background-color var(--time-transition-medium) ease-in-out;
+    cursor: pointer;
+}
+
+.settings-dialog__row:hover {
+    background-color: var(--color-button-background-hover);
+}
+
+/* A setting another setting contradicts. The row still says what it is and why
+   it cannot be changed - see the title attribute - rather than vanishing. */
+.settings-dialog__row--disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.settings-dialog__checkbox {
+    /* Level with the name rather than with the middle of the row, which is
+       lower as soon as the explanation wraps. */
+    margin-top: 0.2em;
+    flex: 0 0 auto;
+    cursor: inherit;
+}
+
+.settings-dialog__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    min-width: 0;
+}
+
+.settings-dialog__explanation {
+    font-size: 0.85em;
+    opacity: 0.75;
+    line-height: 1.4;
+}
+
+.settings-dialog__actions {
+    margin: 0.75em;
+}

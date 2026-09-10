@@ -1,4 +1,5 @@
 import { Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
+import { settingsOf } from "../entity/ProfileSettings";
 import { SyncEntityKind, SyncOperation } from "./SyncContracts";
 
 /**
@@ -102,10 +103,7 @@ export class ChangeSetBuilder {
         const baselineById = this.byId(baseline.profiles);
 
         profiles.forEach((profile, index) => {
-            const operation: SyncOperation = {
-                op: "upsert", type: "profile", id: profile.id,
-                name: profile.name, position: index
-            };
+            const operation: SyncOperation = this.profileUpsert(profile, index);
             const previous = baselineById.get(profile.id);
             if (!previous || this.differs(operation, this.profileOperation(previous, baseline))) {
                 upserts.push(operation);
@@ -120,13 +118,33 @@ export class ChangeSetBuilder {
         }
     }
 
-    /** The operation that would have been sent for a profile as the baseline holds it. */
-    private static profileOperation(profile: ProfileMeta, baseline: SyncBaseline): SyncOperation {
+    /**
+     *  The operation that puts one profile on the account.
+     *
+     *  Settings are part of it, which is what makes them synchronise at all: they live on the
+     *  profile record rather than in a store of their own, so a settings change is a
+     *  difference in this operation and needs nothing else to notice it. They are read
+     *  through settingsOf(), so a profile stored before settings existed sends the defaults
+     *  rather than nothing - the two mean the same to the backend, and only one of them
+     *  compares equal to what a later save will send.
+     *
+     *  @param profile  the profile as this device holds it
+     *  @param position where it sits among the profiles
+     */
+    private static profileUpsert(profile: ProfileMeta, position: number): SyncOperation {
         return {
             op: "upsert", type: "profile", id: profile.id,
             name: profile.name,
-            position: baseline.profiles.findIndex(candidate => candidate.id === profile.id)
+            enableDragAndDrop: settingsOf(profile).enableDragAndDrop,
+            position
         };
+    }
+
+    /** The operation that would have been sent for a profile as the baseline holds it. */
+    private static profileOperation(profile: ProfileMeta, baseline: SyncBaseline): SyncOperation {
+        return this.profileUpsert(
+            profile,
+            baseline.profiles.findIndex(candidate => candidate.id === profile.id));
     }
 
     // ------------------------------------------------------------- profile data
