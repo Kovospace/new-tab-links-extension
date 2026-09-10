@@ -107,6 +107,15 @@ export interface SyncOperation {
     /** Whether a subgroup pulls tabs opened on its links into its tab group. */
     catchLinksIntoTabGroup?: boolean;
 
+    /**
+     *  The colour Chrome paints a subgroup's tab group: one of nine names it accepts.
+     *
+     *  Null, not absent and not a default, for a subgroup that has never been given one - the
+     *  account has to be able to hold "no colour", because that is what every subgroup stored
+     *  before colours existed is in, and the device that next sees it assigns one.
+     */
+    color?: string | null;
+
     /** Zero based position among the record's siblings. */
     position?: number;
 }
@@ -186,6 +195,8 @@ export interface SnapshotSubgroupDto {
     defaultCollapsed: boolean;
     /** Absent from a backend that does not store this yet, and read as off when it is. */
     catchLinksIntoTabGroup?: boolean;
+    /** Null for a subgroup that has never been given one; absent from an older backend. */
+    color?: string | null;
     createdAt: string;
     updatedAt: string;
 }

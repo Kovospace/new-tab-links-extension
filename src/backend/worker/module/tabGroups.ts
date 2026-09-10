@@ -1,3 +1,5 @@
+import { DEFAULT_TAB_GROUP_COLOR, TabGroupColor } from "../../entity/TabGroupColors";
+
 /**
  *  Putting tabs into the Chrome tab group that stands for a subgroup.
  *
@@ -10,11 +12,10 @@
 /** chrome.tabGroups.TAB_GROUP_ID_NONE, without reaching into the API for a constant. */
 export const TAB_GROUP_NONE = -1;
 
-/** The colours Chrome paints a tab group with, as the API accepts them. */
-export type TabGroupColor = `${chrome.tabGroups.Color}`;
-
-/** The colour a subgroup's tab group gets until subgroups carry a colour of their own. */
-export const DEFAULT_TAB_GROUP_COLOR: TabGroupColor = "blue";
+// The colours themselves live with the entity that carries one, because the picker and the
+// new tab page need them as much as this does.
+export type { TabGroupColor } from "../../entity/TabGroupColors";
+export { DEFAULT_TAB_GROUP_COLOR } from "../../entity/TabGroupColors";
 
 /**
  *  Grouping runs one call at a time.
@@ -68,5 +69,28 @@ export function groupTabsUnderTitle(
                 : { tabIds: tabs, createProperties: { windowId } });
 
         await chrome.tabGroups.update(groupId, { title, color });
+    });
+}
+
+/**
+ *  Repaints every tab group of this title, wherever it is open.
+ *
+ *  Colouring a subgroup would otherwise only show once its group was next created - the
+ *  group standing open in the tab strip would keep the colour it was made with, and the
+ *  picker would look like it had not worked.
+ *
+ *  Every window is searched rather than one: a subgroup's tabs may have been opened in one
+ *  window and dragged to another, and the group is the same group either way. Nothing else
+ *  about the group is touched.
+ *
+ *  @param title  the subgroup's title, which names the tab group
+ *  @param color  the colour to paint it
+ */
+export function recolorGroupsByTitle(title: string, color: TabGroupColor): Promise<void> {
+    return queued(async () => {
+        const existing = await chrome.tabGroups.query({ title });
+        for (const group of existing) {
+            await chrome.tabGroups.update(group.id, { color });
+        }
     });
 }

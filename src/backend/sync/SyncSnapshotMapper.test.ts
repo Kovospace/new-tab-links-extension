@@ -112,3 +112,29 @@ describe("SyncSnapshotMapper, profile settings", () => {
             .toEqual({ enableDragAndDrop: false });
     });
 });
+
+/**
+ *  A subgroup's colour travels with the subgroup, like its title: the same subgroup should be
+ *  the same colour in the tab strip on every machine.
+ */
+describe("SyncSnapshotMapper, subgroup colour", () => {
+
+    it("takes the colour the account holds", () => {
+        expect(mappedSubgroup(accountWithSubgroup({ color: "purple" })).color).toBe("purple");
+    });
+
+    it("leaves a subgroup the account has never coloured without one", () => {
+        // Not a default: "never given one" is a real state, and the device that next changes
+        // this subgroup is the one that assigns it a colour.
+        expect(mappedSubgroup(accountWithSubgroup({ color: null })).color).toBeUndefined();
+        expect(mappedSubgroup(accountWithSubgroup({})).color).toBeUndefined();
+    });
+
+    it("drops a colour this version does not know", () => {
+        // The account may have been written by a newer version. The value is handed to
+        // chrome.tabGroups, which refuses a name it does not know - so an unrecognised colour
+        // must not be stored as if it were usable.
+        expect(mappedSubgroup(accountWithSubgroup({ color: "chartreuse" })).color)
+            .toBeUndefined();
+    });
+});

@@ -18,18 +18,6 @@ Note for agents:
 - drag link between groups and subgroups
 - drag group to change its order
 
-### [medium] Custom color for tab group
-- predefine 16 default colors and:
-    - choose one randomly for new subgroup from ones that are not in use yet (from default 16)
-        - if all have been used, then again choose randomly and then from the colors that have been used least times and so on
-- when opening all links from subgroup
-- add menu item to subGroup menu "* | Grouped tabs color"
-    - where "*" is circle showing actual group color followed by menu item description
-    - on click open some color picker with:
-        - picking color from color wheel
-        - picking color by entering hex code
-        - with list of 16 default pre-defined colors
-
 ### [big] Add panel with last opened tabs (closed tabs history)
 - synchronized, BUT by active profile
 - ordered by time, include device name if tab was closed on another device than in current
@@ -72,6 +60,25 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [medium] Custom color for tab group
+- NOT as specced, and the reason is the browser: chrome.tabGroups.update() takes one of nine
+  names - grey, blue, red, yellow, green, pink, purple, cyan, orange - and refuses anything
+  else. Sixteen predefined colours, a colour wheel and a hex box could all be drawn, and the
+  tab strip would go on painting something else. So the picker offers the nine Chrome honours,
+  and says under the swatches that these are the only nine
+- a new subgroup is given a colour nothing else in the profile uses, chosen at random; once
+  all nine are taken, at random among the least used - the rule this asked for, over 9 not 16
+- subgroup menu item "Grouped tabs color" with a filled circle in front of it showing the
+  colour it is set to now
+- the colour is used when opening all links from a subgroup, and when the background catcher
+  pulls a single tab into the group
+- changing it repaints the group already open in the tab strip, in every window, rather than
+  waiting for the group to be created again
+- the subgroup's heading on the page carries a bar in the same colour, so the page and the tab
+  strip agree about which group is which
+- synchronised like any other property of a subgroup; null on the account means "never given
+  one", and the device that next sees it assigns one
 
 ### [middle] add validations and constraints to all modal dialogs
 - InputDialog fields now take constraints - { type, required, maxLength } - beside the bare

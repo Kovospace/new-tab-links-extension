@@ -168,6 +168,7 @@ describe("ChangeSetBuilder", () => {
             collapsed: false,
             defaultCollapsed: false,
             catchLinksIntoTabGroup: true,
+            color: null,
             position: 0
         }]);
     });

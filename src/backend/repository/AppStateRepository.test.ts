@@ -464,3 +464,67 @@ describe("AppStateRepository adopting a write made in another page", () => {
         expect(openPage.state$.get()).toEqual(before);
     });
 });
+
+/**
+ *  A subgroup's colour is the colour Chrome paints its tab group. It is given one when it is
+ *  created rather than when it is first opened as tabs, because the heading is tinted with it
+ *  straight away - and because two subgroups that came out the same colour are confusing in
+ *  the tab strip long before anyone opens a menu to fix it.
+ */
+describe("AppStateRepository subgroup colours", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e002";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g002";
+
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "Reading", ENV)],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    const coloursOf = (state: { subgroups: Record<string, { color?: string }> }) =>
+        Object.values(state.subgroups).map(subgroup => subgroup.color);
+
+    it("gives a new subgroup a colour", () => {
+        return appState.createSubGroup(GROUP, ENV, "Fresh").then(state => {
+            expect(coloursOf(state)[0]).toBeTruthy();
+        });
+    });
+
+    it("gives every subgroup of a profile a different colour, while it can", async () => {
+        // Nine colours, nine subgroups: nobody should have to go and fix a duplicate by hand
+        // before the palette is even used up.
+        for (let i = 0; i < 9; i++) {
+            await appState.createSubGroup(GROUP, ENV, `Subgroup ${i}`);
+        }
+
+        const colours = coloursOf(appState.state$.get());
+        expect(colours).toHaveLength(9);
+        expect(new Set(colours).size).toBe(9);
+    });
+
+    it("changes a subgroup's colour", async () => {
+        const created = await appState.createSubGroup(GROUP, ENV, "Fresh");
+        const id = Object.keys(created.subgroups)[0];
+
+        const state = await appState.setSubgroupColor(id, "purple");
+
+        expect(state.subgroups[id].color).toBe("purple");
+    });
+
+    it("does nothing for a subgroup that is not there", async () => {
+        const before = appState.state$.get();
+
+        const state = await appState.setSubgroupColor("sub-deleted-elsewhere", "red");
+
+        expect(state.subgroups).toEqual(before.subgroups);
+    });
+});

@@ -3,6 +3,7 @@ import type { ProfileRegistry } from "../../repository/ProfileRepository";
 import { ChromeStorageWrapper } from "../../datasource/chromeStorage/chromeStorageWrapper";
 import { PROFILE_REGISTRY_KEY, appStateKey } from "../../datasource/chromeStorage/storageKeys";
 import { TAB_GROUP_NONE, groupTabsUnderTitle } from "./tabGroups";
+import { DEFAULT_TAB_GROUP_COLOR } from "../../entity/TabGroupColors";
 import { Logger } from "../../../utils/logger";
 
 /**
@@ -68,7 +69,11 @@ async function catchTab(tabId: number, url: string, tab: chrome.tabs.Tab): Promi
     }
 
     LOG.debug("catchTab", `${url} -> tab group "${subgroup.title}"`);
-    await groupTabsUnderTitle(subgroup.title, [tabId], tab.windowId);
+    // The subgroup's own colour, so a tab caught here lands in a group that looks like the
+    // one opening the subgroup from the page would have made. A subgroup stored before
+    // colours existed has none, and takes the default.
+    await groupTabsUnderTitle(
+        subgroup.title, [tabId], tab.windowId, subgroup.color ?? DEFAULT_TAB_GROUP_COLOR);
 }
 
 /**

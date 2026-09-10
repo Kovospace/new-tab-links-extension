@@ -137,3 +137,83 @@ dialog.choice-dialog {
     background-color: var(--color-textfield-background);
     color: var(--color-textfield-text);
 }
+
+/* ---------------------------------------------------------------------------
+   Colour picker
+
+   The input dialog's frame around nine swatches. There are nine because there
+   are nine: chrome.tabGroups takes a name out of its own list and refuses
+   anything else, so a wheel or a hex box would offer a colour the tab strip
+   would then ignore. The dialog says as much under the swatches.
+   --------------------------------------------------------------------------- */
+
+dialog.color-picker {
+    min-width: 22em;
+    max-width: 26em;
+}
+
+.color-picker__subject,
+.color-picker__note {
+    margin: 0;
+    padding: 0.5em 0.75em 0;
+    font-size: 0.85em;
+    line-height: 1.4;
+    opacity: 0.75;
+}
+
+.color-picker__note {
+    padding-top: 0.75em;
+}
+
+.color-picker__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.375em;
+    padding: 0.75em;
+}
+
+/* One swatch. It gives up main.css's button styling, which is sized for the
+   small square buttons in the group headers. */
+.color-picker__swatch,
+html.dark .color-picker__swatch {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0;
+    padding: 0.4em 0.5em;
+    background-color: var(--color-button-background);
+    border: none;
+    border-radius: var(--radius-small);
+    font-weight: normal;
+    text-align: left;
+    cursor: pointer;
+}
+
+.color-picker__swatch:hover,
+html.dark .color-picker__swatch:hover {
+    background-color: var(--color-button-background-hover);
+}
+
+/* The one it is set to now, ringed rather than ticked: a tick over a colour
+   hides the colour. */
+.color-picker__swatch--current,
+html.dark .color-picker__swatch--current {
+    box-shadow: inset 0 0 0 0.125em var(--color-button-active-background);
+}
+
+.color-picker__dot {
+    flex: 0 0 auto;
+    width: 1em;
+    height: 1em;
+    border-radius: var(--radius-circular);
+    /* A ring, so a dark swatch is still a disc against a dark dialog. */
+    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+}
+
+.color-picker__label {
+    font-size: 0.9em;
+}
+
+.color-picker__actions {
+    padding: 0 0.75em 0.75em;
+}

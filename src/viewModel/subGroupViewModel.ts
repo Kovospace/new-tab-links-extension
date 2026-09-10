@@ -9,6 +9,7 @@ import { toSubGroupDTO, toLinkDTO } from "./abstract/mappers"
 
 // utils
 import { ObservableValue } from "../utils/observableValue";
+import { TabGroupColor } from "../backend/entity/TabGroupColors";
 
 
 
@@ -50,6 +51,16 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
             return;
         }
         this.REPOSITORY.editSubGroup(id, title, description);
+    }
+
+    /**
+     *  Paints this subgroup's tab group a different colour.
+     *
+     *  @param color one of the nine colours Chrome accepts
+     */
+    public setColor(color: TabGroupColor): void {
+        this.LOG.debug("setColor", `id: ${this.DTO.id}, color: ${color}`);
+        this.REPOSITORY.setSubgroupColor(this.DTO.id, color);
     }
 
     public deleteSubgroup(id: string): void {

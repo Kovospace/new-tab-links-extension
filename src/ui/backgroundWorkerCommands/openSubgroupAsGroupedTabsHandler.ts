@@ -14,4 +14,19 @@ export class OpenSubgroupAsGroupedTabsHandler {
             });
     }
 
+    /**
+     *  Repaints the tab group standing for a subgroup, if one is open.
+     *
+     *  Asked for when the colour is changed, so the tab strip agrees with the page at once
+     *  rather than at the next opening.
+     */
+    static async handleGroupRecolor(groupTitle: string, groupColor: string) {
+        await sendToWorkerThread<OpenGroupedTabsInput, OpenGroupedTabsOutput>(
+            "openGroupedTabs", "recolor", {
+                urls: [],
+                title: groupTitle,
+                color: groupColor,
+            });
+    }
+
 }

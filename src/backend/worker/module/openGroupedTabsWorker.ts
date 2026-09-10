@@ -1,7 +1,10 @@
 import {BackgroundWorker} from "../abstract/BackgroundWorker";
-import {DEFAULT_TAB_GROUP_COLOR, TabGroupColor, groupTabsUnderTitle} from "./tabGroups";
+import {
+    DEFAULT_TAB_GROUP_COLOR, TabGroupColor, groupTabsUnderTitle, recolorGroupsByTitle
+} from "./tabGroups";
 
 export interface OpenGroupedTabsInput {
+    /** The addresses to open; empty for an action that only repaints. */
     urls: string[];
     title: string;
     color: string;
@@ -17,6 +20,12 @@ export class OpenGroupedTabsWorker extends BackgroundWorker<OpenGroupedTabsInput
         switch (action) {
             case "open":
                 this.openTabs(payload.urls, payload.title, payload.color);
+                return this.response({});
+            case "recolor":
+                // The group may not be open at all, which is not a failure: the colour is
+                // stored either way and the next group made under this title takes it.
+                await recolorGroupsByTitle(
+                    payload.title, (payload.color as TabGroupColor) || DEFAULT_TAB_GROUP_COLOR);
                 return this.response({});
             default:
                 return this.errorResponse(

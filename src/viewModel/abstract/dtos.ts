@@ -1,3 +1,5 @@
+import { TabGroupColor } from "../../backend/entity/TabGroupColors";
+
 
 export interface ViewModelDTO {
     id: string;
@@ -35,6 +37,8 @@ export interface SubgroupDTO extends GroupItemDTO {
     links?: LinkDTO[] | null;
     collapsed: boolean;
     catchLinksIntoTabGroup: boolean;
+    /** The colour its tab group is painted, and the colour its heading is tinted. */
+    color: TabGroupColor;
 }
 
 export interface ProfileDTO extends ViewModelDTO {
