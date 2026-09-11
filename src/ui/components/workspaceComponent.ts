@@ -158,7 +158,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // recently closed tabs, first on the right so it sits furthest from the menus: it is
         // reached far more often than they are, and it opens a panel rather than a menu.
         headerElemRightContent.appendChild(renderButton(
-            ICON.IMPORT,
+            // Its own glyph, not the import arrow: that one already means "import profile"
+            // two items down in the menu beside it, and one symbol cannot mean both.
+            ICON.HISTORY,
             "",
             [ACT_CLOSED_TABS],
             "Recently closed tabs",

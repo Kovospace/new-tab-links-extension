@@ -16,7 +16,8 @@ export const ICON = {
     OPEN_GROUPED: "⇉",
     USER: "◉",
     EXPORT: "⇧",   // export (up/out)
-    IMPORT: "⇩"   // import (down/in)
+    IMPORT: "⇩",   // import (down/in)
+    HISTORY: "↺"   // recently closed / bring back
 } as const;
 
 /**
