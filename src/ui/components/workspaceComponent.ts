@@ -38,8 +38,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     private currentWorkspaceId: string = "";
 
-    /** The recently closed tabs drawer, built the first time it is opened. */
+    /** The recently closed tabs rail, and the button that holds it open. */
     private closedTabsPanel: ClosedTabsPanel | null = null;
+    private closedTabsButton: HTMLButtonElement | null = null;
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
@@ -160,7 +161,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         // recently closed tabs, first on the right so it sits furthest from the menus: it is
         // reached far more often than they are, and it opens a panel rather than a menu.
-        headerElemRightContent.appendChild(renderButton(
+        // Kept rather than appended and forgotten: it wears the "active" class while the panel
+        // is being held open, and the panel can let go of itself - a click outside it unpins
+        // it without this button hearing about the click.
+        this.closedTabsButton = renderButton(
             // Its own glyph, not the import arrow: that one already means "import profile"
             // two items down in the menu beside it, and one symbol cannot mean both.
             ICON.HISTORY,
@@ -168,7 +172,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             [ACT_CLOSED_TABS],
             "Keep the recently closed panel open",
             () => this.toggleClosedTabsPinned()
-        ));
+        );
+        headerElemRightContent.appendChild(this.closedTabsButton);
 
         // application / profiles menu — populated reactively via observables.profiles
         // headerElemRightContent.appendChild(renderTextContainer("span", "Profile"));
@@ -447,6 +452,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      */
     private async renderClosedTabs(): Promise<void> {
         this.closedTabsPanel = new ClosedTabsPanel();
+        // Subscribing fires immediately, which is what puts the button in its resting state.
+        this.closedTabsPanel.pinned$.subscribe(pinned =>
+            this.closedTabsButton?.classList.toggle(CLASS_ACTION_ACTIVE, pinned));
         await this.closedTabsPanel.render(document.body);
     }
 

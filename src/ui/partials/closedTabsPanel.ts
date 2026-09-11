@@ -3,6 +3,7 @@ import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { confirmDestructiveAction } from './confirmations';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { ObservableValue } from '../../utils/observableValue';
 import {CLASS_ACTION_DANGER} from "../../main";
 
 /** Marks a closed tab whose address the profile already keeps. */
@@ -47,6 +48,15 @@ export class ClosedTabsPanel {
 
   /** Held open by the button, which the pointer is not allowed to overrule. */
   private pinned: boolean = false;
+
+  /**
+   * Whether the panel is being held open, for anything that has to show it.
+   *
+   * Published rather than asked for, because the panel lets go of itself: a click outside it
+   * or a row being opened unpins it without the button that pinned it being involved. A
+   * button that only listened to its own clicks would go on looking pressed afterwards.
+   */
+  public readonly pinned$ = new ObservableValue<boolean>(false);
 
   /** The document listeners, kept so they can be taken off again. */
   private readonly pointerMoved = (event: MouseEvent) => this.followPointer(event);
@@ -97,7 +107,7 @@ export class ClosedTabsPanel {
    * to move would look like the button had not worked.
    */
   public togglePinned(): void {
-    this.pinned = !this.pinned;
+    this.setPinned(!this.pinned);
     this.setOpen(this.pinned);
   }
 
@@ -135,12 +145,17 @@ export class ClosedTabsPanel {
     if (target?.closest('.closed-tabs') || target?.closest('.action-closed-tabs')) {
       return;
     }
-    this.pinned = false;
+    this.setPinned(false);
     this.setOpen(false);
   }
 
   private setOpen(open: boolean): void {
     this.panelEl?.classList.toggle('closed-tabs--open', open);
+  }
+
+  private setPinned(pinned: boolean): void {
+    this.pinned = pinned;
+    this.pinned$.set(pinned);
   }
 
   public dispose(): void {
@@ -236,7 +251,7 @@ export class ClosedTabsPanel {
       this.viewModel.reopen(tab.id);
       // Opening one is the end of the errand. Deleting one or saving one is not, so those
       // leave the panel where it is.
-      this.pinned = false;
+      this.setPinned(false);
       this.setOpen(false);
     });
 

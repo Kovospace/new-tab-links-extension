@@ -19,9 +19,6 @@ Note for agents:
 
 ### [small] Add "move up" and "move down" action to link context menu
 
-### [small] Toggle last closed tab active class
-- if "last closed tabs" is opened using button, add "active" class to it during it is opened
-
 ### [small] Space reserved for ads
 - in <workspace-plane-footer> after div.tips-bar
 
@@ -68,6 +65,14 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [small] Toggle last closed tab active class
+- the header button wears "active" while the panel is being held open by it, and only then -
+  widening on hover is not the button's doing and does not light it up
+- the panel publishes whether it is pinned rather than the button remembering its own clicks:
+  the panel lets go of itself when something outside it is clicked, when a row is opened, or
+  when its own close button is pressed, and a button that only heard its own clicks would go
+  on looking pressed after any of those
 
 ### [small] Show devide name in last closed tab row
 - the row says where it happened on a third line of its own, under the title and the time, and

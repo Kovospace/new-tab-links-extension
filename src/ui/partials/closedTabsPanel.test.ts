@@ -66,6 +66,19 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(isOpen()).toBe(false);
     });
 
+    it("publishes being pinned, so the button can show it", () => {
+        // The button cannot just listen to its own clicks: the panel lets go of itself when
+        // something outside it is clicked, and a button that never heard about that would go
+        // on looking pressed.
+        const seen: boolean[] = [];
+        panel.pinned$.subscribe(pinned => seen.push(pinned));
+
+        panel.togglePinned();
+        document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+        expect(seen).toEqual([false, true, false]);
+    });
+
     it("ignores the pointer while pinned, and closes when unpinned", () => {
         panel.togglePinned();
         expect(isOpen()).toBe(true);
