@@ -31,6 +31,15 @@ export interface SyncBaseline {
      *  existed, which reads as "the account has none" and pushes this device's as additions.
      */
     closedTabsByProfileId?: Record<string, Record<string, ClosedTab>>;
+
+    /**
+     *  Whether the account stores closed tabs at all, as the last snapshot showed.
+     *
+     *  Absent means "not known to", which is the safe answer: a backend that does not know
+     *  the record refuses the entire batch it appears in, so one unsupported kind stops links,
+     *  groups and everything else from reaching the account too.
+     */
+    closedTabsSupported?: boolean;
 }
 
 /**
@@ -90,7 +99,12 @@ export class ChangeSetBuilder {
         // Closed tabs, per profile, from the store the worker writes rather than from the
         // profile's data. Every profile is looked at, including one this device holds no
         // data for: an empty list is a real answer here, where an empty ProfileData is not.
-        for (const profile of profiles) {
+        //
+        // Only when the account has shown it keeps them. An operation naming a record the
+        // backend has no vocabulary for is not one rejected operation - it fails to
+        // deserialise, which refuses the whole request, so sending it would stop every other
+        // change on this device from reaching the account for as long as it was there.
+        for (const profile of baseline.closedTabsSupported === true ? profiles : []) {
             this.collect(
                 "closedTab",
                 baseline.closedTabsByProfileId?.[profile.id] ?? {},

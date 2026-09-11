@@ -36,13 +36,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [critical] Sync event even on idle
-- while 2nd browser is connected, then 
-  ```
-  [SyncCoordinator.push] Sending 12 operations
-  SyncContracts-B8PKd6Qb.js:1 [SyncCoordinator.onRefresh] The account changed elsewhere
-  ```
-  is happening at least every second - i think there is some kind of circular dependency
 
 
 ## TO BE approved / analyzed
@@ -55,6 +48,22 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [critical] Sync event even on idle
+- not polling, a bug, and mine: the extension was pushing closedTab operations to a backend
+  that has never heard of them - that branch is still unmerged - so every push was refused
+  whole, the baseline never advanced, and it was retried on every trigger. Each attempt still
+  drew a change notification, so a second connected browser pulled, pushed its own rejected
+  batch, notified back, and the two never stopped
+- the damage was never limited to closed tabs: an unknown entity kind fails to deserialise, so
+  it takes links, groups and everything else in the batch with it. Nothing at all was syncing
+- fixed by telling "the account has no closed tabs" apart from "the account does not keep
+  them": a snapshot with no closedTabs collection sets closedTabsSupported false, and nothing
+  about them is sent until a pull says otherwise
+- second bug found by the test written for the first: a pull from such an account emptied this
+  device's own list, and a profile adopting the account's identifier left its list behind under
+  the old one
+- when the backend branch lands, this turns itself on - no extension change needed
 
 ### [medium] Do not mix tests with code
 - every test moved to <project_root>/test, mirroring src: test/backend/sync/X.test.ts covers

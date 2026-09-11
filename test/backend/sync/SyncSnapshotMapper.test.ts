@@ -174,7 +174,16 @@ describe("SyncSnapshotMapper, closed tabs", () => {
         expect(mapped.closedTabsByProfileId[PROFILE]).toEqual({});
     });
 
-    it("reads a backend that does not store closed tabs yet as having none", () => {
+    it("tells an account that keeps none apart from one that does not keep them", () => {
+        // Present but empty is an account with no closed tabs; absent is a backend that has
+        // never heard of them. Reading the second as the first is what made this device push
+        // records the server could not parse, failing every push it made.
+        expect(SyncSnapshotMapper.toProfiles(withClosedTabs([])).closedTabsSupported).toBe(true);
+        expect(SyncSnapshotMapper.toProfiles(accountWithSubgroup({})).closedTabsSupported)
+            .toBe(false);
+    });
+
+    it("holds no closed tabs for an account that does not keep them", () => {
         const mapped = SyncSnapshotMapper.toProfiles(accountWithSubgroup({}));
 
         expect(mapped.closedTabsByProfileId[PROFILE]).toEqual({});

@@ -9,6 +9,7 @@ import { installationIdentity } from "../../../src/backend/sync/InstallationIden
 import { SessionRepository } from "../../../src/backend/sync/SessionRepository";
 import { SyncBaselineRepository } from "../../../src/backend/sync/SyncBaselineRepository";
 import { SyncCoordinator } from "../../../src/backend/sync/SyncCoordinator";
+import { readClosedTabs, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { SnapshotProfileDto, SyncOperation, SyncPushResult, SyncSnapshot } from "../../../src/backend/sync/SyncContracts";
 
 const REAL_PROFILE = "0199aaaa-0000-7000-8000-00000000000a";
@@ -316,5 +317,88 @@ describe("SyncCoordinator, first contact with an account", () => {
             expect(Object.keys(stored?.links ?? {})).toContain(LOCAL_ONLY_LINK);
             expect(Object.keys(stored?.links ?? {})).toContain(REAL_LINK);
         });
+    });
+});
+
+/**
+ *  What happens when the account is older than this extension.
+ *
+ *  A snapshot that names no closed tabs at all is not an account with none - it is a backend
+ *  that has never heard of them. The difference is the whole of this bug: a record kind the
+ *  server has no vocabulary for cannot be refused one operation at a time, it refuses the
+ *  request it arrived in, so every push failed and every change on the device stayed there.
+ *  With a second browser connected the two spent the rest of the day telling each other about
+ *  it.
+ */
+describe("SyncCoordinator against an account that does not keep closed tabs", () => {
+
+    let appState: AppStateRepository;
+    let profiles: ProfileRepository;
+    let sessions: SessionRepository;
+    let baselines: SyncBaselineRepository;
+    let apiClient: { fetchSnapshot: () => unknown; pushChanges: (r: never) => unknown };
+    let pushed: SyncOperation[][];
+
+    beforeEach(async () => {
+        await installationIdentity.init();
+
+        profiles = new ProfileRepository();
+        await profiles.init();
+
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+
+        sessions = new SessionRepository();
+        await sessions.init();
+        await sessions.storeTokenPair({
+            accessToken: "access", accessTokenExpiresInSeconds: 900, refreshToken: "refresh",
+            userId: "owner", username: "kovo"
+        });
+
+        baselines = new SyncBaselineRepository();
+        await baselines.init();
+
+        await recordClosedTab(profiles.getActiveProfileId(), {
+            url: "https://example.com/closed", title: "Closed here", closedAt: 1000
+        });
+
+        pushed = [];
+        apiClient = {
+            fetchSnapshot: () => Promise.resolve({ outcome: "success", data: accountWith() }),
+            pushChanges: (request: never) => {
+                pushed.push((request as { operations: SyncOperation[] }).operations);
+                return Promise.resolve({
+                    outcome: "success",
+                    data: { appliedAt: NOW, remaps: [], rejected: [] }
+                });
+            }
+        };
+    });
+
+    const coordinator = () =>
+        new SyncCoordinator(appState, profiles, sessions, baselines, apiClient as never);
+
+    it("sends it nothing about closed tabs", async () => {
+        await coordinator().synchronizeNow();
+
+        expect(pushed.flat().filter(operation => operation.type === "closedTab")).toEqual([]);
+    });
+
+    it("still sends it everything else", async () => {
+        // The damage was never limited to closed tabs: one operation the server cannot parse
+        // takes the whole batch with it, so this is the assertion that says the rest got out.
+        await coordinator().synchronizeNow();
+
+        expect(pushed.flat().length).toBeGreaterThan(0);
+    });
+
+    it("does not empty this device's own list", async () => {
+        // A pull writes what the account holds over what the device holds. Told nothing, it
+        // wrote nothing over them - and the panel emptied itself every time the extension
+        // synchronised.
+        await coordinator().synchronizeNow();
+
+        const kept = await readClosedTabs(profiles.getActiveProfileId());
+        expect(Object.values(kept).map(tab => tab.url)).toEqual(["https://example.com/closed"]);
     });
 });

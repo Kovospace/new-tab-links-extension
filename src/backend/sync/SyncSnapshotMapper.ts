@@ -19,6 +19,17 @@ export interface MappedSnapshot {
      *  Apart from the data because they are stored apart: the service worker owns that key.
      */
     closedTabsByProfileId: Record<string, Record<string, ClosedTab>>;
+
+    /**
+     *  Whether this account stores closed tabs at all.
+     *
+     *  An absent collection is not an empty one. A backend that does not know about closed
+     *  tabs sends no collection, and reading that as "the account has none" is what made this
+     *  device push its own on every synchronisation - to a server whose vocabulary has no such
+     *  record, so the whole batch was refused and nothing else synchronised either - and wipe
+     *  its own list on every pull.
+     */
+    closedTabsSupported: boolean;
 }
 
 /**
@@ -177,7 +188,14 @@ export class SyncSnapshotMapper {
             } satisfies ClosedTab;
         }
 
-        return { profiles, dataByProfileId, closedTabsByProfileId };
+        return {
+            profiles,
+            dataByProfileId,
+            closedTabsByProfileId,
+            // Present but empty is an account with no closed tabs; absent is an account that
+            // does not keep them. The two must not be confused - see closedTabsSupported.
+            closedTabsSupported: snapshot.closedTabs !== undefined
+        };
     }
 
     /** A profile with nothing in it, and no workspace chosen. */

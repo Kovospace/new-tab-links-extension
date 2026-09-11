@@ -235,9 +235,11 @@ export class SyncCoordinator {
         for (const remote of unpairedRemoteProfiles.values()) {
             await this.profiles.upsertProfile(remote);
             // A profile this device has never held: nothing of its own to join.
-            await writeClosedTabs(
-                remote.id,
-                capClosedTabs(snapshot.closedTabsByProfileId[remote.id] ?? {}));
+            if (snapshot.closedTabsSupported) {
+                await writeClosedTabs(
+                    remote.id,
+                    capClosedTabs(snapshot.closedTabsByProfileId[remote.id] ?? {}));
+            }
             await this.appState.saveProfileData(
                 remote.id,
                 // Through withLocalWorkspaceChoice, exactly as applySnapshot writes a profile.
@@ -258,7 +260,8 @@ export class SyncCoordinator {
         await this.baselines.store(session.userId, {
             profiles: snapshot.profiles,
             dataByProfileId: snapshot.dataByProfileId,
-            closedTabsByProfileId: snapshot.closedTabsByProfileId
+            closedTabsByProfileId: snapshot.closedTabsByProfileId,
+            closedTabsSupported: snapshot.closedTabsSupported
         });
 
         await this.reloadActiveProfile();
@@ -370,9 +373,15 @@ export class SyncCoordinator {
         // things that happened on two machines, and neither list is more right than the
         // other. Both are kept, the newest fifty survive, and the same address closed on
         // both devices is one entry - see mergeClosedTabs.
-        await writeClosedTabs(remote.id, mergeClosedTabs(
-            await readClosedTabs(local.id),
-            snapshot.closedTabsByProfileId[remote.id] ?? {}));
+        //
+        // An account that does not keep them has no half to contribute, and this device's own
+        // list is carried over unchanged. It still has to be *carried*: the identifier below
+        // may be about to change, and a list left behind under the old one is a list deleted.
+        await writeClosedTabs(remote.id, snapshot.closedTabsSupported
+            ? mergeClosedTabs(
+                await readClosedTabs(local.id),
+                snapshot.closedTabsByProfileId[remote.id] ?? {})
+            : await readClosedTabs(local.id));
 
         if (local.id !== remote.id) {
             // The pair are the same profile under two names for it. The account's identifier
@@ -382,7 +391,8 @@ export class SyncCoordinator {
 
             await this.profiles.removeProfile(local.id);
             await this.appState.discardProfileData(local.id);
-            // The list has just been written under the identifier that survives.
+            // Safe because the list has just been written under the identifier that survives,
+            // whether the account keeps closed tabs or not.
             await writeClosedTabs(local.id, {});
 
             if (wasActive) {
@@ -518,7 +528,8 @@ export class SyncCoordinator {
         await this.baselines.store(session.userId, {
             profiles: snapshot.profiles,
             dataByProfileId: snapshot.dataByProfileId,
-            closedTabsByProfileId: snapshot.closedTabsByProfileId
+            closedTabsByProfileId: snapshot.closedTabsByProfileId,
+            closedTabsSupported: snapshot.closedTabsSupported
         });
         this.activity$.set("idle");
     }
@@ -541,9 +552,14 @@ export class SyncCoordinator {
                     profile.id,
                     await this.withLocalWorkspaceChoice(
                         profile.id, snapshot.dataByProfileId[profile.id]));
-                await writeClosedTabs(
-                    profile.id,
-                    capClosedTabs(snapshot.closedTabsByProfileId[profile.id] ?? {}));
+                if (snapshot.closedTabsSupported) {
+                    await writeClosedTabs(
+                        profile.id,
+                        capClosedTabs(snapshot.closedTabsByProfileId[profile.id] ?? {}));
+                }
+                // An account that does not keep closed tabs says nothing about this device's,
+                // and a pull that overwrote them with the nothing it was told would empty the
+                // panel every time the extension synchronised.
             }
 
             for (const local of this.profiles.getProfiles()) {

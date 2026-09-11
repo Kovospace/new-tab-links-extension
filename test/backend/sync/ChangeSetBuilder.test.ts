@@ -316,7 +316,9 @@ describe("ChangeSetBuilder, closed tabs", () => {
     const baselineWith = (tabs: Record<string, unknown>): SyncBaseline => ({
         profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
         dataByProfileId: { [PROFILE_ID]: emptyProfile() },
-        closedTabsByProfileId: { [PROFILE_ID]: tabs as never }
+        closedTabsByProfileId: { [PROFILE_ID]: tabs as never },
+        // The account has shown it keeps them; without this nothing about them is sent.
+        closedTabsSupported: true
     });
 
     it("pushes a tab the account has not heard of", () => {
@@ -360,9 +362,30 @@ describe("ChangeSetBuilder, closed tabs", () => {
         expect(operations).toEqual([]);
     });
 
-    it("pushes this device's tabs against a baseline written before they existed", () => {
-        // An older baseline says nothing about closed tabs. That has to read as "the account
-        // has none" and push, not as "nothing to say" and stay put for ever.
+    it("says nothing about them to an account that does not keep them", () => {
+        // The bug this exists for, and it was not a closed-tabs bug: a backend that has never
+        // heard of this kind of record cannot refuse one operation, it refuses the request it
+        // arrived in. So a device sending them to such an account had every push rejected -
+        // links, groups, everything - and retried for ever, which with a second browser
+        // connected became a notification storm between the two.
+        const operations = ChangeSetBuilder.build(
+            {
+                profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+                dataByProfileId: { [PROFILE_ID]: emptyProfile() },
+                closedTabsByProfileId: { [PROFILE_ID]: {} },
+                closedTabsSupported: false
+            },
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() },
+            { [PROFILE_ID]: { one: tab("one", "https://example.com/", 1000) } });
+
+        expect(operations.filter(operation => operation.type === "closedTab")).toEqual([]);
+    });
+
+    it("says nothing about them against a baseline that predates the question", () => {
+        // An older baseline has no opinion, and "not known to keep them" is the safe reading:
+        // the cost of waiting for the next pull to say so is one synchronisation, and the cost
+        // of guessing wrong is every synchronisation failing.
         const operations = ChangeSetBuilder.build(
             {
                 profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
@@ -372,7 +395,7 @@ describe("ChangeSetBuilder, closed tabs", () => {
             { [PROFILE_ID]: emptyProfile() },
             { [PROFILE_ID]: { one: tab("one", "https://example.com/", 1000) } });
 
-        expect(operations.filter(operation => operation.type === "closedTab")).toHaveLength(1);
+        expect(operations.filter(operation => operation.type === "closedTab")).toEqual([]);
     });
 
     it("names no closed tabs when the profile they hang from is being dropped", () => {

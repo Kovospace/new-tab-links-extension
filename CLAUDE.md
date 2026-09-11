@@ -228,6 +228,16 @@ errand, while deleting or saving one is working through the list and leaves it a
   and names the device that closed it only when that was not this one.
 - Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
   a second way.
+- **Only synchronised with an account that keeps them.** A snapshot naming no `closedTabs`
+  collection at all is not an account with none - it is a backend that has never heard of
+  them, and `MappedSnapshot.closedTabsSupported` is the difference. It matters far beyond this
+  feature: an operation naming a record kind the server has no vocabulary for cannot be refused
+  one at a time, it fails to deserialise and takes the whole request with it. A device sending
+  them to an older account had *every* push rejected - links and groups included - and retried
+  for ever; with a second browser connected, each rejected push still drew a change
+  notification and the two spent the day answering each other. Told nothing about closed tabs,
+  a pull also leaves this device's own list alone rather than writing the nothing it was told
+  over it.
 - **Synchronised, and the first thing that reaches the change set from outside `ProfileData`.**
   `SyncBaseline` and `MappedSnapshot` carry a `closedTabsByProfileId` beside the data, and
   `ChangeSetBuilder.build()` takes it as a fourth argument. A profile being dropped emits no
