@@ -58,7 +58,8 @@ export function isStorableName(name: string): boolean {
 }
 
 /** What kind of record an operation is about. */
-export type SyncEntityKind = "profile" | "environment" | "group" | "subgroup" | "link";
+export type SyncEntityKind =
+    "profile" | "environment" | "group" | "subgroup" | "link" | "closedTab";
 
 /** What an operation does to the record it names. */
 export type SyncOperationKind = "upsert" | "delete";
@@ -142,6 +143,18 @@ export interface SyncOperation {
      *  but a 400 for the whole batch, exactly as an over-long name is.
      */
     color?: string | null;
+
+    /**
+     *  When a closed tab was closed, as an ISO instant.
+     *
+     *  Sent by the device that closed it rather than stamped by the server: the row may
+     *  reach the account minutes later, over a connection that was not there at the time,
+     *  and the list is ordered by when the thing happened.
+     */
+    closedAt?: string;
+
+    /** Which device closed a tab, when that device has a name. */
+    deviceName?: string | null;
 
     /** Zero based position among the record's siblings. */
     position?: number;
@@ -242,6 +255,17 @@ export interface SnapshotLinkDto {
     updatedAt: string;
 }
 
+export interface SnapshotClosedTabDto {
+    id: string;
+    profileId: string;
+    url: string;
+    title: string;
+    faviconUrl: string | null;
+    /** ISO instant, as the device that closed the tab reported it. */
+    closedAt: string;
+    deviceName: string | null;
+}
+
 /**
  *  Everything one account owns, as flat collections keyed by identifier.
  *
@@ -255,5 +279,7 @@ export interface SyncSnapshot {
     groups: SnapshotGroupDto[];
     subgroups: SnapshotSubgroupDto[];
     links: SnapshotLinkDto[];
+    /** Absent from a backend that does not store closed tabs yet, and read as none. */
+    closedTabs?: SnapshotClosedTabDto[];
     capturedAt: string;
 }

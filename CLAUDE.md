@@ -204,6 +204,14 @@ a button in the header and built only when first asked for.
   and names the device that closed it only when that was not this one.
 - Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
   a second way.
+- **Synchronised, and the first thing that reaches the change set from outside `ProfileData`.**
+  `SyncBaseline` and `MappedSnapshot` carry a `closedTabsByProfileId` beside the data, and
+  `ChangeSetBuilder.build()` takes it as a fourth argument. A profile being dropped emits no
+  closed-tab deletions - the account cascades them, exactly as it does that profile's links.
+- **First contact joins the two lists rather than letting one win.** Both are logs of things
+  that really happened on machines that have never met, so neither can be discarded; the same
+  address closed on both survives once, at the later time. Everywhere else the account wins,
+  and that difference is the difference between data and a log.
 
 ### Tips on the workspace background (`ui/tips/`)
 

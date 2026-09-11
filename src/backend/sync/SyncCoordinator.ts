@@ -13,6 +13,8 @@ import { SessionRepository, sessionRepository, SyncSession } from "./SessionRepo
 import { MappedSnapshot, SyncSnapshotMapper } from "./SyncSnapshotMapper";
 import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRepository";
 import { SyncOperation } from "./SyncContracts";
+import { ClosedTab, MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
+import { newestFirst, readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
 
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
@@ -231,6 +233,10 @@ export class SyncCoordinator {
         // below incapable of reading the account's own profiles as deletions.
         for (const remote of unpairedRemoteProfiles.values()) {
             await this.profiles.upsertProfile(remote);
+            // A profile this device has never held: nothing of its own to join.
+            await writeClosedTabs(
+                remote.id,
+                capClosedTabs(snapshot.closedTabsByProfileId[remote.id] ?? {}));
             await this.appState.saveProfileData(
                 remote.id,
                 // Through withLocalWorkspaceChoice, exactly as applySnapshot writes a profile.
@@ -250,7 +256,8 @@ export class SyncCoordinator {
         // that follows carries exactly the local additions the merge kept.
         await this.baselines.store(session.userId, {
             profiles: snapshot.profiles,
-            dataByProfileId: snapshot.dataByProfileId
+            dataByProfileId: snapshot.dataByProfileId,
+            closedTabsByProfileId: snapshot.closedTabsByProfileId
         });
 
         await this.reloadActiveProfile();
@@ -358,6 +365,14 @@ export class SyncCoordinator {
         await this.profiles.upsertProfile(remote);
         await this.appState.saveProfileData(remote.id, merged.merged);
 
+        // Closed tabs are joined rather than merged by the engine above: they are a log of
+        // things that happened on two machines, and neither list is more right than the
+        // other. Both are kept, the newest fifty survive, and the same address closed on
+        // both devices is one entry - see mergeClosedTabs.
+        await writeClosedTabs(remote.id, mergeClosedTabs(
+            await readClosedTabs(local.id),
+            snapshot.closedTabsByProfileId[remote.id] ?? {}));
+
         if (local.id !== remote.id) {
             // The pair are the same profile under two names for it. The account's identifier
             // wins, so this device drops its own and everything it stored under it - the data
@@ -366,6 +381,8 @@ export class SyncCoordinator {
 
             await this.profiles.removeProfile(local.id);
             await this.appState.discardProfileData(local.id);
+            // The list has just been written under the identifier that survives.
+            await writeClosedTabs(local.id, {});
 
             if (wasActive) {
                 await this.profiles.setActiveProfile(remote.id);
@@ -408,7 +425,8 @@ export class SyncCoordinator {
 
         const current = await this.readEverythingLocally();
         const everything = ChangeSetBuilder.build(
-            baseline, current.profiles, current.dataByProfileId);
+            baseline, current.profiles, current.dataByProfileId,
+            current.closedTabsByProfileId ?? {});
 
         const withheld = occasion === FIRST_CONTACT
             ? everything.filter(operation => operation.op === "delete")
@@ -498,7 +516,8 @@ export class SyncCoordinator {
         await this.applySnapshot(snapshot);
         await this.baselines.store(session.userId, {
             profiles: snapshot.profiles,
-            dataByProfileId: snapshot.dataByProfileId
+            dataByProfileId: snapshot.dataByProfileId,
+            closedTabsByProfileId: snapshot.closedTabsByProfileId
         });
         this.activity$.set("idle");
     }
@@ -521,6 +540,9 @@ export class SyncCoordinator {
                     profile.id,
                     await this.withLocalWorkspaceChoice(
                         profile.id, snapshot.dataByProfileId[profile.id]));
+                await writeClosedTabs(
+                    profile.id,
+                    capClosedTabs(snapshot.closedTabsByProfileId[profile.id] ?? {}));
             }
 
             for (const local of this.profiles.getProfiles()) {
@@ -636,13 +658,19 @@ export class SyncCoordinator {
         const profiles = this.profiles.getProfiles();
         const dataByProfileId: Record<string, ProfileData> = {};
 
+        const closedTabsByProfileId: Record<string, Record<string, ClosedTab>> = {};
+
         for (const profile of profiles) {
             const data = await this.readProfileData(profile.id);
             if (data) {
                 dataByProfileId[profile.id] = data;
             }
+            // Always read, even for a profile whose data this device does not hold: closed
+            // tabs are stored under their own key, and an empty list is a real answer rather
+            // than the "nothing known" that an absent ProfileData means.
+            closedTabsByProfileId[profile.id] = await readClosedTabs(profile.id);
         }
-        return { profiles, dataByProfileId };
+        return { profiles, dataByProfileId, closedTabsByProfileId };
     }
 
     /**
@@ -746,3 +774,53 @@ export class SyncCoordinator {
 }
 
 export const syncCoordinator = new SyncCoordinator();
+
+/**
+ *  Keeps a pulled list of closed tabs to the cap this device applies to its own.
+ *
+ *  The account may hold more than fifty - another device may cap differently, or an older
+ *  version may have pushed more - and taking them all would let a list that is meant to be
+ *  bounded grow through the back door. Newest first, the same order everything reads it in.
+ *
+ *  @param tabs the profile's closed tabs as the account holds them
+ */
+function capClosedTabs(tabs: Record<string, ClosedTab>): Record<string, ClosedTab> {
+    const kept = newestFirst(tabs).slice(0, MAX_CLOSED_TABS);
+    return Object.fromEntries(kept.map(tab => [tab.id, tab]));
+}
+
+/**
+ *  Joins two lists of closed tabs, as first contact with an account has to.
+ *
+ *  Both are logs of things that really happened, on two machines that have never met, so
+ *  neither can be thrown away - which is why this is a union and not the "the account wins"
+ *  rule that settles a renamed group. What the two can disagree about is only the same page
+ *  closed in both places, and that is one entry at the later of the two times.
+ *
+ *  @param local  what this device recorded
+ *  @param remote what the account holds
+ *  @return the joined list, capped and keyed by identifier
+ */
+function mergeClosedTabs(
+    local: Record<string, ClosedTab>,
+    remote: Record<string, ClosedTab>
+): Record<string, ClosedTab> {
+
+    const byId = new Map<string, ClosedTab>();
+    for (const tab of [...Object.values(remote), ...Object.values(local)]) {
+        byId.set(tab.id, tab);
+    }
+
+    // Then by address, keeping whichever was closed later. Two devices closing the same page
+    // record it under two identifiers, and a joined list would otherwise show it twice.
+    const byAddress = new Map<string, ClosedTab>();
+    for (const tab of [...byId.values()].sort((one, other) => other.closedAt - one.closedAt)) {
+        const key = tab.url.replace(/\/+$/, "");
+        if (!byAddress.has(key)) {
+            byAddress.set(key, tab);
+        }
+    }
+
+    return capClosedTabs(Object.fromEntries(
+        [...byAddress.values()].map(tab => [tab.id, tab])));
+}

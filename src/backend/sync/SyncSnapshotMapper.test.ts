@@ -138,3 +138,57 @@ describe("SyncSnapshotMapper, subgroup colour", () => {
             .toBeUndefined();
     });
 });
+
+/**
+ *  Closed tabs arrive as one flat collection naming their profile, like everything else in a
+ *  snapshot, and are taken apart into the per-profile lists this extension stores.
+ */
+describe("SyncSnapshotMapper, closed tabs", () => {
+
+    const withClosedTabs = (closedTabs: SyncSnapshot["closedTabs"]): SyncSnapshot => ({
+        ...accountWithSubgroup({}),
+        closedTabs
+    });
+
+    it("files each tab under the profile it names", () => {
+        const mapped = SyncSnapshotMapper.toProfiles(withClosedTabs([{
+            id: "tab-1", profileId: PROFILE, url: "https://example.com/", title: "Example",
+            faviconUrl: null, closedAt: NOW, deviceName: "Laptop"
+        }]));
+
+        expect(mapped.closedTabsByProfileId[PROFILE]["tab-1"]).toEqual({
+            id: "tab-1",
+            url: "https://example.com/",
+            title: "Example",
+            faviconUrl: undefined,
+            closedAt: Date.parse(NOW),
+            deviceName: "Laptop"
+        });
+    });
+
+    it("gives a profile with no closed tabs an empty list, not a missing one", () => {
+        // The change set compares against this. A missing list would read as "nothing known"
+        // and leave a device's own tabs unpushed for ever.
+        const mapped = SyncSnapshotMapper.toProfiles(withClosedTabs([]));
+
+        expect(mapped.closedTabsByProfileId[PROFILE]).toEqual({});
+    });
+
+    it("reads a backend that does not store closed tabs yet as having none", () => {
+        const mapped = SyncSnapshotMapper.toProfiles(accountWithSubgroup({}));
+
+        expect(mapped.closedTabsByProfileId[PROFILE]).toEqual({});
+    });
+
+    it("drops a tab naming a profile the snapshot does not have", () => {
+        // A straggler the account should have cascaded away. Keeping it would file it under a
+        // profile that does not exist, where nothing would ever look at it again.
+        const mapped = SyncSnapshotMapper.toProfiles(withClosedTabs([{
+            id: "tab-1", profileId: "0199ffff-0000-7000-8000-00000000000f",
+            url: "https://example.com/", title: "Example",
+            faviconUrl: null, closedAt: NOW, deviceName: null
+        }]));
+
+        expect(Object.values(mapped.closedTabsByProfileId).flatMap(Object.keys)).toEqual([]);
+    });
+});

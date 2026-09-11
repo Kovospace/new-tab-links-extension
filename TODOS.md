@@ -18,18 +18,6 @@ Note for agents:
 - drag link between groups and subgroups
 - drag group to change its order
 
-### [big] Add panel with last opened tabs (closed tabs history)
-- synchronized, BUT by active profile
-- ordered by time, include device name if tab was closed on another device than in current
-- after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
-- for item that is already bookmarked, write the group (and subgroup name if avail) on the second line
-  - items that are not yet bookmarked are one-liners
-- panel should be on tle right side, wide lets say 40px and on mouseover it should roll with list of lets say 50 last closed tabs
-
-## BUGFIXING
-
-## DO NOT DO, Must be decided, too complex and few fallpoints - but still vital if done on fisrt release
-
 ### [big] History panel
 Note: chrome.history permission can be problematic when submitting to chrome store
 - containing 2 tabs:
@@ -47,6 +35,25 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [big] Add panel with last opened tabs (closed tabs history)
+- drawer down the right of the new tab page, opened from a header button, built the first time
+  it is asked for; rows are newest first, each with its favicon, title, how long ago, and the
+  device it was closed on when that was another one
+- the service worker records closures: chrome.tabs.onRemoved does not say what was closed, so
+  the worker mirrors the open tabs in chrome.storage.session and reads the closure out of it.
+  Session storage rather than memory, because MV3 stops the worker after thirty seconds
+- stored under a key of the worker's own, never inside the profile's data: a worker writing
+  the whole profile record back would undo whatever the page had just saved
+- 50 per profile, deduplicated by address, and synchronised by profile - a new entity kind,
+  the first since the original five. First contact joins the two lists rather than letting the
+  account win: both are logs of things that really happened
+- green folder mark on a row whose address this profile already keeps as a link, compared the
+  way the tab catcher compares addresses
+- saving one as a link reuses the bookmarking form in a dialog
+- NOT done: drag & drop out of the panel, which waits on drag & drop existing at all
+- NOT done: the backend table for this is on branch feature/closed-tabs and not merged yet, so
+  the list stays on one device until that lands
 
 ### [small] add tips to the columns screen background
 - tips live in src/ui/tips/tips.json as an array, one sentence per language per tip; adding a

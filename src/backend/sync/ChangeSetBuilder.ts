@@ -1,4 +1,5 @@
 import { Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
+import { ClosedTab } from "../entity/ClosedTabEntity";
 import { settingsOf } from "../entity/ProfileSettings";
 import { SyncEntityKind, SyncOperation } from "./SyncContracts";
 
@@ -11,7 +12,7 @@ import { SyncEntityKind, SyncOperation } from "./SyncContracts";
  *  whose environments it had not been told about yet.
  */
 const DELETION_ORDER: SyncEntityKind[] =
-    ["link", "subgroup", "group", "environment", "profile"];
+    ["closedTab", "link", "subgroup", "group", "environment", "profile"];
 
 /** What the device believes the account already holds. */
 export interface SyncBaseline {
@@ -21,6 +22,15 @@ export interface SyncBaseline {
 
     /** Each profile's data as last confirmed by the server. */
     dataByProfileId: Record<string, ProfileData>;
+
+    /**
+     *  Each profile's closed tabs as last confirmed by the server.
+     *
+     *  Beside the data rather than inside it, because that is how they are stored: the
+     *  service worker owns that key. Absent for a baseline written before closed tabs
+     *  existed, which reads as "the account has none" and pushes this device's as additions.
+     */
+    closedTabsByProfileId?: Record<string, Record<string, ClosedTab>>;
 }
 
 /**
@@ -52,7 +62,8 @@ export class ChangeSetBuilder {
     public static build(
         baseline: SyncBaseline,
         profiles: ProfileMeta[],
-        dataByProfileId: Record<string, ProfileData>
+        dataByProfileId: Record<string, ProfileData>,
+        closedTabsByProfileId: Record<string, Record<string, ClosedTab>> = {}
     ): SyncOperation[] {
 
         const upserts: SyncOperation[] = [];
@@ -74,6 +85,26 @@ export class ChangeSetBuilder {
                 current,
                 upserts,
                 deletes);
+        }
+
+        // Closed tabs, per profile, from the store the worker writes rather than from the
+        // profile's data. Every profile is looked at, including one this device holds no
+        // data for: an empty list is a real answer here, where an empty ProfileData is not.
+        for (const profile of profiles) {
+            this.collect(
+                "closedTab",
+                baseline.closedTabsByProfileId?.[profile.id] ?? {},
+                closedTabsByProfileId[profile.id] ?? {},
+                (tab: ClosedTab) => ({
+                    op: "upsert", type: "closedTab", id: tab.id,
+                    profileId: profile.id,
+                    title: tab.title,
+                    url: tab.url,
+                    faviconUrl: tab.faviconUrl ?? null,
+                    closedAt: new Date(tab.closedAt).toISOString(),
+                    deviceName: tab.deviceName ?? null
+                }),
+                upserts, deletes);
         }
         return [...upserts, ...this.childrenFirst(deletes)];
     }

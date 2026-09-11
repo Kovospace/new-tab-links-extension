@@ -1,5 +1,6 @@
 import { Environment, Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
 import { settingsOf } from "../entity/ProfileSettings";
+import { ClosedTab } from "../entity/ClosedTabEntity";
 import { isTabGroupColor } from "../entity/TabGroupColors";
 import { SyncSnapshot } from "./SyncContracts";
 
@@ -11,6 +12,13 @@ export interface MappedSnapshot {
 
     /** Each profile's own data, keyed by profile identifier. */
     dataByProfileId: Record<string, ProfileData>;
+
+    /**
+     *  Each profile's closed tabs, keyed by profile identifier and then by tab identifier.
+     *
+     *  Apart from the data because they are stored apart: the service worker owns that key.
+     */
+    closedTabsByProfileId: Record<string, Record<string, ClosedTab>>;
 }
 
 /**
@@ -146,7 +154,30 @@ export class SyncSnapshotMapper {
             } satisfies Link;
         }
 
-        return { profiles, dataByProfileId };
+        // Closed tabs, grouped by the profile each names. A tab naming a profile that is not
+        // in the snapshot is dropped rather than kept under a profile that does not exist -
+        // the backend cascades them away with the profile, so one here is a straggler.
+        const knownProfiles = new Set(profiles.map(profile => profile.id));
+        const closedTabsByProfileId: Record<string, Record<string, ClosedTab>> = {};
+        for (const profile of profiles) {
+            closedTabsByProfileId[profile.id] = {};
+        }
+
+        for (const tab of snapshot.closedTabs ?? []) {
+            if (!knownProfiles.has(tab.profileId)) {
+                continue;
+            }
+            closedTabsByProfileId[tab.profileId][tab.id] = {
+                id: tab.id,
+                url: tab.url,
+                title: tab.title ?? "",
+                faviconUrl: tab.faviconUrl ?? undefined,
+                closedAt: this.toEpochMilliseconds(tab.closedAt),
+                deviceName: tab.deviceName ?? undefined
+            } satisfies ClosedTab;
+        }
+
+        return { profiles, dataByProfileId, closedTabsByProfileId };
     }
 
     /** A profile with nothing in it, and no workspace chosen. */

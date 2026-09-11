@@ -301,3 +301,102 @@ describe("ChangeSetBuilder, profile settings", () => {
         expect(fresh?.enableDragAndDrop).toBe(true);
     });
 });
+
+/**
+ *  Closed tabs are the first thing here that is stored outside a profile's data - the service
+ *  worker owns their key - so they reach the change set by a channel of their own. What has to
+ *  hold is the same as for everything else: what this device has and the account does not is
+ *  pushed, and what the account has and this device has pruned away is deleted.
+ */
+describe("ChangeSetBuilder, closed tabs", () => {
+
+    const tab = (id: string, url: string, closedAt: number) =>
+        ({ id, url, title: "A page", closedAt });
+
+    const baselineWith = (tabs: Record<string, unknown>): SyncBaseline => ({
+        profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+        dataByProfileId: { [PROFILE_ID]: emptyProfile() },
+        closedTabsByProfileId: { [PROFILE_ID]: tabs as never }
+    });
+
+    it("pushes a tab the account has not heard of", () => {
+        const operations = ChangeSetBuilder.build(
+            baselineWith({}),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() },
+            { [PROFILE_ID]: { one: tab("one", "https://example.com/", 1_700_000_000_000) } });
+
+        const closed = operations.filter(operation => operation.type === "closedTab");
+        expect(closed).toHaveLength(1);
+        expect(closed[0]).toMatchObject({
+            op: "upsert", id: "one", profileId: PROFILE_ID, url: "https://example.com/"
+        });
+        // An instant, sent by the device that closed it rather than stamped by the server.
+        expect(closed[0].closedAt).toBe(new Date(1_700_000_000_000).toISOString());
+    });
+
+    it("deletes a tab this device has pruned away", () => {
+        // The list is capped, so entries fall off it - and falling off has to reach the
+        // account, or every device would accumulate what every other device dropped.
+        const operations = ChangeSetBuilder.build(
+            baselineWith({ one: tab("one", "https://example.com/", 1000) }),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() },
+            { [PROFILE_ID]: {} });
+
+        expect(operations.filter(operation => operation.type === "closedTab"))
+            .toEqual([{ op: "delete", type: "closedTab", id: "one" }]);
+    });
+
+    it("says nothing about a list that has not changed", () => {
+        const tabs = { one: tab("one", "https://example.com/", 1000) };
+
+        const operations = ChangeSetBuilder.build(
+            baselineWith(tabs),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() },
+            { [PROFILE_ID]: tabs });
+
+        expect(operations).toEqual([]);
+    });
+
+    it("pushes this device's tabs against a baseline written before they existed", () => {
+        // An older baseline says nothing about closed tabs. That has to read as "the account
+        // has none" and push, not as "nothing to say" and stay put for ever.
+        const operations = ChangeSetBuilder.build(
+            {
+                profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+                dataByProfileId: { [PROFILE_ID]: emptyProfile() }
+            },
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() },
+            { [PROFILE_ID]: { one: tab("one", "https://example.com/", 1000) } });
+
+        expect(operations.filter(operation => operation.type === "closedTab")).toHaveLength(1);
+    });
+
+    it("names no closed tabs when the profile they hang from is being dropped", () => {
+        // The same rule the other children follow: the account cascades a profile's contents
+        // away, and this device holds no list for a profile it no longer has - so naming them
+        // one by one would be both impossible and pointless.
+        const operations = ChangeSetBuilder.build(
+            baselineWith({ one: tab("one", "https://example.com/", 1000) }),
+            [],
+            {},
+            {});
+
+        expect(kindsOf(operations, "delete")).toEqual(["profile"]);
+    });
+
+    it("deletes a pruned tab before anything that could be deleted under it", () => {
+        // Nothing hangs from a closed tab today, but the order is declared with the rest and
+        // has to be the one the backend applies: children first.
+        const operations = ChangeSetBuilder.build(
+            baselineWith({ one: tab("one", "https://example.com/", 1000) }),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: emptyProfile() },
+            { [PROFILE_ID]: {} });
+
+        expect(kindsOf(operations, "delete")).toEqual(["closedTab"]);
+    });
+});
