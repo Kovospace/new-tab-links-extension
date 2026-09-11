@@ -447,11 +447,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     /**
      *  The space an advertisement goes in, after the tips and inside the workspace footer.
      *
-     *  Empty, and it takes no room while it is empty - see the stylesheet. Reserving the space
-     *  is the point of declaring the slot, but reserving it *visibly* would mean a blank strip
-     *  across the bottom of everybody's new tab page today, for something that does not exist
-     *  yet. The size is declared instead, so that whatever is put here lands in a layout
-     *  already the right shape; deleting the `:empty` rule is what turns the reservation on.
+     *  It holds its space whether or not there is anything in it, which is the point of
+     *  reserving it: the day something lands here, nothing around it moves.
      *
      *  It is the one thing on this page sized in pixels rather than em. An advertisement is
      *  sold as a fixed number of pixels, so a slot that grew with the interface size would
