@@ -30,6 +30,14 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
+### [small] The seeded data does not type-check
+- `npx tsc --noEmit` reports five errors in src/backend/datasource/init/AppStateInit.ts: the
+  groups, subgroups and links the first run is seeded with have no `createdAt`, which the
+  entities require
+- the build does not notice, because Vite transpiles rather than type-checks, and a seeded
+  record without it is written to storage as it stands
+- so the whole strict check is unusable until it is fixed - which is what it costs: nothing
+  else it would catch can be seen while these five are in the way
 
 
 ## TO BE approved / analyzed
