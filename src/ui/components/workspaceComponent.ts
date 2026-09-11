@@ -10,7 +10,6 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
     ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
-    CLASS_AD_SLOT,
 } from "../../main"
 
 // data/model layer
@@ -33,6 +32,7 @@ import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncCo
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
+import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
@@ -126,7 +126,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // footer: the footer never moves, and a line of advice that is always on screen
         // stops reading as advice and starts reading as furniture.
         this.renderTips(footElem);
-        this.renderAdSlot(footElem);
+        this.renderAdsBar(footElem);
 
         // The rail of recently closed tabs, which lives beside the page rather than in it.
         void this.renderClosedTabs();
@@ -444,23 +444,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         new TipsBar().render(parentElem);
     }
 
-    /**
-     *  The space an advertisement goes in, after the tips and inside the workspace footer.
-     *
-     *  It holds its space whether or not there is anything in it, which is the point of
-     *  reserving it: the day something lands here, nothing around it moves.
-     *
-     *  It is the one thing on this page sized in pixels rather than em. An advertisement is
-     *  sold as a fixed number of pixels, so a slot that grew with the interface size would
-     *  either crop it or leave a gap beside it.
-     */
-    private renderAdSlot(parentElem: HTMLElement): void {
-        const slot = renderContainer([CLASS_AD_SLOT]);
-        slot.dataset.adSlot = "workspace-footer";
-        // Nothing to announce while it is empty, and an advertisement is not what somebody
-        // using a screen reader came to this page for.
-        slot.setAttribute("aria-hidden", "true");
-        parentElem.appendChild(slot);
+    /** The space an advertisement goes in, under the tips. */
+    private renderAdsBar(parentElem: HTMLElement): void {
+        new AdsBar().render(parentElem);
     }
 
     /**

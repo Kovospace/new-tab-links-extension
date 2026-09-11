@@ -1,0 +1,37 @@
+/* ---------------------------------------------------------------------------
+   Ads bar
+
+   The space an advertisement goes in, under the tips at the foot of the
+   workspace. It holds that space whether or not anything is in it: the day
+   something lands here, nothing around it moves.
+
+   Measured in pixels, alone on this page. An advertisement is sold as a fixed
+   number of pixels, so a slot that grew with the size slider would either crop
+   it or leave a gap beside it. The width is the one number nobody has specified
+   yet - 728px is the common banner - and it is the number to change when the
+   real one is known.
+   --------------------------------------------------------------------------- */
+
+.ads-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Centred under the tips card rather than stretched across the footer, and
+       still carrying the 1em of its own that was asked for. */
+    align-self: center;
+    flex: 0 0 auto;
+    margin: 1em;
+
+    width: 728px;
+    max-width: 100%;
+    height: 64px;
+    overflow: hidden;
+    border-radius: var(--radius-normal);
+}
+
+/* The variable rather than #222 written out, so the slot follows the panels
+   around it if those are ever repainted. They are the same colour today. */
+html.dark .ads-bar {
+    background-color: var(--color-component-background);
+}

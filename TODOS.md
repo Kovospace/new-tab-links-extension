@@ -14,6 +14,9 @@ Note for agents:
 
 ### [small] Add "move up" and "move down" action to link context menu
 
+### [medium] Do not mix tests with code
+- move tests into separate module like in java app, ```<project_root>/test```
+
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
@@ -59,16 +62,21 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 # DONE
 
 ### [small] Space reserved for ads
-- div.ad-slot in <workspace-plane-footer>, straight after div.tips-bar, named by
-  data-ad-slot="workspace-footer" and aria-hidden so a screen reader skips it
-- 64px high, 1em margin, and the component background rather than #222 written out, so the
-  slot follows the panels around it if those are ever repainted
+- ui/partials/adsBar.ts and ui/styles/_adsBar.css, built like the tips bar is, drawn into
+  <workspace-plane-footer> after it
+- the footer is a column now, so what is declared after the tips is drawn under them. In a row
+  the tips' own auto margins centre them and push everything else to the edge, which is where
+  the ads bar had ended up
+- div.ads-bar, flex and centred, named by data-ad-slot="workspace-footer" and aria-hidden so a
+  screen reader skips it
+- 64px high, 1em margin, the component background rather than #222 written out so it follows
+  the panels around it if those are ever repainted
 - it holds its space whether or not anything is in it: the day something lands there, nothing
   around it moves
 - measured in pixels, alone on this page - an ad is sold as a fixed number of pixels, so a slot
   that grew with the size slider would crop it or leave a gap beside it
-- the width is the one number that was not specified: 728px, the common banner, sitting to the
-  right of the centred tips card. One number to change when the real one is known
+- the width is the one number that was not specified: 728px, the common banner. One number to
+  change when the real one is known
 
 ### [medium] Add "size" to UI settings
 - a slider in "UI and behavior" setting the root html font size, 0.625em to 1.5em in steps of

@@ -35,6 +35,7 @@ import './ui/styles/_inputDialog.css'
 import './ui/styles/_profileManager.css'
 import './ui/styles/_settingsDialog.css'
 import './ui/styles/_tipsBar.css'
+import './ui/styles/_adsBar.css'
 import './ui/styles/_closedTabs.css'
 
 /**
@@ -47,9 +48,6 @@ export const ELEM_WORKSPACE = "workspace-plane";
 export const ELEM_WORKSPACE_HEAD = "workspace-plane-head";
 export const ELEM_WORKSPACE_BODY = "workspace-plane-body";
 export const ELEM_WORKSPACE_FOOTER = "workspace-plane-footer";
-
-/** Where an advertisement goes, when there is one. See `renderAdSlot`. */
-export const CLASS_AD_SLOT: string = "ad-slot";
 
 export const ELEM_GROUP: string = "link-group";
 export const ELEM_GROUP_HEAD: string = "link-group-head";
