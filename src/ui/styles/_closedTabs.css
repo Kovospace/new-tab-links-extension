@@ -1,0 +1,259 @@
+/* ---------------------------------------------------------------------------
+   Recently closed tabs
+
+   A rail down the right-hand edge showing the favicons of what was closed, and
+   widening into the full list when the pointer reaches it. No click to look:
+   the question it answers is asked in passing.
+
+   **It is a column of the page's grid, not something laid over it.** Widening
+   therefore narrows the link columns rather than covering them - which is the
+   point: a panel floating above the groups is a panel you cannot drag a link
+   underneath, and one anchored to the top of the window covers the header's own
+   buttons. See `html > body` in main.css for the grid it sits in.
+
+   Opening and closing is decided in script, from where the pointer is, not by
+   :hover - see closedTabsPanel.ts. CSS only draws the two widths.
+   --------------------------------------------------------------------------- */
+
+:root {
+    --closed-tabs-rail: 2.5em;
+    --closed-tabs-open: 22em;
+}
+
+.closed-tabs {
+    grid-area: aside;
+
+    width: var(--closed-tabs-rail);
+    max-width: 90vw;
+    /* The grid row is already the height between header and footer; this keeps
+       the panel from growing past it and taking the page's scrollbar with it. */
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    background-color: var(--color-component-background);
+    box-shadow: -0.125em 0 0.5em rgba(0, 0, 0, 0.4);
+
+    transition: width var(--time-transition-medium) ease-in-out;
+}
+
+.closed-tabs--open {
+    width: var(--closed-tabs-open);
+}
+
+/*
+   Everything that only makes sense at full width. Hidden rather than shrunk: at
+   two and a half characters a title is a smear and the actions are targets too
+   small to hit.
+*/
+.closed-tabs__title,
+.closed-tabs__head-action,
+.closed-tabs__text,
+.closed-tabs__row-actions,
+.closed-tabs__empty {
+    display: none;
+}
+
+.closed-tabs--open :is(
+    .closed-tabs__title,
+    .closed-tabs__head-action,
+    .closed-tabs__empty
+) {
+    display: block;
+}
+
+.closed-tabs--open :is(.closed-tabs__text, .closed-tabs__row-actions) {
+    display: flex;
+}
+
+/* The mark is the rail's whole face while it is narrow, and says what the
+   column of favicons is. At full width the heading says it instead. */
+.closed-tabs__mark {
+    flex: 0 0 auto;
+    width: 100%;
+    text-align: center;
+    font-size: 1.1em;
+    opacity: 0.7;
+    cursor: default;
+}
+
+.closed-tabs--open .closed-tabs__mark {
+    display: none;
+}
+
+.closed-tabs__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em 0.375em;
+    border-bottom: 0.0625em solid var(--color-component-framing);
+}
+
+.closed-tabs--open .closed-tabs__head {
+    padding: 0.5em 0.75em;
+}
+
+.closed-tabs__title {
+    flex: 1;
+    margin: 0;
+    font-size: 1em;
+}
+
+.closed-tabs__head-action,
+html.dark .closed-tabs__head-action {
+    margin: 0;
+}
+
+.closed-tabs__list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    /* Hidden while narrow: a scrollbar in a rail two and a half characters wide
+       would be most of the rail. */
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    padding: 0.25em;
+}
+
+/*
+   The panel's own scrollbar. main.css paints one for main and nothing else, so
+   without these the list scrolled with a bar the dark theme drew in system
+   colours - which on a dark panel is a bar you cannot see.
+*/
+html.dark .closed-tabs__list {
+    scrollbar-color: var(--color-button-background) transparent;
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar {
+    width: 0.5em;
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar-thumb {
+    background-color: var(--color-button-background);
+    border-radius: var(--radius-normal);
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-button-background-hover);
+}
+
+.closed-tabs__empty {
+    margin: 0;
+    padding: 1em 0.75em;
+    font-size: 0.85em;
+    line-height: 1.4;
+    opacity: 0.7;
+}
+
+.closed-tabs__row {
+    display: flex;
+    align-items: center;
+    /* Centred while the rail is narrow, so the favicons make a tidy column;
+       the gap and the alignment only matter once there is text beside them. */
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.25em 0.375em;
+    border-radius: var(--radius-small);
+}
+
+.closed-tabs--open .closed-tabs__row {
+    justify-content: flex-start;
+}
+
+.closed-tabs__row:hover {
+    background-color: var(--color-button-background);
+}
+
+.closed-tabs__favicon {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+/* The row's text is the button that reopens it: the whole line is the target,
+   which is what a list of links should behave like. */
+.closed-tabs__text,
+html.dark .closed-tabs__text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125em;
+    margin: 0;
+    padding: 0.25em 0;
+    background: none;
+    border: none;
+    font-size: 1em;
+    font-weight: normal;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+}
+
+.closed-tabs__text:hover,
+html.dark .closed-tabs__text:hover {
+    background: none;
+}
+
+.closed-tabs__row-title,
+.closed-tabs__meta {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.closed-tabs__meta {
+    font-size: 0.75em;
+    opacity: 0.6;
+}
+
+/* The actions stay out of the way until the row is under the pointer, so the
+   panel reads as a list rather than as a grid of buttons. The "already saved"
+   mark is not one of them - it is information, and it stays. */
+.closed-tabs__row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.125em;
+    flex: 0 0 auto;
+}
+
+.closed-tabs__row-action,
+html.dark .closed-tabs__row-action {
+    margin: 0.125em;
+    opacity: 0;
+    transition: opacity var(--time-transition-fast) ease-in-out;
+}
+
+.closed-tabs__row:hover .closed-tabs__row-action,
+.closed-tabs__row:focus-within .closed-tabs__row-action {
+    opacity: 1;
+}
+
+.closed-tabs__kept {
+    flex: 0 0 auto;
+    background-color: var(--color-button-add-background);
+    border-radius: 50%;
+    min-width: 1em;
+    height: 1em;
+    aspect-ratio: 1 / 1;
+    line-height: 1em;
+    text-align: center;
+    opacity: 0;
+}
+
+.closed-tabs--open .closed-tabs__kept {
+    opacity: 1;
+}
+
+/* The bookmarking form, borrowed from the popup, shown here in a dialog. */
+dialog.closed-tabs__dialog {
+    padding: 0;
+}

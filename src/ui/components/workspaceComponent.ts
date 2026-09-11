@@ -9,7 +9,7 @@ import {
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
-    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ELEM_WORKSPACE_FOOTER,
+    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
 } from "../../main"
 
 // data/model layer
@@ -32,10 +32,14 @@ import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncCo
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
+import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
     private currentWorkspaceId: string = "";
+
+    /** The recently closed tabs drawer, built the first time it is opened. */
+    private closedTabsPanel: ClosedTabsPanel | null = null;
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
@@ -120,6 +124,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // footer: the footer never moves, and a line of advice that is always on screen
         // stops reading as advice and starts reading as furniture.
         this.renderTips(footElem);
+
+        // The rail of recently closed tabs, which lives beside the page rather than in it.
+        void this.renderClosedTabs();
     }
 
     attachListeners(parentElem: HTMLElement) {
@@ -149,6 +156,18 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
                 this.addWorkspaceDialog.show();
             }
+        ));
+
+        // recently closed tabs, first on the right so it sits furthest from the menus: it is
+        // reached far more often than they are, and it opens a panel rather than a menu.
+        headerElemRightContent.appendChild(renderButton(
+            // Its own glyph, not the import arrow: that one already means "import profile"
+            // two items down in the menu beside it, and one symbol cannot mean both.
+            ICON.HISTORY,
+            "",
+            [ACT_CLOSED_TABS],
+            "Keep the recently closed panel open",
+            () => this.toggleClosedTabsPinned()
         ));
 
         // application / profiles menu — populated reactively via observables.profiles
@@ -416,6 +435,24 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      */
     private renderTips(parentElem: HTMLElement) {
         new TipsBar().render(parentElem);
+    }
+
+    /**
+     *  The recently closed tabs rail, drawn with the page rather than on demand.
+     *
+     *  It has to be there to be hovered, which is the whole of its design: it widens when the
+     *  pointer reaches it and costs no click. That means paying for it on every new tab -
+     *  one read of a storage key and two subscriptions - which is the price of the panel
+     *  being useful in passing rather than after a decision to go and look.
+     */
+    private async renderClosedTabs(): Promise<void> {
+        this.closedTabsPanel = new ClosedTabsPanel();
+        await this.closedTabsPanel.render(document.body);
+    }
+
+    /** Holds the rail open, or lets it go back to widening on hover. */
+    private toggleClosedTabsPinned(): void {
+        this.closedTabsPanel?.togglePinned();
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

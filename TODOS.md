@@ -12,21 +12,15 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
+### [small] Add "size" to UI settings
+- add "size" with "progressbar" into UI setings setting font size on root html element
+- make step size of 0.0625 em
+
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
 - drag link between groups and subgroups
 - drag group to change its order
-
-### [big] Add panel with last opened tabs (closed tabs history)
-- synchronized, BUT by active profile
-- ordered by time, include device name if tab was closed on another device than in current
-- after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
-- signalize by icon of green folder that some of this closed tabs may already be bookmarked
-
-## BUGFIXING
-
-## DO NOT DO, Must be decided, too complex and few fallpoints - but still vital if done on fisrt release
 
 ### [big] History panel
 Note: chrome.history permission can be problematic when submitting to chrome store
@@ -45,6 +39,33 @@ Note: needs permission "chrome.session"
 
 
 # DONE
+
+### [big] Add panel with last opened tabs (closed tabs history)
+- a rail down the right-hand edge, always there, showing the favicons of what was closed and
+  widening to the full list when the pointer reaches it - no click to look
+- it is a column of the page grid, so widening shrinks the link columns instead of covering
+  them: nothing is dragged underneath it and it never sits on the header's buttons
+- opening is decided from the pointer's position rather than :hover - at or right of the
+  panel's left edge is open, left of it is closed - so crossing onto the scrollbar does not
+  snap it shut
+- the header button pins it open, which outranks the pointer; a pinned panel closes on unpin,
+  on a click outside it, or when a row is opened
+- rows are newest first, each with its favicon, title, how long ago, and the device it was
+  closed on when that was another one
+- the service worker records closures: chrome.tabs.onRemoved does not say what was closed, so
+  the worker mirrors the open tabs in chrome.storage.session and reads the closure out of it.
+  Session storage rather than memory, because MV3 stops the worker after thirty seconds
+- stored under a key of the worker's own, never inside the profile's data: a worker writing
+  the whole profile record back would undo whatever the page had just saved
+- 50 per profile, deduplicated by address, and synchronised by profile - a new entity kind,
+  the first since the original five. First contact joins the two lists rather than letting the
+  account win: both are logs of things that really happened
+- green folder mark on a row whose address this profile already keeps as a link, compared the
+  way the tab catcher compares addresses
+- saving one as a link reuses the bookmarking form in a dialog
+- NOT done: drag & drop out of the panel, which waits on drag & drop existing at all
+- NOT done: the backend table for this is on branch feature/closed-tabs and not merged yet, so
+  the list stays on one device until that lands
 
 ### [small] add tips to the columns screen background
 - tips live in src/ui/tips/tips.json as an array, one sentence per language per tip; adding a

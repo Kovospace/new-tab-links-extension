@@ -181,6 +181,67 @@ Chrome; a fleet does it with the `NTPFooterExtensionAttributionEnabled` policy.
 It appears only on the new tab page, never in the bookmarking window. Anything that looks like
 it there is the tab behind that window. Do not go looking for it in this codebase.
 
+### Recently closed tabs (`repository/ClosedTabsRepository.ts`, `worker/module/closedTabsRecorder.ts`)
+
+A rail down the right-hand edge of the new tab page, always present, showing the favicons of
+what was closed - and widening into the full list when the pointer reaches it. No click is
+needed to look, which is the point: the question it answers is asked in passing.
+
+**It is a column of the page's grid** (`html > body` in main.css), not something laid over the
+page. Widening narrows the link columns instead of covering them - a floating panel is one you
+cannot drag a link underneath, and one anchored to the top of the window covers the header's
+own buttons.
+
+**Opening is decided from the pointer's position, not by `:hover`.** Hover gives up the moment
+the pointer crosses onto the scrollbar or the gap beside it, which is exactly where somebody
+reaching for the list is about to be. The rule is one comparison: at or right of the panel's
+left edge is open, left of it is closed. It cannot flap, because the edge moves with the panel
+- closing puts the edge to the right of the pointer, which is not a reason to open again.
+
+**The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
+unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
+errand, while deleting or saving one is working through the list and leaves it alone.
+
+- **`chrome.tabs.onRemoved` does not say what was closed** - it carries a tab id, and the tab
+  is already gone from the API. So the worker keeps a mirror of the open tabs in
+  `chrome.storage.session` (updated on every `onUpdated`) and reads the closure out of it.
+  Session storage, not memory: MV3 stops the worker after thirty seconds, and a mirror held in
+  memory would forget every tab open longer than that - which is all the interesting ones.
+- **They live under a key of their own** (`closed_tabs_<profileId>`), never inside `AppState`.
+  The worker writes them, and a worker that had to read-modify-write the whole profile record
+  would put back a copy that predates whatever the page saved a moment ago. A key the worker
+  owns alone can lose a closed tab at worst; the other arrangement can lose a link.
+- **Capped at 50 per profile**, deduplicated by address - the same page closed twice is one
+  entry moved to the top. Both matter because every entry is pushed to the account: an
+  uncapped list would be a browsing history in somebody else's database, growing for ever.
+- The page hears about the worker's writes through `chrome.storage.onChanged`, which is what
+  makes the panel fill as tabs are closed in other windows.
+- A row is marked as already kept by comparing addresses the way `linkTabGroupCatcher` does,
+  and names the device that closed it only when that was not this one.
+- Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
+  a second way.
+- **Synchronised, and the first thing that reaches the change set from outside `ProfileData`.**
+  `SyncBaseline` and `MappedSnapshot` carry a `closedTabsByProfileId` beside the data, and
+  `ChangeSetBuilder.build()` takes it as a fourth argument. A profile being dropped emits no
+  closed-tab deletions - the account cascades them, exactly as it does that profile's links.
+- **First contact joins the two lists rather than letting one win.** Both are logs of things
+  that really happened on machines that have never met, so neither can be discarded; the same
+  address closed on both survives once, at the later time. Everywhere else the account wins,
+  and that difference is the difference between data and a log.
+- **A pulled list is put through `capClosedTabs` before it is believed**: capped, deduplicated
+  by address, and clock-checked. The account cannot do any of this itself - it has no cap, it
+  cannot carry a unique constraint on the address without making a legitimate push fail, and
+  it takes the closing time from whichever device reported it, so a machine with a wrong clock
+  can otherwise pin one row to the top of every device's list for ever.
+- **Titles are cut to 200 characters and over-long addresses are never recorded.** `@Size` is
+  validated over the whole push, so one long title is not a rejected row but a 400 for the
+  entire batch - and Chrome page titles pass 200 characters daily.
+- `closedAt` crosses the wire as an ISO instant, never as epoch milliseconds: the backend reads
+  a bare number as epoch *seconds*, which files a tab in the year 58664, silently.
+- Nothing schedules a push when a tab closes. Closed tabs ride along with the next
+  synchronisation something else causes - which on a new tab page is immediate anyway - so
+  closing tabs does not make every other signed-in device re-fetch the account.
+
 ### Tips on the workspace background (`ui/tips/`)
 
 A card at the bottom of the workspace plane, drawn by `TipsBar` into the `<workspace-plane>`

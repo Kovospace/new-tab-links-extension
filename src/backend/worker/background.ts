@@ -5,6 +5,7 @@ import {OpenGroupedTabsWorker} from "./module/openGroupedTabsWorker";
 import {OpenTabsWorker} from "./module/openTabsWorker";
 import {registerLinkTabGroupCatcher} from "./module/linkTabGroupCatcher";
 import {registerBookmarkContextMenu} from "./module/bookmarkCurrentPage";
+import {registerClosedTabsRecorder} from "./module/closedTabsRecorder";
 
 type ModuleConstructor = new () => BackgroundWorker<any, any>;
 
@@ -59,3 +60,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // happened to be awake already.
 registerLinkTabGroupCatcher();
 registerBookmarkContextMenu();
+registerClosedTabsRecorder();

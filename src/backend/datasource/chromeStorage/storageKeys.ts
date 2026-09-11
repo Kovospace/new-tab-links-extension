@@ -25,3 +25,25 @@ export function appStateKey(profileId: string): string {
  *  `utils/bookmarkRequest.ts`.
  */
 export const PENDING_BOOKMARK_KEY = "pending_bookmark";
+
+/**
+ *  One profile's recently closed tabs, kept apart from that profile's data on purpose.
+ *
+ *  The service worker writes these, and it writes them while the page may be saving state of
+ *  its own. If they lived in the profile's own record the worker would have to read, change
+ *  and write back the whole of it - and a copy read a moment before the page added a link
+ *  would put that link back in the bin. A key the worker owns alone cannot do that: the worst
+ *  it can lose is a closed tab.
+ */
+export const CLOSED_TABS_PREFIX = "closed_tabs_";
+
+/** The key one profile's closed tabs are stored under. */
+export function closedTabsKey(profileId: string): string {
+    return CLOSED_TABS_PREFIX + profileId;
+}
+
+/**
+ *  The name the user gave this installation, read by the worker when it records a closed tab
+ *  so the row can say which device it happened on. Written by `InstallationIdentity`.
+ */
+export const INSTALLATION_NAME_KEY = "sync_installation_name";

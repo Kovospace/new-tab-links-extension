@@ -34,6 +34,7 @@ import './ui/styles/_inputDialog.css'
 import './ui/styles/_profileManager.css'
 import './ui/styles/_settingsDialog.css'
 import './ui/styles/_tipsBar.css'
+import './ui/styles/_closedTabs.css'
 
 /**
  *  Custom HTML elements names
@@ -76,6 +77,7 @@ export const ACT_FIRST_RUN_LOG_IN: string = "act-first-run-log-in";
 // Workspace component
 export const ACT_APP_MENU: string = "action-app-menu";
 export const ACT_USER_PROFILES: string = "action-user-profiles-menu";
+export const ACT_CLOSED_TABS: string = "action-closed-tabs";
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";
