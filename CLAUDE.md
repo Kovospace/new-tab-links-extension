@@ -316,6 +316,11 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
 - What is dragged is *named* - `dataTransfer` carries a kind and an identifier - because the
   data a drag carries cannot be read during `dragover`, where every "may this be dropped here"
   decision has to be made. The module keeps the answer.
+- **The innermost thing claims the drag, and the innermost target claims the hover.** A link
+  sits inside a group and both can be dragged; `dragstart` bubbles, so without
+  `stopPropagation` the group's handler ran after the link's and overwrote what was being
+  carried - every link drag became a group drag. `dragover` on a reorder target stops for the
+  same reason: otherwise a link, its subgroup and its group all light up at once.
 - A drop onto a thing means "where this one is": its group, its subgroup, and its place. That
   is how a link crosses into a subgroup or another group without any of it being said
   separately. A drop onto a container - a subgroup, a group's body - means "in here, at the

@@ -87,6 +87,12 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
             event.preventDefault();
             return;
         }
+        // The innermost draggable claims the drag. A link sits inside a group and both are
+        // draggable, and dragstart bubbles - so without this the group's handler ran after
+        // the link's and overwrote what was being carried. Every link drag became a group
+        // drag, which is precisely as destructive as it sounds.
+        event.stopPropagation();
+
         dragged = what;
         element.classList.add(CLASS_DRAGGING);
         // A type the drop targets can recognise before they are allowed to read the data, and
@@ -99,7 +105,10 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
         LOG.debug("dragstart", `${what.kind} ${what.id}`);
     });
 
-    element.addEventListener("dragend", () => {
+    element.addEventListener("dragend", event => {
+        // Bubbles like dragstart, and for the same reason is claimed by the element the drag
+        // actually started on.
+        event.stopPropagation();
         dragged = null;
         element.classList.remove(CLASS_DRAGGING);
         clearMarks();
@@ -129,6 +138,10 @@ export function makeReorderTarget(
             return;
         }
         event.preventDefault();
+        // The innermost target under the cursor is the one being aimed at: a link inside a
+        // subgroup inside a group would otherwise light all three up at once, and the drop
+        // would read as "into the group" while the line was drawn beside the link.
+        event.stopPropagation();
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }

@@ -68,6 +68,39 @@ describe("dragAndDrop", () => {
             expect(whatIsBeingDragged()).toEqual({ kind: "link", id: "a" });
         });
 
+        it("is claimed by the innermost thing, not the box around it", async () => {
+            // The bug: a link lives inside a group and both can be dragged, and dragstart
+            // bubbles - so the group's handler ran after the link's and overwrote what was
+            // being carried. Every attempt to drag a link moved a whole column instead.
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const group = document.createElement("div");
+            const link = document.createElement("div");
+            group.appendChild(link);
+            document.body.appendChild(group);
+            makeDraggable(group, { kind: "group", id: "the-group" });
+            makeDraggable(link, { kind: "link", id: "the-link" });
+
+            link.dispatchEvent(dragEvent("dragstart"));
+
+            expect(whatIsBeingDragged()).toEqual({ kind: "link", id: "the-link" });
+        });
+
+        it("still carries the group when the group itself is dragged", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const group = document.createElement("div");
+            const link = document.createElement("div");
+            group.appendChild(link);
+            document.body.appendChild(group);
+            makeDraggable(group, { kind: "group", id: "the-group" });
+            makeDraggable(link, { kind: "link", id: "the-link" });
+
+            group.dispatchEvent(dragEvent("dragstart"));
+
+            expect(whatIsBeingDragged()).toEqual({ kind: "group", id: "the-group" });
+        });
+
         it("lets go at the end of the drag", async () => {
             await profiles.updateSettings({ enableDragAndDrop: true });
             const element = document.createElement("div");
