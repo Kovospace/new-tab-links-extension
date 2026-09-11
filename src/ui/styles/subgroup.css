@@ -18,12 +18,18 @@ link-subgroup:hover {
 /*
    The subgroup's colour, which is the colour Chrome paints its tab group. Worth
    showing here so the page and the tab strip agree about which group is which -
-   as a bar down the side of the heading rather than a background, because the
-   nine colours are chosen to be told apart in a tab strip, not to be read on.
+   as a bar down the side rather than a background, because the nine colours are
+   chosen to be told apart in a tab strip, not to be read on.
+
+   The bar runs down the whole subgroup, its links included, so that the links
+   are visibly inside it: on the heading alone it read as a decoration of the
+   title rather than as a bracket around what belongs together. It is on the
+   subgroup rather than repeated on the head and the body, so nothing has to
+   keep the two in step - and a collapsed subgroup shortens it for free, because
+   the body it runs past is the thing that rolls up.
 */
-link-subgroup-head {
+link-subgroup {
     border-left: 0.25em solid var(--subgroup-color, transparent);
-    padding-left: 0.5em;
 }
 
 link-subgroup > hr {

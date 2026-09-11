@@ -15,6 +15,7 @@ Note for agents:
 ### [small] Add "size" to UI settings
 - add "size" with "progressbar" into UI setings setting font size on root html element
 - make step size of 0.0625 em
+- size from 0.5em to 2em
 
 ### [big] Drag & drop support
 - change links order by dragging
@@ -22,13 +23,7 @@ Note for agents:
 - drag link between groups and subgroups
 - drag group to change its order
 
-### [big] History panel
-Note: chrome.history permission can be problematic when submitting to chrome store
-- containing 2 tabs:
-    - last closed tabs
-    - most visited links (not bookmarked yet)
-
-### [big] Add panel with currently opened tabs
+### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
 - should be located on the right
 - distinguish somehow which links are already added in current profile
@@ -36,9 +31,29 @@ Note: needs permission "chrome.session"
     - on drop, open link add dialog with pre-filled values
 - check if it is possible to somehow change behaviour of CTRL+D shortcut and set it as replacement for browser bookmarks
   manager - NO it is not
+- now recently closed is already implemented - split this panel into recently closed and currently openes section
+
+
+# TO BE approved / analyzed
+
+### [big] History panel
+Note: chrome.history permission can be problematic when submitting to chrome store
+- containing 2 tabs:
+  - last closed tabs
+  - most visited links (not bookmarked yet)
 
 
 # DONE
+
+### [small] Extend subgroup color stripe to its links
+- the colour bar moved from the subgroup's heading to the subgroup itself, so it runs past the
+  links as well: on the heading alone it read as a decoration of the title rather than as a
+  bracket around what belongs together
+- one rule rather than one on the head and another on the body, so there is nothing to keep in
+  step - and a collapsed subgroup shortens the bar for free, because the body it runs past is
+  the thing that rolls up
+- spacing between the bar and the content is whatever the subgroup's own padding is; margins
+  left alone deliberately, as asked
 
 ### [big] Add panel with last opened tabs (closed tabs history)
 - a rail down the right-hand edge, always there, showing the favicons of what was closed and
