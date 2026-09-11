@@ -42,7 +42,11 @@ link-group.dnd-over-after {
 
 /* "Into this one", for a subgroup or a group taking a link at the end. Drawn
    around the whole container rather than on one edge, because there is no edge
-   the thing is going next to. */
+   the thing is going next to.
+
+   A head highlighted on its own says more than the whole column highlighted:
+   the link is going into that group or subgroup, at the end, and the head is
+   what was aimed at. */
 .dnd-over-into {
     box-shadow: inset 0 0 0 0.125em var(--color-button-active-background);
 }
@@ -64,4 +68,9 @@ link-group[draggable="true"] > link-group-head {
 
 link-group[draggable="true"]:active > link-group-head {
     cursor: grabbing;
+}
+
+link-group-head.dnd-over-into,
+link-subgroup-head.dnd-over-into {
+    border-radius: var(--radius-small);
 }

@@ -66,6 +66,19 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         parentElem.appendChild(headerElem);
         parentElem.appendChild(separatorElem);
         parentElem.appendChild(bodyElem);
+
+        // The head is a target of its own, not merely a piece of the group that a drop
+        // bubbles out of. Bubbling does work - a drop on the title reaches the group - but
+        // the head is where somebody aims when they mean "this group", and a target that is
+        // the thing being aimed at can say so: it highlights, and it cannot be broken by
+        // anything inside it that stops an event on its way out.
+        makeContainerTarget(headerElem, ["link", "subgroup"], draggedId => {
+            if (whatIsBeingDragged()?.kind === "subgroup") {
+                this.VIEW_MODEL.takeSubgroup(draggedId);
+                return;
+            }
+            this.VIEW_MODEL.takeLink(draggedId);
+        });
         parentElem.appendChild(footerElem);
 
         // group head containers

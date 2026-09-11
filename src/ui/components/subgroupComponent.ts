@@ -81,6 +81,12 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         const headElem: HTMLElement = document.createElement(ELEM_SUBGROUP_HEAD);
         this.appendChild(headElem);
 
+        // The heading and description are where somebody aims when they mean "in this
+        // subgroup", so the head takes the drop itself rather than leaving it to bubble out
+        // to the subgroup. It also gets the highlight, which is the part that says where the
+        // link is about to go.
+        makeContainerTarget(headElem, "link", draggedId => this.VIEW_MODEL.takeLink(draggedId));
+
         const bodyElem: HTMLElement = document.createElement(ELEM_SUBGROUP_BODY);
         if (subgroupDto.collapsed) bodyElem.classList.add("rolled");
         this.appendChild(bodyElem);

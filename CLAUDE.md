@@ -325,7 +325,11 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   is how a link crosses into a subgroup or another group without any of it being said
   separately. A drop onto a container - a subgroup's heading, a group's body - means "in here,
   at the end". **The innermost container claims the drop**, or a link dropped on a subgroup's
-  heading reaches the group behind it and the outer handler, running last, wins.
+  heading reaches the group behind it and the outer handler, running last, wins. The heads -
+  `link-group-head`, `link-subgroup-head` - are targets in their own right as well: a drop
+  there does bubble out to the group or subgroup, but the head is what somebody aims at when
+  they mean "this one", and a target that is the thing being aimed at can highlight itself and
+  cannot be broken by anything inside it stopping an event on its way out.
 - **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
   group's root-level links, so it can be dropped beside one of them; its own links travel with
   it, because a link names the group it is in as well as the subgroup, and one left behind
