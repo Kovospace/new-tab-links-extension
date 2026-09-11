@@ -94,3 +94,18 @@ link-group-head.dnd-over-into,
 link-subgroup-head.dnd-over-into {
     border-radius: var(--radius-small);
 }
+
+/*
+   A link is picked up from anywhere on it, its name and icon included. The text
+   is not selectable while it can be dragged, because a press on text starts a
+   selection and the drag never begins - the same reason the anchor inside it is
+   told not to drag itself.
+*/
+link-container[draggable="true"] {
+    cursor: grab;
+    user-select: none;
+}
+
+link-container[draggable="true"]:active {
+    cursor: grabbing;
+}

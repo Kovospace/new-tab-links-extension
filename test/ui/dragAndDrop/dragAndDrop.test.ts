@@ -218,6 +218,22 @@ describe("dragAndDrop", () => {
      */
     describe("targets with things inside them", () => {
 
+        it("stops what is inside it from dragging itself instead", () => {
+            // An anchor drags a URL and an image drags a picture, both by default, and one
+            // inside a draggable element takes the gesture over - so a link could only be
+            // picked up by the strip its name and icon did not cover.
+            const link = document.createElement("div");
+            const anchor = document.createElement("a");
+            const icon = document.createElement("img");
+            link.append(anchor, icon);
+
+            makeDraggable(link, { kind: "link", id: "a" });
+
+            expect(link.draggable).toBe(true);
+            expect(anchor.draggable).toBe(false);
+            expect(icon.draggable).toBe(false);
+        });
+
         it("cancels dragenter as well as dragover", async () => {
             await profiles.updateSettings({ enableDragAndDrop: true });
 

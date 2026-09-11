@@ -69,6 +69,11 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         const anchor: HTMLAnchorElement = document.createElement("a");
         anchor.href = linkDto.url;
         anchor.textContent = linkDto.title;
+        // An anchor drags itself by default - as a URL, out of the page - and an image does
+        // the same. Both are inside the thing being dragged, so pressing on the name or the
+        // icon started their drag instead of this link's, and the link could only be picked
+        // up by the bare strip around them.
+        anchor.draggable = false;
         linkContentDiv.appendChild(anchor);
 
         // description
@@ -81,6 +86,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         img.width = 32;
         img.height = 32;
         img.src = '/gfx/favicon-default.svg';
+        img.draggable = false;
 
         FaviconsHandler
             .handleIconDownloadAndCache(anchor.href)

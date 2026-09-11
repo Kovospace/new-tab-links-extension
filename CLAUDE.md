@@ -330,6 +330,12 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   there does bubble out to the group or subgroup, but the head is what somebody aims at when
   they mean "this one", and a target that is the thing being aimed at can highlight itself and
   cannot be broken by anything inside it stopping an event on its way out.
+- **Nothing inside a draggable element may drag itself.** An anchor drags a URL and an image
+  drags a picture, both by default, and one inside a draggable element takes the gesture over -
+  a link could only be picked up by the strip its own name and icon did not cover.
+  `makeDraggable` clears it on what is there, and elements drawn later say so where they are
+  created. The text is `user-select: none` for the same class of reason: a press on selectable
+  text starts a selection instead of a drag.
 - **A drop needs `dragenter` and `dragover` both cancelled.** Chrome forgives a missing
   `dragenter` until the drag enters a child the target did not know about, where the
   uncancelled default decides and the drop is refused over that child alone.

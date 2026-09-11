@@ -94,6 +94,15 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
 
     element.draggable = true;
 
+    // Anchors and images drag themselves by default - a URL or a picture, out of the page -
+    // and one inside a draggable element takes the drag over, so the element around it can
+    // only be picked up by the parts they do not cover. What is registered here is the thing
+    // being dragged, so nothing inside it may claim the gesture. Elements drawn later say so
+    // themselves, where they are created.
+    element.querySelectorAll("a, img").forEach(child => {
+        (child as HTMLElement).draggable = false;
+    });
+
     element.addEventListener("dragstart", event => {
         if (!isDragAndDropEnabled()) {
             // Registered but switched off: refusing here rather than never listening means the
