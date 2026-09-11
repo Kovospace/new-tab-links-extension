@@ -44,7 +44,15 @@ export class SyncBaselineRepository {
         if (!this.stored || this.stored.accountUserId !== accountUserId) {
             return null;
         }
-        return { profiles: this.stored.profiles, dataByProfileId: this.stored.dataByProfileId };
+        // Everything that was stored, minus the account it belongs to - never a list of
+        // fields picked out by hand. This used to name two of them, and a baseline that
+        // forgets part of what the account holds is a device that offers that part again on
+        // every synchronisation, for ever. Closed tabs were added to the baseline and not to
+        // this line, so every push carried the whole list, every push drew a change
+        // notification, and a second connected browser answered each one with a push of its
+        // own. Nothing was wrong with the data; the two simply never ran out of things to say.
+        const { accountUserId: _account, ...baseline } = this.stored;
+        return baseline;
     }
 
     /** Records what the account is now known to hold. */

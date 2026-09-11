@@ -1,6 +1,6 @@
 import { AppStateRepository, appStateRepository } from "../backend/repository/AppStateRepository";
 import { ClosedTabsRepository } from "../backend/repository/ClosedTabsRepository";
-import { ClosedTab } from "../backend/entity/ClosedTabEntity";
+import { ClosedTab, MAX_CLOSED_TABS } from "../backend/entity/ClosedTabEntity";
 import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { resolveDeviceName } from "../backend/sync/DeviceName";
@@ -132,7 +132,7 @@ export class ClosedTabsViewModel {
         // somewhere else" is one string comparison and not a guess.
         const here = resolveDeviceName(installationIdentity.getName());
 
-        return this.closedTabs.getTabs().map(tab => ({
+        return this.readable(this.closedTabs.getTabs()).map(tab => ({
             id: tab.id,
             title: tab.title || tab.url,
             url: tab.url,
@@ -141,6 +141,33 @@ export class ClosedTabsViewModel {
             elsewhere: tab.deviceName && tab.deviceName !== here ? tab.deviceName : null,
             bookmarked: this.isKept(kept, tab.url)
         }));
+    }
+
+    /**
+     *  The list as it is worth reading, which is not the same as the list as it is stored.
+     *
+     *  **Trimmed here and nowhere earlier.** What this device stores has to stay equal to what
+     *  the account holds: anything dropped on the way in is a difference the next change set
+     *  reports, and reports again on every synchronisation, while every report draws a change
+     *  notification that sets the other connected device doing the same. So the account keeps
+     *  what it keeps, and the panel shows what is worth showing.
+     *
+     *  Two devices closing the same page leave two rows - the backend cannot refuse them,
+     *  a unique constraint there would make a legitimate push fail - and the newer is the one
+     *  worth having. The cap is the same one recording applies, so a list that arrived over-full
+     *  from an account two devices have been filling still reads as a list.
+     */
+    private readable(tabs: ClosedTab[]): ClosedTab[] {
+
+        const byAddress = new Map<string, ClosedTab>();
+        for (const tab of tabs) {
+            const address = normalizeUrl(tab.url) ?? tab.url;
+            if (!byAddress.has(address)) {
+                byAddress.set(address, tab);
+            }
+        }
+
+        return [...byAddress.values()].slice(0, MAX_CLOSED_TABS);
     }
 
     /**

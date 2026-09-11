@@ -13,9 +13,8 @@ import { SessionRepository, sessionRepository, SyncSession } from "./SessionRepo
 import { MappedSnapshot, SyncSnapshotMapper } from "./SyncSnapshotMapper";
 import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRepository";
 import { SyncOperation } from "./SyncContracts";
-import { ClosedTab, MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
+import { ClosedTab } from "../entity/ClosedTabEntity";
 import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
-import { normalizeUrl } from "../worker/module/linkTabGroupCatcher";
 
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
@@ -237,8 +236,7 @@ export class SyncCoordinator {
             // A profile this device has never held: nothing of its own to join.
             if (snapshot.closedTabsSupported) {
                 await writeClosedTabs(
-                    remote.id,
-                    capClosedTabs(snapshot.closedTabsByProfileId[remote.id] ?? {}));
+                    remote.id, snapshot.closedTabsByProfileId[remote.id] ?? {});
             }
             await this.appState.saveProfileData(
                 remote.id,
@@ -553,9 +551,13 @@ export class SyncCoordinator {
                     await this.withLocalWorkspaceChoice(
                         profile.id, snapshot.dataByProfileId[profile.id]));
                 if (snapshot.closedTabsSupported) {
+                    // As the account holds them, untouched. Anything trimmed on the way in -
+                    // a cap, a duplicate address, a clock that reads wrong - is a difference
+                    // between this device and the account that the next change set dutifully
+                    // reports, on every synchronisation, for ever. What the panel shows is a
+                    // question for the panel; see ClosedTabsViewModel.
                     await writeClosedTabs(
-                        profile.id,
-                        capClosedTabs(snapshot.closedTabsByProfileId[profile.id] ?? {}));
+                        profile.id, snapshot.closedTabsByProfileId[profile.id] ?? {});
                 }
                 // An account that does not keep closed tabs says nothing about this device's,
                 // and a pull that overwrote them with the nothing it was told would empty the
@@ -793,78 +795,26 @@ export class SyncCoordinator {
 export const syncCoordinator = new SyncCoordinator();
 
 /**
- *  Makes a pulled list of closed tabs fit to be this device's list.
- *
- *  Three things are done to it, and each is a thing the account cannot do for itself:
- *
- *  - **Capped.** The account may hold more than fifty - another device may cap differently,
- *    or an older version may not have capped at all - and taking them all would let a list
- *    that is meant to be bounded grow through the back door.
- *  - **Deduplicated by address.** Two devices closing the same page record it under two
- *    identifiers, and the backend has no unique constraint to stop that (it cannot have one:
- *    a legitimate push would start failing). Without this the panel shows the same page twice
- *    after a pull. The entries dropped here are absent from the next change set, so the
- *    account converges on one row of its own accord.
- *  - **Clocks sanity-checked.** `closedAt` is supplied by whichever device closed the tab,
- *    and a machine with a wrong clock can file one in the year 58664 and pin it to the top of
- *    the list for ever. Anything claiming to be from the future is read as just now.
- *
- *  Exported for its own test, the way the tab catcher's rules are: this is where a pulled
- *  list is made trustworthy, and none of it is visible from the coordinator's surface.
- *
- *  @param tabs the profile's closed tabs as the account holds them
- */
-export function capClosedTabs(tabs: Record<string, ClosedTab>): Record<string, ClosedTab> {
-
-    const now = Date.now();
-    const sane = Object.values(tabs).map(tab => tab.closedAt > now + CLOCK_TOLERANCE
-        ? { ...tab, closedAt: now }
-        : tab);
-
-    const byAddress = new Map<string, ClosedTab>();
-    for (const tab of sane.sort((one, other) => other.closedAt - one.closedAt)) {
-        const address = normalizeUrl(tab.url) ?? tab.url;
-        if (!byAddress.has(address)) {
-            byAddress.set(address, tab);
-        }
-    }
-
-    const kept = [...byAddress.values()].slice(0, MAX_CLOSED_TABS);
-    return Object.fromEntries(kept.map(tab => [tab.id, tab]));
-}
-
-/**
- *  How far ahead of this device's clock a closed tab may claim to be before it is disbelieved.
- *
- *  Generous, because the two clocks legitimately differ and a tab closed a moment ago on a
- *  machine running a minute fast is not a fault. It is the year-58664 case this is for.
- */
-const CLOCK_TOLERANCE = 60 * 60 * 1000;
-
-/**
  *  Joins two lists of closed tabs, as first contact with an account has to.
  *
  *  Both are logs of things that really happened, on two machines that have never met, so
  *  neither can be thrown away - which is why this is a union and not the "the account wins"
- *  rule that settles a renamed group. What the two can disagree about is only the same page
- *  closed in both places, and that is one entry at the later of the two times.
+ *  rule that settles a renamed group.
+ *
+ *  **It joins and does nothing else.** It does not cap the result, and it does not drop the
+ *  same address twice over, however tempting both are: what this device stores has to stay
+ *  equal to what the account holds, or the difference between them is reported on every
+ *  synchronisation for the rest of the day - and every report draws a change notification that
+ *  sets the other connected device doing the same. The list is kept in bounds where it is
+ *  written to (`recordClosedTab`), and made readable where it is drawn (`ClosedTabsViewModel`).
  *
  *  @param local  what this device recorded
  *  @param remote what the account holds
- *  @return the joined list, capped and keyed by identifier
+ *  @return the joined list, keyed by identifier
  */
 export function mergeClosedTabs(
     local: Record<string, ClosedTab>,
     remote: Record<string, ClosedTab>
 ): Record<string, ClosedTab> {
-
-    const byId = new Map<string, ClosedTab>();
-    for (const tab of [...Object.values(remote), ...Object.values(local)]) {
-        byId.set(tab.id, tab);
-    }
-
-    // Deduplicating by address, capping and disbelieving impossible clocks are all done by
-    // capClosedTabs, which a pull needs for the same reasons - so this joins, and leaves the
-    // rest to it.
-    return capClosedTabs(Object.fromEntries([...byId.values()].map(tab => [tab.id, tab])));
+    return { ...remote, ...local };
 }

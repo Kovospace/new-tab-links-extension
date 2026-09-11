@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { AppStateRepository } from "../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
-import { ClosedTabsRepository, recordClosedTab } from "../../src/backend/repository/ClosedTabsRepository";
+import {
+    ClosedTabsRepository, recordClosedTab, writeClosedTabs
+} from "../../src/backend/repository/ClosedTabsRepository";
+import { MAX_CLOSED_TABS } from "../../src/backend/entity/ClosedTabEntity";
 import { appStateInit } from "../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel, describeAge } from "../../src/viewModel/closedTabsViewModel";
 import { environment, group, link, profileOf } from "../support/profileDataFixtures";
@@ -120,6 +123,39 @@ describe("ClosedTabsViewModel", () => {
         await flushStorageNotifications();
 
         expect(rows().map(row => row.title)).toContain("https://example.com/untitled");
+    });
+
+    it("shows one row for a page two devices closed, the newer one", async () => {
+        // The account holds both - it cannot refuse them, and this device must not trim what
+        // it stores or it would report the difference on every synchronisation. So the panel
+        // is where the second one stops being shown.
+        const profileId = profiles.getActiveProfileId();
+        await writeClosedTabs(profileId, {
+            "from-laptop": {
+                id: "from-laptop", url: "https://example.com/page", title: "From the laptop",
+                closedAt: 1000
+            },
+            "from-desktop": {
+                id: "from-desktop", url: "https://example.com/page", title: "From the desktop",
+                closedAt: 2000
+            }
+        });
+        await flushStorageNotifications();
+
+        expect(rows().map(row => row.title)).toEqual(["From the desktop"]);
+    });
+
+    it("shows no more than the list is meant to hold", async () => {
+        // An account two devices have been filling can hold more than one device keeps.
+        const profileId = profiles.getActiveProfileId();
+        await writeClosedTabs(profileId, Object.fromEntries(
+            Array.from({ length: MAX_CLOSED_TABS + 20 }, (_, index) => [`tab-${index}`, {
+                id: `tab-${index}`, url: `https://example.com/${index}`,
+                title: `Page ${index}`, closedAt: index
+            }])));
+        await flushStorageNotifications();
+
+        expect(rows()).toHaveLength(MAX_CLOSED_TABS);
     });
 
     it("forgets one entry", async () => {

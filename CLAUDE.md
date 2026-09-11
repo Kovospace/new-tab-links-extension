@@ -83,6 +83,19 @@ Rules that are load-bearing, and easy to break by accident:
   first silently discards anything made offline.
 - **The baseline only advances when the server confirms.** That is what makes a failed push
   cost nothing: the same difference is simply computed again next time.
+- **The baseline is handed back whole, never field by field.** `SyncBaselineRepository.getFor`
+  used to rebuild it from the two fields it knew about, so a kind of record added to the
+  baseline later was stored and then forgotten on every read - and a baseline that forgets part
+  of what the account holds is a device that offers that part again on every synchronisation.
+  With a second browser connected, each offer drew a change notification and the two never ran
+  out of things to tell each other.
+- **Nothing may be transformed between the snapshot and local storage.** A pull replaces local
+  state with what the account holds; anything filtered, capped or corrected on the way in is a
+  permanent difference, which is the same loop by another road. Trimming belongs where a record
+  is written or where it is drawn.
+- **`test/backend/sync/syncSettles.test.ts` is the guard for both.** It pushes into a fake
+  account, serves the result back, and asserts the second synchronisation has nothing to say.
+  Every other sync test asks what one synchronisation sends; this one asks whether they stop.
 - **No tombstones, deliberately.** A record absent from the snapshot has been deleted; a record
   absent from local state is a deletion to push. Nothing needs to remember what once existed.
 - **Identifiers must be UUIDs.** The backend keys its rows by `uuid`. The seeded profile was
@@ -246,11 +259,12 @@ errand, while deleting or saving one is working through the list and leaves it a
   that really happened on machines that have never met, so neither can be discarded; the same
   address closed on both survives once, at the later time. Everywhere else the account wins,
   and that difference is the difference between data and a log.
-- **A pulled list is put through `capClosedTabs` before it is believed**: capped, deduplicated
-  by address, and clock-checked. The account cannot do any of this itself - it has no cap, it
-  cannot carry a unique constraint on the address without making a legitimate push fail, and
-  it takes the closing time from whichever device reported it, so a machine with a wrong clock
-  can otherwise pin one row to the top of every device's list for ever.
+- **What is pulled is stored exactly as the account holds it.** Nothing is trimmed on the way
+  in - not a cap, not a duplicate address, not a clock that reads wrong - because anything this
+  device drops is a difference the next change set reports, and reports again on every
+  synchronisation, while every report draws a change notification that sets the other connected
+  device reporting too. The list is kept in bounds where it is written to (`recordClosedTab`)
+  and made readable where it is drawn (`ClosedTabsViewModel.readable`).
 - **Titles are cut to 200 characters and over-long addresses are never recorded.** `@Size` is
   validated over the whole push, so one long title is not a rejected row but a 400 for the
   entire batch - and Chrome page titles pass 200 characters daily.
