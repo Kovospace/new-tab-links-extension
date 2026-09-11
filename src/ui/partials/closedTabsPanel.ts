@@ -10,10 +10,19 @@ const ICON_KEPT = '📁';
 /**
  * The panel of recently closed tabs.
  *
- * A drawer down the right-hand side rather than a column among the others: it is a log of
- * what happened, not a place things are kept, and giving it a column would put it in
- * competition with the links for the width of the screen. It slides over instead, and is
- * closed until asked for.
+ * A rail down the right-hand side, two and a half characters wide, showing nothing but the
+ * favicons of what was closed - and widening into the full list when the pointer reaches it.
+ * No click is needed to look, which is the point: the question this answers ("what was that
+ * thing I just closed?") is asked in passing, and a panel that had to be opened first would be
+ * slower than pressing Ctrl+Shift+T and hoping.
+ *
+ * Widening is done in CSS, on `:hover` and on `:focus-within` - the second so that a keyboard,
+ * which never hovers, can reach it by tabbing. Nothing here tracks the pointer: a state class
+ * toggled by mouseenter and mouseleave is a state that can be left behind by a window losing
+ * focus mid-gesture, and then the rail stays open over the columns until something disturbs it.
+ *
+ * The header button pins it open, for when the list is being worked through rather than
+ * glanced at.
  *
  * **Where the list comes from matters to what this can promise.** The service worker records
  * a closure as it happens, so the panel fills whether or not a new tab page was open at the
@@ -49,14 +58,14 @@ export class ClosedTabsPanel {
     await this.viewModel.initialize();
   }
 
-  /** Whether the drawer is open. */
-  public isOpen(): boolean {
-    return this.panelEl?.classList.contains('closed-tabs--open') ?? false;
+  /** Whether the panel is being held open rather than widening on hover. */
+  public isPinned(): boolean {
+    return this.panelEl?.classList.contains('closed-tabs--pinned') ?? false;
   }
 
-  /** Opens the drawer, or closes it again. */
-  public toggle(): void {
-    this.panelEl?.classList.toggle('closed-tabs--open');
+  /** Holds the panel open, or lets it go back to widening on hover. */
+  public togglePinned(): void {
+    this.panelEl?.classList.toggle('closed-tabs--pinned');
   }
 
   public dispose(): void {
@@ -76,6 +85,14 @@ export class ClosedTabsPanel {
     const head = document.createElement('div');
     head.classList.add('closed-tabs__head');
 
+    // What the rail shows of itself when it is only two and a half characters wide. Without
+    // it a column of favicons down the edge of the screen is a mystery rather than an offer.
+    const mark = document.createElement('span');
+    mark.classList.add('closed-tabs__mark');
+    mark.textContent = ICON.HISTORY;
+    mark.title = 'Recently closed tabs';
+    head.appendChild(mark);
+
     const title = document.createElement('h2');
     title.classList.add('closed-tabs__title');
     title.textContent = 'Recently closed';
@@ -87,16 +104,16 @@ export class ClosedTabsPanel {
     clearBtn.title = 'Forget every closed tab';
     clearBtn.addEventListener('click', () => void this.clearAll());
 
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.classList.add('closed-tabs__head-action');
-    closeBtn.textContent = ICON.CLOSE;
-    closeBtn.title = 'Close the panel';
-    closeBtn.addEventListener('click', () => this.toggle());
+    const pinBtn = document.createElement('button');
+    pinBtn.type = 'button';
+    pinBtn.classList.add('closed-tabs__head-action');
+    pinBtn.textContent = ICON.CLOSE;
+    pinBtn.title = 'Stop holding the panel open';
+    pinBtn.addEventListener('click', () => this.togglePinned());
 
     head.appendChild(title);
     head.appendChild(clearBtn);
-    head.appendChild(closeBtn);
+    head.appendChild(pinBtn);
     panel.appendChild(head);
 
     this.listEl = document.createElement('div');

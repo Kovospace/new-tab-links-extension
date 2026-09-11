@@ -124,6 +124,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // footer: the footer never moves, and a line of advice that is always on screen
         // stops reading as advice and starts reading as furniture.
         this.renderTips(footElem);
+
+        // The rail of recently closed tabs, which lives beside the page rather than in it.
+        void this.renderClosedTabs();
     }
 
     attachListeners(parentElem: HTMLElement) {
@@ -163,8 +166,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             ICON.HISTORY,
             "",
             [ACT_CLOSED_TABS],
-            "Recently closed tabs",
-            () => void this.toggleClosedTabs()
+            "Keep the recently closed panel open",
+            () => this.toggleClosedTabsPinned()
         ));
 
         // application / profiles menu — populated reactively via observables.profiles
@@ -435,17 +438,21 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     }
 
     /**
-     *  Opens the recently closed tabs, building the panel the first time it is asked for.
+     *  The recently closed tabs rail, drawn with the page rather than on demand.
      *
-     *  Built on demand rather than with the page: it opens a second store and subscribes to
-     *  the state, and most new tabs are opened to click one link and be gone again.
+     *  It has to be there to be hovered, which is the whole of its design: it widens when the
+     *  pointer reaches it and costs no click. That means paying for it on every new tab -
+     *  one read of a storage key and two subscriptions - which is the price of the panel
+     *  being useful in passing rather than after a decision to go and look.
      */
-    private async toggleClosedTabs(): Promise<void> {
-        if (!this.closedTabsPanel) {
-            this.closedTabsPanel = new ClosedTabsPanel();
-            await this.closedTabsPanel.render(document.body);
-        }
-        this.closedTabsPanel.toggle();
+    private async renderClosedTabs(): Promise<void> {
+        this.closedTabsPanel = new ClosedTabsPanel();
+        await this.closedTabsPanel.render(document.body);
+    }
+
+    /** Holds the rail open, or lets it go back to widening on hover. */
+    private toggleClosedTabsPinned(): void {
+        this.closedTabsPanel?.togglePinned();
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

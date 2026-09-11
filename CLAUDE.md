@@ -183,8 +183,16 @@ it there is the tab behind that window. Do not go looking for it in this codebas
 
 ### Recently closed tabs (`repository/ClosedTabsRepository.ts`, `worker/module/closedTabsRecorder.ts`)
 
-A drawer down the right of the new tab page listing what was closed, newest first, opened from
-a button in the header and built only when first asked for.
+A rail down the right-hand edge of the new tab page, always present, showing the favicons of
+what was closed - and widening into the full list when the pointer reaches it. No click is
+needed to look, which is the point: the question it answers is asked in passing. The header
+button pins it open for when the list is being worked through rather than glanced at.
+
+Widening is CSS, on `:hover` and `:focus-within` (the second so a keyboard can reach it), never
+a class toggled by mouseenter and mouseleave - one of those can be left behind when a window
+loses focus mid-gesture, leaving the rail open over the columns. It widens *over* the page
+rather than pushing it, so the columns cannot move under a pointer that is only passing; the
+rail's own width comes out of `main`'s right padding instead, so nothing hides beneath it.
 
 - **`chrome.tabs.onRemoved` does not say what was closed** - it carries a tab id, and the tab
   is already gone from the API. So the worker keeps a mirror of the open tabs in

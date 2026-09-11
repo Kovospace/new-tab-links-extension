@@ -12,6 +12,10 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
+### [small] Add "size" to UI settings
+- add "size" with "progressbar" into UI setings setting font size on root html element
+- make step size of 0.0625 em
+
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
@@ -37,9 +41,11 @@ Note: needs permission "chrome.session"
 # DONE
 
 ### [big] Add panel with last opened tabs (closed tabs history)
-- drawer down the right of the new tab page, opened from a header button, built the first time
-  it is asked for; rows are newest first, each with its favicon, title, how long ago, and the
-  device it was closed on when that was another one
+- a rail down the right-hand edge, always there, showing the favicons of what was closed and
+  widening to the full list on hover - no click to look. The header button pins it open, and
+  the rail's width comes out of main's padding so it never covers a column
+- rows are newest first, each with its favicon, title, how long ago, and the device it was
+  closed on when that was another one
 - the service worker records closures: chrome.tabs.onRemoved does not say what was closed, so
   the worker mirrors the open tabs in chrome.storage.session and reads the closure out of it.
   Session storage rather than memory, because MV3 stops the worker after thirty seconds
