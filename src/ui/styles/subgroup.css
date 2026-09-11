@@ -1,5 +1,5 @@
 link-subgroup {
-    margin-left: 0.5em;
+    margin-left: 0.25em;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
     padding:0.25em;
@@ -52,6 +52,7 @@ link-subgroup-head {
     flex-direction: row;
     align-items: flex-start;
     cursor: pointer;
+    padding-left: 0.125em;
 }
 
 link-subgroup-head > div.cls-subgroup-head-title {

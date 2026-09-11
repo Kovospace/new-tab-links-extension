@@ -17,6 +17,14 @@ Note for agents:
 - make step size of 0.0625 em
 - size from 0.5em to 2em
 
+### [small] Add "move up" and "move down" action to link context menu
+
+### [small] Toggle last closed tab active class
+- if "last closed tabs" is opened using button, add "active" class to it during it is opened
+
+### [small] Show devide name in last closed tab row 
+- if it was not closed on current device
+
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
