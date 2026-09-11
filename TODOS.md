@@ -39,7 +39,6 @@ Note for agents:
 - find all hardcoded strings or text strings in variables and put them in one place in json
 - add support for multiple languages
 - add second language - slovak - and translate into it
-- 
 
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
@@ -52,7 +51,18 @@ Note: needs permission "chrome.session"
 - now recently closed is already implemented - split this panel into recently closed and currently openes section
 
 
-# TO BE approved / analyzed
+## TODO BUGFIX
+
+### [critical] Sync event even on idle
+- while 2nd browser is connected, then 
+  ```
+  [SyncCoordinator.push] Sending 12 operations
+  SyncContracts-B8PKd6Qb.js:1 [SyncCoordinator.onRefresh] The account changed elsewhere
+  ```
+  is happening at least every second - i think there is some kind of circular dependency
+
+
+## TO BE approved / analyzed
 
 ### [big] History panel
 Note: chrome.history permission can be problematic when submitting to chrome store
