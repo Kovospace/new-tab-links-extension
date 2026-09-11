@@ -274,7 +274,7 @@ export class ClosedTabsPanel {
 
     const forgetBtn = document.createElement('button');
     forgetBtn.type = 'button';
-    forgetBtn.classList.add('closed-tabs__row-action');
+    forgetBtn.classList.add('closed-tabs__row-action', 'danger');
     forgetBtn.textContent = ICON.DELETE;
     forgetBtn.title = 'Forget this one';
     forgetBtn.addEventListener('click', () => void this.viewModel.forget(tab.id));

@@ -17,7 +17,8 @@ export const ICON = {
     USER: "◉",
     EXPORT: "⇧",   // export (up/out)
     IMPORT: "⇩",   // import (down/in)
-    HISTORY: "↺"   // recently closed / bring back
+    HISTORY: "↺",   // recently closed / bring back
+    CHECKED: "✓"   // ticked / confirmed / already done
 } as const;
 
 /**
