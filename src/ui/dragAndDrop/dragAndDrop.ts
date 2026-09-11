@@ -62,6 +62,19 @@ const CLASS_OVER_AFTER = "dnd-over-after";
 const CLASS_OVER_INTO = "dnd-over-into";
 
 /**
+ *  How far from the left edge of the thing being carried the cursor is allowed to sit, in ems
+ *  of the root font size - which is the UI size setting, so this grows with everything else.
+ *
+ *  A wide row grabbed by its right end put the cursor a long way to the right of where the row
+ *  was drawn, and a link is as wide as the column it lives in: the cursor was then outside the
+ *  column while the row floated over it. The drop still landed where it looked like it would,
+ *  because the browser hit-tests the cursor and the column next door forwarded nothing - but
+ *  the line showing where it would land is drawn inside the column, and there was nothing under
+ *  the cursor to draw it on. Nothing said where the thing was about to go.
+ */
+const GRAB_LIMIT_EM = 2;
+
+/**
  *  What is being dragged right now, or null.
  *
  *  Module state rather than something passed through `dataTransfer` alone, because the data a
@@ -123,6 +136,7 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
         event.stopPropagation();
 
         dragged = what;
+        anchorGhostToCursor(element, event, what.kind);
         element.classList.add(CLASS_DRAGGING);
         document.documentElement.classList.add(CLASS_DRAG_IN_FLIGHT);
         // A type the drop targets can recognise before they are allowed to read the data, and
@@ -271,6 +285,37 @@ export function makeContainerTarget(
         unmark(element);
         onDrop(carrying.id);
     });
+}
+
+/**
+ *  Redraws the thing under the cursor so the cursor is near its leading edge.
+ *
+ *  Only sideways, and only for what is stacked vertically. There the cursor's x means nothing
+ *  to a drop - the side is decided by y - so moving the picture under it costs nothing and buys
+ *  a cursor that stays inside the column it is aiming at. A group is the exception: its
+ *  siblings are columns, x is precisely what decides where it lands, and shifting it would be
+ *  moving the very thing being aimed with.
+ */
+function anchorGhostToCursor(element: HTMLElement, event: DragEvent, kind: DragKind): void {
+    if (kind === "group" || typeof event.dataTransfer?.setDragImage !== "function") {
+        return;
+    }
+    const box = element.getBoundingClientRect();
+    const grabbedAtY = event.clientY - box.top;
+    const grabbedAtX = event.clientX - box.left;
+    const limit = rootFontSize() * GRAB_LIMIT_EM;
+    if (grabbedAtX <= limit) {
+        // Grabbed near the leading edge already; leaving the picture where it was drawn is
+        // less startling than nudging it.
+        return;
+    }
+    event.dataTransfer.setDragImage(element, limit, grabbedAtY);
+}
+
+/** The root font size in pixels, which is what an em of the page measures. */
+function rootFontSize(): number {
+    const size = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return Number.isFinite(size) && size > 0 ? size : 16;
 }
 
 /**
