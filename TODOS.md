@@ -12,10 +12,10 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [small] Add "size" to UI settings
+### [medium] Add "size" to UI settings
 - add "size" with "progressbar" into UI setings setting font size on root html element
 - make step size of 0.0625 em
-- size from 0.5em to 2em
+- size from 0.625em to 1.5em
 
 ### [small] Add "move up" and "move down" action to link context menu
 
@@ -24,12 +24,22 @@ Note for agents:
 
 ### [small] Show devide name in last closed tab row 
 - if it was not closed on current device
+- show it in 3rd row of closed-tabs__text
+
+### [small] Space reserved for ads
+- in <workspace-plane-footer> after div.tips-bar
 
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
 - drag link between groups and subgroups
 - drag group to change its order
+
+### [BIG] i18n
+- find all hardcoded strings or text strings in variables and put them in one place in json
+- add support for multiple languages
+- add second language - slovak - and translate into it
+- 
 
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
