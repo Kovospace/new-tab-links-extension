@@ -42,8 +42,14 @@ Note: needs permission "chrome.session"
 
 ### [big] Add panel with last opened tabs (closed tabs history)
 - a rail down the right-hand edge, always there, showing the favicons of what was closed and
-  widening to the full list on hover - no click to look. The header button pins it open, and
-  the rail's width comes out of main's padding so it never covers a column
+  widening to the full list when the pointer reaches it - no click to look
+- it is a column of the page grid, so widening shrinks the link columns instead of covering
+  them: nothing is dragged underneath it and it never sits on the header's buttons
+- opening is decided from the pointer's position rather than :hover - at or right of the
+  panel's left edge is open, left of it is closed - so crossing onto the scrollbar does not
+  snap it shut
+- the header button pins it open, which outranks the pointer; a pinned panel closes on unpin,
+  on a click outside it, or when a row is opened
 - rows are newest first, each with its favicon, title, how long ago, and the device it was
   closed on when that was another one
 - the service worker records closures: chrome.tabs.onRemoved does not say what was closed, so

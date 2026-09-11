@@ -15,13 +15,30 @@
    the horizontal scrollbar at the bottom of the document, underneath the footer, and needs
    padding on main to stand in for the space the two no longer occupy. This needs neither.
 */
+/*
+   A grid rather than a column, so that a panel can sit *beside* the workspace
+   instead of over it. The recently closed rail is a column of this grid: when
+   it widens, main is given less room and the link columns narrow, which is what
+   lets somebody drag a link into a group that the rail would otherwise cover.
+   With no rail on the page - the first-run screen - the second column measures
+   zero and this is the column layout it was before.
+*/
 html > body {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "header header"
+        "main   aside"
+        "footer footer";
     height: 100%;
     font-family: sans-serif;
     overflow: hidden;
 }
+
+header { grid-area: header; }
+main { grid-area: main; }
+footer { grid-area: footer; }
 
 div.overlay {
     position: fixed;

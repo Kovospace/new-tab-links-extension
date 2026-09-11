@@ -1,21 +1,18 @@
 /* ---------------------------------------------------------------------------
    Recently closed tabs
 
-   A rail down the right-hand edge, always there, showing the favicons of what
-   was closed - and widening into the full list when the pointer reaches it. No
-   click to look: the question it answers is asked in passing, and a panel that
-   had to be opened first would be slower than guessing at Ctrl+Shift+T.
+   A rail down the right-hand edge showing the favicons of what was closed, and
+   widening into the full list when the pointer reaches it. No click to look:
+   the question it answers is asked in passing.
 
-   Widening happens here rather than in script, on :hover and on :focus-within -
-   the second so a keyboard, which never hovers, can reach it by tabbing. A
-   state class toggled by mouseenter and mouseleave can be left behind when a
-   window loses focus mid-gesture, and the rail would then sit open over the
-   columns until something disturbed it. The header button pins it open, which
-   is a decision rather than a gesture and so is a class.
+   **It is a column of the page's grid, not something laid over it.** Widening
+   therefore narrows the link columns rather than covering them - which is the
+   point: a panel floating above the groups is a panel you cannot drag a link
+   underneath, and one anchored to the top of the window covers the header's own
+   buttons. See `html > body` in main.css for the grid it sits in.
 
-   It widens over the page rather than pushing it: the columns must not move
-   under a pointer that is only passing by. The rail's own width is taken out of
-   main's padding instead, so nothing is ever hidden underneath it.
+   Opening and closing is decided in script, from where the pointer is, not by
+   :hover - see closedTabsPanel.ts. CSS only draws the two widths.
    --------------------------------------------------------------------------- */
 
 :root {
@@ -23,20 +20,14 @@
     --closed-tabs-open: 22em;
 }
 
-/* Only when the rail is actually on the page - it is drawn by the workspace,
-   and the first-run screen has no need of it. */
-body:has(.closed-tabs) > main {
-    padding-right: calc(1em + var(--closed-tabs-rail));
-}
-
 .closed-tabs {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    grid-area: aside;
+
     width: var(--closed-tabs-rail);
     max-width: 90vw;
-    z-index: 50;
+    /* The grid row is already the height between header and footer; this keeps
+       the panel from growing past it and taking the page's scrollbar with it. */
+    min-height: 0;
 
     display: flex;
     flex-direction: column;
@@ -48,14 +39,14 @@ body:has(.closed-tabs) > main {
     transition: width var(--time-transition-medium) ease-in-out;
 }
 
-.closed-tabs:is(:hover, :focus-within, .closed-tabs--pinned) {
+.closed-tabs--open {
     width: var(--closed-tabs-open);
 }
 
 /*
-   Everything that only makes sense at full width. Hidden rather than shrunk:
-   at two and a half characters a title is a smear, and the actions would be
-   targets too small to hit.
+   Everything that only makes sense at full width. Hidden rather than shrunk: at
+   two and a half characters a title is a smear and the actions are targets too
+   small to hit.
 */
 .closed-tabs__title,
 .closed-tabs__head-action,
@@ -65,7 +56,7 @@ body:has(.closed-tabs) > main {
     display: none;
 }
 
-.closed-tabs:is(:hover, :focus-within, .closed-tabs--pinned) :is(
+.closed-tabs--open :is(
     .closed-tabs__title,
     .closed-tabs__head-action,
     .closed-tabs__empty
@@ -73,10 +64,7 @@ body:has(.closed-tabs) > main {
     display: block;
 }
 
-.closed-tabs:is(:hover, :focus-within, .closed-tabs--pinned) :is(
-    .closed-tabs__text,
-    .closed-tabs__row-actions
-) {
+.closed-tabs--open :is(.closed-tabs__text, .closed-tabs__row-actions) {
     display: flex;
 }
 
@@ -91,7 +79,7 @@ body:has(.closed-tabs) > main {
     cursor: default;
 }
 
-.closed-tabs:is(:hover, :focus-within, .closed-tabs--pinned) .closed-tabs__mark {
+.closed-tabs--open .closed-tabs__mark {
     display: none;
 }
 
@@ -103,7 +91,7 @@ body:has(.closed-tabs) > main {
     border-bottom: 0.0625em solid var(--color-component-framing);
 }
 
-.closed-tabs:is(:hover, :focus-within, .closed-tabs--pinned) .closed-tabs__head {
+.closed-tabs--open .closed-tabs__head {
     padding: 0.5em 0.75em;
 }
 
@@ -137,8 +125,37 @@ html.dark .closed-tabs__head-action:hover {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    /* Hidden while narrow: a scrollbar in a rail two and a half characters wide
+       would be most of the rail. */
+    overflow-x: hidden;
     scrollbar-width: thin;
     padding: 0.25em;
+}
+
+/*
+   The panel's own scrollbar. main.css paints one for main and nothing else, so
+   without these the list scrolled with a bar the dark theme drew in system
+   colours - which on a dark panel is a bar you cannot see.
+*/
+html.dark .closed-tabs__list {
+    scrollbar-color: var(--color-button-background) transparent;
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar {
+    width: 0.5em;
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar-thumb {
+    background-color: var(--color-button-background);
+    border-radius: var(--radius-normal);
+}
+
+html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-button-background-hover);
 }
 
 .closed-tabs__empty {
@@ -160,7 +177,7 @@ html.dark .closed-tabs__head-action:hover {
     border-radius: var(--radius-small);
 }
 
-.closed-tabs:is(:hover, :focus-within, .closed-tabs--pinned) .closed-tabs__row {
+.closed-tabs--open .closed-tabs__row {
     justify-content: flex-start;
 }
 
