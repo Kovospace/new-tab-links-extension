@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { ProfileRepository } from "./ProfileRepository";
-import { readFakeStorage, seedFakeStorage } from "../../test/chromeStorageStub";
-import { MAX_NAME_LENGTH } from "../sync/SyncContracts";
-import { ProfileSettings } from "../entity/ProfileSettings";
+import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
+import { readFakeStorage, seedFakeStorage } from "../../support/chromeStorageStub";
+import { MAX_NAME_LENGTH } from "../../../src/backend/sync/SyncContracts";
+import { ProfileSettings } from "../../../src/backend/entity/ProfileSettings";
 
 const PROFILE_REGISTRY_KEY = "profile_registry";
 

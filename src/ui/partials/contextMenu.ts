@@ -1,4 +1,4 @@
-import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM } from "../../main";
+import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM } from "../../constants";
 
 export type ContextMenuAction = {
   label: string;

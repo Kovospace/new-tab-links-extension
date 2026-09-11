@@ -1,4 +1,4 @@
-import { Environment, Group, Link, ProfileData, Subgroup } from "../backend/entity/AppStateEntity";
+import { Environment, Group, Link, ProfileData, Subgroup } from "../../src/backend/entity/AppStateEntity";
 
 /**
  *  Builders for the profile shapes the synchronisation tests compare.

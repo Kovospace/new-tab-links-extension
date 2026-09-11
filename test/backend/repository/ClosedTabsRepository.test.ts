@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
     ClosedTabsRepository, newestFirst, readClosedTabs, recordClosedTab, writeClosedTabs
-} from "./ClosedTabsRepository";
-import { MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
-import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../sync/SyncContracts";
-import { closedTabsKey } from "../datasource/chromeStorage/storageKeys";
-import { flushStorageNotifications, readFakeStorage } from "../../test/chromeStorageStub";
+} from "../../../src/backend/repository/ClosedTabsRepository";
+import { MAX_CLOSED_TABS } from "../../../src/backend/entity/ClosedTabEntity";
+import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../../src/backend/sync/SyncContracts";
+import { closedTabsKey } from "../../../src/backend/datasource/chromeStorage/storageKeys";
+import { flushStorageNotifications, readFakeStorage } from "../../support/chromeStorageStub";
 
 const PROFILE = "0199aaaa-0000-7000-8000-00000000p001";
 

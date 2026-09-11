@@ -4,7 +4,7 @@ import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { confirmDestructiveAction } from './confirmations';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 import { ObservableValue } from '../../utils/observableValue';
-import {CLASS_ACTION_DANGER} from "../../main";
+import {CLASS_ACTION_DANGER} from "../../constants";
 
 /** Marks a closed tab whose address the profile already keeps. */
 

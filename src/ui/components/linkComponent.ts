@@ -8,7 +8,7 @@ import { AbstractComponent } from "../abstract/abstractComponent"
 import { ICON, renderContainer, renderButton } from "../partials/wrappedHtmlElements"
 import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
     CLASS_LINK_ACTIONS_CONTAINER, CLASS_LINK_TEXT, CLASS_LINK_ICON, CLASS_ACTION_ADD,
-    CLASS_ACTION_DANGER } from "../../main";
+    CLASS_ACTION_DANGER } from "../../constants";
 
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";

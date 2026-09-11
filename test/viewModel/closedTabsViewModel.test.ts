@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AppStateRepository } from "../backend/repository/AppStateRepository";
-import { ProfileRepository } from "../backend/repository/ProfileRepository";
-import { ClosedTabsRepository, recordClosedTab } from "../backend/repository/ClosedTabsRepository";
-import { appStateInit } from "../backend/datasource/init/AppStateInit";
-import { ClosedTabsViewModel, describeAge } from "./closedTabsViewModel";
-import { environment, group, link, profileOf } from "../test/profileDataFixtures";
-import { flushStorageNotifications } from "../test/chromeStorageStub";
-import { resolveDeviceName } from "../backend/sync/DeviceName";
-import { installationIdentity } from "../backend/sync/InstallationIdentity";
+import { AppStateRepository } from "../../src/backend/repository/AppStateRepository";
+import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
+import { ClosedTabsRepository, recordClosedTab } from "../../src/backend/repository/ClosedTabsRepository";
+import { appStateInit } from "../../src/backend/datasource/init/AppStateInit";
+import { ClosedTabsViewModel, describeAge } from "../../src/viewModel/closedTabsViewModel";
+import { environment, group, link, profileOf } from "../support/profileDataFixtures";
+import { flushStorageNotifications } from "../support/chromeStorageStub";
+import { resolveDeviceName } from "../../src/backend/sync/DeviceName";
+import { installationIdentity } from "../../src/backend/sync/InstallationIdentity";
 
 const ENV = "0199aaaa-0000-7000-8000-00000000e001";
 const GROUP = "0199aaaa-0000-7000-8000-00000000g001";

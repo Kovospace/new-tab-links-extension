@@ -13,9 +13,17 @@ npm test             # Run the test suite once (Vitest)
 npm run test:watch   # Re-run the affected tests as files change
 ```
 
-Tests run on **Vitest** in a jsdom environment, from `src/**/*.test.ts` beside the code they
-cover. `src/test/chromeStorageStub.ts` fakes `chrome.storage.local` in memory and is reset before
-every test, so repositories are exercised as themselves rather than against a mocked wrapper.
+Tests run on **Vitest** in a jsdom environment, from **`test/`**, which mirrors `src/`:
+`test/backend/sync/ChangeSetBuilder.test.ts` covers `src/backend/sync/ChangeSetBuilder.ts`.
+What ships and what proves it are different things, and a bundler told to build `src` should
+not have to be told which files in it are not really there. Helpers live in `test/support/`:
+`chromeStorageStub.ts` fakes `chrome.storage.local` in memory and is reset before every test,
+so repositories are exercised as themselves rather than against a mocked wrapper.
+
+**`src/constants.ts` holds the element, action and class names**, not `main.ts`. The entry
+point starts the new tab page, so a component importing a name from it used to pull the whole
+bootstrap in - harmless on the page that was going to run it anyway, and in a test a suite that
+quietly booted the application against a document with no workspace in it.
 
 What is covered is the synchronisation layer, because that is where a bug costs a user their
 links: the merge rules, the change set, identifier rewriting, the profile registry, and first
@@ -352,7 +360,7 @@ position 0 whatever the group already held.
 
 ### Key Constants
 
-Defined in `src/main.ts`: custom element tag names and worker message type constants. All custom elements are registered there.
+Defined in `src/constants.ts`: custom element tag names, action classes and plain class names. The elements themselves are registered in `src/main.ts`, which is the entry point and nothing else.
 
 ## Tech Stack
 

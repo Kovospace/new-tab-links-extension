@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { isStorableIdentifier, LocalIdentifierNormalizer } from "./LocalIdentifierNormalizer";
-import { environment, group, link, profileOf, subgroup } from "../../test/profileDataFixtures";
+import { isStorableIdentifier, LocalIdentifierNormalizer } from "../../../src/backend/sync/LocalIdentifierNormalizer";
+import { environment, group, link, profileOf, subgroup } from "../../support/profileDataFixtures";
 
 describe("isStorableIdentifier", () => {
 

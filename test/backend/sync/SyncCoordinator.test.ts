@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AppStateRepository } from "../repository/AppStateRepository";
-import { ProfileRepository } from "../repository/ProfileRepository";
-import { appStateInit } from "../datasource/init/AppStateInit";
+import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
+import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
+import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 
-import { ApiResult } from "./BackendApiClient";
-import { installationIdentity } from "./InstallationIdentity";
-import { SessionRepository } from "./SessionRepository";
-import { SyncBaselineRepository } from "./SyncBaselineRepository";
-import { SyncCoordinator } from "./SyncCoordinator";
-import { SnapshotProfileDto, SyncOperation, SyncPushResult, SyncSnapshot } from "./SyncContracts";
+import { ApiResult } from "../../../src/backend/sync/BackendApiClient";
+import { installationIdentity } from "../../../src/backend/sync/InstallationIdentity";
+import { SessionRepository } from "../../../src/backend/sync/SessionRepository";
+import { SyncBaselineRepository } from "../../../src/backend/sync/SyncBaselineRepository";
+import { SyncCoordinator } from "../../../src/backend/sync/SyncCoordinator";
+import { SnapshotProfileDto, SyncOperation, SyncPushResult, SyncSnapshot } from "../../../src/backend/sync/SyncContracts";
 
 const REAL_PROFILE = "0199aaaa-0000-7000-8000-00000000000a";
 const PHANTOM_PROFILE = "0199bbbb-0000-7000-8000-00000000000b";

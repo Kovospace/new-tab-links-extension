@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
     applyScaleTo, DEFAULT_SCALE, DevicePreferencesRepository,
     MAX_SCALE, MIN_SCALE, normalizeScale, SCALE_STEP
-} from "./DevicePreferencesRepository";
-import { DEVICE_PREFERENCES_KEY } from "../datasource/chromeStorage/storageKeys";
-import { readFakeStorage, seedFakeStorage } from "../../test/chromeStorageStub";
+} from "../../../src/backend/repository/DevicePreferencesRepository";
+import { DEVICE_PREFERENCES_KEY } from "../../../src/backend/datasource/chromeStorage/storageKeys";
+import { readFakeStorage, seedFakeStorage } from "../../support/chromeStorageStub";
 
 /**
  *  The size the whole interface is drawn at, which is why the clamping matters more than it

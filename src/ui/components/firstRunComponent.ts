@@ -7,7 +7,7 @@ import {
     ACT_FIRST_WORKSPACE,
     ACT_IMPORT_LINKS,
     ACT_LOAD_DEFAUTLS
-} from "../../main"
+} from "../../constants"
 import {InputDialog} from "../partials/inputDialog";
 import { MAX_NAME_LENGTH } from "../../backend/sync/SyncContracts";
 

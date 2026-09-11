@@ -11,7 +11,7 @@ import {
     CLASS_GROUP_HEAD_TITLE,
     CLASS_GROUP_HEAD_ACTIONS,
     CLASS_ACTION_ADD
-} from "../../main"
+} from "../../constants"
 
 // utils
 

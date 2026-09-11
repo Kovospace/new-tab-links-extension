@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { SyncSnapshotMapper } from "./SyncSnapshotMapper";
-import { SnapshotProfileDto, SnapshotSubgroupDto, SyncSnapshot } from "./SyncContracts";
+import { SyncSnapshotMapper } from "../../../src/backend/sync/SyncSnapshotMapper";
+import { SnapshotProfileDto, SnapshotSubgroupDto, SyncSnapshot } from "../../../src/backend/sync/SyncContracts";
 
 const NOW = "2026-01-01T00:00:00Z";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { capClosedTabs, mergeClosedTabs } from "./SyncCoordinator";
-import { ClosedTab, MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
+import { capClosedTabs, mergeClosedTabs } from "../../../src/backend/sync/SyncCoordinator";
+import { ClosedTab, MAX_CLOSED_TABS } from "../../../src/backend/entity/ClosedTabEntity";
 
 const tab = (id: string, url: string, closedAt: number, extras: Partial<ClosedTab> = {}):
     ClosedTab => ({ id, url, title: "A page", closedAt, ...extras });

@@ -10,7 +10,7 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
     ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
-} from "../../main"
+} from "../../constants"
 
 // data/model layer
 import { WorkspaceDTO, GroupDTO, ProfileDTO } from "../../viewModel/abstract/dtos";

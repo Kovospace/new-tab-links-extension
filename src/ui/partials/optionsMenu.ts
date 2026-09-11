@@ -1,7 +1,7 @@
 
 import {Logger} from "../../utils/logger";
 
-import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../main"
+import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
 import { ICON, renderButton } from "../partials/wrappedHtmlElements"
 import { toggleOverlay } from "../partials/wrappedHtmlElements";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ProfileMergeEngine } from "./ProfileMergeEngine";
-import { environment, group, link, profileOf, subgroup } from "../../test/profileDataFixtures";
+import { ProfileMergeEngine } from "../../../src/backend/sync/ProfileMergeEngine";
+import { environment, group, link, profileOf, subgroup } from "../../support/profileDataFixtures";
 
 const titlesOf = (links: Record<string, { title: string }>): string[] =>
     Object.values(links).map(one => one.title).sort();

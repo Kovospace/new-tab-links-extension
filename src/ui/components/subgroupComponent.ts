@@ -22,7 +22,7 @@ import {
     ACT_SUBGROUP_MOVE_UP,
     ACT_SUBGROUP_MOVE_DOWN,
     CLASS_SUBGROUP_MOVE_ACTIONS
-} from "../../main";
+} from "../../constants";
 import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"

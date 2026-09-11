@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { ProfileRepository } from "../backend/repository/ProfileRepository";
-import { TipsViewModel } from "./tipsViewModel";
-import { TIPS, textOf, urlOf } from "../ui/tips/tipsCatalogue";
+import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
+import { TipsViewModel } from "../../src/viewModel/tipsViewModel";
+import { TIPS, textOf, urlOf } from "../../src/ui/tips/tipsCatalogue";
 
 /** Always picks the first tip, so a test can say which tip it is talking about. */
 const first = () => 0;

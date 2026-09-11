@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
-import { InputDialog } from "./inputDialog";
-import { MAX_NAME_LENGTH } from "../../backend/sync/SyncContracts";
+import { InputDialog } from "../../../src/ui/partials/inputDialog";
+import { MAX_NAME_LENGTH } from "../../../src/backend/sync/SyncContracts";
 
 /**
  *  The one dialog every creation and rename goes through, and the one thing about it worth

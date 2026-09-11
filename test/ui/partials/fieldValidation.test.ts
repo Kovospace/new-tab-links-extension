@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeUrl, validateField, validateFields } from "./fieldValidation";
-import { MAX_NAME_LENGTH } from "../../backend/sync/SyncContracts";
+import { normalizeUrl, validateField, validateFields } from "../../../src/ui/partials/fieldValidation";
+import { MAX_NAME_LENGTH } from "../../../src/backend/sync/SyncContracts";
 
 /**
  *  These are the account's rules, applied before the account sees them. A name the backend

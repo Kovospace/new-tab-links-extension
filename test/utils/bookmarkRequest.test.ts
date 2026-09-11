@@ -5,7 +5,7 @@ import {
     requestForActiveTab,
     storePendingBookmark,
     takePendingBookmark
-} from "./bookmarkRequest";
+} from "../../src/utils/bookmarkRequest";
 
 /** The stub's tabs API, typed enough to say what the next query should answer. */
 const tabs = (globalThis as unknown as {

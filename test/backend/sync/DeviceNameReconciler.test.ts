@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiResult, UserDeviceDto } from "./BackendApiClient";
-import { DeviceNameReconciler } from "./DeviceNameReconciler";
-import { SessionRepository } from "./SessionRepository";
+import { ApiResult, UserDeviceDto } from "../../../src/backend/sync/BackendApiClient";
+import { DeviceNameReconciler } from "../../../src/backend/sync/DeviceNameReconciler";
+import { SessionRepository } from "../../../src/backend/sync/SessionRepository";
 
 const THIS_DEVICE = "0199aaaa-0000-7000-8000-00000000000a";
 const OTHER_DEVICE = "0199bbbb-0000-7000-8000-00000000000b";

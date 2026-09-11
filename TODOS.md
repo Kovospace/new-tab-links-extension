@@ -12,9 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [medium] Do not mix tests with code
-- move tests into separate module like in java app, ```<project_root>/test```
-
 ### [big] Drag & drop support
 - change links order by dragging
 - drag link from group to subgroup and vice versa
@@ -58,6 +55,17 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [medium] Do not mix tests with code
+- every test moved to <project_root>/test, mirroring src: test/backend/sync/X.test.ts covers
+  src/backend/sync/X.ts. Helpers - the chrome.storage stub and the profile fixtures - are in
+  test/support
+- vitest.config.ts and tsconfig.json updated; nothing in src imports anything under test
+- found on the way, and fixed: src/main.ts was both the entry point and the module holding
+  every element, action and class name, so importing one name pulled the bootstrap in with it.
+  Any test touching a component quietly booted the whole application against a document with no
+  workspace in it - two unhandled errors that vitest warns can mask a failure. The names are in
+  src/constants.ts now and main.ts starts the page and does nothing else
 
 ### [small] Add "move up" and "move down" action to link context menu
 - right-click a link: "Move up" and "Move down", above the entries that move it somewhere else,

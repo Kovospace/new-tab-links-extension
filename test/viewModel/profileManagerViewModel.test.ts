@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AppStateRepository } from "../backend/repository/AppStateRepository";
-import { ProfileRepository } from "../backend/repository/ProfileRepository";
-import { appStateInit } from "../backend/datasource/init/AppStateInit";
-import { ProfileManagerViewModel } from "./profileManagerViewModel";
-import { emptyProfile, environment, link, profileOf } from "../test/profileDataFixtures";
-import { MAX_NAME_LENGTH } from "../backend/sync/SyncContracts";
+import { AppStateRepository } from "../../src/backend/repository/AppStateRepository";
+import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
+import { appStateInit } from "../../src/backend/datasource/init/AppStateInit";
+import { ProfileManagerViewModel } from "../../src/viewModel/profileManagerViewModel";
+import { emptyProfile, environment, link, profileOf } from "../support/profileDataFixtures";
+import { MAX_NAME_LENGTH } from "../../src/backend/sync/SyncContracts";
 
 const OTHER = "0199bbbb-0000-7000-8000-00000000000b";
 const THIRD = "0199cccc-0000-7000-8000-00000000000c";

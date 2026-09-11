@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { ProfileRepository } from "../backend/repository/ProfileRepository";
-import { SettingsViewModel } from "./settingsViewModel";
+import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
+import { SettingsViewModel } from "../../src/viewModel/settingsViewModel";
 import {
     DevicePreferencesRepository, MAX_SCALE, MIN_SCALE, SCALE_STEP
-} from "../backend/repository/DevicePreferencesRepository";
+} from "../../src/backend/repository/DevicePreferencesRepository";
 
 /**
  *  The settings screen is a list of categories over a profile's record. Two things about it

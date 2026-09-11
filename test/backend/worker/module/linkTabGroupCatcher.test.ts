@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { findCatchingSubgroup, normalizeUrl } from "./linkTabGroupCatcher";
-import { AppState } from "../../entity/AppStateEntity";
-import { environment, group, link, profileOf, subgroup } from "../../../test/profileDataFixtures";
+import { findCatchingSubgroup, normalizeUrl } from "../../../../src/backend/worker/module/linkTabGroupCatcher";
+import { AppState } from "../../../../src/backend/entity/AppStateEntity";
+import { environment, group, link, profileOf, subgroup } from "../../../support/profileDataFixtures";
 
 const ENV = "env-work";
 const GROUP = "grp-one";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveDeviceName } from "./DeviceName";
+import { resolveDeviceName } from "../../../src/backend/sync/DeviceName";
 
 /**
  *  Three places ask this question - the header that names this device to the account, the

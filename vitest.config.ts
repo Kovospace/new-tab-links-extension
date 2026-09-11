@@ -14,8 +14,12 @@ export default defineConfig({
         // rewriting - but the repositories reach for chrome.storage and window.setTimeout, so
         // the suite runs in a DOM. Cheaper than splitting the suite in two.
         environment: "jsdom",
-        include: ["src/**/*.test.ts"],
-        setupFiles: ["src/test/chromeStorageStub.ts"],
+        // Tests live in test/, mirroring src/ - the shape a Java project has, and the
+        // reason is the same: what ships and what proves it are different things, and a
+        // bundler that is told to build "src" should not have to be told which files in it
+        // are not really there.
+        include: ["test/**/*.test.ts"],
+        setupFiles: ["test/support/chromeStorageStub.ts"],
         restoreMocks: true
     }
 });

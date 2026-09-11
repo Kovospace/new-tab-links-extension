@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AppStateRepository } from "./AppStateRepository";
-import { ProfileRepository } from "./ProfileRepository";
-import { appStateInit } from "../datasource/init/AppStateInit";
-import { environment, group, link, profileOf, subgroup } from "../../test/profileDataFixtures";
-import { appStateKey } from "../datasource/chromeStorage/storageKeys";
-import { flushStorageNotifications, readFakeStorage } from "../../test/chromeStorageStub";
-import { AppState } from "../entity/AppStateEntity";
+import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
+import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
+import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
+import { environment, group, link, profileOf, subgroup } from "../../support/profileDataFixtures";
+import { appStateKey } from "../../../src/backend/datasource/chromeStorage/storageKeys";
+import { flushStorageNotifications, readFakeStorage } from "../../support/chromeStorageStub";
+import { AppState } from "../../../src/backend/entity/AppStateEntity";
 
 const OTHER = "0199bbbb-0000-7000-8000-00000000000b";
 

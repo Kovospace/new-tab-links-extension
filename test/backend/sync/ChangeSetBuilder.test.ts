@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { ChangeSetBuilder, SyncBaseline } from "./ChangeSetBuilder";
-import { SyncEntityKind, SyncOperation } from "./SyncContracts";
+import { ChangeSetBuilder, SyncBaseline } from "../../../src/backend/sync/ChangeSetBuilder";
+import { SyncEntityKind, SyncOperation } from "../../../src/backend/sync/SyncContracts";
 import {
     emptyProfile, environment, group, link, profileOf, subgroup
-} from "../../test/profileDataFixtures";
+} from "../../support/profileDataFixtures";
 
 const PROFILE_ID = "0199aaaa-0000-7000-8000-00000000000a";
 

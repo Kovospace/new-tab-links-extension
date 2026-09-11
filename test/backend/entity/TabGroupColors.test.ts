@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
     chooseTabGroupColor, isTabGroupColor, swatchOf, TAB_GROUP_COLORS
-} from "./TabGroupColors";
-import { MAX_COLOR_LENGTH } from "../sync/SyncContracts";
+} from "../../../src/backend/entity/TabGroupColors";
+import { MAX_COLOR_LENGTH } from "../../../src/backend/sync/SyncContracts";
 
 /** Picks the nth candidate deterministically, so a test can say which one it wants. */
 const picks = (index: number) => () => index / TAB_GROUP_COLORS.length;
