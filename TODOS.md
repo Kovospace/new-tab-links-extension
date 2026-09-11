@@ -36,7 +36,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [medium prioroty] Hevering over top panel into manu button causes "last closed tabs" to open
 
 
 ## TO BE approved / analyzed
@@ -49,6 +48,14 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [medium prioroty] Hovering over top panel into menu button causes "last closed tabs" to open
+- the pointer rule read only x: at or right of the rail's left edge opened it. The rail is a
+  column of the page grid and starts below the header, so that was true of the application menu
+  and the settings button in the corner as well, and reaching for them opened the panel
+- it now reads y too - beside the panel, not merely right of it - so the header and the footer
+  leave it alone, and a pointer that wanders up out of the panel closes it
+- three tests, each of which fails against the old one-comparison rule
 
 ### [critical] Sync event even on idle
 - not polling and not the backend: SyncBaselineRepository.getFor rebuilt the baseline from the

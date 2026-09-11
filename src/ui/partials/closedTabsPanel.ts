@@ -114,10 +114,12 @@ export class ClosedTabsPanel {
   /**
    * Follows the pointer, unless the button has taken the decision away.
    *
-   * The rule is one comparison: anything at or right of the panel's left edge keeps it open,
-   * anything left of that edge closes it. Over the panel is open; past it - the scrollbar, the
-   * window edge, off the screen entirely - is still open, because somebody on their way to the
-   * list should not lose it by overshooting.
+   * Two comparisons, and the second one is not optional. At or right of the panel's left edge
+   * keeps it open - over the panel, or past it onto the scrollbar and the window edge, because
+   * somebody on their way to the list should not lose it by overshooting. But only between the
+   * panel's own top and bottom: the rail is a column of the page's grid and starts below the
+   * header, so "far enough right" on its own is also true of the application menu and the
+   * settings button up in the corner, and reaching for those opened the panel underneath them.
    */
   private followPointer(event: MouseEvent): void {
     if (this.pinned || !this.panelEl) {
@@ -125,9 +127,12 @@ export class ClosedTabsPanel {
     }
     // Measured now rather than remembered: the edge moves with the panel, and that is what
     // stops this flapping. Closed, the edge is the rail's; open, it is the full panel's, so a
-    // pointer that has just closed it is left of the narrower edge too.
-    const edge = this.panelEl.getBoundingClientRect().left;
-    this.setOpen(event.clientX >= edge);
+    // pointer that has just closed it is left of the narrower edge too. The top and bottom do
+    // not move, so they need no such care.
+    const panel = this.panelEl.getBoundingClientRect();
+    const besideIt = event.clientY >= panel.top && event.clientY <= panel.bottom;
+
+    this.setOpen(besideIt && event.clientX >= panel.left);
   }
 
   /**

@@ -8,12 +8,25 @@ import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
 
-/** jsdom lays nothing out, so the panel is told where it is. */
+/**
+ *  jsdom lays nothing out, so the panel is told where it is: a column down the right, starting
+ *  below the header and ending above the footer. Those edges are exactly what the rule reads.
+ */
+const HEADER_BOTTOM = 60;
+const FOOTER_TOP = 700;
+
 function edgeAt(x: number) {
     const panel = document.querySelector('.closed-tabs') as HTMLElement;
-    panel.getBoundingClientRect = () => ({ left: x, right: 1000, top: 0, bottom: 800, width: 1000 - x, height: 800, x, y: 0, toJSON: () => ({}) }) as DOMRect;
+    panel.getBoundingClientRect = () => ({
+        left: x, right: 1000, top: HEADER_BOTTOM, bottom: FOOTER_TOP,
+        width: 1000 - x, height: FOOTER_TOP - HEADER_BOTTOM, x, y: HEADER_BOTTOM,
+        toJSON: () => ({})
+    }) as DOMRect;
 }
-const move = (x: number) => document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, bubbles: true }));
+
+/** A pointer somewhere on the page; beside the panel unless a test says otherwise. */
+const move = (x: number, y: number = 300) =>
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
 const isOpen = () => document.querySelector('.closed-tabs')!.classList.contains('closed-tabs--open');
 
 /**
@@ -56,6 +69,36 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(isOpen()).toBe(true);
 
         move(400);                   // away to the left, over the columns
+        expect(isOpen()).toBe(false);
+    });
+
+    it("stays shut for a pointer that is merely far enough right", () => {
+        // The bug: the rail is a column of the grid and starts below the header, so "right of
+        // its left edge" is true of the application menu and the settings button in the
+        // corner too. Reaching for those opened the panel underneath them.
+        edgeAt(960);
+
+        move(980, HEADER_BOTTOM - 20);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("closes when the pointer leaves upwards, towards those buttons", () => {
+        edgeAt(960);
+        move(980);
+        expect(isOpen()).toBe(true);
+
+        edgeAt(600);
+        move(980, HEADER_BOTTOM - 20);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("stays shut for a pointer below it, over the footer", () => {
+        edgeAt(960);
+
+        move(980, FOOTER_TOP + 20);
+
         expect(isOpen()).toBe(false);
     });
 

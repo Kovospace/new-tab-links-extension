@@ -215,9 +215,12 @@ own buttons.
 
 **Opening is decided from the pointer's position, not by `:hover`.** Hover gives up the moment
 the pointer crosses onto the scrollbar or the gap beside it, which is exactly where somebody
-reaching for the list is about to be. The rule is one comparison: at or right of the panel's
-left edge is open, left of it is closed. It cannot flap, because the edge moves with the panel
-- closing puts the edge to the right of the pointer, which is not a reason to open again.
+reaching for the list is about to be. The rule is: at or right of the panel's left edge, *and*
+between its top and bottom. It cannot flap, because the edge moves with the panel - closing
+puts the edge to the right of the pointer, which is not a reason to open again. The vertical
+half is not decoration: the rail is a grid column starting below the header, so "far enough
+right" alone is also true of the application menu and the settings button in the corner, and
+reaching for those opened the panel underneath them.
 
 **The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
 unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
