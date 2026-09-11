@@ -211,6 +211,61 @@ describe("dragAndDrop", () => {
         });
     });
 
+    /**
+     *  A drop is allowed only where dragenter and dragover have both been cancelled, and the
+     *  decorations inside a target - a heading, a description, a favicon - are what the
+     *  pointer actually lands on while a drag is in flight.
+     */
+    describe("targets with things inside them", () => {
+
+        it("cancels dragenter as well as dragover", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const source = document.createElement("div");
+            source.id = "source";
+            makeDraggable(source, { kind: "link", id: "source" });
+            const target = document.createElement("div");
+            target.id = "target";
+            makeContainerTarget(target, "link", () => undefined);
+
+            source.dispatchEvent(dragEvent("dragstart"));
+
+            // false means preventDefault was called, which is how a target says "yes".
+            expect(target.dispatchEvent(dragEvent("dragenter"))).toBe(false);
+            expect(target.dispatchEvent(dragEvent("dragover"))).toBe(false);
+        });
+
+        it("takes the pointer away from the decorations while a drag is in flight", async () => {
+            // The stylesheet reads this off the root element. Without it, crossing onto a
+            // heading fires dragleave on the head beneath and dragenter on something that is
+            // not a target, and whether the drop works depends on where the cursor stopped.
+            await profiles.updateSettings({ enableDragAndDrop: true });
+            const source = document.createElement("div");
+            makeDraggable(source, { kind: "link", id: "source" });
+
+            source.dispatchEvent(dragEvent("dragstart"));
+            expect(document.documentElement.classList.contains("dnd-active")).toBe(true);
+
+            source.dispatchEvent(dragEvent("dragend"));
+            expect(document.documentElement.classList.contains("dnd-active")).toBe(false);
+        });
+
+        it("refuses dragenter for a kind it does not take", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const source = document.createElement("div");
+            source.id = "a-group";
+            makeDraggable(source, { kind: "group", id: "a-group" });
+            const target = document.createElement("div");
+            target.id = "target";
+            makeContainerTarget(target, "link", () => undefined);
+
+            source.dispatchEvent(dragEvent("dragstart"));
+
+            expect(target.dispatchEvent(dragEvent("dragenter"))).toBe(true);
+        });
+    });
+
     describe("containers inside containers", () => {
 
         it("gives a drop to the innermost container that takes it", async () => {

@@ -330,6 +330,16 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   there does bubble out to the group or subgroup, but the head is what somebody aims at when
   they mean "this one", and a target that is the thing being aimed at can highlight itself and
   cannot be broken by anything inside it stopping an event on its way out.
+- **A drop needs `dragenter` and `dragover` both cancelled.** Chrome forgives a missing
+  `dragenter` until the drag enters a child the target did not know about, where the
+  uncancelled default decides and the drop is refused over that child alone.
+- **While a drag is in flight, the insides of a target stop being hit-testable**
+  (`html.dnd-active` puts `pointer-events: none` on the children of the heads and of a link).
+  This is the answer to "it drops here but not two pixels over": a heading, a description, a
+  favicon are all things the pointer can land on, so crossing onto one fires `dragleave` on the
+  target beneath and `dragenter` on something that is not a target at all. Out of the pointer's
+  way, a head is one target from edge to edge. Only during a drag - the rest of the time those
+  are things people click.
 - **Space between things is made with `gap` or padding, not with margins on the children** -
   in the heads at least, where things are dropped. A margin belongs to no element: hit-testing
   in that strip finds whatever is behind it, and where a child's margin collapses out of a

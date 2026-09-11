@@ -13,6 +13,26 @@
     opacity: 0.4;
 }
 
+/*
+   While something is being dragged, the insides of a drop target stop being
+   things the pointer can land on.
+
+   This is the answer to "why does it drop here but not two pixels over": a
+   heading, a description, a favicon, the count badge are all hit-testable, so
+   crossing onto one fires dragleave on the target underneath and a dragenter on
+   something that is not a target at all. The drop then depends on which decoration
+   the cursor happened to stop over. Taken out of the pointer's way, a head or a
+   link is one target from edge to edge, margins and all.
+
+   Only while a drag is in flight: the rest of the time these are buttons and
+   links people click.
+*/
+html.dnd-active link-group-head *,
+html.dnd-active link-subgroup-head *,
+html.dnd-active link-container * {
+    pointer-events: none;
+}
+
 /* A link lands above or below the thing it was dropped on; a group lands left
    or right of it. Both use the same two classes - which side of the element the
    line is on is decided here, per kind, from the element it is on. */

@@ -40,6 +40,17 @@ export type DropSide = "before" | "after";
 
 /** The classes the stylesheet draws the drag with. */
 const CLASS_DRAGGING = "dnd-dragging";
+
+/**
+ *  Put on the root element while anything is being dragged.
+ *
+ *  The stylesheet uses it to take the pointer away from the decorations inside a drop target -
+ *  a heading, a description, a favicon. They are not targets and never were, but while a drag
+ *  is in flight they are what the pointer lands on, which fires dragleave on the target the
+ *  moment the cursor reaches the text inside it and a dragenter that nothing has cancelled.
+ *  With the children transparent, a head is one target from edge to edge.
+ */
+const CLASS_DRAG_IN_FLIGHT = "dnd-active";
 const CLASS_OVER_BEFORE = "dnd-over-before";
 const CLASS_OVER_AFTER = "dnd-over-after";
 const CLASS_OVER_INTO = "dnd-over-into";
@@ -98,6 +109,7 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
 
         dragged = what;
         element.classList.add(CLASS_DRAGGING);
+        document.documentElement.classList.add(CLASS_DRAG_IN_FLIGHT);
         // A type the drop targets can recognise before they are allowed to read the data, and
         // a plain text fallback so dragging out of the page does something sensible.
         event.dataTransfer?.setData(`application/x-ntl-${what.kind}`, what.id);
@@ -114,6 +126,7 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
         event.stopPropagation();
         dragged = null;
         element.classList.remove(CLASS_DRAGGING);
+        document.documentElement.classList.remove(CLASS_DRAG_IN_FLIGHT);
         clearMarks();
     });
 }
@@ -135,20 +148,36 @@ export function makeReorderTarget(
     onDrop: (side: DropSide, draggedId: string) => void
 ): void {
 
-    element.addEventListener("dragover", event => {
+    // dragenter as well as dragover, because both have to be cancelled for a drop to be
+    // allowed. Chrome usually forgives a missing dragenter - until the drag enters a child
+    // element the target did not know about, where the uncancelled default is what decides,
+    // and the drop is refused over that child alone.
+    const allow = (event: DragEvent): boolean => {
         const carrying = acceptable(accepts);
         if (!carrying || carrying.id === identityOf(element)) {
-            return;
+            return false;
         }
         event.preventDefault();
         // The innermost target under the cursor is the one being aimed at: a link inside a
         // subgroup inside a group would otherwise light all three up at once, and the drop
         // would read as "into the group" while the line was drawn beside the link.
         event.stopPropagation();
+        return true;
+    };
+
+    element.addEventListener("dragenter", event => {
+        allow(event);
+    });
+
+    element.addEventListener("dragover", event => {
+        const carrying = acceptable(accepts);
+        if (!allow(event)) {
+            return;
+        }
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
-        mark(element, sideOf(element, event, carrying.kind) === "before"
+        mark(element, sideOf(element, event, carrying!.kind) === "before"
             ? CLASS_OVER_BEFORE
             : CLASS_OVER_AFTER);
     });
@@ -183,14 +212,27 @@ export function makeContainerTarget(
     onDrop: (draggedId: string) => void
 ): void {
 
-    element.addEventListener("dragover", event => {
+    // Both, for the reason above: a drop is allowed only where dragenter and dragover have
+    // each been cancelled, and a child the target did not know about is where that bites.
+    const allow = (event: DragEvent): boolean => {
         if (!acceptable(accepts)) {
-            return;
+            return false;
         }
         event.preventDefault();
         // The innermost container claims it, as the innermost reorder target does. A
         // subgroup sits inside a group and both take links; without this both lit up.
         event.stopPropagation();
+        return true;
+    };
+
+    element.addEventListener("dragenter", event => {
+        allow(event);
+    });
+
+    element.addEventListener("dragover", event => {
+        if (!allow(event)) {
+            return;
+        }
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
