@@ -336,6 +336,11 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   `makeDraggable` clears it on what is there, and elements drawn later say so where they are
   created. The text is `user-select: none` for the same class of reason: a press on selectable
   text starts a selection instead of a drag.
+- **The "it goes here" line is a positioned pseudo-element, not an inset shadow.** An inset
+  shadow is painted with the element's own background, which is to say underneath everything
+  inside it - and what is inside a link is a favicon and a title sitting exactly where the line
+  belongs. It straddles the boundary rather than sitting inside the element, because what it
+  marks is the seam between two things and not the edge of one.
 - **A drop needs `dragenter` and `dragover` both cancelled.** Chrome forgives a missing
   `dragenter` until the drag enters a child the target did not know about, where the
   uncancelled default decides and the drop is refused over that child alone.

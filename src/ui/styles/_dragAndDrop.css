@@ -33,31 +33,76 @@ html.dnd-active link-container * {
     pointer-events: none;
 }
 
-/* A link lands above or below the thing it was dropped on; a group lands left
-   or right of it. Both use the same two classes - which side of the element the
-   line is on is decided here, per kind, from the element it is on. */
-link-container.dnd-over-before {
-    box-shadow: inset 0 0.25em 0 0 var(--color-button-active-background);
-}
+/*
+   Where the thing would land: a line drawn on the seam it would go into.
 
-link-container.dnd-over-after {
-    box-shadow: inset 0 -0.25em 0 0 var(--color-button-active-background);
-}
+   A positioned line rather than an inset shadow, and that is the difference
+   between seeing it and not. An inset shadow is painted with the element's own
+   background, which means underneath everything inside it - and what is inside
+   a link is a 32px favicon and its title, sitting exactly where the line is. The
+   line is a positioned pseudo-element now, so it paints above them.
 
-link-subgroup.dnd-over-before {
-    box-shadow: inset 0 0.25em 0 0 var(--color-button-active-background);
-}
-
-link-subgroup.dnd-over-after {
-    box-shadow: inset 0 -0.25em 0 0 var(--color-button-active-background);
-}
-
-link-group.dnd-over-before {
-    box-shadow: inset 0.25em 0 0 0 var(--color-button-active-background);
-}
-
+   It straddles the boundary rather than sitting inside the element, because
+   what it marks is the gap between two things and not the edge of one.
+*/
+link-container.dnd-over-before,
+link-container.dnd-over-after,
+link-subgroup.dnd-over-before,
+link-subgroup.dnd-over-after,
+link-group.dnd-over-before,
 link-group.dnd-over-after {
-    box-shadow: inset -0.25em 0 0 0 var(--color-button-active-background);
+    position: relative;
+}
+
+link-container.dnd-over-before::after,
+link-container.dnd-over-after::after,
+link-subgroup.dnd-over-before::after,
+link-subgroup.dnd-over-after::after,
+link-group.dnd-over-before::after,
+link-group.dnd-over-after::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    background-color: var(--color-button-active-background);
+    border-radius: var(--radius-small);
+    /* Never a target of its own: it exists only to be looked at. */
+    pointer-events: none;
+}
+
+/* Links and subgroups are stacked, so the line lies across them. */
+link-container.dnd-over-before::after,
+link-container.dnd-over-after::after,
+link-subgroup.dnd-over-before::after,
+link-subgroup.dnd-over-after::after {
+    left: 0;
+    right: 0;
+    height: 0.1875em;
+}
+
+link-container.dnd-over-before::after,
+link-subgroup.dnd-over-before::after {
+    top: -0.09375em;
+}
+
+link-container.dnd-over-after::after,
+link-subgroup.dnd-over-after::after {
+    bottom: -0.09375em;
+}
+
+/* Groups are columns, so the line stands between them. */
+link-group.dnd-over-before::after,
+link-group.dnd-over-after::after {
+    top: 0;
+    bottom: 0;
+    width: 0.1875em;
+}
+
+link-group.dnd-over-before::after {
+    left: -0.09375em;
+}
+
+link-group.dnd-over-after::after {
+    right: -0.09375em;
 }
 
 /* "Into this one", for a subgroup or a group taking a link at the end. Drawn
