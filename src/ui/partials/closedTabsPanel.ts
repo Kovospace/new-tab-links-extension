@@ -246,11 +246,21 @@ export class ClosedTabsPanel {
 
     const meta = document.createElement('span');
     meta.classList.add('closed-tabs__meta');
-    // The device is named only when it was not this one - see the view model.
-    meta.textContent = tab.elsewhere ? `${tab.when} · ${tab.elsewhere}` : tab.when;
+    meta.textContent = tab.when;
 
     text.appendChild(title);
     text.appendChild(meta);
+
+    // A line of its own rather than a tail on the time: the rail is narrow, and two facts
+    // sharing one line means the second is the one that gets ellipsised away. Drawn only when
+    // the tab was closed somewhere else - see the view model, which decides that.
+    if (tab.elsewhere) {
+      const device = document.createElement('span');
+      device.classList.add('closed-tabs__device');
+      device.textContent = tab.elsewhere;
+      device.title = `Closed on ${tab.elsewhere}`;
+      text.appendChild(device);
+    }
 
     const actions = document.createElement('div');
     actions.classList.add('closed-tabs__row-actions');

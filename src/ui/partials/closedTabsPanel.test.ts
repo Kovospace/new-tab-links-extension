@@ -27,10 +27,11 @@ const isOpen = () => document.querySelector('.closed-tabs')!.classList.contains(
 describe("ClosedTabsPanel, opening and closing", () => {
     let appState: AppStateRepository;
     let panel: ClosedTabsPanel;
+    let profiles: ProfileRepository;
 
     beforeEach(async () => {
         document.body.innerHTML = '<div class="overlay hidden"></div><main></main><button class="action-closed-tabs"></button>';
-        const profiles = new ProfileRepository();
+        profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();
         await appState.init(appStateInit, profiles.getActiveProfileId());
@@ -99,6 +100,23 @@ describe("ClosedTabsPanel, opening and closing", () => {
 
         expect(panel.isPinned()).toBe(false);
         expect(isOpen()).toBe(false);
+    });
+
+    it("puts the device on a line of its own, and only when it was another one", async () => {
+        // Two facts on one line means the second is the one that gets ellipsised away, and in
+        // a rail this narrow that is always the one that was added last.
+        await recordClosedTab(profiles.getActiveProfileId(), {
+            url: "https://example.com/laptop", title: "From the laptop",
+            closedAt: Date.now(), deviceName: "Laptop"
+        });
+        await flushStorageNotifications();
+
+        const devices = Array.from(document.querySelectorAll('.closed-tabs__device'))
+            .map(element => element.textContent);
+        expect(devices).toEqual(["Laptop"]);
+        // The row closed here has a time and no device line at all.
+        expect(document.querySelectorAll('.closed-tabs__meta').length)
+            .toBeGreaterThan(devices.length);
     });
 
     it("stays open when a row is only deleted", () => {

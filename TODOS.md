@@ -22,10 +22,6 @@ Note for agents:
 ### [small] Toggle last closed tab active class
 - if "last closed tabs" is opened using button, add "active" class to it during it is opened
 
-### [small] Show devide name in last closed tab row 
-- if it was not closed on current device
-- show it in 3rd row of closed-tabs__text
-
 ### [small] Space reserved for ads
 - in <workspace-plane-footer> after div.tips-bar
 
@@ -72,6 +68,20 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [small] Show devide name in last closed tab row
+- the row says where it happened on a third line of its own, under the title and the time, and
+  only when that was not this device
+- it was already written to do that and still showed nothing, because the worker stamped only
+  the name the user had chosen - and nobody has to choose one. A row stamped with nothing
+  cannot be told apart from a row closed here, which is the only question the panel asks of
+  that field
+- so the automatic label ("Browser extension on <platform>") is stamped when no name was
+  chosen, and it is the same label the account already knows the device by: one function in
+  sync/DeviceName.ts used by the request header, the worker and the panel, because the
+  comparison only works if all three answer identically
+- NOT solved, and cannot be here: two unnamed installations on the same platform produce the
+  same label and so read as the same device. That is what naming a device is for
 
 ### [small] Extend subgroup color stripe to its links
 - the colour bar moved from the subgroup's heading to the subgroup itself, so it runs past the

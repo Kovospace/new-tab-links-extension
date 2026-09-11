@@ -207,7 +207,8 @@ html.dark .closed-tabs__text:hover {
 }
 
 .closed-tabs__row-title,
-.closed-tabs__meta {
+.closed-tabs__meta,
+.closed-tabs__device {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -217,6 +218,14 @@ html.dark .closed-tabs__text:hover {
 .closed-tabs__meta {
     font-size: 0.75em;
     opacity: 0.6;
+}
+
+/* Where it was closed, under when it was closed. Dimmer than the time and not
+   italic or coloured: it is there to be found when looked for, not to compete
+   with the title. */
+.closed-tabs__device {
+    font-size: 0.75em;
+    opacity: 0.5;
 }
 
 /* The actions stay out of the way until the row is under the pointer, so the
