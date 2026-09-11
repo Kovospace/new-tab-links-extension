@@ -7,6 +7,8 @@ import { appStateInit } from "../backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel, describeAge } from "./closedTabsViewModel";
 import { environment, group, link, profileOf } from "../test/profileDataFixtures";
 import { flushStorageNotifications } from "../test/chromeStorageStub";
+import { resolveDeviceName } from "../backend/sync/DeviceName";
+import { installationIdentity } from "../backend/sync/InstallationIdentity";
 
 const ENV = "0199aaaa-0000-7000-8000-00000000e001";
 const GROUP = "0199aaaa-0000-7000-8000-00000000g001";
@@ -80,8 +82,7 @@ describe("ClosedTabsViewModel", () => {
         expect(rows().find(row => row.title === "One")?.bookmarked).toBe(true);
     });
 
-    it("names the device only when it was another one", async () => {
-        // This installation has no name in these tests, so anything with a name is elsewhere.
+    it("names the device when the tab was closed on another one", async () => {
         await recordClosedTab(profiles.getActiveProfileId(), {
             url: "https://example.com/laptop", title: "On the laptop",
             closedAt: Date.now(), deviceName: "Laptop"
@@ -89,6 +90,26 @@ describe("ClosedTabsViewModel", () => {
         await flushStorageNotifications();
 
         expect(rows().find(row => row.title === "On the laptop")?.elsewhere).toBe("Laptop");
+    });
+
+    it("says nothing about a tab closed on this one", async () => {
+        // This is the comparison the whole row hangs on, and it only works because the label
+        // the worker stamps and the label the panel compares against are the same function.
+        // An installation nobody has named still has a label - otherwise every row would be
+        // stamped with nothing, and nothing is indistinguishable from "closed here".
+        const here = resolveDeviceName(installationIdentity.getName());
+
+        await recordClosedTab(profiles.getActiveProfileId(), {
+            url: "https://example.com/here", title: "Closed here",
+            closedAt: Date.now(), deviceName: here
+        });
+        await flushStorageNotifications();
+
+        expect(here).toBeTruthy();
+        expect(rows().find(row => row.title === "Closed here")?.elsewhere).toBeNull();
+    });
+
+    it("says nothing about a row recorded before devices were stamped at all", async () => {
         expect(rows().find(row => row.title === "One")?.elsewhere).toBeNull();
     });
 

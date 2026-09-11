@@ -5,6 +5,7 @@ import {
 } from "../../datasource/chromeStorage/storageKeys";
 import { recordClosedTab } from "../../repository/ClosedTabsRepository";
 import { isBookmarkableUrl } from "../../../utils/bookmarkRequest";
+import { resolveDeviceName } from "../../sync/DeviceName";
 import { Logger } from "../../../utils/logger";
 
 /**
@@ -105,9 +106,12 @@ async function recordRemoval(tabId: number): Promise<void> {
         title: closed.title,
         faviconUrl: closed.faviconUrl,
         closedAt: Date.now(),
-        // The device's name as the user gave it, if they gave one. Read from storage on every
-        // closure rather than held: this worker keeps nothing between events.
-        deviceName: await deviceName() ?? undefined
+        // Always a name, never nothing: the automatic label when the user never chose one,
+        // which is the same label the account knows this device by. A row stamped with
+        // nothing cannot be told apart from a row closed here, which is the whole question
+        // the panel asks of it. Read from storage on every closure rather than held - this
+        // worker keeps nothing between events.
+        deviceName: resolveDeviceName(await chosenDeviceName())
     });
 }
 
@@ -134,7 +138,7 @@ async function activeProfileId(): Promise<string | null> {
     return registry?.activeProfileId ?? null;
 }
 
-/** The name of this installation, or null when the user never gave it one. */
-async function deviceName(): Promise<string | null> {
+/** The name the user gave this installation, or null when they never gave it one. */
+async function chosenDeviceName(): Promise<string | null> {
     return storage.get<string>(INSTALLATION_NAME_KEY);
 }

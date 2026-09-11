@@ -3,6 +3,7 @@ import { ClosedTabsRepository } from "../backend/repository/ClosedTabsRepository
 import { ClosedTab } from "../backend/entity/ClosedTabEntity";
 import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
+import { resolveDeviceName } from "../backend/sync/DeviceName";
 
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
@@ -127,7 +128,9 @@ export class ClosedTabsViewModel {
     private describe(): ClosedTabDTO[] {
 
         const kept = this.keptAddresses();
-        const here = installationIdentity.getName();
+        // The same label the worker stamps on a closure here, so that "was this closed
+        // somewhere else" is one string comparison and not a guess.
+        const here = resolveDeviceName(installationIdentity.getName());
 
         return this.closedTabs.getTabs().map(tab => ({
             id: tab.id,

@@ -6,6 +6,7 @@ import { installationIdentity } from "./InstallationIdentity";
 import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
 import { SessionRepository, sessionRepository, TokenPairDto } from "./SessionRepository";
 import { Logger } from "../../utils/logger";
+import { resolveDeviceName } from "./DeviceName";
 
 /** HTTP methods the backend accepts. */
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -61,19 +62,12 @@ interface ApiErrorResponseDto {
 /**
  *  Names this installation for the user's device list.
  *
- *  The name the user chose wins when there is one. Otherwise it falls back to the automatic
- *  label, which is a hint and not much of one: a browser cannot read its host's name, and
- *  navigator.platform names the operating system, so every installation on one machine produces
- *  the same string. That is exactly why naming exists - but it is optional, so this has to work
- *  without it.
+ *  The rule itself lives in `DeviceName.ts`, because the service worker stamps the same label
+ *  on a closed tab and the panel compares against it - and a row stamped with one label and
+ *  compared against another is a row that claims to have happened somewhere else.
  */
-function resolveDeviceName(): string {
-    const chosen = installationIdentity.getName();
-    if (chosen) {
-        return chosen;
-    }
-    const platform = navigator.platform?.trim();
-    return platform ? `Browser extension on ${platform}` : "Browser extension";
+function deviceNameHeaderValue(): string {
+    return resolveDeviceName(installationIdentity.getName());
 }
 
 /**
@@ -253,7 +247,7 @@ export class BackendApiClient {
     private buildRequest(method: HttpMethod, body?: unknown, accessToken?: string): RequestInit {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
-            [DEVICE_NAME_HEADER]: resolveDeviceName()
+            [DEVICE_NAME_HEADER]: deviceNameHeaderValue()
         };
         const installationId = resolveInstallationId();
         if (installationId) {
