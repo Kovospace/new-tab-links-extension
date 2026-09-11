@@ -14,7 +14,18 @@ link-group > hr {
     border-radius: var(--radius-small);
 }
 
+/*
+   The space between the title and the description is a gap, not a margin on the
+   children, and that is a drag and drop decision as much as a layout one: a
+   margin belongs to no element, so the strip it creates has nothing under the
+   cursor to hit and nothing for a drop to bubble out of. A gap is inside this
+   box, so every pixel between the two lines is this box - and a link dropped
+   there lands in the group like a link dropped on the title itself.
+*/
 link-group-head > div.cls-group-head-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
     margin-right: 0.5em;
 }
 
@@ -22,7 +33,6 @@ link-group-head > div.cls-group-head-title > h2,
 link-group-head > div.cls-group-head-title > span {
     min-width: 1em;
     min-height: 1em;
-    margin-bottom: 0.25em;
 }
 
 link-group-head > div.cls-group-head-title > h2 {

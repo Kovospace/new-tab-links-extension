@@ -330,6 +330,12 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   there does bubble out to the group or subgroup, but the head is what somebody aims at when
   they mean "this one", and a target that is the thing being aimed at can highlight itself and
   cannot be broken by anything inside it stopping an event on its way out.
+- **Space between things is made with `gap` or padding, not with margins on the children** -
+  in the heads at least, where things are dropped. A margin belongs to no element: hit-testing
+  in that strip finds whatever is behind it, and where a child's margin collapses out of a
+  padding-less parent the strip is outside that parent altogether, so there is nothing under
+  the cursor for a drop to bubble out of. A gap is inside the box that declares it, so every
+  pixel between a heading and its description belongs to the head.
 - **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
   group's root-level links, so it can be dropped beside one of them; its own links travel with
   it, because a link names the group it is in as well as the subgroup, and one left behind
