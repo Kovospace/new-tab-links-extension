@@ -67,7 +67,26 @@ export class ClosedTabsViewModel {
     public async initialize(): Promise<void> {
         await this.closedTabs.init(this.appState.getActiveProfileId());
         this.unsubscribes.push(this.closedTabs.tabs$.subscribe(() => this.refresh()));
-        this.unsubscribes.push(this.appState.state$.subscribe(() => this.refresh()));
+        this.unsubscribes.push(this.appState.state$.subscribe(() => this.onStateChanged()));
+    }
+
+    /**
+     *  Answers a change of state, which is two different things at once.
+     *
+     *  Usually it is a link added or removed, and only the "already kept" marks need redoing.
+     *  But switching profiles does not reload the page - it swaps the state in place - and
+     *  each profile has a closed tabs list of its own. Without this the panel went on showing
+     *  the list of the profile that was open when the page loaded, and forgetting an entry
+     *  from it wrote to that profile's list rather than to the one on screen.
+     */
+    private onStateChanged(): void {
+        const active = this.appState.getActiveProfileId();
+        if (active !== this.closedTabs.getProfileId()) {
+            this.LOG.debug("onStateChanged", `Following profile ${active}`);
+            void this.closedTabs.init(active).then(() => this.refresh());
+            return;
+        }
+        this.refresh();
     }
 
     /** Stops following. */

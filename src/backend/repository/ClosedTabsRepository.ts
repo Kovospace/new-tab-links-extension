@@ -103,10 +103,18 @@ export class ClosedTabsRepository {
 
     private profileId: string = "";
 
+    /** Whether the storage listener is already on; init may be called again on a switch. */
+    private watching: boolean = false;
+
     public readonly tabs$ = new ObservableValue<ClosedTab[]>([]);
 
     /**
      *  Loads a profile's list and starts following it.
+     *
+     *  Can be called again to follow a different profile - switching profiles does not reload
+     *  the page, so the panel has to be told. The storage listener is attached once and reads
+     *  `this.profileId` when it fires, so pointing this at another profile is one assignment
+     *  rather than another listener.
      *
      *  @param profileId the profile whose list to show
      */
@@ -114,6 +122,11 @@ export class ClosedTabsRepository {
         this.profileId = profileId;
         this.tabs$.set(newestFirst(await readClosedTabs(profileId)));
         this.watchForWrites();
+    }
+
+    /** Which profile's list is on screen. */
+    public getProfileId(): string {
+        return this.profileId;
     }
 
     /** The list as it stands, newest first. */
@@ -151,9 +164,10 @@ export class ClosedTabsRepository {
      */
     private watchForWrites(): void {
 
-        if (!chrome.storage?.onChanged?.addListener) {
+        if (this.watching || !chrome.storage?.onChanged?.addListener) {
             return;
         }
+        this.watching = true;
 
         chrome.storage.onChanged.addListener((changes, areaName) => {
             if (areaName !== "local") {

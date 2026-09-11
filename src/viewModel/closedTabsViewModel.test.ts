@@ -134,3 +134,34 @@ describe("describeAge", () => {
         expect(describeAge(3 * 24 * 60 * 60_000)).toBe("3 days ago");
     });
 });
+
+/**
+ *  Switching profiles does not reload the page - the state is swapped in place - and each
+ *  profile keeps its own closed tabs. A panel that did not notice went on showing the list of
+ *  whichever profile was open when the tab was opened, and forgetting an entry from it wrote
+ *  to that profile rather than to the one on screen.
+ */
+describe("ClosedTabsViewModel, switching profiles", () => {
+    it("follows the profile that is now loaded", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+
+        await recordClosedTab(profiles.getActiveProfileId(), { url: "https://work.test/", title: "Work", closedAt: 1000 });
+        const other = "0199bbbb-0000-7000-8000-00000000p002";
+        await profiles.upsertProfile({ id: other, name: "Home", createdAt: 0 });
+        await recordClosedTab(other, { url: "https://home.test/", title: "Home", closedAt: 2000 });
+
+        const panel = new ClosedTabsViewModel(new ClosedTabsRepository(), appState);
+        await panel.initialize();
+        expect(panel.observables.tabs.get().map(t => t.title)).toEqual(["Work"]);
+
+        await profiles.setActiveProfile(other);
+        await appState.switchProfile(other);
+        await flushStorageNotifications();
+        await new Promise(r => setTimeout(r, 0));
+
+        expect(panel.observables.tabs.get().map(t => t.title)).toEqual(["Home"]);
+    });
+});
