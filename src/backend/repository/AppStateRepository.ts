@@ -790,6 +790,29 @@ export class AppStateRepository {
         return this.save();
     }
 
+    /**
+     * Whether an item has anywhere to go in the sequence it is ordered in.
+     *
+     * Asked by a menu that would rather leave a move out than offer one that does nothing.
+     * The sequence is the one the group draws: a root-level link is ordered against that
+     * group's subgroups as well as its sibling links, so "up" can mean past a whole subgroup.
+     *
+     * @param itemId a link or a subgroup
+     * @return which directions are possible; both false for an item that is not there
+     */
+    canMoveWithinScope(itemId: string): { up: boolean; down: boolean } {
+        const item: GroupItem | undefined = this.state.links[itemId] ?? this.state.subgroups[itemId];
+        if (!item) {
+            return { up: false, down: false };
+        }
+        const scope = this.getItemsInPositionScope(item);
+        const index = scope.findIndex(scopeItem => scopeItem.id === itemId);
+        return {
+            up: index > 0,
+            down: index >= 0 && index < scope.length - 1
+        };
+    }
+
     moveLinkUp(id: string): Promise<AppState> {
         return this.moveWithinPositionScope(id, -1);
     }

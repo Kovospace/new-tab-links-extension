@@ -528,3 +528,59 @@ describe("AppStateRepository subgroup colours", () => {
         expect(state.subgroups).toEqual(before.subgroups);
     });
 });
+
+/**
+ *  What the link context menu asks before it offers a move. A menu that offered "move up" on
+ *  the first link and then ignored the click would be lying about what it can do, and the only
+ *  way a menu has of saying "nowhere to go" is to leave the item out.
+ */
+describe("AppStateRepository.canMoveWithinScope", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e003";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g003";
+
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "Reading", ENV)],
+            subgroups: [subgroup("sub", "Later", GROUP, ENV, 1)],
+            links: [
+                link("first", "First", "https://one.test", GROUP, ENV, { position: 0 }),
+                link("last", "Last", "https://two.test", GROUP, ENV, { position: 2 }),
+                link("inside", "Inside", "https://three.test", GROUP, ENV,
+                    { subGroupId: "sub", position: 0 })
+            ],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    it("says the first item cannot go up", () => {
+        expect(appState.canMoveWithinScope("first")).toEqual({ up: false, down: true });
+    });
+
+    it("says the last item cannot go down", () => {
+        expect(appState.canMoveWithinScope("last")).toEqual({ up: true, down: false });
+    });
+
+    it("counts the subgroups a root-level link is ordered against", () => {
+        // The subgroup sits between the two links, so "last" has something above it that is
+        // not a link at all. A scope of links only would have called it the second of two.
+        expect(appState.canMoveWithinScope("sub")).toEqual({ up: true, down: true });
+    });
+
+    it("says an only child can go nowhere", () => {
+        // The one link inside the subgroup: its scope is that subgroup's own contents.
+        expect(appState.canMoveWithinScope("inside")).toEqual({ up: false, down: false });
+    });
+
+    it("says nothing is possible for something that is not there", () => {
+        expect(appState.canMoveWithinScope("deleted-elsewhere"))
+            .toEqual({ up: false, down: false });
+    });
+});

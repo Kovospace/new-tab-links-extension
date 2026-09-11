@@ -145,6 +145,23 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 }
             ];
 
+            // reordering, next to the other ways of moving a link and before them: this is
+            // the one that does not change what the link belongs to. Each is offered only
+            // when there is somewhere to go - see canMove.
+            const movable = this.VIEW_MODEL.canMove();
+            if (movable.up) {
+                actions.push({
+                    label: `${ICON.MOVE_UP} Move up`,
+                    onClick: () => this.VIEW_MODEL.moveLinkUp()
+                });
+            }
+            if (movable.down) {
+                actions.push({
+                    label: `${ICON.MOVE_DOWN} Move down`,
+                    onClick: () => this.VIEW_MODEL.moveLinkDown()
+                });
+            }
+
             // move to / from subgroup link actions
             if (this.DTO.subGroupId) {
                 actions.push({

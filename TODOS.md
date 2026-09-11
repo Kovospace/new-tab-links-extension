@@ -12,8 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [small] Add "move up" and "move down" action to link context menu
-
 ### [medium] Do not mix tests with code
 - move tests into separate module like in java app, ```<project_root>/test```
 
@@ -60,6 +58,16 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [small] Add "move up" and "move down" action to link context menu
+- right-click a link: "Move up" and "Move down", above the entries that move it somewhere else,
+  because these are the ones that do not change what it belongs to
+- each is offered only when there is somewhere to go. A menu that offered "move up" on the
+  first link and then ignored the click would be lying, and leaving the item out is the only
+  way a menu has of saying "nowhere to go"
+- the sequence asked is the one the group draws, so a root-level link is ordered against that
+  group's subgroups too: "up" can mean past a whole subgroup, and the first link below one is
+  not the first item
 
 ### [small] Space reserved for ads
 - ui/partials/adsBar.ts and ui/styles/_adsBar.css, built like the tips bar is, drawn into
