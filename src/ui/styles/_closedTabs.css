@@ -238,11 +238,28 @@ html.dark .closed-tabs__text:hover {
     flex: 0 0 auto;
 }
 
+/*
+   Shown and hidden outright, with no fade, and that is a bug fix rather than a
+   preference.
+
+   A fade puts the button on a compositing layer of its own for as long as it
+   runs. The panel hides these with `display: none` the moment it folds, and
+   folding is also when the row under the pointer loses :hover - so both happen
+   in one style recalculation: the fade starts, and in the same breath the
+   element stops generating a box at all. The layer was then left painted where
+   the buttons had been, over the folded rail, until something else invalidated
+   that part of the window - a click elsewhere, or any later animation.
+
+   It took a drag to see because a drag is the one thing that stops the panel
+   hearing about the pointer: no mousemove is delivered while one is in flight,
+   so the panel stays open for the whole journey and folds in the same instant
+   the browser is tearing the drag down. With nothing to animate there is no
+   layer to orphan.
+*/
 .closed-tabs__row-action,
 html.dark .closed-tabs__row-action {
     margin: 0.125em;
     opacity: 0;
-    transition: opacity var(--time-transition-fast) ease-in-out;
 }
 
 .closed-tabs__row:hover .closed-tabs__row-action,
