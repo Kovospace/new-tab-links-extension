@@ -303,6 +303,14 @@ Profile (registry in ProfileRepository, data stored per profile)
     └── links: Record<string, Link>                 ← belong to Group, optionally Subgroup
 ```
 
+**Not every setting is the profile's.** `DevicePreferencesRepository` holds the ones that
+belong to the browser in front of you - the size the interface is drawn at, so far - under a
+key of their own, never synchronised and never on the profile record. A 27-inch desktop and a
+13-inch laptop want different answers to "how big", and one dictating the other is worse than
+neither knowing; it is the same reasoning that keeps the open workspace per-device. The size is
+a root font size, because everything here is sized in em, and it is applied before the page
+draws anything so that a resized interface does not jump a size once storage answers.
+
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to
 do, as opposed to what it holds. They live on the profile record rather than in a store of
 their own, which is what lets them synchronise with no new entity kind, no snapshot collection

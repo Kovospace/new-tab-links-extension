@@ -12,11 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [medium] Add "size" to UI settings
-- add "size" with "progressbar" into UI setings setting font size on root html element
-- make step size of 0.0625 em
-- size from 0.625em to 1.5em
-
 ### [small] Add "move up" and "move down" action to link context menu
 
 ### [small] Space reserved for ads
@@ -65,6 +60,21 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [medium] Add "size" to UI settings
+- a slider in "UI and behavior" setting the root html font size, 0.625em to 1.5em in steps of
+  0.0625em, shown as a percentage because "0.8125em" means nothing at a glance
+- it acts while it is dragged, not on release: the thing it resizes is everything around it,
+  including the dialog the slider is in, and that is how somebody knows which way to drag
+- NOT synchronised, deliberately, and the first setting that is not: it lives on the device
+  (DevicePreferencesRepository) because a desktop and a laptop want different answers and one
+  should not decide for the other. Say the word if you would rather it travelled - it is a
+  fourth backend column
+- the value is clamped and snapped wherever it comes from, including storage: this number is
+  the root font size, so a bad one does not make part of the page wrong, it makes the page
+  unreadable with the control for fixing it on that same page
+- the settings model now has two kinds of setting, a switch and a slider; adding either is
+  still one line in the CATEGORIES list
 
 ### [small] Toggle last closed tab active class
 - the header button wears "active" while the panel is being held open by it, and only then -

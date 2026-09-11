@@ -47,3 +47,9 @@ export function closedTabsKey(profileId: string): string {
  *  so the row can say which device it happened on. Written by `InstallationIdentity`.
  */
 export const INSTALLATION_NAME_KEY = "sync_installation_name";
+
+/**
+ *  What this browser prefers, as opposed to what the profile does: the size the interface is
+ *  drawn at, for now. Never synchronised - see `DevicePreferencesRepository`.
+ */
+export const DEVICE_PREFERENCES_KEY = "device_preferences";

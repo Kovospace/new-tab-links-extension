@@ -1,5 +1,6 @@
 import {
-  SettingCategoryDTO, SettingDTO, SettingsDTO, SettingsViewModel
+  RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO, SettingsViewModel,
+  ToggleSettingDTO
 } from '../../viewModel/settingsViewModel';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 
@@ -157,8 +158,13 @@ export class SettingsDialog {
     return section;
   }
 
-  /** One setting: a checkbox, its name, and what it does. */
+  /** One setting, drawn the way its kind is drawn. */
   private buildRow(setting: SettingDTO): HTMLElement {
+    return setting.kind === 'toggle' ? this.buildToggle(setting) : this.buildRange(setting);
+  }
+
+  /** A setting that is on or off: a checkbox, its name, and what it does. */
+  private buildToggle(setting: ToggleSettingDTO): HTMLElement {
 
     const row = document.createElement('label');
     row.classList.add('settings-dialog__row');
@@ -192,6 +198,60 @@ export class SettingsDialog {
     text.appendChild(explanation);
 
     row.appendChild(checkbox);
+    row.appendChild(text);
+    return row;
+  }
+
+  /**
+   * A setting that is a number: a slider, with what it is set to beside it.
+   *
+   * The slider acts while it is dragged rather than when it is let go, because the thing it
+   * changes is the size of everything around it - including the dialog it is in. Seeing that
+   * happen is how somebody knows which way to drag; a size that only arrived on release would
+   * make this a guessing game played one attempt at a time.
+   */
+  private buildRange(setting: RangeSettingDTO): HTMLElement {
+
+    const row = document.createElement('div');
+    row.classList.add('settings-dialog__row', 'settings-dialog__row--range');
+
+    const text = document.createElement('div');
+    text.classList.add('settings-dialog__text');
+
+    const heading = document.createElement('div');
+    heading.classList.add('settings-dialog__range-heading');
+
+    const title = document.createElement('span');
+    title.classList.add('settings-dialog__name');
+    title.textContent = setting.title;
+
+    const value = document.createElement('span');
+    value.classList.add('settings-dialog__value');
+    value.textContent = setting.display;
+
+    heading.appendChild(title);
+    heading.appendChild(value);
+
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = setting.disabledReason ?? setting.explanation;
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.classList.add('settings-dialog__slider');
+    slider.min = String(setting.min);
+    slider.max = String(setting.max);
+    slider.step = String(setting.step);
+    slider.value = String(setting.value);
+    slider.disabled = Boolean(setting.disabledReason);
+    slider.title = setting.title;
+
+    slider.addEventListener('input',
+      () => void this.viewModel.setRange(setting.key, Number(slider.value)));
+
+    text.appendChild(heading);
+    text.appendChild(slider);
+    text.appendChild(explanation);
     row.appendChild(text);
     return row;
   }

@@ -141,3 +141,43 @@ html.dark .settings-dialog__category-head:active {
 .settings-dialog__actions {
     margin: 0.75em;
 }
+
+/* ---------------------------------------------------------------------------
+   A setting that is a number
+
+   A slider with its value beside the name, rather than a field to type into:
+   "0.8125" means nothing to anybody, and the thing this one changes is visible
+   behind the dialog while it moves.
+   --------------------------------------------------------------------------- */
+
+.settings-dialog__row--range {
+    /* No checkbox in front, so the text takes the whole row. */
+    cursor: default;
+}
+
+.settings-dialog__range-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5em;
+}
+
+.settings-dialog__value {
+    font-size: 0.85em;
+    opacity: 0.75;
+    /* Fixed enough to stop the name shifting as the number changes width. */
+    min-width: 3em;
+    text-align: right;
+}
+
+.settings-dialog__slider {
+    width: 100%;
+    margin: 0.375em 0 0.25em;
+    accent-color: var(--color-button-active-background);
+    cursor: pointer;
+}
+
+.settings-dialog__slider:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

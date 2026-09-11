@@ -1,23 +1,21 @@
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { ProfileSettings } from "../backend/entity/ProfileSettings";
+import {
+    DevicePreferencesRepository, devicePreferencesRepository,
+    MAX_SCALE, MIN_SCALE, SCALE_STEP
+} from "../backend/repository/DevicePreferencesRepository";
 
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 
-/** One setting, as the dialog draws it. */
-export interface SettingDTO {
-
-    /** Which setting this is; what `toggle` is called with. */
-    key: keyof ProfileSettings;
+/** What every setting has to say for itself, whatever kind it is. */
+interface SettingCommonDTO {
 
     /** What it is called in the dialog. */
     title: string;
 
-    /** What turning it on does, in a sentence. */
+    /** What it does, in a sentence. */
     explanation: string;
-
-    /** Whether it is on right now. */
-    enabled: boolean;
 
     /**
      *  Why it cannot be changed at the moment, or null when it can.
@@ -28,6 +26,38 @@ export interface SettingDTO {
      */
     disabledReason: string | null;
 }
+
+/** A setting that is on or off. */
+export interface ToggleSettingDTO extends SettingCommonDTO {
+    kind: "toggle";
+    /** Which setting this is; what `toggle` is called with. */
+    key: keyof ProfileSettings;
+    enabled: boolean;
+}
+
+/**
+ *  A setting that is a number on a slider.
+ *
+ *  Its own kind rather than a number in a text field: the value means nothing to anybody as a
+ *  number - 0.8125 of what? - and everything as a position with the effect visible behind it.
+ */
+export interface RangeSettingDTO extends SettingCommonDTO {
+    kind: "range";
+    /** Which setting this is; what `setRange` is called with. */
+    key: RangeSettingKey;
+    value: number;
+    min: number;
+    max: number;
+    step: number;
+    /** The value as it is shown beside the slider, already worded. */
+    display: string;
+}
+
+/** One setting, as the dialog draws it. */
+export type SettingDTO = ToggleSettingDTO | RangeSettingDTO;
+
+/** The settings that are numbers. One so far. */
+export type RangeSettingKey = "uiScale";
 
 /** A named group of settings, which the dialog draws as one collapsible section. */
 export interface SettingCategoryDTO {
@@ -52,11 +82,9 @@ export interface SettingsDTO {
 }
 
 /** What a setting is, and where it belongs, independent of what it is set to. */
-interface SettingDefinition {
-    key: keyof ProfileSettings;
-    title: string;
-    explanation: string;
-}
+type SettingDefinition =
+    | { kind: "toggle"; key: keyof ProfileSettings; title: string; explanation: string }
+    | { kind: "range"; key: RangeSettingKey; title: string; explanation: string };
 
 /** A category, and what is in it. */
 interface CategoryDefinition {
@@ -78,6 +106,7 @@ const CATEGORIES: CategoryDefinition[] = [
         title: "UI and behavior",
         settings: [
             {
+                kind: "toggle",
                 key: "enableDragAndDrop",
                 title: "Enable drag & drop",
                 explanation:
@@ -85,11 +114,21 @@ const CATEGORIES: CategoryDefinition[] = [
                     + "turning this on now only stores the choice."
             },
             {
+                kind: "toggle",
                 key: "hideTips",
                 title: "Hide tips",
                 explanation:
                     "Stop showing the tips along the bottom of the page. This is where they "
                     + "come back from."
+            },
+            {
+                kind: "range",
+                key: "uiScale",
+                title: "Size",
+                explanation:
+                    "How big everything is drawn. This one is kept on this device only - a "
+                    + "desktop and a laptop want different answers, and one should not decide "
+                    + "for the other."
             }
         ]
     }
@@ -120,6 +159,7 @@ export class SettingsViewModel {
     private LOG: Logger = new Logger("SettingsViewModel");
 
     private readonly profiles: ProfileRepository;
+    private readonly devicePreferences: DevicePreferencesRepository;
 
     /** Categories the user has folded away; the first one starts out of it. */
     private readonly collapsed: Set<string> = new Set(
@@ -132,8 +172,16 @@ export class SettingsViewModel {
     /**
      *  @param profiles the profile registry; the singleton in normal use
      */
-    constructor(profiles: ProfileRepository = profileRepository) {
+    /**
+     *  @param profiles          the profile registry; the singleton in normal use
+     *  @param devicePreferences what this browser prefers, which the profile has no say in
+     */
+    constructor(
+        profiles: ProfileRepository = profileRepository,
+        devicePreferences: DevicePreferencesRepository = devicePreferencesRepository
+    ) {
         this.profiles = profiles;
+        this.devicePreferences = devicePreferences;
     }
 
     /** Loads the active profile's settings into the observable. */
@@ -154,6 +202,25 @@ export class SettingsViewModel {
     }
 
     /**
+     *  Moves a setting that is a number, and redraws.
+     *
+     *  Applied as well as stored, because the one this exists for resizes the interface the
+     *  dialog itself is drawn in - a size that only took effect on the next page would be a
+     *  slider with nothing behind it.
+     *
+     *  @param key   which setting
+     *  @param value what to set it to; the repository clamps it to what is on offer
+     */
+    public async setRange(key: RangeSettingKey, value: number): Promise<void> {
+        this.LOG.debug("setRange", `${key} -> ${value}`);
+        if (key === "uiScale") {
+            await this.devicePreferences.setScale(value);
+            this.devicePreferences.applyScale();
+        }
+        this.refresh();
+    }
+
+    /**
      *  Folds a category away, or unfolds it, and redraws.
      *
      *  @param key which category
@@ -165,6 +232,40 @@ export class SettingsViewModel {
             this.collapsed.add(key);
         }
         this.refresh();
+    }
+
+    /** One setting, as it stands, in the shape its kind is drawn from. */
+    private describeSetting(
+        definition: SettingDefinition,
+        settings: ProfileSettings
+    ): SettingDTO {
+
+        if (definition.kind === "toggle") {
+            return {
+                kind: "toggle",
+                key: definition.key,
+                title: definition.title,
+                explanation: definition.explanation,
+                enabled: settings[definition.key],
+                disabledReason: null
+            };
+        }
+
+        const value = this.devicePreferences.getScale();
+        return {
+            kind: "range",
+            key: definition.key,
+            title: definition.title,
+            explanation: definition.explanation,
+            value,
+            min: MIN_SCALE,
+            max: MAX_SCALE,
+            step: SCALE_STEP,
+            // As a percentage of the browser's own size, which is a number people have a feel
+            // for; "0.8125em" is the same fact and means nothing at a glance.
+            display: `${Math.round(value * 100)}%`,
+            disabledReason: null
+        };
     }
 
     /** The active profile's settings, worded for the dialog and in their sections. */
@@ -184,13 +285,8 @@ export class SettingsViewModel {
                     key: category.key,
                     title: category.title,
                     collapsed: this.collapsed.has(category.key),
-                    settings: category.settings.map(definition => ({
-                        key: definition.key,
-                        title: definition.title,
-                        explanation: definition.explanation,
-                        enabled: settings[definition.key],
-                        disabledReason: null
-                    }))
+                    settings: category.settings.map(definition =>
+                        this.describeSetting(definition, settings))
                 }))
         };
     }

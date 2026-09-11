@@ -1,5 +1,6 @@
 import { appStateRepository } from "./backend/repository/AppStateRepository";
 import { profileRepository } from "./backend/repository/ProfileRepository";
+import { devicePreferencesRepository } from "./backend/repository/DevicePreferencesRepository";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 
 import { BookmarkViewModel } from "./viewModel/bookmarkViewModel";
@@ -40,6 +41,11 @@ import './ui/styles/_bookmarkPanel.css'
  *  writes made in another page.
  */
 (async () => {
+
+    // The same size the new tab page is drawn at: this window is a page of the same extension
+    // and sized in the same em, and a popup half the size of everything else looks broken.
+    await devicePreferencesRepository.init();
+    devicePreferencesRepository.applyScale();
 
     const host = document.body.getElementsByTagName("main")[0];
 

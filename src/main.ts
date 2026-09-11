@@ -1,4 +1,5 @@
 import { appStateRepository } from "./backend/repository/AppStateRepository";
+import { devicePreferencesRepository } from "./backend/repository/DevicePreferencesRepository";
 import { profileRepository } from "./backend/repository/ProfileRepository";
 import { installationIdentity } from "./backend/sync/InstallationIdentity";
 import { sessionRepository } from "./backend/sync/SessionRepository";
@@ -140,6 +141,12 @@ customElements.define(ELEM_LINK, LinkComponent);
 customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
+
+    // How big this browser wants the interface, applied before anything is drawn: everything
+    // here is sized in em, so this one number moves the lot, and applying it later would
+    // redraw the page a size larger in front of the user.
+    await devicePreferencesRepository.init();
+    devicePreferencesRepository.applyScale();
 
     // identity of this installation and the signed-in account, if any - both are read
     // before anything renders so the application menu draws its final state at once
