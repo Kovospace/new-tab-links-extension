@@ -99,6 +99,10 @@
     flex: 1;
     margin: 0;
     font-size: 1em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    word-break: keep-all;
+    text-wrap: nowrap;
 }
 
 .closed-tabs__head-action,
