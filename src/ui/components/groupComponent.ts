@@ -30,6 +30,7 @@ import {OptionsMenu} from "../partials/optionsMenu";
 import {InputDialog} from "../partials/inputDialog";
 import {SelectDialog} from "../partials/selectDialog";
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
+import { makeContainerTarget, makeDraggable, makeReorderTarget } from "../dragAndDrop/dragAndDrop";
 
 
 
@@ -141,6 +142,24 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
     attachListeners() {
         // listeners are re-attached reactively inside renderGroupHead on each observable emission
+        this.listenerDragAndDrop();
+    }
+
+    /**
+     *  Makes this group draggable among its siblings, and a place a link can be dropped.
+     *
+     *  Two kinds of drop land here and they mean different things. A group dropped on a group
+     *  is a reorder, decided left or right rather than up or down because these are columns.
+     *  A link dropped on the group - on its body, not on one of its links - means "this group,
+     *  at the end", which is what dropping on empty space below the list should do.
+     */
+    private listenerDragAndDrop() {
+        makeDraggable(this, { kind: "group", id: this.DTO.id });
+        makeReorderTarget(this, "group", (side, draggedId) => {
+            const index = this.VIEW_MODEL.indexAmongGroups() + (side === "after" ? 1 : 0);
+            this.VIEW_MODEL.acceptGroup(draggedId, index);
+        });
+        makeContainerTarget(this, "link", draggedId => this.VIEW_MODEL.takeLink(draggedId));
     }
 
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {

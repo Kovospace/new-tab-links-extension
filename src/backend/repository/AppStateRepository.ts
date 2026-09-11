@@ -821,6 +821,163 @@ export class AppStateRepository {
         return this.moveWithinPositionScope(id, 1);
     }
 
+    /**
+     * Puts a link at a given place in a given sequence: the heart of dragging one.
+     *
+     * The place is named the way a person drags: "into this group, inside this subgroup or
+     * not, at this index". Everything else follows from that - which sequence it is leaving,
+     * which it is joining, and what every position in both becomes.
+     *
+     * Both sequences are renumbered from zero rather than nudged, for the reason the rest of
+     * this file renumbers: stored positions are not guaranteed to be a clean 0..n-1, and
+     * arithmetic on a sequence that is not would move the wrong things. The root-level
+     * sequence counts subgroups as well as links, so a link dropped at index 2 of a group
+     * lands after whatever the first two items are, subgroups included.
+     *
+     * @param linkId      the link being moved
+     * @param groupId     the group it is to belong to
+     * @param subGroupId  the subgroup within that group, or undefined for the group itself
+     * @param index       where in that sequence it goes; clamped to the ends
+     */
+    moveLinkTo(
+        linkId: string,
+        groupId: string,
+        subGroupId: string | undefined,
+        index: number
+    ): Promise<AppState> {
+
+        const link = this.state.links[linkId];
+        const group = this.state.groups[groupId];
+        if (!link || !group) {
+            this.LOG.debug("moveLinkTo", `No such link or group: ${linkId} -> ${groupId}`);
+            return Promise.resolve(this.state);
+        }
+        if (subGroupId && this.state.subgroups[subGroupId]?.groupId !== groupId) {
+            // A subgroup of another group is not a place in this one.
+            this.LOG.debug("moveLinkTo", `Subgroup ${subGroupId} is not in group ${groupId}`);
+            return Promise.resolve(this.state);
+        }
+
+        const moved: Link = {
+            ...link,
+            groupId,
+            subGroupId,
+            environmentId: group.environmentId
+        };
+
+        // The index names a place in the sequence as the user sees it, which still contains
+        // the link being dragged. Taking it out first shifts everything after it up one, so
+        // an index past its old place has to come back down by one - otherwise dropping a
+        // link one place to the right moves it two.
+        const joiningAsSeen = this.itemsInScope(groupId, subGroupId);
+        const wasAt = joiningAsSeen.findIndex(item => item.id === linkId);
+        const target = index - (wasAt >= 0 && wasAt < index ? 1 : 0);
+
+        const leaving = this.itemsInScope(link.groupId, link.subGroupId)
+            .filter(item => item.id !== linkId);
+        const joining = joiningAsSeen.filter(item => item.id !== linkId);
+
+        joining.splice(Math.max(0, Math.min(target, joining.length)), 0, moved);
+
+        const links = { ...this.state.links, [linkId]: moved };
+        const subgroups = { ...this.state.subgroups };
+        for (const sequence of [leaving, joining]) {
+            sequence.forEach((item, position) => {
+                if (links[item.id]) {
+                    links[item.id] = { ...links[item.id], position };
+                } else if (subgroups[item.id]) {
+                    subgroups[item.id] = { ...subgroups[item.id], position };
+                }
+            });
+        }
+
+        this.state = { ...this.state, links, subgroups };
+        return this.save();
+    }
+
+    /**
+     * Puts a group at a given place among its workspace's groups: dragging one sideways.
+     *
+     * Renumbered from zero, like every other sequence here, because `order` has never been
+     * guaranteed to be a clean 0..n-1 either.
+     *
+     * @param groupId the group being moved
+     * @param index   where it goes among the groups of its workspace; clamped to the ends
+     */
+    moveGroupTo(groupId: string, index: number): Promise<AppState> {
+
+        const group = this.state.groups[groupId];
+        if (!group) {
+            return Promise.resolve(this.state);
+        }
+
+        // The same correction the links need: the index is into the row as it is drawn, which
+        // still has this group in it.
+        const asSeen = this.getGroups(group.environmentId);
+        const wasAt = asSeen.findIndex(candidate => candidate.id === groupId);
+        const target = index - (wasAt >= 0 && wasAt < index ? 1 : 0);
+
+        const ordered = asSeen.filter(candidate => candidate.id !== groupId);
+        ordered.splice(Math.max(0, Math.min(target, ordered.length)), 0, group);
+
+        const groups = { ...this.state.groups };
+        ordered.forEach((candidate, order) => {
+            groups[candidate.id] = { ...groups[candidate.id], order };
+        });
+
+        this.state = { ...this.state, groups };
+        return this.save();
+    }
+
+    /**
+     * Everything ordered against everything else in one sequence, in the order it is drawn.
+     *
+     * Named by where the sequence is rather than by an item in it, which is what a drop needs:
+     * the link being dropped may be arriving from somewhere else entirely, and an empty
+     * subgroup is a real destination with no item to ask about.
+     */
+    private itemsInScope(groupId: string, subGroupId: string | undefined): GroupItem[] {
+        const scope: GroupItem[] = subGroupId
+            ? Object.values(this.state.links).filter(link => link.subGroupId === subGroupId)
+            : [
+                ...Object.values(this.state.links)
+                    .filter(link => link.groupId === groupId && !link.subGroupId),
+                ...Object.values(this.state.subgroups)
+                    .filter(subgroup => subgroup.groupId === groupId)
+            ];
+
+        return scope.sort((one, other) =>
+            one.position - other.position
+            || Number(one.type === "subgroup") - Number(other.type === "subgroup")
+            || one.createdAt - other.createdAt);
+    }
+
+    /**
+     * Where an item sits in the sequence it is drawn in, or -1 when it is not there.
+     *
+     * Asked by a drop that lands beside it: "before this one" is that index, "after" is one
+     * more. The sequence is the one the group draws, subgroups counted.
+     */
+    indexInScope(itemId: string): number {
+        const item: GroupItem | undefined =
+            this.state.links[itemId] ?? this.state.subgroups[itemId];
+        if (!item) {
+            return -1;
+        }
+        return this.itemsInScope(item.groupId, this.state.links[itemId]?.subGroupId)
+            .findIndex(scopeItem => scopeItem.id === itemId);
+    }
+
+    /** Where a group sits among its workspace's groups, or -1 when it is not there. */
+    indexAmongGroups(groupId: string): number {
+        const group = this.state.groups[groupId];
+        if (!group) {
+            return -1;
+        }
+        return this.getGroups(group.environmentId)
+            .findIndex(candidate => candidate.id === groupId);
+    }
+
     moveGroupUp(id: string): Promise<AppState> {
         const group = this.state.groups[id];
         if (!group || (group.order ?? 0) <= 0) return Promise.resolve(this.state);

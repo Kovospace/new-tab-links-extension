@@ -14,6 +14,7 @@ import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
 import { contextMenu, ContextMenuAction } from "../partials/contextMenu";
 import {InputDialog} from "../partials/inputDialog";
+import { makeDraggable, makeReorderTarget } from "../dragAndDrop/dragAndDrop";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
@@ -33,6 +34,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
     protected attachListeners(_parentElem: HTMLElement) {
         this.listenerOpenLink();
+        this.listenerDragAndDrop();
         this.listenerContextMenu();
     }
 
@@ -108,6 +110,21 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 event?.stopPropagation();
                 this.editLinkDialog.show({ title: this.DTO.title, url: this.DTO.url });
             }));
+    }
+
+    /**
+     *  Makes this link draggable, and a place another link can be dropped beside.
+     *
+     *  Dropping onto a link means "where this one is": its group, its subgroup, and its place
+     *  in the sequence - which is how a link crosses from one group to another, or into a
+     *  subgroup, without any of that being said separately.
+     */
+    private listenerDragAndDrop() {
+        makeDraggable(this, { kind: "link", id: this.DTO.id });
+        makeReorderTarget(this, "link", (side, draggedId) => {
+            const index = this.VIEW_MODEL.indexInScope() + (side === "after" ? 1 : 0);
+            this.VIEW_MODEL.acceptLink(draggedId, index);
+        });
     }
 
     private listenerOpenLink() {

@@ -304,6 +304,30 @@ space when there is little to show, and below the columns when there is a lot.
   rather than for showing because every setting defaults to off, and off has to mean the
   behaviour a profile had before the setting existed.
 
+### Dragging (`ui/dragAndDrop/dragAndDrop.ts`)
+
+HTML5 drag and drop, not pointer arithmetic: the browser already knows how to carry something
+under the cursor, draw it while it travels, and tell when a drag was abandoned.
+
+- **Everything is registered, and the setting is read when the drag begins.** Attaching and
+  removing listeners as `enableDragAndDrop` changes would mean every component hearing about
+  the change and finding its own elements again; refusing a `dragstart` is one comparison in
+  one place, and turning the setting on takes effect without anything being rebuilt.
+- What is dragged is *named* - `dataTransfer` carries a kind and an identifier - because the
+  data a drag carries cannot be read during `dragover`, where every "may this be dropped here"
+  decision has to be made. The module keeps the answer.
+- A drop onto a thing means "where this one is": its group, its subgroup, and its place. That
+  is how a link crosses into a subgroup or another group without any of it being said
+  separately. A drop onto a container - a subgroup, a group's body - means "in here, at the
+  end".
+- Which half of the element decides before or after: **vertically for a link, horizontally for
+  a group**, because groups are columns.
+- **The index a drop names counts the sequence as the user sees it**, which still contains the
+  thing being dragged. `moveLinkTo` and `moveGroupTo` take one off when the item is moving
+  down its own sequence - without that, dropping a link one place to the right moves it two.
+  Both renumber from zero rather than nudging, because stored positions are not guaranteed to
+  be a clean 0..n-1.
+
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 
 Every creation and rename goes through `InputDialog`, and each of its fields may declare

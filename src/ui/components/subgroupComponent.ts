@@ -31,6 +31,7 @@ import {InputDialog} from "../partials/inputDialog";
 import { MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 import { ColorPickerDialog } from "../partials/colorPickerDialog";
 import { swatchOf } from "../../backend/entity/TabGroupColors";
+import { makeContainerTarget } from "../dragAndDrop/dragAndDrop";
 
 
 
@@ -54,6 +55,10 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     protected attachListeners(parentElem: HTMLElement) {
         this.listenerOnHeadClick(parentElem);
         this.listenerChangeSubgroupTitle();
+        // A link dropped on the subgroup itself belongs in it, at the end. Dropped on one of
+        // its links it lands beside that one instead, which that link's own target handles -
+        // and stops the event before it reaches here.
+        makeContainerTarget(this, "link", draggedId => this.VIEW_MODEL.takeLink(draggedId));
     }
 
     private renderSubGroup(parentElem: HTMLElement, subgroupDto: SubgroupDTO) {

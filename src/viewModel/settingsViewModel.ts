@@ -110,8 +110,8 @@ const CATEGORIES: CategoryDefinition[] = [
                 key: "enableDragAndDrop",
                 title: "Enable drag & drop",
                 explanation:
-                    "Rearrange links, groups and subgroups by dragging them. Not built yet; "
-                    + "turning this on now only stores the choice."
+                    "Drag a link to reorder it, into a subgroup or into another group; drag "
+                    + "a group to move it along the row."
             },
             {
                 kind: "toggle",

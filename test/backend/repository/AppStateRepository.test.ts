@@ -584,3 +584,181 @@ describe("AppStateRepository.canMoveWithinScope", () => {
             .toEqual({ up: false, down: false });
     });
 });
+
+/**
+ *  Where a dragged link lands. The index a drop names counts the sequence as the user sees it,
+ *  which still contains the link being dragged - so every move within one sequence has an
+ *  off-by-one waiting in it, and the root-level sequence counts the subgroups between the
+ *  links as well.
+ */
+describe("AppStateRepository.moveLinkTo", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e004";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g004";
+    const OTHER_GROUP = "0199aaaa-0000-7000-8000-00000000g005";
+    const SUB = "0199aaaa-0000-7000-8000-0000000000s01";
+
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "Reading", ENV), group(OTHER_GROUP, "Later", ENV, 1)],
+            subgroups: [subgroup(SUB, "Archive", GROUP, ENV, 2)],
+            links: [
+                link("a", "A", "https://a.test", GROUP, ENV, { position: 0 }),
+                link("b", "B", "https://b.test", GROUP, ENV, { position: 1 }),
+                link("c", "C", "https://c.test", GROUP, ENV, { position: 3 }),
+                link("inside", "Inside", "https://inside.test", GROUP, ENV,
+                    { subGroupId: SUB, position: 0 })
+            ],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    /** The root sequence of a group, in the order it is drawn. */
+    const rootOf = (state: AppState, groupId: string) => [
+        ...Object.values(state.links).filter(l => l.groupId === groupId && !l.subGroupId),
+        ...Object.values(state.subgroups).filter(sg => sg.groupId === groupId)
+    ].sort((one, other) => one.position - other.position).map(item => item.id);
+
+    it("moves a link down its own sequence, landing where it was dropped", async () => {
+        // [a, b, sub, c] - drop a after sub, which is index 3 in the list as drawn.
+        const state = await appState.moveLinkTo("a", GROUP, undefined, 3);
+
+        expect(rootOf(state, GROUP)).toEqual(["b", SUB, "a", "c"]);
+    });
+
+    it("moves a link up its own sequence", async () => {
+        const state = await appState.moveLinkTo("c", GROUP, undefined, 1);
+
+        expect(rootOf(state, GROUP)).toEqual(["a", "c", "b", SUB]);
+    });
+
+    it("leaves a link where it is when it is dropped back on itself", async () => {
+        const state = await appState.moveLinkTo("b", GROUP, undefined, 1);
+
+        expect(rootOf(state, GROUP)).toEqual(["a", "b", SUB, "c"]);
+    });
+
+    it("counts the subgroups between the links", async () => {
+        // Index 2 is the subgroup's place, so a link dropped there goes before it - not
+        // before the third *link*, which a sequence of links only would have said.
+        const state = await appState.moveLinkTo("c", GROUP, undefined, 2);
+
+        expect(rootOf(state, GROUP)).toEqual(["a", "b", "c", SUB]);
+    });
+
+    it("takes a link into a subgroup", async () => {
+        const state = await appState.moveLinkTo("a", GROUP, SUB, 99);
+
+        expect(state.links["a"].subGroupId).toBe(SUB);
+        expect(rootOf(state, GROUP)).toEqual(["b", SUB, "c"]);
+        expect(Object.values(state.links)
+            .filter(l => l.subGroupId === SUB)
+            .sort((one, other) => one.position - other.position)
+            .map(l => l.id)).toEqual(["inside", "a"]);
+    });
+
+    it("takes a link out of a subgroup and into the group", async () => {
+        const state = await appState.moveLinkTo("inside", GROUP, undefined, 0);
+
+        expect(state.links["inside"].subGroupId).toBeUndefined();
+        expect(rootOf(state, GROUP)).toEqual(["inside", "a", "b", SUB, "c"]);
+    });
+
+    it("takes a link into another group entirely", async () => {
+        const state = await appState.moveLinkTo("a", OTHER_GROUP, undefined, 0);
+
+        expect(state.links["a"].groupId).toBe(OTHER_GROUP);
+        expect(rootOf(state, OTHER_GROUP)).toEqual(["a"]);
+        // And closes the gap behind it.
+        expect(rootOf(state, GROUP)).toEqual(["b", SUB, "c"]);
+    });
+
+    it("renumbers both sequences from zero", async () => {
+        // Stored positions are not guaranteed to be a clean 0..n-1 - this fixture starts at
+        // 0, 1, 3 - and arithmetic on a sequence that is not moves the wrong things.
+        const state = await appState.moveLinkTo("a", SUB ? GROUP : GROUP, SUB, 0);
+
+        const root = Object.values(state.links)
+            .filter(l => l.groupId === GROUP && !l.subGroupId)
+            .map(l => l.position)
+            .concat(Object.values(state.subgroups).map(sg => sg.position))
+            .sort((one, other) => one - other);
+        expect(root).toEqual([0, 1, 2]);
+    });
+
+    it("refuses a subgroup that belongs to another group", async () => {
+        const before = appState.state$.get();
+
+        const state = await appState.moveLinkTo("a", OTHER_GROUP, SUB, 0);
+
+        expect(state.links).toEqual(before.links);
+    });
+
+    it("does nothing for a link or a group that is not there", async () => {
+        const before = appState.state$.get();
+
+        await appState.moveLinkTo("gone", GROUP, undefined, 0);
+        const state = await appState.moveLinkTo("a", "no-such-group", undefined, 0);
+
+        expect(state.links).toEqual(before.links);
+    });
+});
+
+/**
+ *  Where a dragged group lands among its workspace's columns.
+ */
+describe("AppStateRepository.moveGroupTo", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e005";
+
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [
+                group("one", "One", ENV, 0),
+                group("two", "Two", ENV, 1),
+                group("three", "Three", ENV, 5)
+            ],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    const order = () => appState.getGroups(ENV).map(group => group.id);
+
+    it("moves a group to the right, landing where it was dropped", async () => {
+        await appState.moveGroupTo("one", 2);
+
+        expect(order()).toEqual(["two", "one", "three"]);
+    });
+
+    it("moves a group to the left", async () => {
+        await appState.moveGroupTo("three", 0);
+
+        expect(order()).toEqual(["three", "one", "two"]);
+    });
+
+    it("renumbers from zero, whatever the orders were", async () => {
+        await appState.moveGroupTo("three", 0);
+
+        expect(appState.getGroups(ENV).map(group => group.order)).toEqual([0, 1, 2]);
+    });
+
+    it("clamps an index past the end", async () => {
+        await appState.moveGroupTo("one", 99);
+
+        expect(order()).toEqual(["two", "three", "one"]);
+    });
+});

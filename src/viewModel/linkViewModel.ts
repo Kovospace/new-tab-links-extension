@@ -62,6 +62,45 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO> {
         return this.REPOSITORY.canMoveWithinScope(this.DTO.id);
     }
 
+    /**
+     *  Puts this link where a drop asked for it.
+     *
+     *  The index is into the sequence the group draws, which at root level counts the
+     *  subgroups between the links - see the repository, which owns that rule.
+     *
+     *  @param groupId    the group it should belong to
+     *  @param subGroupId the subgroup within it, or undefined for the group itself
+     *  @param index      where in that sequence
+     */
+    public moveTo(groupId: string, subGroupId: string | undefined, index: number): void {
+        this.LOG.debug("moveTo", `${this.DTO.id} -> ${groupId}/${subGroupId ?? "-"}@${index}`);
+        this.REPOSITORY.moveLinkTo(this.DTO.id, groupId, subGroupId, index);
+    }
+
+    /**
+     *  Where this link sits in the sequence it is drawn in, so a drop beside it knows the
+     *  index it is aiming at.
+     */
+    public indexInScope(): number {
+        return this.REPOSITORY.indexInScope(this.DTO.id);
+    }
+
+    /**
+     *  Takes another link into this one's place in the sequence.
+     *
+     *  What a drop onto this link means: the dragged one goes where this one is, or just
+     *  after it, and in this one's group and subgroup - which is how a link crosses from one
+     *  group to another without anything else being said.
+     *
+     *  @param draggedId the link that was dropped
+     *  @param index     where it goes, counted in the sequence as it is drawn
+     */
+    public acceptLink(draggedId: string, index: number): void {
+        this.LOG.debug("acceptLink", `${draggedId} -> beside ${this.DTO.id} at ${index}`);
+        this.REPOSITORY.moveLinkTo(
+            draggedId, this.DTO.groupId, this.DTO.subGroupId, index);
+    }
+
     public moveLinkUp() {
         this.REPOSITORY.moveLinkUp(this.DTO.id);
     }

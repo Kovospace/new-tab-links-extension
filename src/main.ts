@@ -40,6 +40,7 @@ import './ui/styles/_profileManager.css'
 import './ui/styles/_settingsDialog.css'
 import './ui/styles/_tipsBar.css'
 import './ui/styles/_adsBar.css'
+import './ui/styles/_dragAndDrop.css'
 import './ui/styles/_closedTabs.css'
 
 // define custom elements used BEFORE they are created/constructed

@@ -63,6 +63,18 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
         this.REPOSITORY.setSubgroupColor(this.DTO.id, color);
     }
 
+    /**
+     *  Takes a link into this subgroup, at the end of it.
+     *
+     *  What a drop on a subgroup means. Dropping onto one of its links says where; dropping
+     *  onto the subgroup itself says only "in here", and the end is where a list grows.
+     */
+    public takeLink(linkId: string): void {
+        this.LOG.debug("takeLink", `${linkId} -> subgroup ${this.DTO.id}`);
+        this.REPOSITORY.moveLinkTo(
+            linkId, this.DTO.groupId, this.DTO.id, Number.MAX_SAFE_INTEGER);
+    }
+
     public deleteSubgroup(id: string): void {
         this.REPOSITORY.deleteSubGroup(id);
     }

@@ -1,0 +1,51 @@
+/* ---------------------------------------------------------------------------
+   Dragging things about
+
+   Three states, and each says a different thing: what is being carried, where
+   it would land beside something, and what it would land inside.
+
+   The lines are drawn with box-shadow rather than a border, because a border
+   changes an element's size and the whole row shifts as the cursor crosses it -
+   which moves the target out from under the pointer.
+   --------------------------------------------------------------------------- */
+
+.dnd-dragging {
+    opacity: 0.4;
+}
+
+/* A link lands above or below the thing it was dropped on; a group lands left
+   or right of it. Both use the same two classes - which side of the element the
+   line is on is decided here, per kind, from the element it is on. */
+link-container.dnd-over-before {
+    box-shadow: inset 0 0.125em 0 0 var(--color-button-active-background);
+}
+
+link-container.dnd-over-after {
+    box-shadow: inset 0 -0.125em 0 0 var(--color-button-active-background);
+}
+
+link-group.dnd-over-before {
+    box-shadow: inset 0.125em 0 0 0 var(--color-button-active-background);
+}
+
+link-group.dnd-over-after {
+    box-shadow: inset -0.125em 0 0 0 var(--color-button-active-background);
+}
+
+/* "Into this one", for a subgroup or a group taking a link at the end. Drawn
+   around the whole container rather than on one edge, because there is no edge
+   the thing is going next to. */
+.dnd-over-into {
+    box-shadow: inset 0 0 0 0.125em var(--color-button-active-background);
+}
+
+/* A group is dragged by its whole self, so its heading is what the cursor
+   should be over to start. The links keep their own pointer, since dragging one
+   starts from anywhere on it. */
+link-group[draggable="true"] > link-group-head {
+    cursor: grab;
+}
+
+link-group[draggable="true"]:active > link-group-head {
+    cursor: grabbing;
+}

@@ -92,6 +92,43 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
       this.REPOSITORY.renameGroup(groupId, title, description);
     }
 
+    /**
+     *  Puts this group where a drop asked for it, among the groups of its workspace.
+     *
+     *  @param index where it goes; clamped by the repository
+     */
+    public moveTo(index: number): void {
+        this.LOG.debug("moveTo", `${this.DTO.id} -> ${index}`);
+        this.REPOSITORY.moveGroupTo(this.DTO.id, index);
+    }
+
+    /**
+     *  Takes another group into this one's place in the row.
+     *
+     *  @param draggedId the group that was dropped
+     *  @param index     where it goes, counted in the row as it is drawn
+     */
+    public acceptGroup(draggedId: string, index: number): void {
+        this.LOG.debug("acceptGroup", `${draggedId} -> beside ${this.DTO.id} at ${index}`);
+        this.REPOSITORY.moveGroupTo(draggedId, index);
+    }
+
+    /** Where this group sits among its workspace's groups, for a drop beside it. */
+    public indexAmongGroups(): number {
+        return this.REPOSITORY.indexAmongGroups(this.DTO.id);
+    }
+
+    /**
+     *  Takes a link into this group, at the end of it.
+     *
+     *  What a drop on the group's own body means: the link belongs here now, and "here" with
+     *  no more said is the bottom of the list.
+     */
+    public takeLink(linkId: string): void {
+        this.LOG.debug("takeLink", `${linkId} -> group ${this.DTO.id}`);
+        this.REPOSITORY.moveLinkTo(linkId, this.DTO.id, undefined, Number.MAX_SAFE_INTEGER);
+    }
+
     public deleteGroup(id: string) {
         this.REPOSITORY.deleteGroup(id);
     }

@@ -12,12 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [big] Drag & drop support
-- change links order by dragging
-- drag link from group to subgroup and vice versa
-- drag link between groups and subgroups
-- drag group to change its order
-
 ### [BIG] i18n
 - find all hardcoded strings or text strings in variables and put them in one place in json
 - add support for multiple languages
@@ -48,6 +42,25 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [big] Drag & drop support
+- all four: reorder links, link into or out of a subgroup, link between groups, and groups
+  along the row
+- HTML5 drag and drop rather than pointer maths - the browser already carries the thing, draws
+  it, and knows when a drag was abandoned
+- behind the "Enable drag & drop" setting, which now does something. The setting is read when a
+  drag starts rather than when listeners are attached, so turning it on needs no rebuild and
+  turning it off stops the next drag
+- a drop onto a thing means "where this one is" - its group, its subgroup, its place - which is
+  how a link crosses into a subgroup or another group without any of that being said
+  separately. A drop onto a subgroup or a group body means "in here, at the end"
+- before/after is read up and down for a link and left and right for a group, because groups
+  are columns
+- the index a drop names counts the sequence as drawn, which still holds the dragged item, so
+  the repository takes one off when it moves down its own sequence; without that, dropping a
+  link one place to the right moved it two
+- NOT done: dragging a subgroup (it has move up/down in its menu), and dragging out of the
+  closed tabs panel - that one waits on this existing, which it now does
 
 ### [medium prioroty] Hovering over top panel into menu button causes "last closed tabs" to open
 - the pointer rule read only x: at or right of the rail's left edge opened it. The rail is a
