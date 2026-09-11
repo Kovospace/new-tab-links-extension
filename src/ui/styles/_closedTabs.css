@@ -103,22 +103,7 @@
 
 .closed-tabs__head-action,
 html.dark .closed-tabs__head-action {
-    min-width: 0;
     margin: 0;
-    padding: 0.25em 0.5em;
-    /*background: none;*/
-    /*border: none;*/
-    font-size: 0.9em;
-    font-weight: normal;
-    color: inherit;
-    opacity: 0.75;
-    cursor: pointer;
-}
-
-.closed-tabs__head-action:hover,
-html.dark .closed-tabs__head-action:hover {
-    background: none;
-    opacity: 1;
 }
 
 .closed-tabs__list {
@@ -254,10 +239,18 @@ html.dark .closed-tabs__row-action {
 
 .closed-tabs__kept {
     flex: 0 0 auto;
-    font-size: 0.85em;
-    /* Always visible: that this page is already saved is the useful half of
-       seeing it in a list of things you closed. */
-    opacity: 0.9;
+    background-color: var(--color-button-add-background);
+    border-radius: 50%;
+    min-width: 1em;
+    height: 1em;
+    aspect-ratio: 1 / 1;
+    line-height: 1em;
+    text-align: center;
+    opacity: 0;
+}
+
+.closed-tabs--open .closed-tabs__kept {
+    opacity: 1;
 }
 
 /* The bookmarking form, borrowed from the popup, shown here in a dialog. */

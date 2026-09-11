@@ -3,9 +3,9 @@ import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { confirmDestructiveAction } from './confirmations';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import {CLASS_ACTION_DANGER} from "../../main";
 
 /** Marks a closed tab whose address the profile already keeps. */
-const ICON_KEPT = '📁';
 
 /**
  * The panel of recently closed tabs.
@@ -176,7 +176,7 @@ export class ClosedTabsPanel {
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
-    clearBtn.classList.add('closed-tabs__head-action');
+    clearBtn.classList.add('closed-tabs__head-action', CLASS_ACTION_DANGER);
     clearBtn.textContent = 'Clear';
     clearBtn.title = 'Forget every closed tab';
     clearBtn.addEventListener('click', () => void this.clearAll());
@@ -260,7 +260,7 @@ export class ClosedTabsPanel {
       // still closed, and knowing it is already saved is the useful half of that.
       const kept = document.createElement('span');
       kept.classList.add('closed-tabs__kept');
-      kept.textContent = ICON_KEPT;
+      kept.textContent = ICON.CHECKED;
       kept.title = 'Already saved in this profile';
       actions.appendChild(kept);
     }
