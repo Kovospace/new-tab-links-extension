@@ -1,5 +1,5 @@
 import { Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
-import { ClosedTab } from "../entity/ClosedTabEntity";
+import { ClosedTab, storableClosedTab } from "../entity/ClosedTabEntity";
 import { settingsOf } from "../entity/ProfileSettings";
 import { SyncEntityKind, SyncOperation } from "./SyncContracts";
 
@@ -95,15 +95,24 @@ export class ChangeSetBuilder {
                 "closedTab",
                 baseline.closedTabsByProfileId?.[profile.id] ?? {},
                 closedTabsByProfileId[profile.id] ?? {},
-                (tab: ClosedTab) => ({
-                    op: "upsert", type: "closedTab", id: tab.id,
-                    profileId: profile.id,
-                    title: tab.title,
-                    url: tab.url,
-                    faviconUrl: tab.faviconUrl ?? null,
-                    closedAt: new Date(tab.closedAt).toISOString(),
-                    deviceName: tab.deviceName ?? null
-                }),
+                (raw: ClosedTab) => {
+                    // Cut again here, not only where it was recorded: an entry stored before
+                    // that rule existed, or pulled from a device that never had it, would
+                    // otherwise fail the whole batch on its way back out.
+                    const tab = storableClosedTab(raw);
+                    return {
+                        op: "upsert" as const, type: "closedTab" as const, id: tab.id,
+                        profileId: profile.id,
+                        title: tab.title,
+                        url: tab.url,
+                        faviconUrl: tab.faviconUrl ?? null,
+                        // An instant, not epoch milliseconds: Jackson reads a bare number as
+                        // seconds, which files a tab in the year 58664 and pins it to the top
+                        // of every list for ever.
+                        closedAt: new Date(tab.closedAt).toISOString(),
+                        deviceName: tab.deviceName ?? null
+                    };
+                },
                 upserts, deletes);
         }
         return [...upserts, ...this.childrenFirst(deletes)];

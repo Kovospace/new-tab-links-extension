@@ -14,7 +14,8 @@ import { MappedSnapshot, SyncSnapshotMapper } from "./SyncSnapshotMapper";
 import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRepository";
 import { SyncOperation } from "./SyncContracts";
 import { ClosedTab, MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
-import { newestFirst, readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
+import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
+import { normalizeUrl } from "../worker/module/linkTabGroupCatcher";
 
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
@@ -776,18 +777,53 @@ export class SyncCoordinator {
 export const syncCoordinator = new SyncCoordinator();
 
 /**
- *  Keeps a pulled list of closed tabs to the cap this device applies to its own.
+ *  Makes a pulled list of closed tabs fit to be this device's list.
  *
- *  The account may hold more than fifty - another device may cap differently, or an older
- *  version may have pushed more - and taking them all would let a list that is meant to be
- *  bounded grow through the back door. Newest first, the same order everything reads it in.
+ *  Three things are done to it, and each is a thing the account cannot do for itself:
+ *
+ *  - **Capped.** The account may hold more than fifty - another device may cap differently,
+ *    or an older version may not have capped at all - and taking them all would let a list
+ *    that is meant to be bounded grow through the back door.
+ *  - **Deduplicated by address.** Two devices closing the same page record it under two
+ *    identifiers, and the backend has no unique constraint to stop that (it cannot have one:
+ *    a legitimate push would start failing). Without this the panel shows the same page twice
+ *    after a pull. The entries dropped here are absent from the next change set, so the
+ *    account converges on one row of its own accord.
+ *  - **Clocks sanity-checked.** `closedAt` is supplied by whichever device closed the tab,
+ *    and a machine with a wrong clock can file one in the year 58664 and pin it to the top of
+ *    the list for ever. Anything claiming to be from the future is read as just now.
+ *
+ *  Exported for its own test, the way the tab catcher's rules are: this is where a pulled
+ *  list is made trustworthy, and none of it is visible from the coordinator's surface.
  *
  *  @param tabs the profile's closed tabs as the account holds them
  */
-function capClosedTabs(tabs: Record<string, ClosedTab>): Record<string, ClosedTab> {
-    const kept = newestFirst(tabs).slice(0, MAX_CLOSED_TABS);
+export function capClosedTabs(tabs: Record<string, ClosedTab>): Record<string, ClosedTab> {
+
+    const now = Date.now();
+    const sane = Object.values(tabs).map(tab => tab.closedAt > now + CLOCK_TOLERANCE
+        ? { ...tab, closedAt: now }
+        : tab);
+
+    const byAddress = new Map<string, ClosedTab>();
+    for (const tab of sane.sort((one, other) => other.closedAt - one.closedAt)) {
+        const address = normalizeUrl(tab.url) ?? tab.url;
+        if (!byAddress.has(address)) {
+            byAddress.set(address, tab);
+        }
+    }
+
+    const kept = [...byAddress.values()].slice(0, MAX_CLOSED_TABS);
     return Object.fromEntries(kept.map(tab => [tab.id, tab]));
 }
+
+/**
+ *  How far ahead of this device's clock a closed tab may claim to be before it is disbelieved.
+ *
+ *  Generous, because the two clocks legitimately differ and a tab closed a moment ago on a
+ *  machine running a minute fast is not a fault. It is the year-58664 case this is for.
+ */
+const CLOCK_TOLERANCE = 60 * 60 * 1000;
 
 /**
  *  Joins two lists of closed tabs, as first contact with an account has to.
@@ -801,7 +837,7 @@ function capClosedTabs(tabs: Record<string, ClosedTab>): Record<string, ClosedTa
  *  @param remote what the account holds
  *  @return the joined list, capped and keyed by identifier
  */
-function mergeClosedTabs(
+export function mergeClosedTabs(
     local: Record<string, ClosedTab>,
     remote: Record<string, ClosedTab>
 ): Record<string, ClosedTab> {
@@ -811,16 +847,8 @@ function mergeClosedTabs(
         byId.set(tab.id, tab);
     }
 
-    // Then by address, keeping whichever was closed later. Two devices closing the same page
-    // record it under two identifiers, and a joined list would otherwise show it twice.
-    const byAddress = new Map<string, ClosedTab>();
-    for (const tab of [...byId.values()].sort((one, other) => other.closedAt - one.closedAt)) {
-        const key = tab.url.replace(/\/+$/, "");
-        if (!byAddress.has(key)) {
-            byAddress.set(key, tab);
-        }
-    }
-
-    return capClosedTabs(Object.fromEntries(
-        [...byAddress.values()].map(tab => [tab.id, tab])));
+    // Deduplicating by address, capping and disbelieving impossible clocks are all done by
+    // capClosedTabs, which a pull needs for the same reasons - so this joins, and leaves the
+    // rest to it.
+    return capClosedTabs(Object.fromEntries([...byId.values()].map(tab => [tab.id, tab])));
 }

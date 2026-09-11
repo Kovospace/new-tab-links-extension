@@ -1,6 +1,8 @@
 import deepEqual from "fast-deep-equal";
 
-import { ClosedTab, MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
+import {
+    ClosedTab, isStorableClosedTabUrl, MAX_CLOSED_TABS, storableClosedTab
+} from "../entity/ClosedTabEntity";
 import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageWrapper";
 import { closedTabsKey } from "../datasource/chromeStorage/storageKeys";
 import { normalizeUrl } from "../worker/module/linkTabGroupCatcher";
@@ -41,12 +43,14 @@ export async function recordClosedTab(
     tab: Omit<ClosedTab, "id">
 ): Promise<ClosedTab | null> {
 
-    if (!profileId || !tab.url) {
+    if (!profileId || !isStorableClosedTabUrl(tab.url)) {
+        // An address the account could not take is worse than one not kept: it would fail
+        // the whole push, and nothing else would sync until it was found.
         return null;
     }
 
     const stored = await readClosedTabs(profileId);
-    const entry: ClosedTab = { ...tab, id: uid() };
+    const entry: ClosedTab = storableClosedTab({ ...tab, id: uid() });
 
     const kept = Object.values(stored)
         .filter(existing => !sameAddress(existing.url, entry.url));

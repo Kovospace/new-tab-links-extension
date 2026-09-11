@@ -4,6 +4,7 @@ import {
     ClosedTabsRepository, newestFirst, readClosedTabs, recordClosedTab, writeClosedTabs
 } from "./ClosedTabsRepository";
 import { MAX_CLOSED_TABS } from "../entity/ClosedTabEntity";
+import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../sync/SyncContracts";
 import { closedTabsKey } from "../datasource/chromeStorage/storageKeys";
 import { flushStorageNotifications, readFakeStorage } from "../../test/chromeStorageStub";
 
@@ -98,6 +99,34 @@ describe("recordClosedTab", () => {
 
     it("records nothing without a profile to record it against", async () => {
         expect(await recordClosedTab("", closure("https://example.com/", 1000))).toBeNull();
+    });
+
+    it("cuts a title the account would refuse", async () => {
+        // Not one rejected row: the backend validates the size over the whole push, so one
+        // long title would stop every other change on this device from reaching the account.
+        // Chrome page titles run past two hundred characters routinely.
+        const recorded = await recordClosedTab(
+            PROFILE, closure("https://example.com/", 1000, "x".repeat(500)));
+
+        expect(recorded!.title).toHaveLength(MAX_TITLE_LENGTH);
+    });
+
+    it("cuts a device name the account would refuse", async () => {
+        const recorded = await recordClosedTab(PROFILE, {
+            ...closure("https://example.com/", 1000),
+            deviceName: "d".repeat(300)
+        });
+
+        expect(recorded!.deviceName).toHaveLength(MAX_NAME_LENGTH);
+    });
+
+    it("refuses an address too long to be stored at all", async () => {
+        // Nothing can be trimmed off an address without changing where it points, and an
+        // over-long one would fail the batch - so it is not recorded.
+        const enormous = `https://example.com/${"p".repeat(MAX_URL_LENGTH)}`;
+
+        expect(await recordClosedTab(PROFILE, closure(enormous, 1000))).toBeNull();
+        expect(newestFirst(await readClosedTabs(PROFILE))).toEqual([]);
     });
 });
 

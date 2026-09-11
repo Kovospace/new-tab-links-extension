@@ -212,6 +212,19 @@ a button in the header and built only when first asked for.
   that really happened on machines that have never met, so neither can be discarded; the same
   address closed on both survives once, at the later time. Everywhere else the account wins,
   and that difference is the difference between data and a log.
+- **A pulled list is put through `capClosedTabs` before it is believed**: capped, deduplicated
+  by address, and clock-checked. The account cannot do any of this itself - it has no cap, it
+  cannot carry a unique constraint on the address without making a legitimate push fail, and
+  it takes the closing time from whichever device reported it, so a machine with a wrong clock
+  can otherwise pin one row to the top of every device's list for ever.
+- **Titles are cut to 200 characters and over-long addresses are never recorded.** `@Size` is
+  validated over the whole push, so one long title is not a rejected row but a 400 for the
+  entire batch - and Chrome page titles pass 200 characters daily.
+- `closedAt` crosses the wire as an ISO instant, never as epoch milliseconds: the backend reads
+  a bare number as epoch *seconds*, which files a tab in the year 58664, silently.
+- Nothing schedules a push when a tab closes. Closed tabs ride along with the next
+  synchronisation something else causes - which on a new tab page is immediate anyway - so
+  closing tabs does not make every other signed-in device re-fetch the account.
 
 ### Tips on the workspace background (`ui/tips/`)
 
