@@ -98,3 +98,29 @@ workspace-plane-footer {
     flex-basis: auto;
 }
 
+/*
+   Where an advertisement goes, after the tips and inside the workspace footer.
+
+   It takes no room while it is empty, which is most of the time and all of it
+   today: reserving the space is the point of declaring the slot, but reserving
+   it visibly would be a blank strip across the bottom of everybody's new tab
+   page for something that does not exist yet. The size is declared, so whatever
+   is put in here lands in a layout already the right shape - and deleting the
+   :empty rule is what turns the reservation on for good.
+
+   The one thing on this page measured in pixels rather than em. An
+   advertisement is sold as a fixed number of pixels; a slot that grew with the
+   interface size would either crop it or leave a gap beside it.
+*/
+div.ad-slot {
+    flex: 0 0 auto;
+    width: 728px;
+    max-width: 100%;
+    height: 90px;
+    margin: 0 auto 1em;
+    overflow: hidden;
+}
+
+div.ad-slot:empty {
+    display: none;
+}

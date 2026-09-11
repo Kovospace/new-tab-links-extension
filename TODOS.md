@@ -16,6 +16,7 @@ Note for agents:
 
 ### [small] Space reserved for ads
 - in <workspace-plane-footer> after div.tips-bar
+- 64 px high, 1em margin - change background color to #222 and add 1em margin
 
 ### [big] Drag & drop support
 - change links order by dragging

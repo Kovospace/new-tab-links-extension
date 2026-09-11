@@ -10,6 +10,7 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
     ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
+    CLASS_AD_SLOT,
 } from "../../main"
 
 // data/model layer
@@ -125,6 +126,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // footer: the footer never moves, and a line of advice that is always on screen
         // stops reading as advice and starts reading as furniture.
         this.renderTips(footElem);
+        this.renderAdSlot(footElem);
 
         // The rail of recently closed tabs, which lives beside the page rather than in it.
         void this.renderClosedTabs();
@@ -440,6 +442,28 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      */
     private renderTips(parentElem: HTMLElement) {
         new TipsBar().render(parentElem);
+    }
+
+    /**
+     *  The space an advertisement goes in, after the tips and inside the workspace footer.
+     *
+     *  Empty, and it takes no room while it is empty - see the stylesheet. Reserving the space
+     *  is the point of declaring the slot, but reserving it *visibly* would mean a blank strip
+     *  across the bottom of everybody's new tab page today, for something that does not exist
+     *  yet. The size is declared instead, so that whatever is put here lands in a layout
+     *  already the right shape; deleting the `:empty` rule is what turns the reservation on.
+     *
+     *  It is the one thing on this page sized in pixels rather than em. An advertisement is
+     *  sold as a fixed number of pixels, so a slot that grew with the interface size would
+     *  either crop it or leave a gap beside it.
+     */
+    private renderAdSlot(parentElem: HTMLElement): void {
+        const slot = renderContainer([CLASS_AD_SLOT]);
+        slot.dataset.adSlot = "workspace-footer";
+        // Nothing to announce while it is empty, and an advertisement is not what somebody
+        // using a screen reader came to this page for.
+        slot.setAttribute("aria-hidden", "true");
+        parentElem.appendChild(slot);
     }
 
     /**
