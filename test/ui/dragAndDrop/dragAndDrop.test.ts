@@ -15,6 +15,9 @@ function boxOf(element: HTMLElement, box: Partial<DOMRect>): void {
 }
 
 /** A drag event jsdom will carry, with the dataTransfer a browser would provide. */
+/** Every setDragImage the last drag asked for; emptied before each test. */
+const drawnAt: { image: Element; x: number; y: number }[] = [];
+
 function dragEvent(type: string, at: { clientX?: number; clientY?: number } = {}): DragEvent {
     const event = new MouseEvent(type, { bubbles: true, cancelable: true, ...at }) as DragEvent;
     const data = new Map<string, string>();
@@ -22,6 +25,9 @@ function dragEvent(type: string, at: { clientX?: number; clientY?: number } = {}
         value: {
             setData: (format: string, value: string) => data.set(format, value),
             getData: (format: string) => data.get(format) ?? "",
+            setDragImage: (image: Element, x: number, y: number) => {
+                drawnAt.push({ image, x, y });
+            },
             effectAllowed: "", dropEffect: ""
         }
     });
@@ -34,6 +40,7 @@ describe("dragAndDrop", () => {
 
     beforeEach(async () => {
         document.body.innerHTML = "";
+        drawnAt.length = 0;
         profiles = new ProfileRepository();
         await profiles.init();
         useProfilesForDragAndDrop(profiles);
@@ -423,6 +430,73 @@ describe("dragAndDrop", () => {
                 .toBe("before");
             expect(sideOf(element, dragEvent("dragover", { clientY: 35 }), "subgroup"))
                 .toBe("after");
+        });
+    });
+
+    /**
+     *  **Where the carried thing is drawn, relative to the cursor.**
+     *
+     *  A link is as wide as its column and a closed tab's row is wider still, so grabbing one
+     *  by its right end left the cursor outside the column the whole time it was being carried
+     *  over it. The line that says where it will land is drawn on an element inside that
+     *  column, and no element was under the cursor to draw it on: the drop landed where it
+     *  looked like it would, with nothing at any point saying so.
+     */
+    describe("the picture under the cursor", () => {
+
+        /** A row 400 wide and 24 tall, which is about a link in a column. */
+        function wideRow(): HTMLElement {
+            const row = document.createElement("div");
+            boxOf(row, { left: 0, top: 100, right: 400, bottom: 124, width: 400, height: 24 });
+            return row;
+        }
+
+        it("is redrawn from the cursor when something wide is grabbed by its far end",
+            async () => {
+                await profiles.updateSettings({ enableDragAndDrop: true });
+                const row = wideRow();
+                makeDraggable(row, { kind: "link", id: "a" });
+
+                row.dispatchEvent(dragEvent("dragstart", { clientX: 380, clientY: 110 }));
+
+                // 2em of the root font size, which jsdom keeps at 16px - near enough the left
+                // edge that the cursor is inside the column wherever the row is drawn.
+                expect(drawnAt).toEqual([{ image: row, x: 32, y: 10 }]);
+            });
+
+        it("keeps the height the thing was grabbed at, because that is what picks the side",
+            async () => {
+                await profiles.updateSettings({ enableDragAndDrop: true });
+                const row = wideRow();
+                makeDraggable(row, { kind: "closedTab", id: "a", url: "u", title: "t" });
+
+                row.dispatchEvent(dragEvent("dragstart", { clientX: 300, clientY: 120 }));
+
+                expect(drawnAt[0].y).toBe(20);
+            });
+
+        it("leaves it where it was drawn when it was grabbed near its leading edge already",
+            async () => {
+                await profiles.updateSettings({ enableDragAndDrop: true });
+                const row = wideRow();
+                makeDraggable(row, { kind: "link", id: "a" });
+
+                row.dispatchEvent(dragEvent("dragstart", { clientX: 20, clientY: 110 }));
+
+                expect(drawnAt).toEqual([]);
+            });
+
+        it("never moves a group, whose sideways position is the aim itself", async () => {
+            // A group lands before or after its neighbours by where the cursor is across the
+            // page. Sliding the column out from under the cursor would move the aim.
+            await profiles.updateSettings({ enableDragAndDrop: true });
+            const column = document.createElement("div");
+            boxOf(column, { left: 0, top: 0, right: 400, bottom: 800, width: 400, height: 800 });
+            makeDraggable(column, { kind: "group", id: "a" });
+
+            column.dispatchEvent(dragEvent("dragstart", { clientX: 380, clientY: 400 }));
+
+            expect(drawnAt).toEqual([]);
         });
     });
 });

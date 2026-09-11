@@ -12,6 +12,11 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
+### [medium] Add trash bin for links
+- when dragging link, change the "tips bar" into "trash bar"
+- transition color to var(--color-danger) and back
+- title it like "Drop link here to destroy it" - link dropped there will be deleted
+
 ### [BIG] i18n
 - find all hardcoded strings or text strings in variables and put them in one place in json
 - add support for multiple languages
@@ -30,6 +35,26 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
+### [small] The seeded data does not type-check
+- `npx tsc --noEmit` reports five errors in src/backend/datasource/init/AppStateInit.ts: the
+  groups, subgroups and links the first run is seeded with have no `createdAt`, which the
+  entities require
+- the build does not notice, because Vite transpiles rather than type-checks, and a seeded
+  record without it is written to storage as it stands
+- so the whole strict check is unusable until it is fixed - which is what it costs: nothing
+  else it would catch can be seen while these five are in the way
+
+### [high] "recently closed tabs" opens when dragging somethin
+- when dragging something (group, subgroup, link) the "recently closed tabs" panel unfolds
+
+### [high] "last open tabs link ghost"
+- when pulling link from "last open tabs" and dropping it out of column (a.k.a. nowhere), the buttons from
+  closed-tabs__row-actions stays visible after panel fold
+- these ghosts survive panel reopening next time even if mouse is not hovered at the given link
+- only click elsewhere is causing them disappear
+
+### [medium] the scrollbar is displayed on folded "last open tabs" panel
+- do not display scrollbar on folded panel
 
 
 ## TO BE approved / analyzed
