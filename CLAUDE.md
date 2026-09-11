@@ -323,8 +323,13 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   same reason: otherwise a link, its subgroup and its group all light up at once.
 - A drop onto a thing means "where this one is": its group, its subgroup, and its place. That
   is how a link crosses into a subgroup or another group without any of it being said
-  separately. A drop onto a container - a subgroup, a group's body - means "in here, at the
-  end".
+  separately. A drop onto a container - a subgroup's heading, a group's body - means "in here,
+  at the end". **The innermost container claims the drop**, or a link dropped on a subgroup's
+  heading reaches the group behind it and the outer handler, running last, wins.
+- **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
+  group's root-level links, so it can be dropped beside one of them; its own links travel with
+  it, because a link names the group it is in as well as the subgroup, and one left behind
+  would claim a group that no longer holds its subgroup and be drawn by neither.
 - Which half of the element decides before or after: **vertically for a link, horizontally for
   a group**, because groups are columns.
 - **The index a drop names counts the sequence as the user sees it**, which still contains the

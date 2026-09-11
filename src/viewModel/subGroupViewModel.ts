@@ -64,6 +64,33 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
     }
 
     /**
+     *  Puts this subgroup where a drop asked for it.
+     *
+     *  @param groupId the group it should belong to
+     *  @param index   where in that group's sequence, links counted
+     */
+    public moveTo(groupId: string, index: number): void {
+        this.LOG.debug("moveTo", `${this.DTO.id} -> ${groupId}@${index}`);
+        this.REPOSITORY.moveSubgroupTo(this.DTO.id, groupId, index);
+    }
+
+    /** Where this subgroup sits in the sequence it is drawn in, for a drop beside it. */
+    public indexInScope(): number {
+        return this.REPOSITORY.indexInScope(this.DTO.id);
+    }
+
+    /**
+     *  Takes another subgroup into this one's place in the sequence.
+     *
+     *  @param draggedId the subgroup that was dropped
+     *  @param index     where it goes, counted in the sequence as it is drawn
+     */
+    public acceptSubgroup(draggedId: string, index: number): void {
+        this.LOG.debug("acceptSubgroup", `${draggedId} -> beside ${this.DTO.id} at ${index}`);
+        this.REPOSITORY.moveSubgroupTo(draggedId, this.DTO.groupId, index);
+    }
+
+    /**
      *  Takes a link into this subgroup, at the end of it.
      *
      *  What a drop on a subgroup means. Dropping onto one of its links says where; dropping

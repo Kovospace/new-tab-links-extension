@@ -101,6 +101,23 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO> {
             draggedId, this.DTO.groupId, this.DTO.subGroupId, index);
     }
 
+    /**
+     *  Takes a subgroup into this link's place in the sequence.
+     *
+     *  Only a link at the root of a group can do this: the sequence inside a subgroup holds
+     *  links and nothing else, so a subgroup dropped there has no place to land.
+     *
+     *  @param draggedId the subgroup that was dropped
+     *  @param index     where it goes, counted in the sequence as it is drawn
+     */
+    public acceptSubgroup(draggedId: string, index: number): void {
+        if (this.DTO.subGroupId) {
+            return;
+        }
+        this.LOG.debug("acceptSubgroup", `${draggedId} -> beside ${this.DTO.id} at ${index}`);
+        this.REPOSITORY.moveSubgroupTo(draggedId, this.DTO.groupId, index);
+    }
+
     public moveLinkUp() {
         this.REPOSITORY.moveLinkUp(this.DTO.id);
     }

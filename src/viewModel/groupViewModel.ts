@@ -129,6 +129,16 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
         this.REPOSITORY.moveLinkTo(linkId, this.DTO.id, undefined, Number.MAX_SAFE_INTEGER);
     }
 
+    /**
+     *  Takes a subgroup into this group, at the end of it - and its links with it.
+     *
+     *  What a drop on the group's own body means for a subgroup, as it does for a link.
+     */
+    public takeSubgroup(subgroupId: string): void {
+        this.LOG.debug("takeSubgroup", `${subgroupId} -> group ${this.DTO.id}`);
+        this.REPOSITORY.moveSubgroupTo(subgroupId, this.DTO.id, Number.MAX_SAFE_INTEGER);
+    }
+
     public deleteGroup(id: string) {
         this.REPOSITORY.deleteGroup(id);
     }

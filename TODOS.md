@@ -59,8 +59,14 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 - the index a drop names counts the sequence as drawn, which still holds the dragged item, so
   the repository takes one off when it moves down its own sequence; without that, dropping a
   link one place to the right moved it two
-- NOT done: dragging a subgroup (it has move up/down in its menu), and dragging out of the
-  closed tabs panel - that one waits on this existing, which it now does
+- subgroups are draggable too: within their group's sequence, which counts its root-level
+  links, and into another group - where their own links go with them, since a link names its
+  group as well as its subgroup and one left behind would be drawn by neither
+- a link dropped on a subgroup's heading or description lands in that subgroup, at the end. It
+  used to land in the group instead: a drop that nothing stopped reached the group behind the
+  subgroup, and the outer handler ran last and won
+- NOT done: dragging out of the closed tabs panel - that one waits on this existing, which it
+  now does
 
 ### [medium prioroty] Hovering over top panel into menu button causes "last closed tabs" to open
 - the pointer rule read only x: at or right of the rail's left edge opened it. The rail is a

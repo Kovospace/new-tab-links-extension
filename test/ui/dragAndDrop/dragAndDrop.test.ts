@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import {
-    isDragAndDropEnabled, makeDraggable, makeReorderTarget, sideOf, useProfilesForDragAndDrop,
-    whatIsBeingDragged
+    isDragAndDropEnabled, makeContainerTarget, makeDraggable, makeReorderTarget, sideOf,
+    useProfilesForDragAndDrop, whatIsBeingDragged
 } from "../../../src/ui/dragAndDrop/dragAndDrop";
 
 /** jsdom lays nothing out, so an element is told where it is. */
@@ -208,6 +208,88 @@ describe("dragAndDrop", () => {
             target.dispatchEvent(dragEvent("drop"));
 
             expect(drops).toEqual([]);
+        });
+    });
+
+    describe("containers inside containers", () => {
+
+        it("gives a drop to the innermost container that takes it", async () => {
+            // The bug: a subgroup sits inside a group and both take links, so a link dropped
+            // on a subgroup's heading reached the group's handler afterwards - the outer one
+            // ran last and won, and the link landed in the group rather than the subgroup.
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const group = document.createElement("div");
+            const subgroup = document.createElement("div");
+            group.appendChild(subgroup);
+            document.body.appendChild(group);
+
+            const took: string[] = [];
+            makeContainerTarget(group, "link", () => took.push("group"));
+            makeContainerTarget(subgroup, "link", () => took.push("subgroup"));
+
+            const source = document.createElement("div");
+            source.id = "a-link";
+            makeDraggable(source, { kind: "link", id: "a-link" });
+            source.dispatchEvent(dragEvent("dragstart"));
+
+            subgroup.dispatchEvent(dragEvent("drop"));
+
+            expect(took).toEqual(["subgroup"]);
+        });
+
+        it("still gives the group a drop aimed at the group", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const group = document.createElement("div");
+            const subgroup = document.createElement("div");
+            group.appendChild(subgroup);
+            document.body.appendChild(group);
+
+            const took: string[] = [];
+            makeContainerTarget(group, "link", () => took.push("group"));
+            makeContainerTarget(subgroup, "link", () => took.push("subgroup"));
+
+            const source = document.createElement("div");
+            source.id = "a-link";
+            makeDraggable(source, { kind: "link", id: "a-link" });
+            source.dispatchEvent(dragEvent("dragstart"));
+
+            group.dispatchEvent(dragEvent("drop"));
+
+            expect(took).toEqual(["group"]);
+        });
+    });
+
+    describe("what a target will take", () => {
+
+        it("accepts any of the kinds it was given", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const target = document.createElement("div");
+            target.id = "a-link";
+            boxOf(target, { top: 0, bottom: 40, height: 40 });
+            const drops: string[] = [];
+            makeReorderTarget(target, ["link", "subgroup"], (_side, id) => drops.push(id));
+
+            const subgroup = document.createElement("div");
+            subgroup.id = "a-subgroup";
+            makeDraggable(subgroup, { kind: "subgroup", id: "a-subgroup" });
+            subgroup.dispatchEvent(dragEvent("dragstart"));
+            target.dispatchEvent(dragEvent("drop", { clientY: 10 }));
+
+            expect(drops).toEqual(["a-subgroup"]);
+        });
+
+        it("reads a dragged subgroup up and down, like a link", () => {
+            // It is drawn in the same stack as the links, not beside them.
+            const element = document.createElement("div");
+            boxOf(element, { top: 0, bottom: 40, height: 40 });
+
+            expect(sideOf(element, dragEvent("dragover", { clientY: 5 }), "subgroup"))
+                .toBe("before");
+            expect(sideOf(element, dragEvent("dragover", { clientY: 35 }), "subgroup"))
+                .toBe("after");
         });
     });
 });

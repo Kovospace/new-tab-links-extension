@@ -14,7 +14,9 @@ import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
 import { contextMenu, ContextMenuAction } from "../partials/contextMenu";
 import {InputDialog} from "../partials/inputDialog";
-import { makeDraggable, makeReorderTarget } from "../dragAndDrop/dragAndDrop";
+import {
+    makeDraggable, makeReorderTarget, whatIsBeingDragged
+} from "../dragAndDrop/dragAndDrop";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
@@ -121,8 +123,14 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
      */
     private listenerDragAndDrop() {
         makeDraggable(this, { kind: "link", id: this.DTO.id });
-        makeReorderTarget(this, "link", (side, draggedId) => {
+        makeReorderTarget(this, ["link", "subgroup"], (side, draggedId) => {
             const index = this.VIEW_MODEL.indexInScope() + (side === "after" ? 1 : 0);
+            // A root-level link shares its sequence with the group's subgroups, so a subgroup
+            // can be dropped beside it. One inside a subgroup does not, and says so itself.
+            if (whatIsBeingDragged()?.kind === "subgroup") {
+                this.VIEW_MODEL.acceptSubgroup(draggedId, index);
+                return;
+            }
             this.VIEW_MODEL.acceptLink(draggedId, index);
         });
     }

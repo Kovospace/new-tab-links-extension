@@ -896,6 +896,73 @@ export class AppStateRepository {
     }
 
     /**
+     * Puts a subgroup at a given place, in its own group or in another one: dragging one.
+     *
+     * A subgroup shares its sequence with the group's root-level links, so an index here
+     * counts both - dropping one at index 2 of a group puts it after whatever the first two
+     * items are, links included.
+     *
+     * **Its links go with it.** A link carries the group it belongs to as well as the
+     * subgroup, so a subgroup that moved alone would leave its contents claiming to be in a
+     * group that no longer holds them - they would vanish from both.
+     *
+     * @param subgroupId the subgroup being moved
+     * @param groupId    the group it is to belong to
+     * @param index      where in that group's sequence it goes; clamped to the ends
+     */
+    moveSubgroupTo(subgroupId: string, groupId: string, index: number): Promise<AppState> {
+
+        const subgroup = this.state.subgroups[subgroupId];
+        const group = this.state.groups[groupId];
+        if (!subgroup || !group) {
+            this.LOG.debug("moveSubgroupTo", `No such subgroup or group: ${subgroupId} -> ${groupId}`);
+            return Promise.resolve(this.state);
+        }
+
+        const moved: Subgroup = {
+            ...subgroup,
+            groupId,
+            environmentId: group.environmentId
+        };
+
+        const joiningAsSeen = this.itemsInScope(groupId, undefined);
+        const wasAt = joiningAsSeen.findIndex(item => item.id === subgroupId);
+        const target = index - (wasAt >= 0 && wasAt < index ? 1 : 0);
+
+        const leaving = this.itemsInScope(subgroup.groupId, undefined)
+            .filter(item => item.id !== subgroupId);
+        const joining = joiningAsSeen.filter(item => item.id !== subgroupId);
+
+        joining.splice(Math.max(0, Math.min(target, joining.length)), 0, moved);
+
+        const subgroups = { ...this.state.subgroups, [subgroupId]: moved };
+        const links = { ...this.state.links };
+
+        // The contents follow the subgroup into its new group. Their order inside it is their
+        // own sequence and is not touched.
+        for (const link of Object.values(links)) {
+            if (link.subGroupId === subgroupId) {
+                links[link.id] = {
+                    ...link, groupId, environmentId: group.environmentId
+                };
+            }
+        }
+
+        for (const sequence of [leaving, joining]) {
+            sequence.forEach((item, position) => {
+                if (links[item.id]) {
+                    links[item.id] = { ...links[item.id], position };
+                } else if (subgroups[item.id]) {
+                    subgroups[item.id] = { ...subgroups[item.id], position };
+                }
+            });
+        }
+
+        this.state = { ...this.state, links, subgroups };
+        return this.save();
+    }
+
+    /**
      * Puts a group at a given place among its workspace's groups: dragging one sideways.
      *
      * Renumbered from zero, like every other sequence here, because `order` has never been

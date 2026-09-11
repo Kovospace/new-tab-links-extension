@@ -762,3 +762,97 @@ describe("AppStateRepository.moveGroupTo", () => {
         expect(order()).toEqual(["two", "three", "one"]);
     });
 });
+
+/**
+ *  Where a dragged subgroup lands. It shares its sequence with the group's root-level links,
+ *  and its own links travel with it - a link names the group it is in as well as the subgroup,
+ *  so a subgroup that moved alone would leave its contents claiming a group that no longer
+ *  holds them.
+ */
+describe("AppStateRepository.moveSubgroupTo", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e006";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g006";
+    const OTHER = "0199aaaa-0000-7000-8000-00000000g007";
+    const SUB = "0199aaaa-0000-7000-8000-0000000000s02";
+
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "Reading", ENV), group(OTHER, "Later", ENV, 1)],
+            subgroups: [subgroup(SUB, "Archive", GROUP, ENV, 1)],
+            links: [
+                link("a", "A", "https://a.test", GROUP, ENV, { position: 0 }),
+                link("b", "B", "https://b.test", GROUP, ENV, { position: 2 }),
+                link("inside", "Inside", "https://inside.test", GROUP, ENV,
+                    { subGroupId: SUB, position: 0 })
+            ],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    const rootOf = (state: AppState, groupId: string) => [
+        ...Object.values(state.links).filter(l => l.groupId === groupId && !l.subGroupId),
+        ...Object.values(state.subgroups).filter(sg => sg.groupId === groupId)
+    ].sort((one, other) => one.position - other.position).map(item => item.id);
+
+    it("moves a subgroup up its group's sequence, past a link", async () => {
+        // [a, sub, b] - dropped at the top.
+        const state = await appState.moveSubgroupTo(SUB, GROUP, 0);
+
+        expect(rootOf(state, GROUP)).toEqual([SUB, "a", "b"]);
+    });
+
+    it("moves a subgroup down its group's sequence", async () => {
+        const state = await appState.moveSubgroupTo(SUB, GROUP, 3);
+
+        expect(rootOf(state, GROUP)).toEqual(["a", "b", SUB]);
+    });
+
+    it("takes a subgroup into another group", async () => {
+        const state = await appState.moveSubgroupTo(SUB, OTHER, 0);
+
+        expect(state.subgroups[SUB].groupId).toBe(OTHER);
+        expect(rootOf(state, OTHER)).toEqual([SUB]);
+        expect(rootOf(state, GROUP)).toEqual(["a", "b"]);
+    });
+
+    it("takes the subgroup's links with it", async () => {
+        // A link names its group as well as its subgroup. One left behind would claim a group
+        // that no longer holds its subgroup, and be drawn by neither.
+        const state = await appState.moveSubgroupTo(SUB, OTHER, 0);
+
+        expect(state.links["inside"].groupId).toBe(OTHER);
+        expect(state.links["inside"].subGroupId).toBe(SUB);
+    });
+
+    it("leaves the order inside the subgroup alone", async () => {
+        const state = await appState.moveSubgroupTo(SUB, OTHER, 0);
+
+        expect(state.links["inside"].position).toBe(0);
+    });
+
+    it("renumbers both sequences from zero", async () => {
+        const state = await appState.moveSubgroupTo(SUB, OTHER, 0);
+
+        expect(Object.values(state.links)
+            .filter(l => l.groupId === GROUP && !l.subGroupId)
+            .map(l => l.position)
+            .sort()).toEqual([0, 1]);
+    });
+
+    it("does nothing for a subgroup or a group that is not there", async () => {
+        const before = appState.state$.get();
+
+        await appState.moveSubgroupTo("gone", GROUP, 0);
+        const state = await appState.moveSubgroupTo(SUB, "no-such-group", 0);
+
+        expect(state.subgroups).toEqual(before.subgroups);
+    });
+});

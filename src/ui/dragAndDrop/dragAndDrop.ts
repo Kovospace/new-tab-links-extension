@@ -24,7 +24,10 @@ import { Logger } from "../../utils/logger";
 const LOG = new Logger("DragAndDrop");
 
 /** What is being carried. */
-export type DragKind = "link" | "group";
+export type DragKind = "link" | "subgroup" | "group";
+
+/** What a target will take: one kind, or any of several. */
+export type Accepts = DragKind | DragKind[];
 
 /** The thing under the cursor, while there is one. */
 export interface Dragged {
@@ -128,7 +131,7 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
  */
 export function makeReorderTarget(
     element: HTMLElement,
-    accepts: DragKind,
+    accepts: Accepts,
     onDrop: (side: DropSide, draggedId: string) => void
 ): void {
 
@@ -145,7 +148,7 @@ export function makeReorderTarget(
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
-        mark(element, sideOf(element, event, accepts) === "before"
+        mark(element, sideOf(element, event, carrying.kind) === "before"
             ? CLASS_OVER_BEFORE
             : CLASS_OVER_AFTER);
     });
@@ -160,7 +163,7 @@ export function makeReorderTarget(
         event.preventDefault();
         event.stopPropagation();
         unmark(element);
-        onDrop(sideOf(element, event, accepts), carrying.id);
+        onDrop(sideOf(element, event, carrying.kind), carrying.id);
     });
 }
 
@@ -176,7 +179,7 @@ export function makeReorderTarget(
  */
 export function makeContainerTarget(
     element: HTMLElement,
-    accepts: DragKind,
+    accepts: Accepts,
     onDrop: (draggedId: string) => void
 ): void {
 
@@ -185,6 +188,9 @@ export function makeContainerTarget(
             return;
         }
         event.preventDefault();
+        // The innermost container claims it, as the innermost reorder target does. A
+        // subgroup sits inside a group and both take links; without this both lit up.
+        event.stopPropagation();
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = "move";
         }
@@ -199,8 +205,12 @@ export function makeContainerTarget(
             return;
         }
         event.preventDefault();
-        // Not stopped: a drop on a link inside this container has already stopped it, so
-        // reaching here means the container itself was the target.
+        // Stopped, and this is the fix for a link dropped on a subgroup's heading landing in
+        // the group instead of the subgroup: a subgroup is inside a group, both take links,
+        // and an unstopped drop reached the group's handler afterwards - the outer one ran
+        // last and won. A drop on a link inside this container has already stopped before
+        // here, so reaching this line means the container itself was the target.
+        event.stopPropagation();
         unmark(element);
         onDrop(carrying.id);
     });
@@ -215,14 +225,16 @@ export function makeContainerTarget(
  */
 export function sideOf(element: HTMLElement, event: MouseEvent, kind: DragKind): DropSide {
     const box = element.getBoundingClientRect();
+    // Groups are columns side by side; links and subgroups are stacked within one.
     return kind === "group"
         ? (event.clientX < box.left + box.width / 2 ? "before" : "after")
         : (event.clientY < box.top + box.height / 2 ? "before" : "after");
 }
 
 /** What is being dragged, if this target takes that kind and dragging is on at all. */
-function acceptable(accepts: DragKind): Dragged | null {
-    if (!isDragAndDropEnabled() || !dragged || dragged.kind !== accepts) {
+function acceptable(accepts: Accepts): Dragged | null {
+    const kinds = Array.isArray(accepts) ? accepts : [accepts];
+    if (!isDragAndDropEnabled() || !dragged || !kinds.includes(dragged.kind)) {
         return null;
     }
     return dragged;
