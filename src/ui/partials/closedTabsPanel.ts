@@ -3,6 +3,7 @@ import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { confirmDestructiveAction } from './confirmations';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { makeDraggable } from '../dragAndDrop/dragAndDrop';
 import { ObservableValue } from '../../utils/observableValue';
 import {CLASS_ACTION_DANGER} from "../../constants";
 
@@ -239,6 +240,17 @@ export class ClosedTabsPanel {
 
     const row = document.createElement('div');
     row.classList.add('closed-tabs__row');
+
+    // Draggable out of the panel and onto a group, a subgroup or a place between two links.
+    // It carries its address and title rather than only an identifier, because what it makes
+    // over there is a new link: nothing in the workspace can look a closed tab up, and
+    // nothing should have to reach into this panel to do it.
+    makeDraggable(row, {
+      kind: 'closedTab',
+      id: tab.id,
+      url: tab.url,
+      title: tab.title
+    });
 
     const icon = document.createElement('img');
     icon.classList.add('closed-tabs__favicon');

@@ -282,6 +282,68 @@ describe("dragAndDrop", () => {
         });
     });
 
+    /**
+     *  A closed tab is the one thing dragged here that is not already somewhere: dropping it
+     *  makes a link. So it carries what a link is made of, and the target it lands on never
+     *  has to reach into the panel it came from.
+     */
+    describe("carrying something that is not a link yet", () => {
+
+        it("carries the address and the title, not only an identifier", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+            const row = document.createElement("div");
+            makeDraggable(row, {
+                kind: "closedTab", id: "tab-1",
+                url: "https://example.com/page", title: "A page"
+            });
+
+            row.dispatchEvent(dragEvent("dragstart"));
+
+            expect(whatIsBeingDragged()).toEqual({
+                kind: "closedTab", id: "tab-1",
+                url: "https://example.com/page", title: "A page"
+            });
+        });
+
+        it("is taken by a target that accepts closed tabs", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+            const row = document.createElement("div");
+            row.id = "tab-1";
+            makeDraggable(row, {
+                kind: "closedTab", id: "tab-1", url: "https://example.com/", title: "A page"
+            });
+
+            const target = document.createElement("div");
+            target.id = "a-group";
+            const took: string[] = [];
+            makeContainerTarget(target, ["link", "closedTab"], id => took.push(id));
+
+            row.dispatchEvent(dragEvent("dragstart"));
+            target.dispatchEvent(dragEvent("drop"));
+
+            expect(took).toEqual(["tab-1"]);
+        });
+
+        it("is refused by a target that only takes groups", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: true });
+            const row = document.createElement("div");
+            row.id = "tab-1";
+            makeDraggable(row, {
+                kind: "closedTab", id: "tab-1", url: "https://example.com/", title: "A page"
+            });
+
+            const target = document.createElement("div");
+            target.id = "a-group";
+            const took: string[] = [];
+            makeReorderTarget(target, "group", (_side, id) => took.push(id));
+
+            row.dispatchEvent(dragEvent("dragstart"));
+            target.dispatchEvent(dragEvent("drop"));
+
+            expect(took).toEqual([]);
+        });
+    });
+
     describe("containers inside containers", () => {
 
         it("gives a drop to the innermost container that takes it", async () => {

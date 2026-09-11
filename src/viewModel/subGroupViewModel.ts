@@ -102,6 +102,12 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
             linkId, this.DTO.groupId, this.DTO.id, Number.MAX_SAFE_INTEGER);
     }
 
+    /** Makes a link out of a closed tab dropped on this subgroup, at the end of it. */
+    public takeClosedTab(url: string, title: string): void {
+        this.LOG.debug("takeClosedTab", `${url} -> subgroup ${this.DTO.id}`);
+        this.REPOSITORY.createLink(url, title, this.DTO.groupId, this.DTO.id);
+    }
+
     public deleteSubgroup(id: string): void {
         this.REPOSITORY.deleteSubGroup(id);
     }

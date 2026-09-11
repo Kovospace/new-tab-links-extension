@@ -352,6 +352,12 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   padding-less parent the strip is outside that parent altogether, so there is nothing under
   the cursor for a drop to bubble out of. A gap is inside the box that declares it, so every
   pixel between a heading and its description belongs to the head.
+- **A closed tab can be dragged out of the panel and dropped as a new link.** It is the one
+  payload that is not already somewhere, so it carries its address and title rather than only
+  an identifier: what it makes on the other side is a new link, and nothing in the workspace
+  can look a closed tab up - nor should have to reach into the panel to do it. The tab stays in
+  the panel afterwards and is marked as kept; it is a record of something that happened, and it
+  happened whether or not the page has since been saved.
 - **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
   group's root-level links, so it can be dropped beside one of them; its own links travel with
   it, because a link names the group it is in as well as the subgroup, and one left behind

@@ -33,6 +33,7 @@ import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENG
 import {
     makeContainerTarget, makeDraggable, makeReorderTarget, whatIsBeingDragged
 } from "../dragAndDrop/dragAndDrop";
+import {sep} from "node:path";
 
 
 
@@ -60,11 +61,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
 
         // group container elements
         const headerElem: HTMLElement = document.createElement(ELEM_GROUP_HEAD);
-        const separatorElem: HTMLElement = document.createElement("hr");
         const bodyElem: HTMLElement = document.createElement(ELEM_GROUP_BODY);
         const footerElem: HTMLElement = document.createElement(ELEM_GROUP_FOOT);
         parentElem.appendChild(headerElem);
-        parentElem.appendChild(separatorElem);
         parentElem.appendChild(bodyElem);
 
         // The head is a target of its own, not merely a piece of the group that a drop
@@ -72,13 +71,8 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         // the head is where somebody aims when they mean "this group", and a target that is
         // the thing being aimed at can say so: it highlights, and it cannot be broken by
         // anything inside it that stops an event on its way out.
-        makeContainerTarget(headerElem, ["link", "subgroup"], draggedId => {
-            if (whatIsBeingDragged()?.kind === "subgroup") {
-                this.VIEW_MODEL.takeSubgroup(draggedId);
-                return;
-            }
-            this.VIEW_MODEL.takeLink(draggedId);
-        });
+        makeContainerTarget(headerElem, ["link", "subgroup", "closedTab"],
+            draggedId => this.takeDropped(draggedId));
         parentElem.appendChild(footerElem);
 
         // group head containers
@@ -174,13 +168,27 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             const index = this.VIEW_MODEL.indexAmongGroups() + (side === "after" ? 1 : 0);
             this.VIEW_MODEL.acceptGroup(draggedId, index);
         });
-        makeContainerTarget(this, ["link", "subgroup"], draggedId => {
-            if (whatIsBeingDragged()?.kind === "subgroup") {
-                this.VIEW_MODEL.takeSubgroup(draggedId);
-                return;
-            }
-            this.VIEW_MODEL.takeLink(draggedId);
-        });
+        makeContainerTarget(this, ["link", "subgroup", "closedTab"],
+            draggedId => this.takeDropped(draggedId));
+    }
+
+    /**
+     *  Takes whatever was dropped into this group, at the end of it.
+     *
+     *  A link or a subgroup moves here, carrying what belongs to it; a closed tab is made into
+     *  a link. All three mean the same thing to a group: this belongs here now.
+     */
+    private takeDropped(draggedId: string): void {
+        const carrying = whatIsBeingDragged();
+        if (carrying?.kind === "subgroup") {
+            this.VIEW_MODEL.takeSubgroup(draggedId);
+            return;
+        }
+        if (carrying?.kind === "closedTab") {
+            this.VIEW_MODEL.takeClosedTab(carrying.url, carrying.title);
+            return;
+        }
+        this.VIEW_MODEL.takeLink(draggedId);
     }
 
     private renderGroupItems(parentElem: HTMLElement, groupDto: GroupDTO): void {

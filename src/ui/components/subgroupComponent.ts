@@ -32,7 +32,7 @@ import { MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContrac
 import { ColorPickerDialog } from "../partials/colorPickerDialog";
 import { swatchOf } from "../../backend/entity/TabGroupColors";
 import {
-    makeContainerTarget, makeDraggable, makeReorderTarget
+    makeContainerTarget, makeDraggable, makeReorderTarget, whatIsBeingDragged
 } from "../dragAndDrop/dragAndDrop";
 
 
@@ -61,7 +61,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         // around its links - belongs in it, at the end. Dropped on one of its links it lands
         // beside that one instead, which that link's own target handles and stops before it
         // reaches here.
-        makeContainerTarget(this, "link", draggedId => this.VIEW_MODEL.takeLink(draggedId));
+        makeContainerTarget(this, ["link", "closedTab"], draggedId => this.takeDropped(draggedId));
 
         // The subgroup itself can be carried, and another one dropped beside it. Both are
         // places in the group's own sequence, which counts its root-level links too.
@@ -70,6 +70,21 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             const index = this.VIEW_MODEL.indexInScope() + (side === "after" ? 1 : 0);
             this.VIEW_MODEL.acceptSubgroup(draggedId, index);
         });
+    }
+
+    /**
+     *  Takes whatever was dropped into this subgroup, at the end of it.
+     *
+     *  A link moves; a closed tab is made into one. Both mean "this belongs in here", which is
+     *  the only thing a drop on a subgroup rather than on one of its links can mean.
+     */
+    private takeDropped(draggedId: string): void {
+        const carrying = whatIsBeingDragged();
+        if (carrying?.kind === "closedTab") {
+            this.VIEW_MODEL.takeClosedTab(carrying.url, carrying.title);
+            return;
+        }
+        this.VIEW_MODEL.takeLink(draggedId);
     }
 
     private renderSubGroup(parentElem: HTMLElement, subgroupDto: SubgroupDTO) {
@@ -85,7 +100,8 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         // subgroup", so the head takes the drop itself rather than leaving it to bubble out
         // to the subgroup. It also gets the highlight, which is the part that says where the
         // link is about to go.
-        makeContainerTarget(headElem, "link", draggedId => this.VIEW_MODEL.takeLink(draggedId));
+        makeContainerTarget(headElem, ["link", "closedTab"],
+            draggedId => this.takeDropped(draggedId));
 
         const bodyElem: HTMLElement = document.createElement(ELEM_SUBGROUP_BODY);
         if (subgroupDto.collapsed) bodyElem.classList.add("rolled");

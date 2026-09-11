@@ -5,15 +5,6 @@ link-group-head {
     margin-bottom: 0.25em;
 }
 
-link-group > hr {
-    display: block;
-    width: 90%;
-    height: 0.125em;
-    background-color: #eee;
-    margin: 0.5em 5% 1em;
-    border-radius: var(--radius-small);
-}
-
 /*
    The space between the title and the description is a gap, not a margin on the
    children, and that is a drag and drop decision as much as a layout one: a

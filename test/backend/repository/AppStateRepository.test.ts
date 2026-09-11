@@ -856,3 +856,81 @@ describe("AppStateRepository.moveSubgroupTo", () => {
         expect(state.subgroups).toEqual(before.subgroups);
     });
 });
+
+/**
+ *  Making a link where something was dropped that was not a link yet - a closed tab dragged
+ *  out of the panel. It is made and then moved, so it lands under exactly the rules an
+ *  existing link would.
+ */
+describe("AppStateRepository.createLinkAt", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e007";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g008";
+    const SUB = "0199aaaa-0000-7000-8000-0000000000s03";
+
+    let appState: AppStateRepository;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "Reading", ENV)],
+            subgroups: [subgroup(SUB, "Archive", GROUP, ENV, 1)],
+            links: [
+                link("a", "A", "https://a.test", GROUP, ENV, { position: 0 }),
+                link("b", "B", "https://b.test", GROUP, ENV, { position: 2 })
+            ],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    const rootOf = (state: AppState) => [
+        ...Object.values(state.links).filter(l => l.groupId === GROUP && !l.subGroupId),
+        ...Object.values(state.subgroups)
+    ].sort((one, other) => one.position - other.position)
+        .map(item => "url" in item ? item.url : item.id);
+
+    it("puts the new link where it was dropped", async () => {
+        const state = await appState.createLinkAt(
+            "https://new.test", "New", GROUP, undefined, 1);
+
+        expect(rootOf(state)).toEqual(["https://a.test", "https://new.test", SUB, "https://b.test"]);
+    });
+
+    it("puts it at the top when that is where it was dropped", async () => {
+        const state = await appState.createLinkAt(
+            "https://new.test", "New", GROUP, undefined, 0);
+
+        expect(rootOf(state)[0]).toBe("https://new.test");
+    });
+
+    it("puts it at the end for an index past it", async () => {
+        const state = await appState.createLinkAt(
+            "https://new.test", "New", GROUP, undefined, 99);
+
+        expect(rootOf(state).at(-1)).toBe("https://new.test");
+    });
+
+    it("makes it inside a subgroup when that is where it was dropped", async () => {
+        const state = await appState.createLinkAt(
+            "https://new.test", "New", GROUP, SUB, 0);
+
+        const made = Object.values(state.links).find(l => l.url === "https://new.test")!;
+        expect(made.subGroupId).toBe(SUB);
+        expect(made.groupId).toBe(GROUP);
+    });
+
+    it("leaves the sequence numbered from zero", async () => {
+        const state = await appState.createLinkAt(
+            "https://new.test", "New", GROUP, undefined, 1);
+
+        const positions = [
+            ...Object.values(state.links).filter(l => l.groupId === GROUP && !l.subGroupId),
+            ...Object.values(state.subgroups)
+        ].map(item => item.position).sort((one, other) => one - other);
+        expect(positions).toEqual([0, 1, 2, 3]);
+    });
+});

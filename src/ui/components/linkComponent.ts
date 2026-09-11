@@ -129,12 +129,19 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
      */
     private listenerDragAndDrop() {
         makeDraggable(this, { kind: "link", id: this.DTO.id });
-        makeReorderTarget(this, ["link", "subgroup"], (side, draggedId) => {
+        makeReorderTarget(this, ["link", "subgroup", "closedTab"], (side, draggedId) => {
             const index = this.VIEW_MODEL.indexInScope() + (side === "after" ? 1 : 0);
+            const carrying = whatIsBeingDragged();
+
             // A root-level link shares its sequence with the group's subgroups, so a subgroup
             // can be dropped beside it. One inside a subgroup does not, and says so itself.
-            if (whatIsBeingDragged()?.kind === "subgroup") {
+            if (carrying?.kind === "subgroup") {
                 this.VIEW_MODEL.acceptSubgroup(draggedId, index);
+                return;
+            }
+            // A closed tab is not a link anywhere yet; dropping one makes it one, here.
+            if (carrying?.kind === "closedTab") {
+                this.VIEW_MODEL.acceptClosedTab(carrying.url, carrying.title, index);
                 return;
             }
             this.VIEW_MODEL.acceptLink(draggedId, index);

@@ -270,3 +270,24 @@ html.dark .closed-tabs__row-action {
 dialog.closed-tabs__dialog {
     padding: 0;
 }
+
+/*
+   A row can be dragged out of the panel and dropped into a group as a link.
+   The pointer says so, and the text stops being selectable while it can be -
+   a press on selectable text starts a selection and the drag never begins.
+*/
+.closed-tabs__row[draggable="true"] {
+    cursor: grab;
+    user-select: none;
+}
+
+.closed-tabs__row[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+/* The panel keeps its width while something is being dragged out of it: it is
+   the source of the drag, and one that narrowed under the cursor would take the
+   rest of the row out from under the thing being carried. */
+html.dnd-active .closed-tabs {
+    width: var(--closed-tabs-open);
+}

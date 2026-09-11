@@ -24,16 +24,22 @@ import { Logger } from "../../utils/logger";
 const LOG = new Logger("DragAndDrop");
 
 /** What is being carried. */
-export type DragKind = "link" | "subgroup" | "group";
+export type DragKind = "link" | "subgroup" | "group" | "closedTab";
 
 /** What a target will take: one kind, or any of several. */
 export type Accepts = DragKind | DragKind[];
 
-/** The thing under the cursor, while there is one. */
-export interface Dragged {
-    kind: DragKind;
-    id: string;
-}
+/**
+ *  The thing under the cursor, while there is one.
+ *
+ *  A link, a subgroup and a group are named by identifier and looked up where they land: they
+ *  exist, and the drop is a move. A closed tab is not a link anywhere yet - dropping one makes
+ *  one - so it carries what a link would need to be made of, and the target that receives it
+ *  never has to reach into the panel it came from.
+ */
+export type Dragged =
+    | { kind: "link" | "subgroup" | "group"; id: string }
+    | { kind: "closedTab"; id: string; url: string; title: string };
 
 /** Where a drop would put it, relative to the element under the cursor. */
 export type DropSide = "before" | "after";
@@ -276,7 +282,7 @@ export function makeContainerTarget(
  */
 export function sideOf(element: HTMLElement, event: MouseEvent, kind: DragKind): DropSide {
     const box = element.getBoundingClientRect();
-    // Groups are columns side by side; links and subgroups are stacked within one.
+    // Groups are columns side by side; everything else is stacked within one.
     return kind === "group"
         ? (event.clientX < box.left + box.width / 2 ? "before" : "after")
         : (event.clientY < box.top + box.height / 2 ? "before" : "after");

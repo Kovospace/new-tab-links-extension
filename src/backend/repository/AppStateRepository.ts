@@ -664,6 +664,40 @@ export class AppStateRepository {
     }
 
     /**
+     *  Creates a link and puts it at a given place in a sequence, rather than at the end.
+     *
+     *  What dropping something that is not a link yet - a closed tab - onto a place between
+     *  two links means. It is made and then moved, so the placement follows exactly the same
+     *  rules as dragging an existing link there, including what an index counts.
+     *
+     *  @param url        the address
+     *  @param title      what to call it
+     *  @param groupId    the group it belongs to
+     *  @param subGroupId the subgroup within that group, when it has one
+     *  @param index      where in that sequence it goes; clamped to the ends
+     */
+    async createLinkAt(
+        url: string,
+        title: string,
+        groupId: string,
+        subGroupId: string | undefined,
+        index: number
+    ): Promise<AppState> {
+
+        const created = await this.createLink(url, title, groupId, subGroupId);
+        const link = Object.values(created.links)
+            .filter(candidate => candidate.groupId === groupId
+                && candidate.subGroupId === subGroupId
+                && candidate.url === url)
+            .sort((one, other) => other.createdAt - one.createdAt)[0];
+
+        if (!link) {
+            return created;
+        }
+        return this.moveLinkTo(link.id, groupId, subGroupId, index);
+    }
+
+    /**
      *  Edit any non-readonly property of link
      */
     editLink(url: string, title: string, id: string, groupId: string,

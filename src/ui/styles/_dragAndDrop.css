@@ -37,27 +37,27 @@ html.dnd-active link-container * {
    or right of it. Both use the same two classes - which side of the element the
    line is on is decided here, per kind, from the element it is on. */
 link-container.dnd-over-before {
-    box-shadow: inset 0 0.125em 0 0 var(--color-button-active-background);
+    box-shadow: inset 0 0.25em 0 0 var(--color-button-active-background);
 }
 
 link-container.dnd-over-after {
-    box-shadow: inset 0 -0.125em 0 0 var(--color-button-active-background);
+    box-shadow: inset 0 -0.25em 0 0 var(--color-button-active-background);
 }
 
 link-subgroup.dnd-over-before {
-    box-shadow: inset 0 0.125em 0 0 var(--color-button-active-background);
+    box-shadow: inset 0 0.25em 0 0 var(--color-button-active-background);
 }
 
 link-subgroup.dnd-over-after {
-    box-shadow: inset 0 -0.125em 0 0 var(--color-button-active-background);
+    box-shadow: inset 0 -0.25em 0 0 var(--color-button-active-background);
 }
 
 link-group.dnd-over-before {
-    box-shadow: inset 0.125em 0 0 0 var(--color-button-active-background);
+    box-shadow: inset 0.25em 0 0 0 var(--color-button-active-background);
 }
 
 link-group.dnd-over-after {
-    box-shadow: inset -0.125em 0 0 0 var(--color-button-active-background);
+    box-shadow: inset -0.25em 0 0 0 var(--color-button-active-background);
 }
 
 /* "Into this one", for a subgroup or a group taking a link at the end. Drawn

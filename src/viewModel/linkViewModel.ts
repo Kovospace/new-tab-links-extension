@@ -118,6 +118,19 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO> {
         this.REPOSITORY.moveSubgroupTo(draggedId, this.DTO.groupId, index);
     }
 
+    /**
+     *  Makes a link out of a closed tab dropped beside this one, in its place in the sequence.
+     *
+     *  @param url   the address the closed tab was at
+     *  @param title what the page called itself
+     *  @param index where it goes, counted in the sequence as it is drawn
+     */
+    public acceptClosedTab(url: string, title: string, index: number): void {
+        this.LOG.debug("acceptClosedTab", `${url} -> beside ${this.DTO.id} at ${index}`);
+        this.REPOSITORY.createLinkAt(
+            url, title, this.DTO.groupId, this.DTO.subGroupId, index);
+    }
+
     public moveLinkUp() {
         this.REPOSITORY.moveLinkUp(this.DTO.id);
     }

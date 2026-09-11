@@ -65,8 +65,10 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 - a link dropped on a subgroup's heading or description lands in that subgroup, at the end. It
   used to land in the group instead: a drop that nothing stopped reached the group behind the
   subgroup, and the outer handler ran last and won
-- NOT done: dragging out of the closed tabs panel - that one waits on this existing, which it
-  now does
+- a closed tab can be dragged out of its panel onto a group, a subgroup, or between two links,
+  and becomes a link there. It carries its address and title rather than an identifier, because
+  what it makes is a new link and nothing in the workspace can look a closed tab up. The row
+  stays in the panel, marked as kept
 
 ### [medium prioroty] Hovering over top panel into menu button causes "last closed tabs" to open
 - the pointer rule read only x: at or right of the rail's left edge opened it. The rail is a

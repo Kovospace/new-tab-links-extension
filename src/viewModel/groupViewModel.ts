@@ -139,6 +139,18 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
         this.REPOSITORY.moveSubgroupTo(subgroupId, this.DTO.id, Number.MAX_SAFE_INTEGER);
     }
 
+    /**
+     *  Makes a link out of something dropped that was not one: a closed tab.
+     *
+     *  At the end of the group, which is what a drop on the group itself means. The closed
+     *  tab is left where it was - it is a record of something that happened, and it happened
+     *  whether or not the page has since been kept. The panel marks it as kept instead.
+     */
+    public takeClosedTab(url: string, title: string): void {
+        this.LOG.debug("takeClosedTab", `${url} -> group ${this.DTO.id}`);
+        this.REPOSITORY.createLink(url, title, this.DTO.id);
+    }
+
     public deleteGroup(id: string) {
         this.REPOSITORY.deleteGroup(id);
     }
