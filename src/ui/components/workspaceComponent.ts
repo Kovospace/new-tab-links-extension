@@ -9,7 +9,7 @@ import {
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
-    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ELEM_WORKSPACE_FOOTER,
+    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
 } from "../../main"
 
 // data/model layer
@@ -32,10 +32,14 @@ import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncCo
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
+import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
     private currentWorkspaceId: string = "";
+
+    /** The recently closed tabs drawer, built the first time it is opened. */
+    private closedTabsPanel: ClosedTabsPanel | null = null;
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
@@ -149,6 +153,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
                 this.addWorkspaceDialog.show();
             }
+        ));
+
+        // recently closed tabs, first on the right so it sits furthest from the menus: it is
+        // reached far more often than they are, and it opens a panel rather than a menu.
+        headerElemRightContent.appendChild(renderButton(
+            ICON.IMPORT,
+            "",
+            [ACT_CLOSED_TABS],
+            "Recently closed tabs",
+            () => void this.toggleClosedTabs()
         ));
 
         // application / profiles menu — populated reactively via observables.profiles
@@ -416,6 +430,20 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      */
     private renderTips(parentElem: HTMLElement) {
         new TipsBar().render(parentElem);
+    }
+
+    /**
+     *  Opens the recently closed tabs, building the panel the first time it is asked for.
+     *
+     *  Built on demand rather than with the page: it opens a second store and subscribes to
+     *  the state, and most new tabs are opened to click one link and be gone again.
+     */
+    private async toggleClosedTabs(): Promise<void> {
+        if (!this.closedTabsPanel) {
+            this.closedTabsPanel = new ClosedTabsPanel();
+            await this.closedTabsPanel.render(document.body);
+        }
+        this.closedTabsPanel.toggle();
     }
 
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {

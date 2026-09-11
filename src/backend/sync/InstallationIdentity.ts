@@ -2,8 +2,9 @@ import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageW
 import { uid } from "../repository/AppStateRepositoryUtils";
 import { Logger } from "../../utils/logger";
 
+import { INSTALLATION_NAME_KEY } from "../datasource/chromeStorage/storageKeys";
+
 const INSTALLATION_ID_KEY = "sync_installation_id";
-const INSTALLATION_NAME_KEY = "sync_installation_name";
 
 /**
  *  Identity of THIS installation of the extension — one UUID, minted on first use and kept

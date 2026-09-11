@@ -181,6 +181,30 @@ Chrome; a fleet does it with the `NTPFooterExtensionAttributionEnabled` policy.
 It appears only on the new tab page, never in the bookmarking window. Anything that looks like
 it there is the tab behind that window. Do not go looking for it in this codebase.
 
+### Recently closed tabs (`repository/ClosedTabsRepository.ts`, `worker/module/closedTabsRecorder.ts`)
+
+A drawer down the right of the new tab page listing what was closed, newest first, opened from
+a button in the header and built only when first asked for.
+
+- **`chrome.tabs.onRemoved` does not say what was closed** - it carries a tab id, and the tab
+  is already gone from the API. So the worker keeps a mirror of the open tabs in
+  `chrome.storage.session` (updated on every `onUpdated`) and reads the closure out of it.
+  Session storage, not memory: MV3 stops the worker after thirty seconds, and a mirror held in
+  memory would forget every tab open longer than that - which is all the interesting ones.
+- **They live under a key of their own** (`closed_tabs_<profileId>`), never inside `AppState`.
+  The worker writes them, and a worker that had to read-modify-write the whole profile record
+  would put back a copy that predates whatever the page saved a moment ago. A key the worker
+  owns alone can lose a closed tab at worst; the other arrangement can lose a link.
+- **Capped at 50 per profile**, deduplicated by address - the same page closed twice is one
+  entry moved to the top. Both matter because every entry is pushed to the account: an
+  uncapped list would be a browsing history in somebody else's database, growing for ever.
+- The page hears about the worker's writes through `chrome.storage.onChanged`, which is what
+  makes the panel fill as tabs are closed in other windows.
+- A row is marked as already kept by comparing addresses the way `linkTabGroupCatcher` does,
+  and names the device that closed it only when that was not this one.
+- Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
+  a second way.
+
 ### Tips on the workspace background (`ui/tips/`)
 
 A card at the bottom of the workspace plane, drawn by `TipsBar` into the `<workspace-plane>`

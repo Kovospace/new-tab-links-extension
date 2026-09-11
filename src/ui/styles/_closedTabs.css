@@ -1,0 +1,193 @@
+/* ---------------------------------------------------------------------------
+   Recently closed tabs
+
+   A drawer down the right-hand side rather than a column among the others. It
+   is a log of what happened, not a place things are kept, so it does not
+   compete with the links for the width of the screen: it slides over them, and
+   it is closed until asked for.
+
+   Fixed rather than in the flow, so opening it never reflows the columns - a
+   panel that pushed them sideways would move whatever the user was about to
+   click.
+   --------------------------------------------------------------------------- */
+
+.closed-tabs {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 22em;
+    max-width: 90vw;
+    z-index: 50;
+
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--color-component-background);
+    box-shadow: -0.125em 0 0.5em rgba(0, 0, 0, 0.4);
+
+    /* Off screen, and moved rather than hidden: the panel keeps its scroll
+       position and its subscriptions between openings. */
+    transform: translateX(100%);
+    transition: transform var(--time-transition-medium) ease-in-out;
+}
+
+.closed-tabs--open {
+    transform: translateX(0);
+}
+
+.closed-tabs__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em 0.75em;
+    border-bottom: 0.0625em solid var(--color-component-framing);
+}
+
+.closed-tabs__title {
+    flex: 1;
+    margin: 0;
+    font-size: 1em;
+}
+
+.closed-tabs__head-action,
+html.dark .closed-tabs__head-action {
+    min-width: 0;
+    margin: 0;
+    padding: 0.25em 0.5em;
+    background: none;
+    border: none;
+    font-size: 0.9em;
+    font-weight: normal;
+    color: inherit;
+    opacity: 0.75;
+    cursor: pointer;
+}
+
+.closed-tabs__head-action:hover,
+html.dark .closed-tabs__head-action:hover {
+    background: none;
+    opacity: 1;
+}
+
+.closed-tabs__list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 0.25em;
+}
+
+.closed-tabs__empty {
+    margin: 0;
+    padding: 1em 0.75em;
+    font-size: 0.85em;
+    line-height: 1.4;
+    opacity: 0.7;
+}
+
+.closed-tabs__row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.25em 0.375em;
+    border-radius: var(--radius-small);
+}
+
+.closed-tabs__row:hover {
+    background-color: var(--color-button-background);
+}
+
+.closed-tabs__favicon {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+
+/* The row's text is the button that reopens it: the whole line is the target,
+   which is what a list of links should behave like. */
+.closed-tabs__text,
+html.dark .closed-tabs__text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125em;
+    margin: 0;
+    padding: 0.25em 0;
+    background: none;
+    border: none;
+    font-size: 1em;
+    font-weight: normal;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+}
+
+.closed-tabs__text:hover,
+html.dark .closed-tabs__text:hover {
+    background: none;
+}
+
+.closed-tabs__row-title,
+.closed-tabs__meta {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.closed-tabs__meta {
+    font-size: 0.75em;
+    opacity: 0.6;
+}
+
+/* The actions stay out of the way until the row is under the pointer, so the
+   panel reads as a list rather than as a grid of buttons. The "already saved"
+   mark is not one of them - it is information, and it stays. */
+.closed-tabs__row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.125em;
+    flex: 0 0 auto;
+}
+
+.closed-tabs__row-action,
+html.dark .closed-tabs__row-action {
+    min-width: 0;
+    margin: 0;
+    padding: 0 0.3em;
+    background: none;
+    border: none;
+    font-size: 1em;
+    line-height: 1;
+    color: inherit;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity var(--time-transition-fast) ease-in-out;
+}
+
+.closed-tabs__row:hover .closed-tabs__row-action,
+.closed-tabs__row:focus-within .closed-tabs__row-action {
+    opacity: 0.75;
+}
+
+.closed-tabs__row-action:hover,
+html.dark .closed-tabs__row-action:hover {
+    background: none;
+    opacity: 1;
+}
+
+.closed-tabs__kept {
+    flex: 0 0 auto;
+    font-size: 0.85em;
+    /* Always visible: that this page is already saved is the useful half of
+       seeing it in a list of things you closed. */
+    opacity: 0.9;
+}
+
+/* The bookmarking form, borrowed from the popup, shown here in a dialog. */
+dialog.closed-tabs__dialog {
+    padding: 0;
+}

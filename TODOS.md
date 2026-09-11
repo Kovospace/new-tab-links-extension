@@ -22,7 +22,9 @@ Note for agents:
 - synchronized, BUT by active profile
 - ordered by time, include device name if tab was closed on another device than in current
 - after implementing drag and drop, the drag and drop should work there too when adding as new link somewhere
-- signalize by icon of green folder that some of this closed tabs may already be bookmarked
+- for item that is already bookmarked, write the group (and subgroup name if avail) on the second line
+  - items that are not yet bookmarked are one-liners
+- panel should be on tle right side, wide lets say 40px and on mouseover it should roll with list of lets say 50 last closed tabs
 
 ## BUGFIXING
 
