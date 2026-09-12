@@ -18,7 +18,9 @@ export const ICON = {
     EXPORT: "⇧",   // export (up/out)
     IMPORT: "⇩",   // import (down/in)
     HISTORY: "↺",   // recently closed / bring back
-    CHECKED: "✓"   // ticked / confirmed / already done
+    CHECKED: "✓",  // ticked / confirmed / already done
+    TRASH: "🗑"     // destroy for good - the one pictorial icon here, because the
+                   // trash bar has to be recognised from across the page mid-drag
 } as const;
 
 /**
