@@ -57,6 +57,17 @@ const CLASS_DRAGGING = "dnd-dragging";
  *  With the children transparent, a head is one target from edge to edge.
  */
 const CLASS_DRAG_IN_FLIGHT = "dnd-active";
+
+/**
+ *  Names what is being carried, on the root element, beside the class above.
+ *
+ *  The class says only that a drag is happening, which is all the pointer-events rule needs.
+ *  It is not enough for a rule about one kind of drag: the closed tabs panel holds its width
+ *  while a row is dragged out of it, because it is the source and one that narrowed under the
+ *  cursor would take the row out from under the thing being carried - and keyed on the class
+ *  alone that rule unfolded the panel on every link, subgroup and group drag as well.
+ */
+const ATTRIBUTE_DRAG_KIND = "dndKind";
 const CLASS_OVER_BEFORE = "dnd-over-before";
 const CLASS_OVER_AFTER = "dnd-over-after";
 const CLASS_OVER_INTO = "dnd-over-into";
@@ -139,6 +150,7 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
         anchorGhostToCursor(element, event, what.kind);
         element.classList.add(CLASS_DRAGGING);
         document.documentElement.classList.add(CLASS_DRAG_IN_FLIGHT);
+        document.documentElement.dataset[ATTRIBUTE_DRAG_KIND] = what.kind;
         // A type the drop targets can recognise before they are allowed to read the data, and
         // a plain text fallback so dragging out of the page does something sensible.
         event.dataTransfer?.setData(`application/x-ntl-${what.kind}`, what.id);
@@ -156,6 +168,7 @@ export function makeDraggable(element: HTMLElement, what: Dragged): void {
         dragged = null;
         element.classList.remove(CLASS_DRAGGING);
         document.documentElement.classList.remove(CLASS_DRAG_IN_FLIGHT);
+        delete document.documentElement.dataset[ATTRIBUTE_DRAG_KIND];
         clearMarks();
     });
 }

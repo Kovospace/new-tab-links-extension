@@ -175,6 +175,38 @@ describe("ClosedTabsPanel, opening and closing", () => {
             .toBeGreaterThan(devices.length);
     });
 
+    it("lets go of the focus as it folds, so no row stays lit", () => {
+        // The bug: a row's "+" and "x" are revealed by :focus-within as well as by :hover,
+        // and the row's title is a button - so dragging a row out of the panel left it
+        // focused. Its actions stayed lit over the folded rail, came back lit the next time
+        // the panel opened with the pointer nowhere near them, and only went out when
+        // something else was clicked, which is what blurred it.
+        edgeAt(960);
+        move(970);
+        const text = document.querySelector('.closed-tabs__text') as HTMLButtonElement;
+        text.focus();
+        expect(document.activeElement).toBe(text);
+
+        move(400);                                    // away to the left; the panel folds
+
+        expect(isOpen()).toBe(false);
+        expect(document.querySelector('.closed-tabs')!.contains(document.activeElement))
+            .toBe(false);
+    });
+
+    it("keeps the focus while the panel is held open by the button", () => {
+        // Pinned is the panel being used, and somebody working through it by keyboard is
+        // exactly who the focus rule is for.
+        panel.togglePinned();
+        const text = document.querySelector('.closed-tabs__text') as HTMLButtonElement;
+        text.focus();
+
+        edgeAt(600);
+        move(10);
+
+        expect(document.activeElement).toBe(text);
+    });
+
     it("stays open when a row is only deleted", () => {
         // Forgetting one entry is working through the list, not finishing with it.
         panel.togglePinned();

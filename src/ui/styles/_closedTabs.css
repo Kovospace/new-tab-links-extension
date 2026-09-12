@@ -110,15 +110,23 @@ html.dark .closed-tabs__head-action {
     margin: 0;
 }
 
+/*
+   Nothing scrolls while the rail is folded, in either direction: a scrollbar in
+   a column two and a half characters wide is most of the column, and it is a
+   control for a list that is not being shown. The favicons past the bottom are
+   clipped rather than reachable, which costs nothing - the pointer that would
+   go looking for them unfolds the panel on the way.
+*/
 .closed-tabs__list {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    /* Hidden while narrow: a scrollbar in a rail two and a half characters wide
-       would be most of the rail. */
-    overflow-x: hidden;
+    overflow: hidden;
     scrollbar-width: thin;
     padding: 0.25em;
+}
+
+.closed-tabs--open .closed-tabs__list {
+    overflow-y: auto;
 }
 
 /*
@@ -302,9 +310,15 @@ dialog.closed-tabs__dialog {
     cursor: grabbing;
 }
 
-/* The panel keeps its width while something is being dragged out of it: it is
-   the source of the drag, and one that narrowed under the cursor would take the
-   rest of the row out from under the thing being carried. */
-html.dnd-active .closed-tabs {
+/* The panel keeps its width while a row is being dragged OUT of it: it is the
+   source of that drag, and one that narrowed under the cursor would take the
+   rest of the row out from under the thing being carried.
+
+   Only for a closed tab, which is why the kind is asked for and not merely
+   whether a drag is in flight. `dnd-active` is on the root for every drag, so
+   keyed on that alone this unfolded the panel whenever a link, a subgroup or a
+   group was dragged anywhere on the page - and it does not even fold again on
+   the way, because no mousemove is delivered while a drag is in flight. */
+html.dnd-active[data-dnd-kind="closedTab"] .closed-tabs {
     width: var(--closed-tabs-open);
 }

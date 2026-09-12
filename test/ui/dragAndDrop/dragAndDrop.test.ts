@@ -273,6 +273,31 @@ describe("dragAndDrop", () => {
             expect(document.documentElement.classList.contains("dnd-active")).toBe(false);
         });
 
+        it("names what is being carried, not only that something is", async () => {
+            // The closed tabs panel holds its width while a row is dragged out of it, and
+            // the stylesheet reads that off the root element. Keyed on "dnd-active" alone,
+            // the rule fired for every drag and unfolded the panel whenever a link, a
+            // subgroup or a group was picked up anywhere on the page - and it stayed unfolded
+            // for the whole journey, because no mousemove is delivered while a drag is in
+            // flight and the pointer rule is what would otherwise fold it again.
+            await profiles.updateSettings({ enableDragAndDrop: true });
+
+            const link = document.createElement("div");
+            makeDraggable(link, { kind: "link", id: "a-link" });
+            const row = document.createElement("div");
+            makeDraggable(row, { kind: "closedTab", id: "a-tab", url: "https://x/", title: "X" });
+
+            link.dispatchEvent(dragEvent("dragstart"));
+            expect(document.documentElement.dataset.dndKind).toBe("link");
+            link.dispatchEvent(dragEvent("dragend"));
+            expect(document.documentElement.dataset.dndKind).toBeUndefined();
+
+            row.dispatchEvent(dragEvent("dragstart"));
+            expect(document.documentElement.dataset.dndKind).toBe("closedTab");
+            row.dispatchEvent(dragEvent("dragend"));
+            expect(document.documentElement.dataset.dndKind).toBeUndefined();
+        });
+
         it("refuses dragenter for a kind it does not take", async () => {
             await profiles.updateSettings({ enableDragAndDrop: true });
 
