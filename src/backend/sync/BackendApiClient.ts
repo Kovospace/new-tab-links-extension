@@ -7,6 +7,7 @@ import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
 import { SessionRepository, sessionRepository, TokenPairDto } from "./SessionRepository";
 import { Logger } from "../../utils/logger";
 import { resolveDeviceName } from "./DeviceName";
+import { t } from "../../i18n/i18n";
 
 /** HTTP methods the backend accepts. */
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -39,14 +40,22 @@ export interface UserDeviceDto {
     signedIn: boolean;
 }
 
+/**
+ *  The three things this client has to say for itself, worded for the user.
+ *
+ *  Functions rather than constants, and that is not a style: a constant is evaluated when this
+ *  module is imported, which happens before the page has read which language it is drawn in.
+ *  It would freeze all three to whatever the fallback is, on every device, for ever.
+ */
+
 /** Shown when the backend could not be reached at all. */
-const OFFLINE_MESSAGE = "The synchronisation server could not be reached. Check your connection and try again.";
+const offlineMessage = (): string => t("errors.offline");
 
 /** Shown when an authenticated call is attempted while signed out. */
-const NOT_SIGNED_IN_MESSAGE = "Not signed in.";
+const notSignedInMessage = (): string => t("errors.notSignedIn");
 
 /** Used when a failure response carries no readable explanation. */
-const UNEXPLAINED_FAILURE_MESSAGE = "The synchronisation server refused the request.";
+const unexplainedFailureMessage = (): string => t("errors.requestRefused");
 
 /**
  *  Uniform error body the backend returns from every failing endpoint.
@@ -194,7 +203,7 @@ export class BackendApiClient {
 
         const session = this.sessions.getSession();
         if (!session) {
-            return { outcome: "rejected", status: 401, message: NOT_SIGNED_IN_MESSAGE };
+            return { outcome: "rejected", status: 401, message: notSignedInMessage() };
         }
 
         const firstAttempt = await this.send<PAYLOAD>(
@@ -227,7 +236,7 @@ export class BackendApiClient {
 
         const session = this.sessions.getSession();
         if (!session) {
-            return { outcome: "rejected", status: 401, message: NOT_SIGNED_IN_MESSAGE };
+            return { outcome: "rejected", status: 401, message: notSignedInMessage() };
         }
 
         const result = await this.send<TokenPairDto>(
@@ -279,7 +288,7 @@ export class BackendApiClient {
             response = await fetch(url, requestInit);
         } catch (networkFailure) {
             this.LOG.warn("send", `Unreachable: ${url}`, networkFailure);
-            return { outcome: "offline", message: OFFLINE_MESSAGE };
+            return { outcome: "offline", message: offlineMessage() };
         }
 
         if (!response.ok) {
@@ -292,7 +301,7 @@ export class BackendApiClient {
             return { outcome: "success", data: await this.readPayload<PAYLOAD>(response) };
         } catch (unreadableBody) {
             this.LOG.error("send", `Unreadable response body from ${url}`, unreadableBody);
-            return { outcome: "rejected", status: response.status, message: UNEXPLAINED_FAILURE_MESSAGE };
+            return { outcome: "rejected", status: response.status, message: unexplainedFailureMessage() };
         }
     }
 
@@ -310,15 +319,15 @@ export class BackendApiClient {
         try {
             const rawBody = await response.text();
             if (!rawBody) {
-                return UNEXPLAINED_FAILURE_MESSAGE;
+                return unexplainedFailureMessage();
             }
             const errorBody = JSON.parse(rawBody) as ApiErrorResponseDto;
             if (errorBody.validationErrors && errorBody.validationErrors.length > 0) {
                 return errorBody.validationErrors.join("\n");
             }
-            return errorBody.message ?? errorBody.error ?? UNEXPLAINED_FAILURE_MESSAGE;
+            return errorBody.message ?? errorBody.error ?? unexplainedFailureMessage();
         } catch (unreadableBody) {
-            return UNEXPLAINED_FAILURE_MESSAGE;
+            return unexplainedFailureMessage();
         }
     }
 }

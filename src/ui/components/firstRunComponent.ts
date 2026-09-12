@@ -10,6 +10,7 @@ import {
 } from "../../constants"
 import {InputDialog} from "../partials/inputDialog";
 import { MAX_NAME_LENGTH } from "../../backend/sync/SyncContracts";
+import { t } from "../../i18n/i18n";
 
 export class FirstRunComponent extends HTMLElement {
 
@@ -18,27 +19,37 @@ export class FirstRunComponent extends HTMLElement {
     private ACCOUNT_VIEW_MODEL!: SyncAccountViewModel;
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
-        "Add workspace",
-        { "Workspace name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH } },
-        ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(workspaceName, "Default workspace"));
+        t("workspace.addDialog.title"),
+        {
+            [t("workspace.addDialog.name")]:
+                { type: "string", required: true, maxLength: MAX_NAME_LENGTH,
+                  key: "workspaceName" }
+        },
+        ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(
+            workspaceName, t("firstRun.defaultWorkspaceDescription")));
 
     // "Device name" is optional and last, so the required fields stay where the eye starts.
     // Leaving it blank keeps the automatic label; it earns its place only for somebody running
     // several browsers on one machine, where the automatic labels are all identical.
     private connectCodeDialog: InputDialog = new InputDialog(
-        "Enter sync code",
+        t("sync.syncCodeDialog.title"),
         {
-            "Connect code": { type: "string", required: true },
-            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+            [t("sync.syncCodeDialog.connectCode")]:
+                { type: "string", required: true, key: "connectCode" },
+            [t("dialogs.fields.deviceName")]:
+                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
         },
         ({ connectCode, deviceName }) => this.connectAccount(connectCode, deviceName));
 
     private logInDialog: InputDialog = new InputDialog(
-        "Log in",
+        t("sync.logInDialog.title"),
         {
-            "Username or email": { type: "string", required: true },
-            "Password": { type: "password", required: true },
-            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+            [t("sync.logInDialog.usernameOrEmail")]:
+                { type: "string", required: true, key: "usernameOrEmail" },
+            [t("sync.logInDialog.password")]:
+                { type: "password", required: true, key: "password" },
+            [t("dialogs.fields.deviceName")]:
+                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
         },
         ({ usernameOrEmail, password, deviceName }) =>
             this.logIn(usernameOrEmail, password, deviceName));
@@ -62,26 +73,26 @@ export class FirstRunComponent extends HTMLElement {
     public render(): void {
 
         const template: string = `
-            <h1>No workspaces & Groups & Links here yet.</h1>
+            <h1>${t("firstRun.heading")}</h1>
             <br>
-            <h2>If You se this page, it is either first run or everything was wiped out.</h2>
+            <h2>${t("firstRun.subheading")}</h2>
             <br><br>
             <div>
-                <h3>Start by creating Workspace</h3>
+                <h3>${t("firstRun.createWorkspace")}</h3>
                 <br>
-                <button id="${ACT_FIRST_WORKSPACE}"> + Add first workspace</button>
+                <button id="${ACT_FIRST_WORKSPACE}"> ${t("firstRun.createWorkspaceButton")}</button>
             </div>
             <br>
             <div>
-                <h3>... or load links from backup / exported file</h3>
+                <h3>${t("firstRun.importPrompt")}</h3>
                 <br>
-                <button id="${ACT_IMPORT_LINKS}"> &gt; Import</button>
+                <button id="${ACT_IMPORT_LINKS}"> ${t("firstRun.importButton")}</button>
             </div>
             <br>
             <div>
-                <h3>... or load predefined examples set</h3>
+                <h3>${t("firstRun.examplesPrompt")}</h3>
                 <br>
-                <button id="${ACT_LOAD_DEFAUTLS}"> - Load examples</button>
+                <button id="${ACT_LOAD_DEFAUTLS}"> ${t("firstRun.examplesButton")}</button>
             </div>
             <br>
             ${this.renderAccountSection()}
@@ -105,17 +116,17 @@ export class FirstRunComponent extends HTMLElement {
         if (account.signedIn) {
             return `
                 <div>
-                    <h3>Signed in as ${account.username}</h3>
+                    <h3>${t("firstRun.signedInAs", { username: account.username ?? "" })}</h3>
                 </div>
             `;
         }
 
         return `
             <div>
-                <h3>... or bring in the links you already have in your NewTabLinks account</h3>
+                <h3>${t("firstRun.accountPrompt")}</h3>
                 <br>
-                <button id="${ACT_FIRST_RUN_CONNECT_CODE}"> &gt; Enter sync code</button>
-                <button id="${ACT_FIRST_RUN_LOG_IN}"> &gt; Log in</button>
+                <button id="${ACT_FIRST_RUN_CONNECT_CODE}"> &gt; ${t("sync.menu.enterSyncCode")}</button>
+                <button id="${ACT_FIRST_RUN_LOG_IN}"> &gt; ${t("sync.menu.logIn")}</button>
             </div>
         `;
     }

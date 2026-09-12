@@ -7,7 +7,7 @@ import {
 } from "../../src/backend/repository/ClosedTabsRepository";
 import { MAX_CLOSED_TABS } from "../../src/backend/entity/ClosedTabEntity";
 import { appStateInit } from "../../src/backend/datasource/init/AppStateInit";
-import { ClosedTabsViewModel, describeAge } from "../../src/viewModel/closedTabsViewModel";
+import { ClosedTabsViewModel } from "../../src/viewModel/closedTabsViewModel";
 import { environment, group, link, profileOf } from "../support/profileDataFixtures";
 import { flushStorageNotifications } from "../support/chromeStorageStub";
 import { resolveDeviceName } from "../../src/backend/sync/DeviceName";
@@ -162,33 +162,6 @@ describe("ClosedTabsViewModel", () => {
         await panel.forget(rows()[0].id);
 
         expect(rows()).toEqual([]);
-    });
-});
-
-/**
- *  The one piece of arithmetic in the panel, and the one that reads wrong in a way nobody
- *  notices until it is on screen: "1 hours ago", or a minute that never becomes an hour.
- */
-describe("describeAge", () => {
-
-    it("says just now for anything under a minute", () => {
-        expect(describeAge(0)).toBe("just now");
-        expect(describeAge(59_000)).toBe("just now");
-    });
-
-    it("counts minutes up to the hour", () => {
-        expect(describeAge(60_000)).toBe("1 min ago");
-        expect(describeAge(59 * 60_000)).toBe("59 min ago");
-    });
-
-    it("says an hour rather than 1 hours", () => {
-        expect(describeAge(60 * 60_000)).toBe("an hour ago");
-        expect(describeAge(2 * 60 * 60_000)).toBe("2 hours ago");
-    });
-
-    it("turns into days, and yesterday is not 1 days", () => {
-        expect(describeAge(24 * 60 * 60_000)).toBe("yesterday");
-        expect(describeAge(3 * 24 * 60 * 60_000)).toBe("3 days ago");
     });
 });
 

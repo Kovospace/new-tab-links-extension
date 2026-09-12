@@ -2,6 +2,7 @@ import { ClosedTabDTO, ClosedTabsViewModel } from '../../viewModel/closedTabsVie
 import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { confirmDestructiveAction } from './confirmations';
+import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
 import { ObservableValue } from '../../utils/observableValue';
@@ -213,25 +214,25 @@ export class ClosedTabsPanel {
     const mark = document.createElement('span');
     mark.classList.add('closed-tabs__mark');
     mark.textContent = ICON.HISTORY;
-    mark.title = 'Recently closed tabs';
+    mark.title = t('closedTabs.railTooltip');
     head.appendChild(mark);
 
     const title = document.createElement('h2');
     title.classList.add('closed-tabs__title');
-    title.textContent = 'Recently closed';
+    title.textContent = t('closedTabs.title');
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
     clearBtn.classList.add('closed-tabs__head-action', CLASS_ACTION_DANGER);
     clearBtn.textContent = 'Clear';
-    clearBtn.title = 'Forget every closed tab';
+    clearBtn.title = t('closedTabs.forgetAll');
     clearBtn.addEventListener('click', () => void this.clearAll());
 
     const pinBtn = document.createElement('button');
     pinBtn.type = 'button';
     pinBtn.classList.add('closed-tabs__head-action');
     pinBtn.textContent = ICON.CLOSE;
-    pinBtn.title = 'Close the panel';
+    pinBtn.title = t('closedTabs.closePanel');
     pinBtn.addEventListener('click', () => this.togglePinned());
 
     head.appendChild(title);
@@ -253,7 +254,7 @@ export class ClosedTabsPanel {
     if (tabs.length === 0) {
       const empty = document.createElement('p');
       empty.classList.add('closed-tabs__empty');
-      empty.textContent = 'Nothing closed yet. Tabs you close will appear here.';
+      empty.textContent = t('closedTabs.empty');
       this.listEl.appendChild(empty);
       return;
     }
@@ -288,7 +289,7 @@ export class ClosedTabsPanel {
     const text = document.createElement('button');
     text.type = 'button';
     text.classList.add('closed-tabs__text');
-    text.title = `${tab.url}\nOpen again`;
+    text.title = t('closedTabs.rowTooltip', { url: tab.url });
     text.addEventListener('click', () => {
       this.viewModel.reopen(tab.id);
       // Opening one is the end of the errand. Deleting one or saving one is not, so those
@@ -315,7 +316,7 @@ export class ClosedTabsPanel {
       const device = document.createElement('span');
       device.classList.add('closed-tabs__device');
       device.textContent = tab.elsewhere;
-      device.title = `Closed on ${tab.elsewhere}`;
+      device.title = t('closedTabs.closedOn', { device: tab.elsewhere });
       text.appendChild(device);
     }
 
@@ -328,7 +329,7 @@ export class ClosedTabsPanel {
       const kept = document.createElement('span');
       kept.classList.add('closed-tabs__kept');
       kept.textContent = ICON.CHECKED;
-      kept.title = 'Already saved in this profile';
+      kept.title = t('closedTabs.alreadySaved');
       actions.appendChild(kept);
     }
 
@@ -336,14 +337,14 @@ export class ClosedTabsPanel {
     addBtn.type = 'button';
     addBtn.classList.add('closed-tabs__row-action', 'add');
     addBtn.textContent = ICON.ADD;
-    addBtn.title = 'Save as a link';
+    addBtn.title = t('closedTabs.saveAsLink');
     addBtn.addEventListener('click', () => void this.addAsLink(tab));
 
     const forgetBtn = document.createElement('button');
     forgetBtn.type = 'button';
     forgetBtn.classList.add('closed-tabs__row-action', 'danger');
     forgetBtn.textContent = ICON.DELETE;
-    forgetBtn.title = 'Forget this one';
+    forgetBtn.title = t('closedTabs.forgetOne');
     forgetBtn.addEventListener('click', () => void this.viewModel.forget(tab.id));
 
     actions.appendChild(addBtn);
@@ -367,8 +368,8 @@ export class ClosedTabsPanel {
     const viewModel = new BookmarkViewModel();
     if (!viewModel.canBookmark()) {
       await confirmDestructiveAction(
-        'Nowhere to put it',
-        'This profile has no group to keep a link in yet. Make a workspace and a group first.',
+        t('closedTabs.nowhereToPut.title'),
+        t('closedTabs.nowhereToPut.message'),
         'Close');
       return;
     }
@@ -393,10 +394,9 @@ export class ClosedTabsPanel {
   /** Forgets everything, once, after asking. */
   private async clearAll(): Promise<void> {
     const confirmed = await confirmDestructiveAction(
-      'Forget every closed tab?',
-      'The list is emptied on this profile, on every device you are signed in on. The tabs '
-      + 'themselves are not affected, and anything you have already saved as a link stays.',
-      'Forget them');
+      t('closedTabs.forgetAllConfirmation.title'),
+      t('closedTabs.forgetAllConfirmation.message'),
+      t('closedTabs.forgetAllConfirmation.confirm'));
 
     if (confirmed) {
       await this.viewModel.forgetAll();

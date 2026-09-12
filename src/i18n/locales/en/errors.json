@@ -1,0 +1,5 @@
+{
+  "offline": "The synchronisation server could not be reached. Check your connection and try again.",
+  "notSignedIn": "Not signed in.",
+  "requestRefused": "The synchronisation server refused the request."
+}

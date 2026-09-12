@@ -9,6 +9,14 @@
  *
  *  It takes the chosen name rather than reading it, so that the service worker - which holds
  *  no singletons between events - can use it with a name read straight out of storage.
+ *
+ *  **The automatic label is deliberately not translated**, and it is the one piece of wording
+ *  in this extension that is not. It is an identifier rather than a sentence: it is stored on
+ *  the account, shown on the user's other devices - which may be reading in another language -
+ *  and compared as a string against what the service worker stamped, which runs with no page
+ *  and no chosen language behind it. Translating it would rename a device whenever its owner
+ *  changed language, leave every row already recorded under the old label, and make the
+ *  comparison this module exists for answer "somewhere else" on the device it happened on.
  */
 
 /**

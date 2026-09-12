@@ -1,0 +1,61 @@
+{
+  "createDialog": {
+    "title": "Vytvoriť profil",
+    "name": "Názov profilu"
+  },
+  "manager": {
+    "title": "Spravovať profily",
+    "deleteAllOthers": "Zmazať všetky ostatné",
+    "empty": "Žiadne profily.",
+    "onlyOne": "Toto je váš jediný profil, takže tu nie je čo mazať.",
+    "current": "{name} (aktuálny)",
+    "rename": "Premenovať {name}",
+    "delete": "Zmazať {name}",
+    "cannotDeleteActive": "Najprv sa prepnite na iný profil"
+  },
+  "contents": {
+    "empty": "prázdny",
+    "summary": "{workspaces}, {links}",
+    "workspaces": {
+      "one": "{count} pracovný priestor",
+      "few": "{count} pracovné priestory",
+      "many": "{count} pracovného priestoru",
+      "other": "{count} pracovných priestorov"
+    },
+    "links": {
+      "one": "{count} odkaz",
+      "few": "{count} odkazy",
+      "many": "{count} odkazu",
+      "other": "{count} odkazov"
+    }
+  },
+  "renameDialog": {
+    "title": "Premenovať profil",
+    "name": "Názov profilu"
+  },
+  "importNamePrompt": "Názov pre importovaný profil?",
+  "nameTooLong": {
+    "title": "Ten názov je príliš dlhý",
+    "message": "Názov profilu môže mať najviac {max} znakov, tento ich má {length}. Váš účet ho nedokáže uložiť a ponechať ho tu by zastavilo aj všetky ostatné zmeny na ceste do vašich ďalších zariadení."
+  },
+  "nameMissing": "Profil potrebuje názov.",
+  "deleteOne": {
+    "title": "Zmazať tento profil?",
+    "message": "„{name}“ obsahuje {contents}. Zmazaním sa jeho pracovné priestory, skupiny a odkazy odstránia z tohto prehliadača aj z vášho účtu, na každom zariadení. Toto sa nedá vrátiť späť.",
+    "confirm": "Zmazať"
+  },
+  "nothingToDelete": {
+    "title": "Nie je čo mazať",
+    "message": "Profil, ktorý máte otvorený, je jediný, aký existuje — a je to práve ten, ktorý sa takto zmazať nedá."
+  },
+  "deleteAll": {
+    "title": "Zmazať všetky ostatné profily?",
+    "phrase": "zmazať všetky profily",
+    "confirm": "Áno, zmazať ich",
+    "message": {
+      "one": "Zmaže sa {count} profil a všetko v ňom — pracovné priestory, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť.",
+      "few": "Zmažú sa {count} profily a všetko v nich — pracovné priestory, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť.",
+      "other": "Zmaže sa {count} profilov a všetko v nich — pracovné priestory, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť."
+    }
+  }
+}

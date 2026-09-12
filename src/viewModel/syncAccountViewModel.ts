@@ -11,6 +11,7 @@ import { InputDialog } from "../ui/partials/inputDialog";
 // utils
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
+import { t } from "../i18n/i18n";
 
 /** What the application menu needs to know about the signed-in account. */
 export interface AccountDTO {
@@ -91,11 +92,11 @@ export class SyncAccountViewModel {
     private describeActivity(): string {
         switch (this.activity) {
             case "working":
-                return "Synchronising...";
+                return t("sync.status.working");
             case "offline":
-                return "Offline - changes will be sent later";
+                return t("sync.status.offline");
             default:
-                return "Synchronised";
+                return t("sync.status.idle");
         }
     }
 
@@ -121,7 +122,7 @@ export class SyncAccountViewModel {
     ): Promise<void> {
 
         if (!usernameOrEmail || !usernameOrEmail.trim() || !password) {
-            this.report("Both the username or email address and the password are required.");
+            this.report(t("sync.credentialsRequired"));
             return;
         }
         this.LOG.debug("logIn", `as ${usernameOrEmail}`);
@@ -131,7 +132,7 @@ export class SyncAccountViewModel {
         await installationIdentity.setName(deviceName);
 
         const result = await this.apiClient.logInWithPassword(usernameOrEmail.trim(), password);
-        await this.storeIssuedTokens(result, "Signing in failed.");
+        await this.storeIssuedTokens(result, t("sync.logInFailed"));
     }
 
     /**
@@ -143,14 +144,14 @@ export class SyncAccountViewModel {
      */
     public async connectWithCode(code: string | null, deviceName?: string | null): Promise<void> {
         if (!code || !code.trim()) {
-            this.report("Enter the code shown on the website's devices page.");
+            this.report(t("sync.connectCodeRequired"));
             return;
         }
         this.LOG.debug("connectWithCode", "redeeming connect code");
         await installationIdentity.setName(deviceName);
 
         const result = await this.apiClient.redeemConnectCode(code.trim());
-        await this.storeIssuedTokens(result, "That code was not accepted.");
+        await this.storeIssuedTokens(result, t("sync.connectCodeRefused"));
     }
 
     /**
@@ -165,9 +166,7 @@ export class SyncAccountViewModel {
         const result = await this.apiClient.logOut();
         await this.sessions.clear();
         if (result.outcome === "offline") {
-            this.report(
-                "Signed out on this device, but the server could not be reached, "
-                + "so this device may still be listed on your account.");
+            this.report(t("sync.loggedOutOffline"));
         }
     }
 
@@ -183,7 +182,8 @@ export class SyncAccountViewModel {
             return;
         }
         this.LOG.warn("storeIssuedTokens", `${failureHeadline} ${result.message}`);
-        this.report(`${failureHeadline}\n\n${result.message}`);
+        this.report(t("sync.reportedFailure",
+            { headline: failureHeadline, message: result.message }));
     }
 
     /**
@@ -208,10 +208,8 @@ export class SyncAccountViewModel {
                 // looks like. Nothing is being taken away from anyone, so it is not worth a
                 // question - the row is adopted and the user is simply told.
                 if (await this.deviceNames.takeOver(verdict.to)) {
-                    this.report(
-                        `Welcome back. This device was signed out of "${verdict.to.deviceName}" `
-                        + "before, so it has picked up where it left off rather than being "
-                        + "added to your account a second time.");
+                    this.report(t("sync.deviceReturning",
+                        { name: verdict.to.deviceName }));
                 }
                 return;
 
@@ -239,21 +237,17 @@ export class SyncAccountViewModel {
     ): Promise<void> {
 
         const answer = await new ChoiceDialog<"take-over" | "rename" | "keep">(
-            "That name is already in use",
-            `"${takenName}" is another device on your account, and it is signed in right now. `
-            + "If that device is this one, reinstalled, take it over - you keep its history and "
-            + "the old installation is signed out. Otherwise pick a different name, or keep "
-            + "both: two devices are allowed to share a name.",
+            t("sync.deviceNameTaken.title"),
+            t("sync.deviceNameTaken.message", { name: takenName }),
             [
-                { label: "This is that device", value: "take-over", danger: true },
-                { label: "Use another name", value: "rename" },
-                { label: "Keep both", value: "keep" }
+                { label: t("sync.deviceNameTaken.takeOver"), value: "take-over", danger: true },
+                { label: t("sync.deviceNameTaken.rename"), value: "rename" },
+                { label: t("sync.deviceNameTaken.keep"), value: "keep" }
             ]).ask();
 
         if (answer === "take-over") {
             if (await this.deviceNames.takeOver(verdict.by)) {
-                this.report(`This device is now "${takenName}", and the installation that held `
-                    + "it has been signed out.");
+                this.report(t("sync.deviceTakenOver", { name: takenName }));
             }
             return;
         }
@@ -276,8 +270,8 @@ export class SyncAccountViewModel {
      */
     private async askForAnotherDeviceName(): Promise<void> {
         const answer = await new InputDialog(
-            "Name this device",
-            { "Device name": "string" },
+            t("sync.renameDeviceDialog.title"),
+            { [t("dialogs.fields.deviceName")]: { type: "string", key: "deviceName" } },
             () => undefined
         ).ask();
 
@@ -301,7 +295,7 @@ export class SyncAccountViewModel {
             return;
         }
         if (!await this.deviceNames.renameThisDevice(chosen)) {
-            this.report("This device was not renamed - the server could not be reached.");
+            this.report(t("sync.deviceNotRenamed"));
         }
     }
 

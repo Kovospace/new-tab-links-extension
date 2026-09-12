@@ -1,0 +1,18 @@
+{
+  "extensionName": {
+    "message": "Workspace Links",
+    "description": "Name of the extension, shown in the browser and in the store."
+  },
+  "extensionDescription": {
+    "message": "Vlastný pracovný priestor na stránke novej karty",
+    "description": "One-line description of the extension, shown in the browser and in the store."
+  },
+  "actionTitle": {
+    "message": "Uložiť túto stránku",
+    "description": "Tooltip of the toolbar button, which opens the bookmarking popup."
+  },
+  "bookmarkCommand": {
+    "message": "Uložiť aktuálnu stránku",
+    "description": "What the keyboard shortcut does, shown on the browser's shortcuts page."
+  }
+}

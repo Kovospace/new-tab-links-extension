@@ -1,5 +1,7 @@
 import tipsJson from "./tips.json";
 import { buildWebsiteUrl } from "../../backend/sync/SyncConfiguration";
+import { currentLanguage } from "../../i18n/i18n";
+import { FALLBACK_LANGUAGE } from "../../i18n/languages";
 
 /**
  *  The tips shown on the workspace background, and how one is chosen.
@@ -11,6 +13,12 @@ import { buildWebsiteUrl } from "../../backend/sync/SyncConfiguration";
  *
  *  A tip is one sentence per language. Nothing here falls back to a language the user did not
  *  ask for except English, which is the language the rest of this extension is written in.
+ *
+ *  **Which language that is comes from `i18n`, not from the browser.** It used to be read
+ *  straight off `chrome.i18n`, which was right while there was nothing else to read it from
+ *  and became wrong the moment the settings dialog could answer the question: a reader who
+ *  chose English on a Slovak browser would have had the whole interface in English and the
+ *  tip at the bottom of it in Slovak.
  */
 
 /** One tip, as the JSON holds it. */
@@ -38,20 +46,6 @@ export interface Tip {
 
 /** Every tip there is, in the order the file lists them. */
 export const TIPS: ReadonlyArray<Tip> = tipsJson as Tip[];
-
-/** The language the rest of this extension is written in, and the fallback for every tip. */
-const FALLBACK_LANGUAGE = "en";
-
-/**
- *  The language to show tips in: the browser's, reduced to its base.
- *
- *  "sk-SK" and "sk" are the same language as far as a tip is concerned, and a file that had
- *  to list every regional variant would be a file nobody keeps up to date.
- */
-export function currentLanguage(): string {
-    const uiLanguage = chrome.i18n?.getUILanguage?.() ?? FALLBACK_LANGUAGE;
-    return uiLanguage.split("-")[0].toLowerCase();
-}
 
 /**
  *  One tip's sentence, in the given language or in English.

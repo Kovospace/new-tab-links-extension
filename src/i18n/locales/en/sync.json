@@ -1,0 +1,42 @@
+{
+  "menu": {
+    "logIn": "Log in",
+    "register": "Register",
+    "enterSyncCode": "Enter sync code",
+    "logOut": "Log out",
+    "settings": "Settings"
+  },
+  "status": {
+    "working": "Synchronising...",
+    "offline": "Offline - changes will be sent later",
+    "idle": "Synchronised"
+  },
+  "logInDialog": {
+    "title": "Log in",
+    "usernameOrEmail": "Username or email",
+    "password": "Password"
+  },
+  "syncCodeDialog": {
+    "title": "Enter sync code",
+    "connectCode": "Connect code"
+  },
+  "credentialsRequired": "Both the username or email address and the password are required.",
+  "logInFailed": "Signing in failed.",
+  "connectCodeRequired": "Enter the code shown on the website's devices page.",
+  "connectCodeRefused": "That code was not accepted.",
+  "reportedFailure": "{headline}\n\n{message}",
+  "loggedOutOffline": "Signed out on this device, but the server could not be reached, so this device may still be listed on your account.",
+  "deviceReturning": "Welcome back. This device was signed out of \"{name}\" before, so it has picked up where it left off rather than being added to your account a second time.",
+  "deviceNameTaken": {
+    "title": "That name is already in use",
+    "message": "\"{name}\" is another device on your account, and it is signed in right now. If that device is this one, reinstalled, take it over - you keep its history and the old installation is signed out. Otherwise pick a different name, or keep both: two devices are allowed to share a name.",
+    "takeOver": "This is that device",
+    "rename": "Use another name",
+    "keep": "Keep both"
+  },
+  "deviceTakenOver": "This device is now \"{name}\", and the installation that held it has been signed out.",
+  "renameDeviceDialog": {
+    "title": "Name this device"
+  },
+  "deviceNotRenamed": "This device was not renamed - the server could not be reached."
+}

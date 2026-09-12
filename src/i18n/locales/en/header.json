@@ -1,0 +1,15 @@
+{
+  "workspaces": "Workspaces",
+  "addWorkspace": "Add new workspace",
+  "closedTabs": "Keep the recently closed panel open",
+  "profilesMenu": "User profiles list",
+  "applicationMenu": "Application menu",
+  "profileButton": "Profile: {name}",
+  "noProfile": "...",
+  "profileMenu": {
+    "export": "Export current profile",
+    "import": "Import profile",
+    "create": "Create new profile",
+    "manage": "Manage profiles"
+  }
+}

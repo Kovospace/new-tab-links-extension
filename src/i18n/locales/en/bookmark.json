@@ -1,0 +1,24 @@
+{
+  "pageTitle": "Bookmark this page",
+  "heading": "Bookmark this page",
+  "fields": {
+    "name": "Name",
+    "url": "URL",
+    "workspace": "Workspace",
+    "group": "Group",
+    "subgroup": "Subgroup"
+  },
+  "noSubgroup": "(none)",
+  "contextMenu": {
+    "page": "Bookmark this page with {extension}",
+    "link": "Bookmark this link with {extension}"
+  },
+  "nothingToBookmark": {
+    "title": "Nothing to bookmark",
+    "message": "This page cannot be kept as a link. Only ordinary web pages can - not the browser's own pages, and not the new tab page."
+  },
+  "nowhereToPut": {
+    "title": "Nowhere to put it",
+    "message": "This profile has no group to keep a link in yet. Open a new tab, make a workspace and a group, and this will have somewhere to save to."
+  }
+}

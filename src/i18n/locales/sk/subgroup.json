@@ -1,0 +1,50 @@
+{
+  "addLinkDialog": {
+    "title": "Pridať odkaz",
+    "linkTitle": "Názov odkazu"
+  },
+  "collapsed": {
+    "empty": "V podskupine zatiaľ nič nie je",
+    "hidden": {
+      "one": "{count} skrytá položka",
+      "few": "{count} skryté položky",
+      "many": "{count} skrytej položky",
+      "other": "{count} skrytých položiek"
+    }
+  },
+  "moveUp": "Posunúť podskupinu hore",
+  "moveDown": "Posunúť podskupinu dole",
+  "openGroupedTooltip": "Otvoriť všetky odkazy podskupiny v novej skupine kariet",
+  "menu": {
+    "tooltip": "Upraviť skupinu",
+    "addLink": "Pridať odkaz",
+    "toggleCollapse": "Rozbaliť / zbaliť skupinu",
+    "openGrouped": "Otvoriť všetky odkazy v skupine kariet",
+    "openSeparate": "Otvoriť všetky odkazy v samostatných kartách",
+    "catchLinks": "Zachytávať odkazy do skupiny kariet",
+    "tabGroupColor": "Farba skupiny kariet",
+    "editTitle": "Upraviť názov a popis podskupiny",
+    "saveTitle": "Uložiť názov podskupiny",
+    "manageLinks": "Spravovať odkazy",
+    "finishManagingLinks": "Ukončiť úpravu odkazov",
+    "moveLinksOut": "Presunúť všetky odkazy mimo podskupinu",
+    "deleteKeepLinks": "Zmazať podskupinu a presunúť odkazy",
+    "deleteWithLinks": "Zmazať podskupinu aj s odkazmi"
+  },
+  "colorDialog": {
+    "title": "Farba skupiny kariet",
+    "explanation": "Farba, ktorou Chrome zafarbí skupinu kariet pre „{name}“.",
+    "note": "Toto je jediných deväť farieb, ktorými Chrome zafarbí skupinu kariet.",
+    "colors": {
+      "grey": "Sivá",
+      "blue": "Modrá",
+      "red": "Červená",
+      "yellow": "Žltá",
+      "green": "Zelená",
+      "pink": "Ružová",
+      "purple": "Fialová",
+      "cyan": "Tyrkysová",
+      "orange": "Oranžová"
+    }
+  }
+}

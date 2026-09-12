@@ -1,0 +1,17 @@
+{
+  "requiredField": "{label} *",
+  "typeToConfirm": "Potvrďte napísaním „{phrase}“",
+  "validation": {
+    "required": "{label} treba vyplniť.",
+    "tooLong": "{label} môže mať najviac {max} znakov, toto ich má {length}.",
+    "refusedScheme": "{label} nemôže používať adresy typu {scheme}.",
+    "notAWebAddress": "{label} nie je platná webová adresa."
+  },
+  "fields": {
+    "name": "Názov",
+    "url": "URL",
+    "title": "Názov",
+    "deviceName": "Názov zariadenia",
+    "profileName": "Názov profilu"
+  }
+}

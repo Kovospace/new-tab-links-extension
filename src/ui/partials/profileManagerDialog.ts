@@ -3,9 +3,10 @@ import { confirmByTypingPhrase, confirmDestructiveAction } from './confirmations
 import { InputDialog } from './inputDialog';
 import { MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { t } from '../../i18n/i18n';
 
 /** What has to be typed before every other profile is deleted at once. */
-const DELETE_ALL_PHRASE = 'delete all profiles';
+
 
 /**
  * The profile manager: every profile the account has, and the ability to remove one or all.
@@ -72,7 +73,7 @@ export class ProfileManagerDialog {
 
     const heading = document.createElement('h2');
     heading.classList.add('input-dialog__title');
-    heading.textContent = 'Manage profiles';
+    heading.textContent = t('profiles.manager.title');
     dialog.appendChild(heading);
 
     this.listEl = document.createElement('div');
@@ -86,7 +87,7 @@ export class ProfileManagerDialog {
     deleteAllBtn.type = 'button';
     // Named for what it does. "Delete all" would be a lie: the profile being displayed stays,
     // because there is no such thing as no profiles.
-    deleteAllBtn.textContent = 'Delete all others';
+    deleteAllBtn.textContent = t('profiles.manager.deleteAllOthers');
     deleteAllBtn.classList.add('danger');
     deleteAllBtn.addEventListener('click', () => void this.deleteEveryOther());
 
@@ -113,7 +114,7 @@ export class ProfileManagerDialog {
     this.listEl.replaceChildren();
 
     if (profiles.length === 0) {
-      this.listEl.appendChild(this.note('No profiles.'));
+      this.listEl.appendChild(this.note(t('profiles.manager.empty')));
       return;
     }
 
@@ -121,7 +122,7 @@ export class ProfileManagerDialog {
 
     if (profiles.length === 1) {
       this.listEl.appendChild(this.note(
-        'This is your only profile, so there is nothing here to delete.'));
+        t('profiles.manager.onlyOne')));
     }
   }
 
@@ -135,7 +136,9 @@ export class ProfileManagerDialog {
 
     const name = document.createElement('span');
     name.classList.add('profile-manager__name');
-    name.textContent = profile.active ? `${profile.name} (current)` : profile.name;
+    name.textContent = profile.active
+      ? t('profiles.manager.current', { name: profile.name })
+      : profile.name;
 
     const contents = document.createElement('span');
     contents.classList.add('profile-manager__contents');
@@ -149,7 +152,7 @@ export class ProfileManagerDialog {
     renameBtn.type = 'button';
     renameBtn.classList.add('profile-manager__action');
     renameBtn.textContent = ICON.EDIT;
-    renameBtn.title = `Rename ${profile.name}`;
+    renameBtn.title = t('profiles.manager.rename', { name: profile.name });
     renameBtn.addEventListener('click', () => void this.renameOne(profile));
 
     const deleteBtn = document.createElement('button');
@@ -161,9 +164,9 @@ export class ProfileManagerDialog {
       // The profile on screen cannot be deleted from under itself. Saying why beats a button
       // that silently does nothing.
       deleteBtn.disabled = true;
-      deleteBtn.title = 'Switch to another profile first';
+      deleteBtn.title = t('profiles.manager.cannotDeleteActive');
     } else {
-      deleteBtn.title = `Delete ${profile.name}`;
+      deleteBtn.title = t('profiles.manager.delete', { name: profile.name });
       deleteBtn.addEventListener('click', () => void this.deleteOne(profile));
     }
 
@@ -190,8 +193,11 @@ export class ProfileManagerDialog {
    */
   private async renameOne(profile: ManagedProfileDTO): Promise<void> {
     const answer = await new InputDialog(
-      'Rename profile',
-      { 'Profile name': { type: 'string', required: true, maxLength: MAX_NAME_LENGTH } },
+      t('profiles.renameDialog.title'),
+      {
+        [t('profiles.renameDialog.name')]:
+          { type: 'string', required: true, maxLength: MAX_NAME_LENGTH, key: 'profileName' }
+      },
       () => { /* the answer is taken from ask(), below */ })
       .ask({ profileName: profile.name });
 
@@ -200,11 +206,9 @@ export class ProfileManagerDialog {
 
     if (name.length > MAX_NAME_LENGTH) {
       await confirmDestructiveAction(
-        'That name is too long',
-        `A profile name can be at most ${MAX_NAME_LENGTH} characters, and that one is `
-        + `${name.length}. Your account cannot store it, and keeping it here would stop every `
-        + 'other change reaching your other devices.',
-        'Close');
+        t('profiles.nameTooLong.title'),
+        t('profiles.nameTooLong.message', { max: MAX_NAME_LENGTH, length: name.length }),
+        t('common.close'));
       return;
     }
 
@@ -221,11 +225,10 @@ export class ProfileManagerDialog {
   /** Confirms and deletes one profile. */
   private async deleteOne(profile: ManagedProfileDTO): Promise<void> {
     const confirmed = await confirmDestructiveAction(
-      'Delete this profile?',
-      `"${profile.name}" holds ${profile.contentsLabel}. Deleting it removes its workspaces, `
-      + 'groups and links from this browser and from your account, on every device. '
-      + 'This cannot be undone.',
-      'Delete it');
+      t('profiles.deleteOne.title'),
+      t('profiles.deleteOne.message',
+        { name: profile.name, contents: profile.contentsLabel }),
+      t('profiles.deleteOne.confirm'));
 
     if (confirmed) {
       await this.viewModel.deleteProfile(profile.id);
@@ -238,21 +241,17 @@ export class ProfileManagerDialog {
 
     if (deletable === 0) {
       await confirmDestructiveAction(
-        'Nothing to delete',
-        'The profile you are looking at is the only one there is, and it is the one profile '
-        + 'this cannot remove.',
-        'Close');
+        t('profiles.nothingToDelete.title'),
+        t('profiles.nothingToDelete.message'),
+        t('common.close'));
       return;
     }
 
     const confirmed = await confirmByTypingPhrase(
-      'Delete all other profiles?',
-      `This deletes ${deletable} profile${deletable === 1 ? '' : 's'} and everything in `
-      + `${deletable === 1 ? 'it' : 'them'} — workspaces, groups and links — from this browser `
-      + 'and from your account, on every device. The profile you are looking at now is kept. '
-      + 'This cannot be undone.',
-      DELETE_ALL_PHRASE,
-      'Yes, delete them');
+      t('profiles.deleteAll.title'),
+      t('profiles.deleteAll.message', { count: deletable }),
+      t('profiles.deleteAll.phrase'),
+      t('profiles.deleteAll.confirm'));
 
     if (confirmed) {
       await this.viewModel.deleteEveryOtherProfile();

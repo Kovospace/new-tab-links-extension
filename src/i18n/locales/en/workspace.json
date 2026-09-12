@@ -1,0 +1,21 @@
+{
+  "pageTitle": "Workspace",
+  "addDialog": {
+    "title": "Add workspace",
+    "name": "Workspace name",
+    "description": "Workspace description"
+  },
+  "menu": {
+    "tooltip": "Edit current workspace",
+    "add": "Add workspace",
+    "editTitle": "Edit Workspace title",
+    "saveTitle": "Save Workspace title",
+    "delete": "Delete workspace",
+    "deleteConfirmation": "All groups and links that are associated to that workspace will be deleted as well."
+  },
+  "addGroup": "Add group",
+  "addGroupTooltip": "Add new group",
+  "errors": {
+    "noName": "A workspace needs a name."
+  }
+}

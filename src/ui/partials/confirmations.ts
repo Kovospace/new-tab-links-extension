@@ -1,5 +1,6 @@
 import { ChoiceDialog } from './choiceDialog';
 import { InputDialog } from './inputDialog';
+import { t } from '../../i18n/i18n';
 
 /**
  * The two ways this UI asks "are you sure", and the difference between them.
@@ -25,7 +26,7 @@ export async function confirmDestructiveAction(
 ): Promise<boolean> {
   const answer = await new ChoiceDialog<'yes' | 'no'>(title, message, [
     { label: confirmLabel, value: 'yes', danger: true },
-    { label: 'Cancel', value: 'no' }
+    { label: t('common.cancel'), value: 'no' }
   ]).ask();
 
   return answer === 'yes';
@@ -55,7 +56,7 @@ export async function confirmByTypingPhrase(
 
   const answer = await new InputDialog(
     title,
-    { [`Type "${requiredPhrase}" to confirm`]: 'string' },
+    { [t('dialogs.typeToConfirm', { phrase: requiredPhrase })]: { type: 'string', key: 'phrase' } },
     () => undefined
   ).ask();
 

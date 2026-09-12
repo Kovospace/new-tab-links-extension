@@ -1,0 +1,21 @@
+{
+  "railTooltip": "Recently closed tabs",
+  "title": "Recently closed",
+  "forgetAll": "Forget every closed tab",
+  "closePanel": "Close the panel",
+  "empty": "Nothing closed yet. Tabs you close will appear here.",
+  "alreadySaved": "Already saved in this profile",
+  "saveAsLink": "Save as a link",
+  "forgetOne": "Forget this one",
+  "rowTooltip": "{url}\nOpen again",
+  "closedOn": "Closed on {device}",
+  "nowhereToPut": {
+    "title": "Nowhere to put it",
+    "message": "This profile has no group to keep a link in yet. Make a workspace and a group first."
+  },
+  "forgetAllConfirmation": {
+    "title": "Forget every closed tab?",
+    "message": "The list is emptied on this profile, on every device you are signed in on. The tabs themselves are not affected, and anything you have already saved as a link stays.",
+    "confirm": "Forget them"
+  }
+}

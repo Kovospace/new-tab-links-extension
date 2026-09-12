@@ -181,3 +181,19 @@ html.dark .settings-dialog__category-head:active {
     opacity: 0.4;
     cursor: not-allowed;
 }
+
+/*
+ *  A setting that is a choice out of a list.
+ *
+ *  Laid out like the slider is - name above, control under it, explanation beneath - rather
+ *  than as a label beside a dropdown: the explanations here are sentences, and a row that puts
+ *  one beside a control has to choose between wrapping it and cutting it off.
+ */
+.settings-dialog__row--choice {
+    align-items: stretch;
+}
+
+.settings-dialog__select {
+    width: 100%;
+    margin: 0.25em 0;
+}

@@ -1,3 +1,5 @@
+import { t } from '../../i18n/i18n';
+
 /**
  *  What a field will accept, and what to say when it does not.
  *
@@ -29,6 +31,18 @@ export interface FieldConstraints {
      *  to be saved.
      */
     maxLength?: number;
+
+    /**
+     *  What the confirming callback receives this field's value under.
+     *
+     *  Without it the key is the label, camel-cased - which was fine while there was one
+     *  wording per field and stopped being fine the moment there were two. A dialog whose
+     *  labels are translated would hand `addWorkspace` a `nazovPracovnehoPriestoru` in Slovak
+     *  and a `workspaceName` in English, and the callback can only be written for one of them.
+     *  So a field that matters says what it is called in code, and the label is free to say
+     *  whatever the reader's language says.
+     */
+    key?: string;
 }
 
 /**
@@ -71,7 +85,7 @@ export function validateField(
     const trimmed = value.trim();
 
     if (constraints.required && trimmed.length === 0) {
-        return `${label} is required.`;
+        return t('dialogs.validation.required', { label });
     }
 
     // An empty optional field is finished with here: the rules below are about what a value
@@ -81,8 +95,8 @@ export function validateField(
     }
 
     if (constraints.maxLength !== undefined && trimmed.length > constraints.maxLength) {
-        return `${label} can be at most ${constraints.maxLength} characters, `
-            + `and this is ${trimmed.length}.`;
+        return t('dialogs.validation.tooLong',
+            { label, max: constraints.maxLength, length: trimmed.length });
     }
 
     if (constraints.type === 'url') {
@@ -104,13 +118,14 @@ function urlProblem(label: string, value: string): string | null {
     if (asTyped && REFUSED_SCHEMES.includes(asTyped.protocol)) {
         // Said plainly rather than as "invalid": somebody who typed this meant it, and the
         // reason it is refused is not that it is malformed.
-        return `${label} cannot use ${asTyped.protocol.replace(':', '')} addresses.`;
+        return t('dialogs.validation.refusedScheme',
+            { label, scheme: asTyped.protocol.replace(':', '') });
     }
 
     const parsed = asTyped ?? parseUrl(normalizeUrl(value));
 
     if (!parsed) {
-        return `${label} is not a valid web address.`;
+        return t('dialogs.validation.notAWebAddress', { label });
     }
 
     // A host is demanded only of the schemes that have one. `file:` addresses have none by
@@ -118,7 +133,7 @@ function urlProblem(label: string, value: string): string | null {
     // expense, and neither can run anything.
     const needsHost = parsed.protocol === 'http:' || parsed.protocol === 'https:';
     if (needsHost && !parsed.hostname) {
-        return `${label} is not a valid web address.`;
+        return t('dialogs.validation.notAWebAddress', { label });
     }
 
     return null;

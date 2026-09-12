@@ -1,3 +1,4 @@
+import { t } from '../../i18n/i18n';
 import { toggleOverlay } from './wrappedHtmlElements';
 import {
   FieldConstraints, FieldType, normalizeUrl, validateFields
@@ -16,6 +17,18 @@ export type FieldSpec = FieldType | FieldConstraints;
 export type FieldMap = Record<string, FieldSpec>;
 
 type FieldValues = Record<string, string>;
+
+/**
+ * What a field's value is handed to the callback under.
+ *
+ * The label, camel-cased, unless the field says otherwise - and every field in this extension
+ * now says otherwise, because a label is translated and a callback's parameter name is not.
+ * The camel-cased fallback is kept for a caller with nothing to translate, which is what the
+ * tests are.
+ */
+function keyOf(label: string, constraints: FieldConstraints): string {
+  return constraints.key ?? toCamelCase(label);
+}
 
 /** "Give link title" → "giveLinkTitle" */
 function toCamelCase(label: string): string {
@@ -148,6 +161,7 @@ export class InputDialog {
     Object.entries(this.fields).forEach(([label, spec], idx) => {
       const fieldId = `input-dialog-field-${idx}`;
       const constraints = constraintsOf(spec);
+      const camelKey = keyOf(label, constraints);
 
       const wrapper = document.createElement('div');
       wrapper.classList.add('input-dialog__field');
@@ -155,10 +169,10 @@ export class InputDialog {
       const labelEl = document.createElement('label');
       labelEl.classList.add('input-dialog__label');
       labelEl.htmlFor = fieldId;
-      labelEl.textContent = constraints.required ? `${label} *` : label;
+      labelEl.textContent = constraints.required ? t('dialogs.requiredField', { label }) : label;
 
       const input = buildInput(constraints.type, fieldId, label);
-      if (prefill?.[toCamelCase(label)] !== undefined) input.value = prefill[toCamelCase(label)];
+      if (prefill?.[camelKey] !== undefined) input.value = prefill[camelKey];
 
       const errorEl = document.createElement('span');
       errorEl.classList.add('input-dialog__error');
@@ -170,14 +184,14 @@ export class InputDialog {
       form.appendChild(wrapper);
 
       const ref: FieldRef = {
-        camelKey: toCamelCase(label),
+        camelKey,
         label,
         constraints,
         el: input,
         errorEl,
         // A field arriving with a value was filled in by whoever opened the dialog - a rename
         // prefills the current name - so it has something to say about itself already.
-        touched: (prefill?.[toCamelCase(label)] ?? '') !== ''
+        touched: (prefill?.[camelKey] ?? '') !== ''
       };
       this.fieldRefs.push(ref);
 
@@ -198,13 +212,13 @@ export class InputDialog {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = t('common.cancel');
     cancelBtn.classList.add("danger");
     cancelBtn.addEventListener('click', () => this.hide());
 
     this.confirmBtn = document.createElement('button');
     this.confirmBtn.type = 'button';
-    this.confirmBtn.textContent = 'OK';
+    this.confirmBtn.textContent = t('common.ok');
     this.confirmBtn.classList.add('add');
     this.confirmBtn.addEventListener('click', () => this.confirm());
 

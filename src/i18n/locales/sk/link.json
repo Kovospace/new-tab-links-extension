@@ -1,0 +1,19 @@
+{
+  "editDialog": {
+    "title": "Upraviť odkaz"
+  },
+  "moveUp": "Posunúť odkaz hore",
+  "moveDown": "Posunúť odkaz dole",
+  "edit": "Upraviť odkaz",
+  "delete": "Zmazať odkaz",
+  "menu": {
+    "moveUp": "Posunúť hore",
+    "moveDown": "Posunúť dole",
+    "edit": "Upraviť odkaz",
+    "copyUrl": "Kopírovať adresu odkazu",
+    "refreshIcon": "Obnoviť ikonu",
+    "moveOutOfSubgroup": "Presunúť mimo podskupinu",
+    "moveToSubgroup": "Presunúť do „{name}“",
+    "delete": "Zmazať odkaz"
+  }
+}

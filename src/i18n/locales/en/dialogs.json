@@ -1,0 +1,17 @@
+{
+  "requiredField": "{label} *",
+  "typeToConfirm": "Type \"{phrase}\" to confirm",
+  "validation": {
+    "required": "{label} is required.",
+    "tooLong": "{label} can be at most {max} characters, and this is {length}.",
+    "refusedScheme": "{label} cannot use {scheme} addresses.",
+    "notAWebAddress": "{label} is not a valid web address."
+  },
+  "fields": {
+    "name": "Name",
+    "url": "URL",
+    "title": "Title",
+    "deviceName": "Device name",
+    "profileName": "Profile name"
+  }
+}

@@ -289,7 +289,9 @@ space when there is little to show, and below the columns when there is a lot.
 - The tips are **JSON, not code** (`ui/tips/tips.json`), one entry per tip with a sentence per
   language, so adding one is adding an entry and a translator can be handed a file. It is
   imported rather than fetched, so a malformed entry is a build error rather than an empty
-  strip on somebody's new tab page.
+  strip on somebody's new tab page. Which language is read comes from `i18n`, not from the
+  browser: a reader who chose English on a Slovak browser would otherwise have the whole
+  interface in English and the tip at the bottom of it in Slovak.
 - An optional `url` on a tip draws a "tell me more" button, and is **per language like the
   sentence is**: the tutorial it points at is a page on the website, and that page has a
   language of its own. It falls back to English when a language has no tutorial yet, because
@@ -389,10 +391,68 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   Both renumber from zero rather than nudging, because stored positions are not guaranteed to
   be a clean 0..n-1.
 
+### Languages (`src/i18n/`)
+
+Every sentence the interface says is JSON, one folder per language and one file per screen:
+`locales/en/group.json`, `locales/sk/group.json`. The file's name is the first segment of
+every key it holds, so `t("subgroup.menu.addLink")` says where its wording lives. What several
+screens say in the same words goes to the file named after the thing rather than into each of
+them - `common` for the buttons every dialog has, `dialogs` for the input dialog and its
+validation, `errors` for the account, `dates` for anything about time.
+
+- **Imported, not fetched**, like the tips already were. A malformed file is a build error
+  rather than an empty page, both languages are in the bundle, and - the reason that matters -
+  `t()` answers synchronously. Rendering here is not asynchronous; a translator that had to be
+  awaited would mean either a page drawn in keys and corrected afterwards, or every render
+  turning into a promise.
+- **The language is settled before anything is drawn**, in `applyLocale()` beside
+  `applyScale()`, from the device preferences both entry points already await. Every string is
+  read once, as its element is built.
+- **Plurals go through `Intl.PluralRules`**, never `count === 1`: that comparison is an English
+  rule wearing the clothes of a universal one. English needs "an hour ago" where it would
+  otherwise say "1 hours ago", and Slovak wants a different word for two, three and four than
+  for five. A plural entry is an object carrying `other` and whichever other categories the
+  language uses, and `other` is what tells it apart from a branch of the tree.
+- **A missing key returns the key**, visible and greppable. It costs one ugly label, never the
+  screen it was on, and `test/i18n/catalogue.test.ts` is what notices a gap before a reader
+  does - including a translation that drops a `{placeholder}` or invents one.
+- **Language and date format are device preferences**, beside the size slider and for the same
+  reason (`DevicePreferencesRepository`). A language looks at first like something that follows
+  the person; it does not - one person's two browsers are routinely set to two languages. The
+  practical half agrees: `ProfileSettings` is booleans on the profile record, and a string there
+  would be a backend column, a snapshot field and a merge rule for a choice the account has no
+  opinion about.
+- **The date format is a separate question from the language**, which is why there are two
+  settings. The language picks the words; the format picks the order the parts of a date go in.
+  "Local custom" - the default - takes that order from the browser's own region, which is also
+  why `currentLocaleTag()` keeps the browser's full tag when its base is the language being
+  spoken and drops it when the user has chosen something else.
+- **Changing the language reloads the page.** It is the only honest way to redraw an interface
+  whose every string was read while it was being built. The settings dialog leaves a note in
+  session storage and `main.ts` opens it again, so setting a language and then a date format is
+  one journey through the menu.
+- **`InputDialog` fields declare the key their value reaches the callback under.** It used to
+  be the label, camel-cased - fine with one wording per field, a bug with two: a Slovak dialog
+  would hand `addWorkspace` a `nazovPracovnehoPriestoru`. The camel-cased fallback is kept for
+  callers with nothing to translate, which is what the tests are.
+- **The service worker translates its two right-click entries too**, which costs it a read of
+  the device preferences (it inherits nothing) and a rebuild when they change - Chrome keeps a
+  context menu entry until it is told otherwise.
+- **`public/_locales/` is a second, separate mechanism and that is correct.** It translates
+  what our runtime cannot reach: the extension's name and description, the toolbar tooltip, and
+  the keyboard shortcut's description on chrome://extensions/shortcuts. Those follow the
+  *browser's* language rather than this setting, because that is the only thing Chrome will
+  read them by.
+- **The automatic device label is deliberately not translated** (`sync/DeviceName.ts`). It is
+  an identifier: stored on the account, shown on devices reading in another language, and
+  compared as a string against what the worker stamped. Translating it would rename a device
+  whenever its owner changed language and make "was this closed elsewhere" answer yes on the
+  device it happened on.
+
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 
 Every creation and rename goes through `InputDialog`, and each of its fields may declare
-constraints - `{ type, required, maxLength }` - beside the bare type it used to take. The
+constraints - `{ type, required, maxLength, key }` - beside the bare type it used to take. The
 dialog will not submit a form that breaks them: the confirming button is disabled, the offending
 field is named under itself, and Enter refuses too (a disabled button does not stop a keypress).
 

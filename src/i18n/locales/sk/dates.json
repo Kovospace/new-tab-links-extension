@@ -1,0 +1,27 @@
+{
+  "age": {
+    "justNow": "práve teraz",
+    "minutes": {
+      "one": "pred {count} minútou",
+      "few": "pred {count} minútami",
+      "other": "pred {count} minútami"
+    },
+    "hours": {
+      "one": "pred hodinou",
+      "few": "pred {count} hodinami",
+      "other": "pred {count} hodinami"
+    },
+    "days": {
+      "one": "včera",
+      "few": "pred {count} dňami",
+      "other": "pred {count} dňami"
+    }
+  },
+  "formats": {
+    "auto": "Miestna zvyklosť ({sample})",
+    "dayMonthYearDots": "Deň mesiac rok — {sample}",
+    "dayMonthYearSlashes": "Deň/mesiac/rok — {sample}",
+    "monthDayYearSlashes": "Mesiac/deň/rok — {sample}",
+    "isoDashes": "Rok-mesiac-deň — {sample}"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "heading": "Zatiaľ tu nie sú žiadne pracovné priestory, skupiny ani odkazy.",
+  "subheading": "Ak vidíte túto stránku, je to buď prvé spustenie, alebo bolo všetko vymazané.",
+  "createWorkspace": "Začnite vytvorením pracovného priestoru",
+  "createWorkspaceButton": "+ Pridať prvý pracovný priestor",
+  "importPrompt": "... alebo načítajte odkazy zo zálohy / exportovaného súboru",
+  "importButton": "> Importovať",
+  "examplesPrompt": "... alebo načítajte pripravenú ukážkovú sadu",
+  "examplesButton": "- Načítať ukážky",
+  "accountPrompt": "... alebo si prineste odkazy, ktoré už máte vo svojom účte NewTabLinks",
+  "signedInAs": "Prihlásený ako {username}",
+  "defaultWorkspaceDescription": "Predvolený pracovný priestor",
+  "titleMandatory": "Názov je povinný"
+}

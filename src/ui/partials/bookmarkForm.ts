@@ -1,12 +1,13 @@
 import { BookmarkRequest } from '../../utils/bookmarkRequest';
 import { BookmarkTargetDTO, BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
+import { t } from '../../i18n/i18n';
 
 /** Shown until the page's own icon arrives, and when none can be found. */
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
 
 /** What the dropdown offers when the chosen group's own body is the destination. */
-const NO_SUBGROUP = '(none)';
+const noSubgroupLabel = (): string => t('bookmark.noSubgroup');
 
 /**
  * The form that keeps the page the user is looking at.
@@ -78,7 +79,7 @@ export class BookmarkForm {
 
     const heading = document.createElement('h2');
     heading.classList.add('input-dialog__title');
-    heading.textContent = 'Bookmark this page';
+    heading.textContent = t('bookmark.heading');
     panel.appendChild(heading);
 
     const form = document.createElement('form');
@@ -97,11 +98,12 @@ export class BookmarkForm {
     this.groupSelect = this.buildSelect('bookmark-group');
     this.subgroupSelect = this.buildSelect('bookmark-subgroup');
 
-    this.appendRow(fields, 'Name', this.nameInput);
-    this.appendRow(fields, 'URL', this.urlInput);
-    this.appendRow(fields, 'Workspace', this.buildWorkspaceLabel());
-    this.appendRow(fields, 'Group', this.groupSelect);
-    this.subgroupField = this.appendRow(fields, 'Subgroup', this.subgroupSelect);
+    this.appendRow(fields, t('bookmark.fields.name'), this.nameInput);
+    this.appendRow(fields, t('bookmark.fields.url'), this.urlInput);
+    this.appendRow(fields, t('bookmark.fields.workspace'), this.buildWorkspaceLabel());
+    this.appendRow(fields, t('bookmark.fields.group'), this.groupSelect);
+    this.subgroupField =
+      this.appendRow(fields, t('bookmark.fields.subgroup'), this.subgroupSelect);
 
     fillOptions(this.groupSelect, this.groups.map(group => group.title));
     this.groupSelect.addEventListener('change', () => this.renderSubgroups());
@@ -204,13 +206,13 @@ export class BookmarkForm {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = t('common.cancel');
     cancelBtn.classList.add('danger');
     cancelBtn.addEventListener('click', () => settle(false));
 
     const saveBtn = document.createElement('button');
     saveBtn.type = 'submit';
-    saveBtn.textContent = 'Save';
+    saveBtn.textContent = t('common.save');
     saveBtn.classList.add('add');
 
     actions.appendChild(cancelBtn);
@@ -228,7 +230,8 @@ export class BookmarkForm {
     this.subgroups = group ? this.viewModel.getSubgroups(group.id) : [];
 
     this.subgroupField.hidden = this.subgroups.length === 0;
-    fillOptions(this.subgroupSelect, [NO_SUBGROUP, ...this.subgroups.map(one => one.title)]);
+    fillOptions(this.subgroupSelect,
+      [noSubgroupLabel(), ...this.subgroups.map(one => one.title)]);
   }
 
   /**

@@ -5,6 +5,13 @@ import {
     MAX_SCALE, MIN_SCALE, SCALE_STEP
 } from "../backend/repository/DevicePreferencesRepository";
 
+import {
+    DATE_FORMATS, DateFormatId, sampleOf
+} from "../i18n/dates";
+import { t } from "../i18n/i18n";
+import { AUTOMATIC_LANGUAGE, baseLanguageOf, browserLanguageTag, SUPPORTED_LANGUAGES }
+    from "../i18n/languages";
+
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 
@@ -53,11 +60,35 @@ export interface RangeSettingDTO extends SettingCommonDTO {
     display: string;
 }
 
+/**
+ *  A setting that is one of a closed list of answers.
+ *
+ *  Its own kind rather than a row of toggles: the answers are mutually exclusive, and there
+ *  are already seven of them between the two settings that need this - a row of seven
+ *  switches that turn each other off is a dropdown drawn the hard way.
+ */
+export interface ChoiceSettingDTO extends SettingCommonDTO {
+    kind: "choice";
+    /** Which setting this is; what `setChoice` is called with. */
+    key: ChoiceSettingKey;
+    value: string;
+    options: SettingOptionDTO[];
+}
+
+/** One answer a choice setting offers. */
+export interface SettingOptionDTO {
+    value: string;
+    label: string;
+}
+
 /** One setting, as the dialog draws it. */
-export type SettingDTO = ToggleSettingDTO | RangeSettingDTO;
+export type SettingDTO = ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO;
 
 /** The settings that are numbers. One so far. */
 export type RangeSettingKey = "uiScale";
+
+/** The settings that are a choice out of a list. */
+export type ChoiceSettingKey = "language" | "dateFormat";
 
 /** A named group of settings, which the dialog draws as one collapsible section. */
 export interface SettingCategoryDTO {
@@ -81,15 +112,25 @@ export interface SettingsDTO {
     categories: SettingCategoryDTO[];
 }
 
-/** What a setting is, and where it belongs, independent of what it is set to. */
+/**
+ *  What a setting is, and where it belongs, independent of what it is set to.
+ *
+ *  It names its wording rather than carrying it: a definition list is evaluated when this
+ *  module is imported, which is before the page knows what language it is being drawn in, so
+ *  a title written here as a string would be the fallback language's title for ever. `wording`
+ *  is the key its title and explanation live under in `settings.json`, and both are read at
+ *  the moment the dialog is described.
+ */
 type SettingDefinition =
-    | { kind: "toggle"; key: keyof ProfileSettings; title: string; explanation: string }
-    | { kind: "range"; key: RangeSettingKey; title: string; explanation: string };
+    | { kind: "toggle"; key: keyof ProfileSettings; wording: string }
+    | { kind: "range"; key: RangeSettingKey; wording: string }
+    | { kind: "choice"; key: ChoiceSettingKey; wording: string };
 
 /** A category, and what is in it. */
 interface CategoryDefinition {
     key: string;
-    title: string;
+    /** Key under `settings.categories` holding what this section is called. */
+    wording: string;
     settings: SettingDefinition[];
 }
 
@@ -103,33 +144,22 @@ interface CategoryDefinition {
 const CATEGORIES: CategoryDefinition[] = [
     {
         key: "ui-and-behavior",
-        title: "UI and behavior",
+        wording: "uiAndBehavior",
         settings: [
-            {
-                kind: "toggle",
-                key: "enableDragAndDrop",
-                title: "Enable drag & drop",
-                explanation:
-                    "Drag a link to reorder it, into a subgroup or into another group; drag "
-                    + "a group to move it along the row."
-            },
-            {
-                kind: "toggle",
-                key: "hideTips",
-                title: "Hide tips",
-                explanation:
-                    "Stop showing the tips along the bottom of the page. This is where they "
-                    + "come back from."
-            },
-            {
-                kind: "range",
-                key: "uiScale",
-                title: "Size",
-                explanation:
-                    "How big everything is drawn. This one is kept on this device only - a "
-                    + "desktop and a laptop want different answers, and one should not decide "
-                    + "for the other."
-            }
+            { kind: "toggle", key: "enableDragAndDrop", wording: "enableDragAndDrop" },
+            { kind: "toggle", key: "hideTips", wording: "hideTips" },
+            { kind: "range", key: "uiScale", wording: "uiScale" }
+        ]
+    },
+    {
+        // Two questions rather than one, because they are two: the language decides the words
+        // and the date format decides the order the parts of a date go in, and a reader can
+        // want one without the other - see i18n/dates.ts.
+        key: "language-and-local-customs",
+        wording: "languageAndLocalCustoms",
+        settings: [
+            { kind: "choice", key: "language", wording: "language" },
+            { kind: "choice", key: "dateFormat", wording: "dateFormat" }
         ]
     }
 ];
@@ -221,6 +251,36 @@ export class SettingsViewModel {
     }
 
     /**
+     *  Answers a setting that is a choice out of a list, and redraws.
+     *
+     *  **Changing the language reports that the page has to be rebuilt** rather than doing it.
+     *  Every string in this interface is read once, while its element is being built, so a
+     *  language changed under a page already on screen changes nothing the user can see; the
+     *  only honest redraw is a reload. Whether to reload, and how to come back to this dialog
+     *  afterwards, is the dialog's business and not a view model's - so this says that it
+     *  happened and lets the caller act.
+     *
+     *  @param key   which setting
+     *  @param value what to set it to; each setting clamps it to what it offers
+     *  @return whether the page has to be reloaded for the change to be visible
+     */
+    public async setChoice(key: ChoiceSettingKey, value: string): Promise<boolean> {
+
+        this.LOG.debug("setChoice", `${key} -> ${value}`);
+
+        if (key === "language") {
+            const before = this.devicePreferences.getLanguage();
+            await this.devicePreferences.setLanguage(value);
+            this.refresh();
+            return this.devicePreferences.getLanguage() !== before;
+        }
+
+        await this.devicePreferences.setDateFormat(value);
+        this.refresh();
+        return false;
+    }
+
+    /**
      *  Folds a category away, or unfolds it, and redraws.
      *
      *  @param key which category
@@ -240,13 +300,32 @@ export class SettingsViewModel {
         settings: ProfileSettings
     ): SettingDTO {
 
+        const title = t(`settings.${definition.wording}.title`);
+        const explanation = t(`settings.${definition.wording}.explanation`);
+
         if (definition.kind === "toggle") {
             return {
                 kind: "toggle",
                 key: definition.key,
-                title: definition.title,
-                explanation: definition.explanation,
+                title,
+                explanation,
                 enabled: settings[definition.key],
+                disabledReason: null
+            };
+        }
+
+        if (definition.kind === "choice") {
+            return {
+                kind: "choice",
+                key: definition.key,
+                title,
+                explanation,
+                value: definition.key === "language"
+                    ? this.devicePreferences.getLanguage()
+                    : this.devicePreferences.getDateFormat(),
+                options: definition.key === "language"
+                    ? languageOptions()
+                    : dateFormatOptions(),
                 disabledReason: null
             };
         }
@@ -255,8 +334,8 @@ export class SettingsViewModel {
         return {
             kind: "range",
             key: definition.key,
-            title: definition.title,
-            explanation: definition.explanation,
+            title,
+            explanation,
             value,
             min: MIN_SCALE,
             max: MAX_SCALE,
@@ -283,11 +362,47 @@ export class SettingsViewModel {
                 .filter(category => category.settings.length > 0)
                 .map(category => ({
                     key: category.key,
-                    title: category.title,
+                    title: t(`settings.categories.${category.wording}`),
                     collapsed: this.collapsed.has(category.key),
                     settings: category.settings.map(definition =>
                         this.describeSetting(definition, settings))
                 }))
         };
     }
+}
+
+/**
+ *  The languages on offer, with "follow the browser" first.
+ *
+ *  Each is named in itself - "Slovenčina", not "Slovak" - because a list of languages is read
+ *  by somebody who does not read the one it is currently written in. "Follow the browser" is
+ *  the exception: it is a sentence rather than a name, so it says which language that
+ *  currently means, in the reader's own words.
+ */
+function languageOptions(): SettingOptionDTO[] {
+
+    const guessed = SUPPORTED_LANGUAGES
+        .find(language => language.code === baseLanguageOf(browserLanguageTag()));
+
+    return [
+        {
+            value: AUTOMATIC_LANGUAGE,
+            // A browser set to a language this extension does not have falls back to English,
+            // and the entry says so rather than naming a language nothing is written in.
+            label: t("settings.language.automatic",
+                { name: guessed?.nativeName ?? SUPPORTED_LANGUAGES[0].nativeName })
+        },
+        ...SUPPORTED_LANGUAGES.map(language => ({
+            value: language.code,
+            label: language.nativeName
+        }))
+    ];
+}
+
+/** The date formats on offer, each shown writing the same day, so they can be compared. */
+function dateFormatOptions(): SettingOptionDTO[] {
+    return DATE_FORMATS.map((format: DateFormatId) => ({
+        value: format,
+        label: t(`dates.formats.${format}`, { sample: sampleOf(format) })
+    }));
 }

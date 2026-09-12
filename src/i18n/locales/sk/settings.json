@@ -1,0 +1,30 @@
+{
+  "title": "Nastavenia",
+  "profileNote": "Tieto nastavenia patria profilu „{name}“ — a platia preň na každom zariadení, kde ste prihlásení.",
+  "profileNoteUnnamed": "Tieto nastavenia patria profilu, ktorý máte otvorený.",
+  "categories": {
+    "uiAndBehavior": "Vzhľad a správanie",
+    "languageAndLocalCustoms": "Jazyk a miestne zvyklosti"
+  },
+  "enableDragAndDrop": {
+    "title": "Zapnúť ťahanie myšou",
+    "explanation": "Ťahaním presuniete odkaz na iné miesto, do podskupiny alebo do inej skupiny; ťahaním skupiny ju posuniete v rade."
+  },
+  "hideTips": {
+    "title": "Skryť tipy",
+    "explanation": "Prestane zobrazovať tipy v spodnej časti stránky. Odtiaľto sa dajú vrátiť späť."
+  },
+  "uiScale": {
+    "title": "Veľkosť",
+    "explanation": "Ako veľko sa všetko vykreslí. Toto nastavenie zostáva len na tomto zariadení — stolný počítač a notebook chcú inú odpoveď a jeden by nemal rozhodovať za druhý."
+  },
+  "language": {
+    "title": "Jazyk",
+    "explanation": "Jazyk, ktorým s vami toto rozšírenie hovorí. „Podľa prehliadača“ použije jazyk prehliadača a tam, kde preklad chýba, angličtinu. Zostáva len na tomto zariadení.",
+    "automatic": "Podľa prehliadača ({name})"
+  },
+  "dateFormat": {
+    "title": "Formát dátumu",
+    "explanation": "Ako sa píšu dátumy. „Miestna zvyklosť“ ich píše tak, ako je zvykom v oblasti vášho prehliadača. Zostáva len na tomto zariadení."
+  }
+}

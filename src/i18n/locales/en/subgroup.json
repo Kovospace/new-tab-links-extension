@@ -1,0 +1,48 @@
+{
+  "addLinkDialog": {
+    "title": "Add link",
+    "linkTitle": "Link title"
+  },
+  "collapsed": {
+    "empty": "No items in subgroup yet",
+    "hidden": {
+      "one": "{count} hidden item",
+      "other": "{count} hidden items"
+    }
+  },
+  "moveUp": "Move subgroup up",
+  "moveDown": "Move subgroup down",
+  "openGroupedTooltip": "Open all subgroup links in new grouped tabs",
+  "menu": {
+    "tooltip": "Edit the Group",
+    "addLink": "Add link",
+    "toggleCollapse": "Expand / Collapse group",
+    "openGrouped": "Open all links in grouped tabs",
+    "openSeparate": "Open all links in separated tabs",
+    "catchLinks": "Catch links into tab group",
+    "tabGroupColor": "Grouped tabs color",
+    "editTitle": "Edit subgroup title & description",
+    "saveTitle": "Save subgroup title",
+    "manageLinks": "Manage links",
+    "finishManagingLinks": "Finish links editing",
+    "moveLinksOut": "Move all links out of subgroup",
+    "deleteKeepLinks": "Delete subgroup & move links",
+    "deleteWithLinks": "Delete subgroup including links"
+  },
+  "colorDialog": {
+    "title": "Grouped tabs color",
+    "explanation": "The colour Chrome paints the tab group for \"{name}\".",
+    "note": "These are the only nine colours Chrome will paint a tab group.",
+    "colors": {
+      "grey": "Grey",
+      "blue": "Blue",
+      "red": "Red",
+      "yellow": "Yellow",
+      "green": "Green",
+      "pink": "Pink",
+      "purple": "Purple",
+      "cyan": "Cyan",
+      "orange": "Orange"
+    }
+  }
+}

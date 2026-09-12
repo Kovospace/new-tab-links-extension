@@ -1,0 +1,24 @@
+{
+  "age": {
+    "justNow": "just now",
+    "minutes": {
+      "one": "{count} min ago",
+      "other": "{count} min ago"
+    },
+    "hours": {
+      "one": "an hour ago",
+      "other": "{count} hours ago"
+    },
+    "days": {
+      "one": "yesterday",
+      "other": "{count} days ago"
+    }
+  },
+  "formats": {
+    "auto": "Local custom ({sample})",
+    "dayMonthYearDots": "Day month year — {sample}",
+    "dayMonthYearSlashes": "Day/month/year — {sample}",
+    "monthDayYearSlashes": "Month/day/year — {sample}",
+    "isoDashes": "Year-month-day — {sample}"
+  }
+}

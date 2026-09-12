@@ -3,6 +3,7 @@ import { TrashViewModel } from '../../viewModel/trashViewModel';
 import { confirmDestructiveAction } from './confirmations';
 import { makeContainerTarget } from '../dragAndDrop/dragAndDrop';
 import { ICON } from './wrappedHtmlElements';
+import { t } from '../../i18n/i18n';
 
 /**
  * The bar along the bottom of the workspace, which has two faces.
@@ -110,9 +111,9 @@ export class TipsBar {
 
     if (tips.tip.url) {
       this.tipEl.appendChild(this.button(
-        'Tell me more',
+        t('tips.tellMeMore'),
         ['tips-bar__more'],
-        'Read more about this',
+        t('tips.tellMeMoreTooltip'),
         () => this.viewModel.openMore()));
     }
 
@@ -124,13 +125,13 @@ export class TipsBar {
 
     if (tips.tip.navigable) {
       controls.appendChild(this.button(
-        ICON.MOVE_UP, ['tips-bar__control'], 'Previous tip', () => this.viewModel.previous()));
+        ICON.MOVE_UP, ['tips-bar__control'], t('tips.previous'), () => this.viewModel.previous()));
       controls.appendChild(this.button(
-        ICON.MOVE_DOWN, ['tips-bar__control'], 'Next tip', () => this.viewModel.next()));
+        ICON.MOVE_DOWN, ['tips-bar__control'], t('tips.next'), () => this.viewModel.next()));
     }
 
     controls.appendChild(this.button(
-      ICON.CLOSE, ['tips-bar__control'], 'Hide tips', () => void this.confirmHide()));
+      ICON.CLOSE, ['tips-bar__control'], t('tips.hide'), () => void this.confirmHide()));
 
     this.tipEl.appendChild(controls);
   }
@@ -152,7 +153,7 @@ export class TipsBar {
     icon.setAttribute('aria-hidden', 'true');
 
     const text = document.createElement('span');
-    text.textContent = 'Drop the link here to destroy it';
+    text.textContent = t('tips.trash');
 
     trash.append(icon, text);
     return trash;
@@ -167,10 +168,9 @@ export class TipsBar {
    */
   private async confirmHide(): Promise<void> {
     const confirmed = await confirmDestructiveAction(
-      'Hide tips?',
-      'Tips will stop appearing on this profile, on every device you are signed in on. '
-      + 'You can bring them back from Settings in the application menu.',
-      'Hide them');
+      t('tips.hideConfirmation.title'),
+      t('tips.hideConfirmation.message'),
+      t('tips.hideConfirmation.confirm'));
 
     if (confirmed) {
       await this.viewModel.hide();

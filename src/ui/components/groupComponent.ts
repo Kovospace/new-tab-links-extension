@@ -33,7 +33,7 @@ import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENG
 import {
     makeContainerTarget, makeDraggable, makeReorderTarget, whatIsBeingDragged
 } from "../dragAndDrop/dragAndDrop";
-import {sep} from "node:path";
+import { t } from "../../i18n/i18n";
 
 
 
@@ -42,18 +42,23 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     private groupTitleEditingMenuItem: HTMLElement | null = null;
 
     private addSubgroupDialog: InputDialog = new InputDialog(
-        "Add subgroup",
+        t("group.addSubgroupDialog.title"),
         {
-            "Subgroup title": { type: "string", required: true, maxLength: MAX_NAME_LENGTH },
-            "Subgroup description": { type: "string", maxLength: MAX_DESCRIPTION_LENGTH }
+            [t("group.addSubgroupDialog.name")]:
+                { type: "string", required: true, maxLength: MAX_NAME_LENGTH,
+                  key: "subgroupTitle" },
+            [t("group.addSubgroupDialog.description")]:
+                { type: "string", maxLength: MAX_DESCRIPTION_LENGTH, key: "subgroupDescription" }
         },
         ({ subgroupTitle, subgroupDescription }) => this.VIEW_MODEL.addSubGroup(subgroupTitle, subgroupDescription));
 
     private addLinkDialog: InputDialog = new InputDialog(
-        "Add link",
+        t("group.addLinkDialog.title"),
         {
-            "Name": { type: "string", required: true, maxLength: MAX_TITLE_LENGTH },
-            "URL": { type: "url", required: true, maxLength: MAX_URL_LENGTH }
+            [t("dialogs.fields.name")]:
+                { type: "string", required: true, maxLength: MAX_TITLE_LENGTH, key: "name" },
+            [t("dialogs.fields.url")]:
+                { type: "url", required: true, maxLength: MAX_URL_LENGTH, key: "url" }
         },
         ({ url, name }) => this.VIEW_MODEL.addLink(url, name, this.id));
 
@@ -89,41 +94,41 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             {
                 openMenuButtonId: `group-${this.id}-menu`,
                 openMenuButtonClass: ACT_EDIT_GROUP,
-                openMenuButtonTooltipText: "Edit the Group"
+                openMenuButtonTooltipText: t("group.menu.tooltip")
             },
             [
                 {
-                    actionTitle: "Add link",
+                    actionTitle: t("group.menu.addLink"),
                     onClick: () => this.actionAddLink()
                 },
                 {
-                    actionTitle: "Add subgroup",
+                    actionTitle: t("group.menu.addSubgroup"),
                     onClick: () => this.addSubgroupDialog.show()
                 },
                 {
-                    actionTitle: "Edit Group title",
+                    actionTitle: t("group.menu.editTitle"),
                     onClick: () => this.toggleGroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
-                    actionTitle: "Manage links",
+                    actionTitle: t("group.menu.manageLinks"),
                     onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
-                    actionTitle: "Move group left",
+                    actionTitle: t("group.menu.moveLeft"),
                     onClick: () => this.VIEW_MODEL.moveGroupUp()
                 },
                 {
-                    actionTitle: "Move group right",
+                    actionTitle: t("group.menu.moveRight"),
                     onClick: () => this.VIEW_MODEL.moveGroupDown()
                 },
                 {
-                    actionTitle: "Migrate to other workspace",
+                    actionTitle: t("group.menu.migrate"),
                     onClick: () => void this.actionMigrateToWorkspace()
                 },
                 {
-                    actionTitle: "Delete group",
+                    actionTitle: t("group.menu.delete"),
                     dangerous: true,
-                    dangerConfirmation: "All links and sub-groups associated to that group will be deleted.",
+                    dangerConfirmation: t("group.menu.deleteConfirmation"),
                     onClick: () => this.VIEW_MODEL.deleteGroup(this.id)
                 }
             ],
@@ -136,7 +141,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             ICON.ADD,
             this.DTO.id,
             [ACT_ADD_LINK, CLASS_ACTION_ADD],
-            "Add link to group",
+            t("group.addLinkTooltip"),
             onClick => this.actionAddLink()
         ));
 
@@ -249,14 +254,14 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         if (workspaces.length === 0) {
             // Worth saying: a menu item that does nothing when clicked reads as a broken one,
             // and the reason it did nothing is not visible anywhere on the screen.
-            alert("There is no other workspace to move this group into. Add one first.");
+            alert(t("group.migrateDialog.nowhereToGo"));
             return;
         }
         const chosenWorkspaceId: string | null = await new SelectDialog<string>(
-            "Migrate group to another workspace",
-            "Target workspace",
+            t("group.migrateDialog.title"),
+            t("group.migrateDialog.field"),
             workspaces.map(workspace => ({ label: workspace.title, value: workspace.id })),
-            "Migrate"
+            t("group.migrateDialog.confirm")
         ).ask();
         this.VIEW_MODEL.migrateToWorkspace(chosenWorkspaceId);
     }
@@ -300,7 +305,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         descriptionElem.classList.toggle("editable");
         if (menuItem.classList.contains("active")) {
             this.groupTitleEditingMenuItem = menuItem;
-            setTimeout(() => { menuItem.textContent = "Save group title" }, 250);
+            setTimeout(() => { menuItem.textContent = t("group.menu.saveTitle") }, 250);
             (titleElem as HTMLElement).focus();
         } else {
             this.groupTitleEditingMenuItem = null;
@@ -328,9 +333,9 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.toggle("managed");
         menuItem.classList.toggle("active");
         if (this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
-            setTimeout(() => { menuItem.textContent = "Finish group links editing" }, 250);
+            setTimeout(() => { menuItem.textContent = t("group.menu.finishManagingLinks") }, 250);
         } else {
-            setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
+            setTimeout(() => { menuItem.textContent = t("group.menu.manageLinks") }, 250);
         }
     }
 
