@@ -1,9 +1,18 @@
 /* ---------------------------------------------------------------------------
-   Tips bar
+   Tips bar, and the trash it becomes
 
    One sentence at the bottom of the workspace plane, inside the scrolling area
    rather than in the pinned page footer: the tips belong to the columns screen
    and move with it.
+
+   While a link is being dragged the same bar turns red and offers to destroy
+   it. The same bar and not a second one beside it, because what says "this is
+   dangerous now" is the colour changing under something that was already there,
+   and a colour cannot transition between two elements.
+
+   Which face is shown is decided here, from the kind of drag the root element
+   names (`data-dnd-kind`, set in dragAndDrop.ts). No script in the bar listens
+   for a drag.
    --------------------------------------------------------------------------- */
 
 .tips-bar {
@@ -21,18 +30,97 @@
     margin-bottom: 0.5em;
     margin-left: auto;
     margin-right: auto;
+
+    /* Both ways round: red as the link is picked up, and back to the panel
+       colour when it is put down or the drag is abandoned. */
+    transition: background-color var(--time-transition-medium) ease-in-out;
 }
 
-.tips-bar::before {
+/* The two faces. Each is laid out like the bar used to be, since each is now
+   what fills it. */
+.tips-bar__tip,
+.tips-bar__trash {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.tips-bar__tip::before {
     content: 'TIP:';
     font-weight: bold;
 }
 
-.tips-bar[hidden] {
+.tips-bar__tip[hidden],
+.tips-bar__trash {
     display: none;
 }
 
-.tips-bar:hover {
+/* A bar with no tip in it draws nothing - and is still the trash, which is why
+   the bar is not what gets hidden. `:has` rather than a class the component
+   sets, so there is one fact here and not two that can disagree. */
+.tips-bar:has(> .tips-bar__tip[hidden]) {
+    display: none;
+}
+
+/*
+   Carrying a link: the bar is the trash, whether or not it had a tip to show.
+
+   The last of those matters more than it looks. Tips are dismissed with one
+   button and the setting follows the user to every device, so keying the trash
+   on the tip being there would mean a trash that quietly does not exist for
+   everyone who ever pressed it.
+*/
+/*
+   It is also held to the bottom of the scrolling area for as long as the link
+   is in the air, and only then. `main` is the scroll container and the bar sits
+   under the columns, so with more links than fit down the screen the trash
+   would be somewhere below the fold - a bin you have to go and find while
+   carrying something is a bin nobody uses. Sticky brings it to the near edge
+   without moving it out of the plane it belongs to.
+*/
+html.dnd-active[data-dnd-kind="link"] .tips-bar {
+    display: flex;
+    background-color: var(--color-button-danger-background);
+    position: sticky;
+    bottom: 0.5em;
+    z-index: 2;
+}
+
+html.dnd-active[data-dnd-kind="link"] .tips-bar__tip {
+    display: none;
+}
+
+html.dnd-active[data-dnd-kind="link"] .tips-bar__trash {
+    display: flex;
+}
+
+/*
+   Over the trash, about to let go. Brighter than the armed colour rather than a
+   different hue - the question at this point is "will it land here", and the
+   answer wants to be unmistakable without being a third thing to learn.
+
+   The blue "into this one" outline every other container target wears is
+   overruled: it is the colour this UI uses for where something is going, and
+   here it is not going anywhere.
+*/
+html.dnd-active[data-dnd-kind="link"] .tips-bar.dnd-over-into {
+    background-color: var(--color-button-danger-background-hover);
+    box-shadow: inset 0 0 0 0.125em var(--color-component-text);
+}
+
+/*
+   The insides of the bar stop being hit-testable while anything is dragged, for
+   the reason _dragAndDrop.css gives for the heads and the links: a span the
+   target did not know about fires dragleave on the bar as the cursor crosses
+   onto it, and the drop is refused over that word alone.
+*/
+html.dnd-active .tips-bar * {
+    pointer-events: none;
+}
+
+.tips-bar__trash-icon {
+    font-size: 1.25em;
+    line-height: 1;
 }
 
 .tips-bar__text {

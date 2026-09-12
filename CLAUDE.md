@@ -303,6 +303,20 @@ space when there is little to show, and below the columns when there is a lot.
   and Settings is the way back - which is what the confirmation says. It is named for hiding
   rather than for showing because every setting defaults to off, and off has to mean the
   behaviour a profile had before the setting existed.
+- **While a link is being dragged the same bar is the trash.** Turning red under something
+  that was already there is what says "this is dangerous now", and a colour cannot transition
+  between two elements - so it is one bar with two faces, both built at render, and the
+  stylesheet shows one. Which one is keyed off `data-dnd-kind` on the root element, so nothing
+  here listens for a drag. It takes a link and nothing else: a subgroup carries its links and
+  a group carries both, and one gesture should not be able to destroy that much. The drop is
+  not confirmed, exactly as the delete button on a link is not.
+- **The bar is drawn for the trash even when tips are hidden**, which is why `hidden` sits on
+  the tip face and not on the bar. Keyed on the tip being there, the trash would quietly not
+  exist for everyone who has ever pressed "hide tips".
+- It is `position: sticky` for as long as the link is in the air. `main` is the scroll
+  container and the bar sits under the columns, so with more links than fit down the screen
+  the trash would be below the fold - and a bin you have to go and find while carrying
+  something is a bin nobody uses.
 
 ### Dragging (`ui/dragAndDrop/dragAndDrop.ts`)
 

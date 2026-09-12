@@ -12,11 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [medium] Add trash bin for links
-- when dragging link, change the "tips bar" into "trash bar"
-- transition color to var(--color-danger) and back
-- title it like "Drop link here to destroy it" - link dropped there will be deleted
-
 ### [BIG] i18n
 - find all hardcoded strings or text strings in variables and put them in one place in json
 - add support for multiple languages
@@ -55,6 +50,30 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [medium] Add trash bin for links
+- the tips bar at the foot of the workspace turns red while a link is being dragged, says
+  "Drop the link here to destroy it" with a bin in front of it, and deletes what lands on it
+- one bar with two faces rather than two bars, because what says "this is dangerous now" is
+  the colour changing under something that was already there - and a colour cannot transition
+  between two elements. Both faces are built at render; the stylesheet shows one, keyed off
+  the kind of drag the root element names, so nothing in the bar listens for a drag
+- the colour asked for was var(--color-danger), which does not exist. It uses
+  --color-button-danger-background, the one the palette already has for a destructive
+  surface, and --color-button-danger-background-hover while the link is actually over it
+- links only. A subgroup carries its links with it and a group carries both, so dropping
+  either would destroy a great deal on a single gesture; a closed tab is not destroyed here
+  either, since the panel it comes from has its own way of forgetting one
+- nothing is asked before the link goes, which is the bargain the delete button on a link and
+  its context menu entry already make - and a question raised mid-drag could only be answered
+  after the gesture that asked it had ended
+- two things decided on the way and worth knowing: the bar is drawn for the trash even on a
+  profile that has hidden tips (otherwise the bin quietly would not exist for anyone who
+  pressed "hide tips"), and it is stuck to the bottom of the scrolling area while the link is
+  in the air, because otherwise a workspace taller than the screen puts the bin below the fold
+- five tests, each checked against the defect it names rather than against the feature being
+  absent - including the one that says a group is refused, which was run against a bar that
+  accepted groups
 
 ### [medium] the scrollbar is displayed on folded "last open tabs" panel
 - the list scrolled whatever width the panel was, so a profile with more closed tabs than fit
