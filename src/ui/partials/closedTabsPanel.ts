@@ -156,7 +156,32 @@ export class ClosedTabsPanel {
   }
 
   private setOpen(open: boolean): void {
+    if (!open) {
+      this.releaseFocus();
+    }
     this.panelEl?.classList.toggle('closed-tabs--open', open);
+  }
+
+  /**
+   * Lets go of whatever inside the panel holds the focus, as the panel folds.
+   *
+   * A row's actions are revealed by `:focus-within` as well as by `:hover`, because somebody
+   * arriving by keyboard has no pointer to reveal them with. But a press is a focus too: the
+   * row's text is a button, and dragging a row out of the panel leaves it focused - so the
+   * "+" and the "x" of that one row stayed lit after the panel folded, came back lit the next
+   * time it opened with the pointer nowhere near them, and only went out when something else
+   * was clicked. Which is precisely the description of a focus nobody had moved.
+   *
+   * Folding is the right moment to drop it, and not only for that: a folded rail is two and a
+   * half characters wide and draws none of what could be focused, so focus inside it is focus
+   * the user cannot see and cannot follow. The panel the button is holding open is left alone
+   * - that one is being used.
+   */
+  private releaseFocus(): void {
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && this.panelEl?.contains(focused)) {
+      focused.blur();
+    }
   }
 
   private setPinned(pinned: boolean): void {

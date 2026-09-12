@@ -44,18 +44,6 @@ Note: needs permission "chrome.session"
 - so the whole strict check is unusable until it is fixed - which is what it costs: nothing
   else it would catch can be seen while these five are in the way
 
-### [high] "recently closed tabs" opens when dragging somethin
-- when dragging something (group, subgroup, link) the "recently closed tabs" panel unfolds
-
-### [high] "last open tabs link ghost"
-- when pulling link from "last open tabs" and dropping it out of column (a.k.a. nowhere), the buttons from
-  closed-tabs__row-actions stays visible after panel fold
-- these ghosts survive panel reopening next time even if mouse is not hovered at the given link
-- only click elsewhere is causing them disappear
-
-### [medium] the scrollbar is displayed on folded "last open tabs" panel
-- do not display scrollbar on folded panel
-
 
 ## TO BE approved / analyzed
 
@@ -67,6 +55,43 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [medium] the scrollbar is displayed on folded "last open tabs" panel
+- the list scrolled whatever width the panel was, so a profile with more closed tabs than fit
+  down the screen drew a scrollbar in a column two and a half characters wide - most of the
+  column, and a control for a list that is not being shown
+- it now scrolls only while the panel is open. Folded, the favicons past the bottom are
+  clipped rather than reachable, which costs nothing: the pointer that would go looking for
+  them unfolds the panel on the way
+- CSS only, and not testable here - the suite runs in jsdom, which lays nothing out and loads
+  no stylesheet
+
+### [high] "last open tabs link ghost"
+- the row's "+" and "x" are revealed by :focus-within as well as by :hover, because somebody
+  arriving by keyboard has no pointer to reveal them with. But a press is a focus too: the
+  row's title is a button, so dragging a row out of the panel left it focused
+- that is the whole of the description. The actions stayed lit over the folded rail, came back
+  lit the next time the panel opened with the pointer nowhere near them, and only went out
+  when something else was clicked - which is what blurred them. An earlier attempt read it as
+  an orphaned compositing layer and took the fade off the buttons; that was the wrong cause
+- the panel now lets go of the focus as it folds. Folding is the right moment for it beyond
+  this bug: a folded rail draws nothing that can be focused, so focus inside it is focus the
+  user can neither see nor follow. A pinned panel is left alone - that one is being used, and
+  by whoever the focus rule is for
+- two tests, the first of which fails against the old code
+
+### [high] "recently closed tabs" opens when dragging something
+- the panel keeps its width while a row is dragged OUT of it - it is the source of that drag,
+  and one that narrowed under the cursor would take the rest of the row out from under the
+  thing being carried. That rule was keyed on "dnd-active", which the root element wears for
+  every drag, so picking up a link, a subgroup or a group anywhere on the page unfolded it too
+- and it stayed unfolded for the whole journey: no mousemove is delivered while a drag is in
+  flight, and the pointer rule is the only thing that folds it again
+- the root element now names what is being carried as well as that something is
+  (data-dnd-kind), and the rule asks for a closed tab. One attribute, set and deleted beside
+  the class that was already there
+- pinned by a test that fails against the old code: dragging a link must name "link" and
+  dragging a row "closedTab", and neither may leave the attribute behind
 
 ### [big] Drag & drop support
 - all four: reorder links, link into or out of a subgroup, link between groups, and groups
