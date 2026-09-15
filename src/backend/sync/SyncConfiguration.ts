@@ -14,13 +14,13 @@
  */
 
 /** Public deployment of the backend API. */
-const PRODUCTION_API_BASE_URL: string = "https://api.new-tab-links.matejkovac.sk";
+const PRODUCTION_API_BASE_URL: string = "https://api.tabilinks.app";
 
 /** Backend started locally, the port its Spring Boot application listens on by default. */
 const LOCAL_API_BASE_URL: string = "http://localhost:8080";
 
 /** Public deployment of the website (registration, account, connect codes). */
-const PRODUCTION_WEBSITE_BASE_URL: string = "https://new-tab-links.matejkovac.sk";
+const PRODUCTION_WEBSITE_BASE_URL: string = "https://tabilinks.app";
 
 /** Website dev server, which runs on 5173 rather than Angular's default 4200. */
 const LOCAL_WEBSITE_BASE_URL: string = "http://localhost:5173";

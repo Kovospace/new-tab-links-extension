@@ -13,7 +13,7 @@
 #
 set -euo pipefail
 
-API="${NEWTABLINKS_API:-https://api.new-tab-links.matejkovac.sk}"
+API="${NEWTABLINKS_API:-https://api.tabilinks.app}"
 DELETE_EMPTY=false
 [ "${1:-}" = "--delete-empty" ] && DELETE_EMPTY=true
 
