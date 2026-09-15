@@ -12,10 +12,6 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [important]
-- rebranding application as Tabilinks
-- will buy domain tabinlinks.net or tabilinks.com
-
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
 - should be located on the right
@@ -49,6 +45,10 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [important]
+- rebranding application as Tabilinks
+- will buy domain tabinlinks.net or tabilinks.com
 
 ### [BIG] i18n
 - every sentence the interface says is in `src/i18n/locales/<language>/<area>.json`, split the
