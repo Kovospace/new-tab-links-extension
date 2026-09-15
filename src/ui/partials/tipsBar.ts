@@ -1,30 +1,56 @@
 import { TipsDTO, TipsViewModel } from '../../viewModel/tipsViewModel';
+import { TrashViewModel } from '../../viewModel/trashViewModel';
 import { confirmDestructiveAction } from './confirmations';
+import { makeContainerTarget } from '../dragAndDrop/dragAndDrop';
 import { ICON } from './wrappedHtmlElements';
 
 /**
- * The tips along the bottom of the workspace.
+ * The bar along the bottom of the workspace, which has two faces.
  *
- * Deliberately quiet: one sentence, dimmed, out of the way of the columns, and its controls
- * appear only when the pointer is over it. A tip that competes with the links for attention is
- * a tip that gets dismissed on the first day - and dismissing is a per-profile setting that
- * follows the user to every device, so it is not a decision to provoke.
+ * **The tip.** Deliberately quiet: one sentence, dimmed, out of the way of the columns, and its
+ * controls appear only when the pointer is over it. A tip that competes with the links for
+ * attention is a tip that gets dismissed on the first day - and dismissing is a per-profile
+ * setting that follows the user to every device, so it is not a decision to provoke. It draws
+ * itself from the view model rather than deciding anything: which tip is on screen, whether
+ * tips are shown at all, and where "tell me more" leads are all its business.
  *
- * It draws itself from the view model rather than deciding anything: which tip is on screen,
- * whether tips are shown at all, and where "tell me more" leads are all its business.
+ * **The trash.** While a link is being dragged the same bar turns red and offers to destroy it.
+ * The same bar, and not a second one that appears beside it, because the thing that says "this
+ * is now dangerous" is the colour changing under something that was already there - and a
+ * colour cannot transition between two elements.
+ *
+ * Both faces are built once and the stylesheet shows one of them, keyed off the kind of drag
+ * the root element names. Nothing here listens for a drag: what would be gained is a class this
+ * component sets itself, and what would be paid is two document listeners per page and a
+ * second opinion about when a drag is in flight.
+ *
+ * **Only a link.** A subgroup carries its links with it and a group carries both; dropping
+ * either here would destroy a great deal on one gesture, and neither is what was asked for. A
+ * closed tab is not destroyed here either - it is a record of something that happened, and the
+ * panel it came from has its own way of forgetting one.
  */
 export class TipsBar {
 
   private readonly viewModel: TipsViewModel;
+  private readonly trash: TrashViewModel;
 
   private container: HTMLElement | null = null;
+
+  /** The tip half, which is what a redraw replaces; the trash half outlives every redraw. */
+  private tipEl: HTMLElement | null = null;
+
   private unsubscribe: (() => void) | null = null;
 
   /**
    * @param viewModel supplies the tip and stores the dismissal; injectable for testing
+   * @param trash     destroys a link dropped on the bar; injectable for testing
    */
-  constructor(viewModel: TipsViewModel = new TipsViewModel()) {
+  constructor(
+    viewModel: TipsViewModel = new TipsViewModel(),
+    trash: TrashViewModel = new TrashViewModel()
+  ) {
     this.viewModel = viewModel;
+    this.trash = trash;
   }
 
   /**
@@ -35,6 +61,19 @@ export class TipsBar {
   public render(host: HTMLElement): void {
     this.container = document.createElement('div');
     this.container.classList.add('tips-bar');
+
+    // Two faces, both present from the start. Building the trash half on demand would mean
+    // building it during a dragstart, which is the one moment in a drag when the browser is
+    // measuring the thing being picked up.
+    this.tipEl = document.createElement('span');
+    this.tipEl.classList.add('tips-bar__tip');
+    this.container.appendChild(this.tipEl);
+    this.container.appendChild(this.buildTrash());
+
+    // Links only - see the note on the class. A drop is not confirmed, for the same reason
+    // the delete button on a link is not.
+    makeContainerTarget(this.container, 'link', id => void this.trash.destroyLink(id));
+
     host.appendChild(this.container);
 
     this.unsubscribe = this.viewModel.observables.tips.subscribe(tips => this.draw(tips));
@@ -48,15 +87,18 @@ export class TipsBar {
     this.viewModel.dispose();
     this.container?.remove();
     this.container = null;
+    this.tipEl = null;
   }
 
   private draw(tips: TipsDTO): void {
-    if (!this.container) return;
-    this.container.replaceChildren();
+    if (!this.tipEl) return;
+    this.tipEl.replaceChildren();
 
-    // Hidden rather than empty: an empty bar still takes its height, and the page would keep
-    // a strip of nothing along the bottom for somebody who asked for no tips.
-    this.container.hidden = !tips.visible || !tips.tip;
+    // Hidden rather than empty: an empty face still takes its height, and the page would keep
+    // a strip of nothing along the bottom for somebody who asked for no tips. It is the face
+    // that is hidden and not the bar, because the bar is still the trash - the stylesheet
+    // draws it again for as long as a link is in the air, and nothing else.
+    this.tipEl.hidden = !tips.visible || !tips.tip;
     if (!tips.visible || !tips.tip) {
       return;
     }
@@ -64,10 +106,10 @@ export class TipsBar {
     const text = document.createElement('span');
     text.classList.add('tips-bar__text');
     text.textContent = tips.tip.text;
-    this.container.appendChild(text);
+    this.tipEl.appendChild(text);
 
     if (tips.tip.url) {
-      this.container.appendChild(this.button(
+      this.tipEl.appendChild(this.button(
         'Tell me more',
         ['tips-bar__more'],
         'Read more about this',
@@ -90,7 +132,30 @@ export class TipsBar {
     controls.appendChild(this.button(
       ICON.CLOSE, ['tips-bar__control'], 'Hide tips', () => void this.confirmHide()));
 
-    this.container.appendChild(controls);
+    this.tipEl.appendChild(controls);
+  }
+
+  /**
+   * The face the bar wears while a link is being carried.
+   *
+   * The sentence is in the document rather than in the stylesheet's `content`, unlike the
+   * "TIP:" in front of a tip: this one is a sentence addressed to the user, and a sentence in
+   * a stylesheet is a sentence no translator will ever be handed.
+   */
+  private buildTrash(): HTMLElement {
+    const trash = document.createElement('span');
+    trash.classList.add('tips-bar__trash');
+
+    const icon = document.createElement('span');
+    icon.classList.add('tips-bar__trash-icon');
+    icon.textContent = ICON.TRASH;
+    icon.setAttribute('aria-hidden', 'true');
+
+    const text = document.createElement('span');
+    text.textContent = 'Drop the link here to destroy it';
+
+    trash.append(icon, text);
+    return trash;
   }
 
   /**
