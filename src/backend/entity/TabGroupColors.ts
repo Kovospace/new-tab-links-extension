@@ -21,11 +21,14 @@ export type TabGroupColor =
 /** A colour, as it is offered and as it is drawn. */
 export interface TabGroupColorSwatch {
     color: TabGroupColor;
-    /** What it is called in the picker; Chrome's own wording. */
-    label: string;
     /** Roughly what Chrome paints it, for the swatch and the subgroup heading. */
     hex: string;
 }
+
+/**
+ *  What a colour is called is not here, deliberately: it is a word, and words are translated.
+ *  The picker reads it from the catalogue, keyed by `color` - `subgroup.colorDialog.colors.*`.
+ */
 
 /**
  *  Every colour, in the order Chrome lists them in its own tab group menu.
@@ -34,15 +37,15 @@ export interface TabGroupColorSwatch {
  *  quietly biased towards grey by being created first.
  */
 export const TAB_GROUP_COLORS: ReadonlyArray<TabGroupColorSwatch> = [
-    { color: "grey",   label: "Grey",   hex: "#5F6368" },
-    { color: "blue",   label: "Blue",   hex: "#1A73E8" },
-    { color: "red",    label: "Red",    hex: "#D93025" },
-    { color: "yellow", label: "Yellow", hex: "#F9AB00" },
-    { color: "green",  label: "Green",  hex: "#188038" },
-    { color: "pink",   label: "Pink",   hex: "#D01884" },
-    { color: "purple", label: "Purple", hex: "#A142F4" },
-    { color: "cyan",   label: "Cyan",   hex: "#007B83" },
-    { color: "orange", label: "Orange", hex: "#FA903E" }
+    { color: "grey",   hex: "#5F6368" },
+    { color: "blue",   hex: "#1A73E8" },
+    { color: "red",    hex: "#D93025" },
+    { color: "yellow", hex: "#F9AB00" },
+    { color: "green",  hex: "#188038" },
+    { color: "pink",   hex: "#D01884" },
+    { color: "purple", hex: "#A142F4" },
+    { color: "cyan",   hex: "#007B83" },
+    { color: "orange", hex: "#FA903E" }
 ];
 
 /** The colour a tab group gets when a subgroup has never been given one. */

@@ -1,0 +1,30 @@
+{
+  "title": "Settings",
+  "profileNote": "These apply to the profile \"{name}\", and to it on every device you are signed in on.",
+  "profileNoteUnnamed": "These apply to the profile you have open.",
+  "categories": {
+    "uiAndBehavior": "UI and behavior",
+    "languageAndLocalCustoms": "Language & local customs"
+  },
+  "enableDragAndDrop": {
+    "title": "Enable drag & drop",
+    "explanation": "Drag a link to reorder it, into a subgroup or into another group; drag a group to move it along the row."
+  },
+  "hideTips": {
+    "title": "Hide tips",
+    "explanation": "Stop showing the tips along the bottom of the page. This is where they come back from."
+  },
+  "uiScale": {
+    "title": "Size",
+    "explanation": "How big everything is drawn. This one is kept on this device only - a desktop and a laptop want different answers, and one should not decide for the other."
+  },
+  "language": {
+    "title": "Language",
+    "explanation": "What this extension speaks. \"Follow the browser\" uses your browser's own language, and falls back to English where this extension has no translation. Kept on this device only.",
+    "automatic": "Follow the browser ({name})"
+  },
+  "dateFormat": {
+    "title": "Date format",
+    "explanation": "How dates are written. \"Local custom\" writes them the way your browser's region does. Kept on this device only."
+  }
+}

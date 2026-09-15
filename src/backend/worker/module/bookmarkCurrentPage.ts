@@ -4,6 +4,8 @@ import {
     storePendingBookmark
 } from "../../../utils/bookmarkRequest";
 import { Logger } from "../../../utils/logger";
+import { DEVICE_PREFERENCES_KEY } from "../../datasource/chromeStorage/storageKeys";
+import { setLanguage, t } from "../../../i18n/i18n";
 
 /**
  *  Bookmarking a page from the right-click menu.
@@ -23,6 +25,13 @@ import { Logger } from "../../../utils/logger";
  *  `chrome.action.openPopup()` opens the one the manifest names, and it takes no argument. So
  *  the page to bookmark is left in session storage for the popup to take - see
  *  `utils/bookmarkRequest.ts` - and the popup opens onto it.
+ *
+ *  **The two entries are the only wording the service worker owns**, and they are written in
+ *  the language the device is set to like everything else. That costs a read of the device
+ *  preferences, because the worker holds nothing between events and has no page to inherit a
+ *  language from - and it costs re-creating them when that preference changes, because Chrome
+ *  keeps a context menu entry until it is told otherwise: a menu created once in English would
+ *  still say so months after the user switched.
  */
 
 const LOG = new Logger("BookmarkCurrentPage");
@@ -41,19 +50,58 @@ const BOOKMARKABLE_PATTERNS = ["http://*/*", "https://*/*"];
  *
  *  The entries themselves are created on installation rather than here: Chrome stores them
  *  and brings them back with the worker, so creating them on every wake would fail on the
- *  identifier being taken. `removeAll` first, so an update that renames or re-arranges them
- *  does not leave the old ones behind.
+ *  identifier being taken. They are created again when the device's language changes, which
+ *  is the only other thing that alters what they say.
  */
 export function registerBookmarkContextMenu(): void {
 
     chrome.runtime.onInstalled.addListener(() => {
-        chrome.contextMenus.removeAll(() => createMenuItems());
+        void rebuildMenuItems();
+    });
+
+    // The entries are worded, so a change of language is a change to them. Watched here rather
+    // than pushed from the settings dialog: a change can be made in one browser window while
+    // the worker is asleep, and storage is what both of them agree about.
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes[DEVICE_PREFERENCES_KEY]) {
+            void rebuildMenuItems();
+        }
     });
 
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         menuItemClicked(info, tab)
             .catch(error => LOG.error("menuItemClicked", error));
     });
+}
+
+/**
+ *  Puts the entries back, in whatever language this device is now set to.
+ *
+ *  `removeAll` first, always: Chrome stores the entries and brings them back with the worker,
+ *  so creating one whose identifier is already taken fails - and an update that renames them
+ *  would otherwise leave the old ones beside the new.
+ */
+async function rebuildMenuItems(): Promise<void> {
+    await adoptDeviceLanguage();
+    await chrome.contextMenus.removeAll();
+    createMenuItems();
+}
+
+/**
+ *  Reads the language this device is set to, since the worker inherits nothing.
+ *
+ *  A device that has never been asked - or a read that fails - leaves the browser's own
+ *  language, which is what `setLanguage` does with nothing.
+ */
+async function adoptDeviceLanguage(): Promise<void> {
+    try {
+        const stored: Record<string, { language?: string } | undefined> =
+            await chrome.storage.local.get(DEVICE_PREFERENCES_KEY);
+        setLanguage(stored[DEVICE_PREFERENCES_KEY]?.language);
+    } catch (error) {
+        LOG.warn("adoptDeviceLanguage", String(error));
+        setLanguage(null);
+    }
 }
 
 /** The two entries, named after the extension so the menu says who is doing the keeping. */
@@ -63,7 +111,7 @@ function createMenuItems(): void {
 
     chrome.contextMenus.create({
         id: MENU_ITEM_PAGE,
-        title: `Bookmark this page with ${extensionName}`,
+        title: t("bookmark.contextMenu.page", { extension: extensionName }),
         // Everything but a link: right-clicking an image or a selection still means "this
         // page" to a user, and only a link means something else.
         contexts: ["page", "selection", "image", "video", "audio", "frame", "editable"],
@@ -72,7 +120,7 @@ function createMenuItems(): void {
 
     chrome.contextMenus.create({
         id: MENU_ITEM_LINK,
-        title: `Bookmark this link with ${extensionName}`,
+        title: t("bookmark.contextMenu.link", { extension: extensionName }),
         contexts: ["link"],
         targetUrlPatterns: BOOKMARKABLE_PATTERNS
     });

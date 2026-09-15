@@ -34,6 +34,7 @@ import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
 import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
+import { t } from "../../i18n/i18n";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -50,11 +51,14 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     // Leaving it blank keeps the automatic label; it earns its place only for somebody running
     // several browsers on one machine, where the automatic labels are all identical.
     private logInDialog: InputDialog = new InputDialog(
-        "Log in",
+        t("sync.logInDialog.title"),
         {
-            "Username or email": { type: "string", required: true },
-            "Password": { type: "password", required: true },
-            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+            [t("sync.logInDialog.usernameOrEmail")]:
+                { type: "string", required: true, key: "usernameOrEmail" },
+            [t("sync.logInDialog.password")]:
+                { type: "password", required: true, key: "password" },
+            [t("dialogs.fields.deviceName")]:
+                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
         },
         ({ usernameOrEmail, password, deviceName }) =>
             this.accountViewModel.logIn(usernameOrEmail, password, deviceName));
@@ -62,33 +66,45 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     // the field is labelled the way the website labels it ("Your connect code"), so the user
     // recognises what to paste, while the menu entry keeps the wording of the sync feature
     private syncCodeDialog: InputDialog = new InputDialog(
-        "Enter sync code",
+        t("sync.syncCodeDialog.title"),
         {
-            "Connect code": { type: "string", required: true },
-            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH }
+            [t("sync.syncCodeDialog.connectCode")]:
+                { type: "string", required: true, key: "connectCode" },
+            [t("dialogs.fields.deviceName")]:
+                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
         },
         ({ connectCode, deviceName }) =>
             this.accountViewModel.connectWithCode(connectCode, deviceName));
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
-        "Add workspace",
+        t("workspace.addDialog.title"),
         {
-            "Workspace name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH },
-            "Workspace description": { type: "string", maxLength: MAX_DESCRIPTION_LENGTH }
+            [t("workspace.addDialog.name")]:
+                { type: "string", required: true, maxLength: MAX_NAME_LENGTH,
+                  key: "workspaceName" },
+            [t("workspace.addDialog.description")]:
+                { type: "string", maxLength: MAX_DESCRIPTION_LENGTH, key: "workspaceTitle" }
         },
         ({ workspaceName, workspaceTitle }) =>
           this.VIEW_MODEL.addWorkspace(workspaceName, workspaceTitle));
 
     private createProfileDialog: InputDialog = new InputDialog(
-        "Create profile",
-        { "Profile name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH } },
+        t("profiles.createDialog.title"),
+        {
+            [t("profiles.createDialog.name")]:
+                { type: "string", required: true, maxLength: MAX_NAME_LENGTH,
+                  key: "profileName" }
+        },
         ({ profileName }) => this.VIEW_MODEL.createProfile(profileName));
 
     private addGroupDialog: InputDialog = new InputDialog(
-        "Add group",
+        t("group.addDialog.title"),
         {
-            "Group name": { type: "string", required: true, maxLength: MAX_NAME_LENGTH },
-            "Group description": { type: "string", maxLength: MAX_DESCRIPTION_LENGTH }
+            [t("group.addDialog.name")]:
+                { type: "string", required: true, maxLength: MAX_NAME_LENGTH,
+                  key: "groupName" },
+            [t("group.addDialog.description")]:
+                { type: "string", maxLength: MAX_DESCRIPTION_LENGTH, key: "groupDescription" }
         },
         ({ groupName, groupDescription }) =>
           this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName, groupDescription));
@@ -144,7 +160,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         headerElem.appendChild(headerElemRightContent);
 
         // workspace buttons
-        headerElemLeftContent.appendChild(renderTextContainer("span", "Workspaces"));
+        headerElemLeftContent.appendChild(renderTextContainer("span", t("header.workspaces")));
         headerElemLeftContent.appendChild(renderContainer([]));
         this.VIEW_MODEL.observables.workspaces
             .subscribe((workspaces: WorkspaceDTO[]) => this.renderWorkspaceSwitcher(headerElemLeftContent, workspaces));
@@ -154,7 +170,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             ICON.ADD,
             "",
             [ACT_ADD_WORKSPACE, CLASS_ACTION_ADD],
-            "Add new workspace",
+            t("header.addWorkspace"),
             onClick => {
                 this.LOG.debug("renderWorkspaceSwitcherToolings", "add workspace clicked");
                 this.addWorkspaceDialog.show();
@@ -172,7 +188,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             ICON.HISTORY,
             "",
             [ACT_CLOSED_TABS],
-            "Keep the recently closed panel open",
+            t("header.closedTabs"),
             () => this.toggleClosedTabsPinned()
         );
         headerElemRightContent.appendChild(this.closedTabsButton);
@@ -185,7 +201,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             {
                 openMenuButtonId: `user-profiles`,
                 openMenuButtonClass: [ACT_USER_PROFILES, CLASS_ACTION_HIGHLIGHT],
-                openMenuButtonTooltipText: "User profiles list",
+                openMenuButtonTooltipText: t("header.profilesMenu"),
                 openMenuButtonContent: `...`
             },
             [],
@@ -195,7 +211,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         this.VIEW_MODEL.observables.profiles
             .subscribe((profiles: ProfileDTO[]) => {
                 const active = profiles.find(p => p.active);
-                profilesMenu.updateButtonContent(`Profile: ${active?.name ?? '...'}`);
+                profilesMenu.updateButtonContent(t("header.profileButton",
+                    { name: active?.name ?? t("header.noProfile") }));
                 profilesMenu.updateOptions([
                     ...profiles.map(p => ({
                         actionTitle: p.name,
@@ -206,22 +223,22 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                         separator: true
                     },
                     {
-                        actionTitle: `${ICON.EXPORT} Export current profile`,
+                        actionTitle: `${ICON.EXPORT} ${t("header.profileMenu.export")}`,
                         noBorder: true,
                         onClick: () => this.VIEW_MODEL.exportCurrentProfile()
                     },
                     {
-                        actionTitle: `${ICON.IMPORT} Import profile`,
+                        actionTitle: `${ICON.IMPORT} ${t("header.profileMenu.import")}`,
                         noBorder: true,
                         onClick: () => this.VIEW_MODEL.importProfile()
                     },
                     {
-                        actionTitle: `${ICON.ADD} Create new profile`,
+                        actionTitle: `${ICON.ADD} ${t("header.profileMenu.create")}`,
                         noBorder: true,
                         onClick: () => this.createProfileDialog.show()
                     },
                     {
-                        actionTitle: `${ICON.EDIT} Manage profiles`,
+                        actionTitle: `${ICON.EDIT} ${t("header.profileMenu.manage")}`,
                         onClick: () => void new ProfileManagerDialog().show()
                     }
                 ]);
@@ -233,7 +250,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             {
                 openMenuButtonId: `application-menu`,
                 openMenuButtonClass: ACT_APP_MENU,
-                openMenuButtonTooltipText: "Application menu"
+                openMenuButtonTooltipText: t("header.applicationMenu")
             },
             [],
             {}
@@ -253,15 +270,15 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     private buildSignedOutAccountMenuItems(): OptionsMenuItem[] {
         return [
             {
-                actionTitle: "Log in",
+                actionTitle: t("sync.menu.logIn"),
                 onClick: () => this.logInDialog.show()
             },
             {
-                actionTitle: "Register",
+                actionTitle: t("sync.menu.register"),
                 onClick: () => this.accountViewModel.openRegistrationPage()
             },
             {
-                actionTitle: "Enter sync code",
+                actionTitle: t("sync.menu.enterSyncCode"),
                 onClick: () => this.syncCodeDialog.show()
             },
             ...this.settingsMenuItems()
@@ -285,7 +302,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 onClick: () => {}
             },
             {
-                actionTitle: "Log out",
+                actionTitle: t("sync.menu.logOut"),
                 onClick: () => this.accountViewModel.logOut()
             },
             ...this.settingsMenuItems()
@@ -303,7 +320,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         return [
             { separator: true },
             {
-                actionTitle: "Settings",
+                actionTitle: t("sync.menu.settings"),
                 onClick: () => new SettingsDialog().show()
             }
         ];
@@ -371,22 +388,22 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             actionsSectionElem,
             {
                 openMenuButtonId: `workpsace-${this.id}-menu`,
-                openMenuButtonTooltipText: "Edit current workspace",
+                openMenuButtonTooltipText: t("workspace.menu.tooltip"),
                 openMenuButtonClass: ACT_EDIT_WORKSPACE
             },
             [
                 {
-                    actionTitle: "Add workspace",
+                    actionTitle: t("workspace.menu.add"),
                     onClick: () => this.actionAddGroup(workspace.id)
                 },
                 {
-                    actionTitle: "Edit Workspace title",
+                    actionTitle: t("workspace.menu.editTitle"),
                     onClick: () => this.toggleWorkspaceTitleEditable(event?.target as HTMLElement)
                 },
                 {
-                    actionTitle: "Delete workspace",
+                    actionTitle: t("workspace.menu.delete"),
                     dangerous: true,
-                    dangerConfirmation: "All groups and links that are associated to that workspace will be deleted as well.",
+                    dangerConfirmation: t("workspace.menu.deleteConfirmation"),
                     onClick: () => this.VIEW_MODEL.deleteWorkspace(this.id)
                 }
             ],
@@ -397,10 +414,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         // add group
         actionsSectionElem.appendChild(renderButton(
-            ICON.ADD + " Add group",
+            `${ICON.ADD} ${t("workspace.addGroup")}`,
             workspace.id,
             [ACT_ADD_GROUP, CLASS_ACTION_ADD],
-            "Add new group",
+            t("workspace.addGroupTooltip"),
             (event) => this.actionAddGroup(workspace.id)
         ));
 
@@ -482,7 +499,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         descriptionElem.toggleAttribute('contentEditable');
         descriptionElem.classList.toggle("editable");
         if (menuItem.classList.contains("active")) {
-            setTimeout(() => { menuItem.textContent = "Save Workspace title" }, 250);
+            setTimeout(() => { menuItem.textContent = t("workspace.menu.saveTitle") }, 250);
         } else {
             setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
         }

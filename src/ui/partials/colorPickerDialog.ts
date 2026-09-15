@@ -2,6 +2,7 @@ import {
   TAB_GROUP_COLORS, TabGroupColor, TabGroupColorSwatch
 } from '../../backend/entity/TabGroupColors';
 import { toggleOverlay } from './wrappedHtmlElements';
+import { t } from '../../i18n/i18n';
 
 /**
  * Picks the colour Chrome paints a subgroup's tab group.
@@ -71,12 +72,13 @@ export class ColorPickerDialog {
 
     const heading = document.createElement('h2');
     heading.classList.add('input-dialog__title');
-    heading.textContent = 'Grouped tabs color';
+    heading.textContent = t('subgroup.colorDialog.title');
     dialog.appendChild(heading);
 
     const subject = document.createElement('p');
     subject.classList.add('color-picker__subject');
-    subject.textContent = `The colour Chrome paints the tab group for "${this.subgroupTitle}".`;
+    subject.textContent =
+      t('subgroup.colorDialog.explanation', { name: this.subgroupTitle });
     dialog.appendChild(subject);
 
     const grid = document.createElement('div');
@@ -87,7 +89,7 @@ export class ColorPickerDialog {
     const note = document.createElement('p');
     note.classList.add('color-picker__note');
     // Said here because it is the obvious question, and the honest answer is short.
-    note.textContent = 'These are the only nine colours Chrome will paint a tab group.';
+    note.textContent = t('subgroup.colorDialog.note');
     dialog.appendChild(note);
 
     const actions = document.createElement('div');
@@ -95,7 +97,7 @@ export class ColorPickerDialog {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = t('common.cancel');
     cancelBtn.classList.add('danger');
     cancelBtn.addEventListener('click', () => settle(null));
 
@@ -119,7 +121,7 @@ export class ColorPickerDialog {
     const button = document.createElement('button');
     button.type = 'button';
     button.classList.add('color-picker__swatch');
-    button.title = swatch.label;
+    button.title = t(`subgroup.colorDialog.colors.${swatch.color}`);
     button.value = swatch.color;
     if (swatch.color === this.current) {
       button.classList.add('color-picker__swatch--current');
@@ -132,7 +134,7 @@ export class ColorPickerDialog {
 
     const label = document.createElement('span');
     label.classList.add('color-picker__label');
-    label.textContent = swatch.label;
+    label.textContent = t(`subgroup.colorDialog.colors.${swatch.color}`);
 
     button.appendChild(dot);
     button.appendChild(label);

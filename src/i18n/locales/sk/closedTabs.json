@@ -1,0 +1,21 @@
+{
+  "railTooltip": "Nedávno zavreté karty",
+  "title": "Nedávno zavreté",
+  "forgetAll": "Zabudnúť všetky zavreté karty",
+  "closePanel": "Zavrieť panel",
+  "empty": "Zatiaľ nič zavreté. Karty, ktoré zavriete, sa objavia tu.",
+  "alreadySaved": "V tomto profile už uložené",
+  "saveAsLink": "Uložiť ako odkaz",
+  "forgetOne": "Zabudnúť túto",
+  "rowTooltip": "{url}\nOtvoriť znova",
+  "closedOn": "Zavreté na {device}",
+  "nowhereToPut": {
+    "title": "Nie je kam to uložiť",
+    "message": "Tento profil zatiaľ nemá skupinu, do ktorej by sa dal odkaz uložiť. Najprv vytvorte pracovný priestor a skupinu."
+  },
+  "forgetAllConfirmation": {
+    "title": "Zabudnúť všetky zavreté karty?",
+    "message": "Zoznam sa vyprázdni v tomto profile, na každom zariadení, kde ste prihlásení. Samotných kariet sa to netýka a čokoľvek, čo ste už uložili ako odkaz, zostáva.",
+    "confirm": "Zabudnúť ich"
+  }
+}

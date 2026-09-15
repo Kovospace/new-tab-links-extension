@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Workspace Links",
+  "name": "__MSG_extensionName__",
   "version": "0.1.0",
-  "description": "Custom new tab workspace",
+  "description": "__MSG_extensionDescription__",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
@@ -13,14 +13,16 @@
     "contextMenus",
     "favicon"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
   "action": {
     "default_popup": "bookmark.html",
-    "default_title": "Bookmark this page"
+    "default_title": "__MSG_actionTitle__"
   },
   "commands": {
     "_execute_action": {
@@ -28,7 +30,8 @@
         "default": "Alt+Shift+D",
         "mac": "Alt+Shift+D"
       },
-      "description": "Bookmark the current page"
+      "description": "__MSG_bookmarkCommand__"
     }
-  }
+  },
+  "default_locale": "en"
 }

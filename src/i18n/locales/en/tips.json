@@ -1,0 +1,13 @@
+{
+  "tellMeMore": "Tell me more",
+  "tellMeMoreTooltip": "Read more about this",
+  "previous": "Previous tip",
+  "next": "Next tip",
+  "hide": "Hide tips",
+  "trash": "Drop the link here to destroy it",
+  "hideConfirmation": {
+    "title": "Hide tips?",
+    "message": "Tips will stop appearing on this profile, on every device you are signed in on. You can bring them back from Settings in the application menu.",
+    "confirm": "Hide them"
+  }
+}

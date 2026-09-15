@@ -17,12 +17,16 @@ import {InputDialog} from "../partials/inputDialog";
 import {
     makeDraggable, makeReorderTarget, whatIsBeingDragged
 } from "../dragAndDrop/dragAndDrop";
+import { t } from "../../i18n/i18n";
 
 export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
     private editLinkDialog: InputDialog = new InputDialog(
-        "Edit link",
-        { "Title": "string", "URL": "url" },
+        t("link.editDialog.title"),
+        {
+            [t("dialogs.fields.title")]: { type: "string", key: "title" },
+            [t("dialogs.fields.url")]: { type: "url", key: "url" }
+        },
         ({ title, url }) => this.VIEW_MODEL.editLink(title, url));
 
     protected render(parentElem: HTMLElement) {
@@ -96,25 +100,25 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
         // "manage links" actions
         linkActionsDiv.appendChild(renderButton(
-            ICON.MOVE_UP, this.DTO.id, [ACT_LINK_MOVE_UP], "Move link up", onClick => {
+            ICON.MOVE_UP, this.DTO.id, [ACT_LINK_MOVE_UP], t("link.moveUp"), onClick => {
                 event?.stopPropagation();
                 this.VIEW_MODEL.moveLinkUp();
             }));
 
         linkActionsDiv.appendChild(renderButton(
-            ICON.MOVE_DOWN, this.DTO.id, [ACT_LINK_MOVE_DOWN], "Move link down", onClick => {
+            ICON.MOVE_DOWN, this.DTO.id, [ACT_LINK_MOVE_DOWN], t("link.moveDown"), onClick => {
                 event?.stopPropagation();
                 this.VIEW_MODEL.moveLinkDown();
             }));
 
         linkActionsDiv.appendChild(renderButton(
-            ICON.DELETE, this.DTO.id, [ACT_LINK_DELETE, CLASS_ACTION_DANGER], "Delete link", onClick => {
+            ICON.DELETE, this.DTO.id, [ACT_LINK_DELETE, CLASS_ACTION_DANGER], t("link.delete"), onClick => {
                 event?.stopPropagation();
                 this.VIEW_MODEL.deleteLink();
             }));
 
         linkActionsDiv.appendChild(renderButton(
-            ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], "Edit link", onClick => {
+            ICON.EDIT, this.DTO.id, [ACT_LINK_EDIT], t("link.edit"), onClick => {
                 event?.stopPropagation();
                 this.editLinkDialog.show({ title: this.DTO.title, url: this.DTO.url });
             }));
@@ -167,15 +171,15 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             // link actions
             const actions: ContextMenuAction[] = [
                 {
-                    label: 'Copy link URL',
+                    label: t("link.menu.copyUrl"),
                     onClick: () => navigator.clipboard.writeText(this.DTO.url)
                 },
                 {
-                    label: 'Edit link',
+                    label: t("link.menu.edit"),
                     onClick: () => this.editLinkDialog.show({ title: this.DTO.title, url: this.DTO.url })
                 },
                 {
-                    label: 'Refresh icon',
+                    label: t("link.menu.refreshIcon"),
                     onClick: async () => {
                         const newSrc = await FaviconsHandler.refreshIcon(url);
                         if (newSrc && img.isConnected) img.src = newSrc;
@@ -189,13 +193,13 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             const movable = this.VIEW_MODEL.canMove();
             if (movable.up) {
                 actions.push({
-                    label: `${ICON.MOVE_UP} Move up`,
+                    label: `${ICON.MOVE_UP} ${t("link.menu.moveUp")}`,
                     onClick: () => this.VIEW_MODEL.moveLinkUp()
                 });
             }
             if (movable.down) {
                 actions.push({
-                    label: `${ICON.MOVE_DOWN} Move down`,
+                    label: `${ICON.MOVE_DOWN} ${t("link.menu.moveDown")}`,
                     onClick: () => this.VIEW_MODEL.moveLinkDown()
                 });
             }
@@ -203,14 +207,14 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
             // move to / from subgroup link actions
             if (this.DTO.subGroupId) {
                 actions.push({
-                    label: 'Move out of subgroup',
+                    label: t("link.menu.moveOutOfSubgroup"),
                     onClick: () => this.VIEW_MODEL.moveLinkOutOfSubgroup()
                 });
             } else {
                 const subgroups = this.VIEW_MODEL.getSubgroupsForGroup();
                 subgroups.forEach(sg => {
                     actions.push({
-                        label: `Move to "${sg.title}"`,
+                        label: t("link.menu.moveToSubgroup", { name: sg.title }),
                         onClick: () => this.VIEW_MODEL.moveLinkToSubgroup(sg.id)
                     });
                 });
@@ -218,7 +222,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
             // delete link action
             actions.push({
-                label: 'Delete link',
+                label: t("link.menu.delete"),
                 danger: true,
                 onClick: () => {
                     this.VIEW_MODEL.deleteLink();

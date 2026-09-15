@@ -16,6 +16,7 @@ import {MAX_NAME_LENGTH, isStorableName} from "../backend/sync/SyncContracts";
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
+import {t} from "../i18n/i18n";
 
 type WorkspaceObservables = {
     workspaces: ObservableValue<WorkspaceDTO[]>;
@@ -164,7 +165,7 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         const data = await ProfileDataTransfer.importFromFile();
         if (!data) return;
 
-        const name = prompt("Name for the imported profile?");
+        const name = prompt(t("profiles.importNamePrompt"));
         if (!name) return;
 
         // Checked before the profile is created, so a refused name leaves nothing behind -
@@ -192,10 +193,9 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     private reportUnstorableName(name: string): void {
         const trimmed = name.trim();
         alert(trimmed.length === 0
-            ? "A profile needs a name."
-            : `A profile name can be at most ${MAX_NAME_LENGTH} characters, and that one is `
-                + `${trimmed.length}. Your account cannot store it, and keeping it here would `
-                + "stop every other change reaching your other devices.");
+            ? t("profiles.nameMissing")
+            : t("profiles.nameTooLong.message",
+                { max: MAX_NAME_LENGTH, length: trimmed.length }));
     }
 
     public exportCurrentProfile() {

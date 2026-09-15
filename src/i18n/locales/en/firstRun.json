@@ -1,0 +1,14 @@
+{
+  "heading": "No workspaces & Groups & Links here yet.",
+  "subheading": "If You se this page, it is either first run or everything was wiped out.",
+  "createWorkspace": "Start by creating Workspace",
+  "createWorkspaceButton": "+ Add first workspace",
+  "importPrompt": "... or load links from backup / exported file",
+  "importButton": "> Import",
+  "examplesPrompt": "... or load predefined examples set",
+  "examplesButton": "- Load examples",
+  "accountPrompt": "... or bring in the links you already have in your NewTabLinks account",
+  "signedInAs": "Signed in as {username}",
+  "defaultWorkspaceDescription": "Default workspace",
+  "titleMandatory": "At least title is mandatory"
+}

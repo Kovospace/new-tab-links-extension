@@ -1,8 +1,45 @@
 import {
-  RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO, SettingsViewModel,
-  ToggleSettingDTO
+  ChoiceSettingDTO, RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO,
+  SettingsViewModel, ToggleSettingDTO
 } from '../../viewModel/settingsViewModel';
+import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
+
+/**
+ * Where "reopen the settings dialog once the page comes back" is left.
+ *
+ * Session storage, not local: it is a note to the very next load of this tab and means nothing
+ * afterwards. Changing the language reloads the page - it is the only honest way to redraw an
+ * interface whose every string was read while it was being built - and a reload that dropped
+ * the user back on the workspace would make setting a language and then a date format two
+ * separate journeys through the menu.
+ */
+const REOPEN_KEY = 'settings-dialog-reopen';
+
+/** Leaves the note. */
+function markSettingsForReopen(): void {
+  try {
+    sessionStorage.setItem(REOPEN_KEY, '1');
+  } catch {
+    // Session storage can be refused outright. Losing the note costs one trip through the
+    // menu, which is not worth failing a language change over.
+  }
+}
+
+/**
+ * Takes the note, if there is one. Taken rather than read: it answers exactly one load.
+ *
+ * @return whether the settings dialog should be opened again
+ */
+export function consumeSettingsReopen(): boolean {
+  try {
+    const found = sessionStorage.getItem(REOPEN_KEY) !== null;
+    sessionStorage.removeItem(REOPEN_KEY);
+    return found;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * The settings screen.
@@ -77,7 +114,7 @@ export class SettingsDialog {
 
     const heading = document.createElement('h2');
     heading.classList.add('input-dialog__title');
-    heading.textContent = 'Settings';
+    heading.textContent = t('settings.title');
     dialog.appendChild(heading);
 
     this.listEl = document.createElement('div');
@@ -89,7 +126,7 @@ export class SettingsDialog {
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.textContent = 'Close';
+    closeBtn.textContent = t('common.close');
     closeBtn.classList.add('add');
     closeBtn.addEventListener('click', () => this.hide());
 
@@ -113,9 +150,8 @@ export class SettingsDialog {
     // does not say which one is loaded.
     this.listEl.appendChild(this.note(
       settings.profileName
-        ? `These apply to the profile "${settings.profileName}", and to it on every device you `
-          + 'are signed in on.'
-        : 'These apply to the profile you have open.'));
+        ? t('settings.profileNote', { name: settings.profileName })
+        : t('settings.profileNoteUnnamed')));
 
     settings.categories.forEach(
       category => this.listEl!.appendChild(this.buildCategory(category)));
@@ -160,7 +196,79 @@ export class SettingsDialog {
 
   /** One setting, drawn the way its kind is drawn. */
   private buildRow(setting: SettingDTO): HTMLElement {
-    return setting.kind === 'toggle' ? this.buildToggle(setting) : this.buildRange(setting);
+    switch (setting.kind) {
+      case 'toggle':
+        return this.buildToggle(setting);
+      case 'choice':
+        return this.buildChoice(setting);
+      default:
+        return this.buildRange(setting);
+    }
+  }
+
+  /**
+   * A setting that is one of a list: its name, a dropdown, and what it does.
+   *
+   * The dropdown acts on `change` rather than on a confirming button, the way the toggles and
+   * the slider here do: this dialog has no OK, only a Close, because everything in it takes
+   * effect as it is answered.
+   */
+  private buildChoice(setting: ChoiceSettingDTO): HTMLElement {
+
+    const row = document.createElement('div');
+    row.classList.add('settings-dialog__row', 'settings-dialog__row--choice');
+
+    const text = document.createElement('div');
+    text.classList.add('settings-dialog__text');
+
+    const heading = document.createElement('div');
+    heading.classList.add('settings-dialog__range-heading');
+
+    const title = document.createElement('label');
+    title.classList.add('settings-dialog__name');
+    title.textContent = setting.title;
+    title.htmlFor = `settings-choice-${setting.key}`;
+
+    const select = document.createElement('select');
+    select.id = title.htmlFor;
+    select.classList.add('editable', 'input-dialog__input', 'input-dialog__select',
+      'settings-dialog__select');
+    setting.options.forEach(option => {
+      const optionEl = document.createElement('option');
+      optionEl.value = option.value;
+      optionEl.textContent = option.label;
+      select.appendChild(optionEl);
+    });
+    select.value = setting.value;
+    select.disabled = Boolean(setting.disabledReason);
+
+    select.addEventListener('change', () => void this.answerChoice(setting, select.value));
+
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = setting.disabledReason ?? setting.explanation;
+
+    heading.appendChild(title);
+    text.appendChild(heading);
+    text.appendChild(select);
+    text.appendChild(explanation);
+    row.appendChild(text);
+    return row;
+  }
+
+  /**
+   * Stores the answer, and rebuilds the page when the answer was a language.
+   *
+   * The dialog is asked to come back after the reload rather than being left behind: somebody
+   * who has just opened this screen to set a language is very often here to set the date
+   * format too, and a reload that dropped them on the workspace would make that a second
+   * journey through the application menu.
+   */
+  private async answerChoice(setting: ChoiceSettingDTO, value: string): Promise<void> {
+    if (await this.viewModel.setChoice(setting.key, value)) {
+      markSettingsForReopen();
+      window.location.reload();
+    }
   }
 
   /** A setting that is on or off: a checkbox, its name, and what it does. */

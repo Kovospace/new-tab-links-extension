@@ -4,6 +4,7 @@ import { ClosedTab, MAX_CLOSED_TABS } from "../backend/entity/ClosedTabEntity";
 import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { resolveDeviceName } from "../backend/sync/DeviceName";
+import { describeAge } from "../i18n/dates";
 
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
@@ -189,32 +190,4 @@ export class ClosedTabsViewModel {
         const normalized = normalizeUrl(url);
         return normalized !== null && kept.has(normalized);
     }
-}
-
-/**
- *  How long ago something happened, in the coarsest unit that still says something.
- *
- *  Exported for its own test: it is the one piece of arithmetic here, and the one that reads
- *  wrong in a way nobody notices - "1 hours ago", or a minute that never becomes an hour.
- *
- *  @param milliseconds how long ago; negative is treated as just now
- */
-export function describeAge(milliseconds: number): string {
-
-    const minutes = Math.floor(milliseconds / 60_000);
-
-    if (minutes < 1) {
-        return "just now";
-    }
-    if (minutes < 60) {
-        return `${minutes} min ago`;
-    }
-
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-        return hours === 1 ? "an hour ago" : `${hours} hours ago`;
-    }
-
-    const days = Math.floor(hours / 24);
-    return days === 1 ? "yesterday" : `${days} days ago`;
 }

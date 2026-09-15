@@ -1,0 +1,36 @@
+{
+  "addDialog": {
+    "title": "Add group",
+    "name": "Group name",
+    "description": "Group description"
+  },
+  "addSubgroupDialog": {
+    "title": "Add subgroup",
+    "name": "Subgroup title",
+    "description": "Subgroup description"
+  },
+  "addLinkDialog": {
+    "title": "Add link"
+  },
+  "addLinkTooltip": "Add link to group",
+  "menu": {
+    "tooltip": "Edit the Group",
+    "addLink": "Add link",
+    "addSubgroup": "Add subgroup",
+    "editTitle": "Edit Group title",
+    "saveTitle": "Save group title",
+    "manageLinks": "Manage links",
+    "finishManagingLinks": "Finish group links editing",
+    "moveLeft": "Move group left",
+    "moveRight": "Move group right",
+    "migrate": "Migrate to other workspace",
+    "delete": "Delete group",
+    "deleteConfirmation": "All links and sub-groups associated to that group will be deleted."
+  },
+  "migrateDialog": {
+    "title": "Migrate group to another workspace",
+    "field": "Target workspace",
+    "confirm": "Migrate",
+    "nowhereToGo": "There is no other workspace to move this group into. Add one first."
+  }
+}

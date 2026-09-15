@@ -1,0 +1,42 @@
+{
+  "menu": {
+    "logIn": "Prihlásiť sa",
+    "register": "Registrovať sa",
+    "enterSyncCode": "Zadať kód na synchronizáciu",
+    "logOut": "Odhlásiť sa",
+    "settings": "Nastavenia"
+  },
+  "status": {
+    "working": "Synchronizujem...",
+    "offline": "Offline — zmeny sa odošlú neskôr",
+    "idle": "Synchronizované"
+  },
+  "logInDialog": {
+    "title": "Prihlásenie",
+    "usernameOrEmail": "Meno alebo e-mail",
+    "password": "Heslo"
+  },
+  "syncCodeDialog": {
+    "title": "Zadať kód na synchronizáciu",
+    "connectCode": "Kód na pripojenie"
+  },
+  "credentialsRequired": "Treba vyplniť meno alebo e-mail aj heslo.",
+  "logInFailed": "Prihlásenie zlyhalo.",
+  "connectCodeRequired": "Zadajte kód, ktorý je zobrazený na stránke so zariadeniami.",
+  "connectCodeRefused": "Tento kód nebol prijatý.",
+  "reportedFailure": "{headline}\n\n{message}",
+  "loggedOutOffline": "Na tomto zariadení ste odhlásení, ale server sa nepodarilo kontaktovať — je možné, že zariadenie je vo vašom účte stále uvedené.",
+  "deviceReturning": "Vitajte späť. Toto zariadenie už predtým bolo odhlásené zo „{name}“, takže pokračuje tam, kde prestalo, namiesto toho, aby pribudlo do účtu druhýkrát.",
+  "deviceNameTaken": {
+    "title": "Tento názov sa už používa",
+    "message": "„{name}“ je iné zariadenie vo vašom účte a je práve prihlásené. Ak je to toto zariadenie po preinštalovaní, prevezmite ho — zostane vám jeho história a stará inštalácia sa odhlási. Inak zvoľte iný názov alebo nechajte oba: dve zariadenia sa môžu volať rovnako.",
+    "takeOver": "Toto je to zariadenie",
+    "rename": "Použiť iný názov",
+    "keep": "Nechať oba"
+  },
+  "deviceTakenOver": "Toto zariadenie sa teraz volá „{name}“ a inštalácia, ktorá názov držala, bola odhlásená.",
+  "renameDeviceDialog": {
+    "title": "Pomenovať toto zariadenie"
+  },
+  "deviceNotRenamed": "Zariadenie sa nepodarilo premenovať — server nebol dostupný."
+}

@@ -34,6 +34,7 @@ import { swatchOf } from "../../backend/entity/TabGroupColors";
 import {
     makeContainerTarget, makeDraggable, makeReorderTarget, whatIsBeingDragged
 } from "../dragAndDrop/dragAndDrop";
+import { t } from "../../i18n/i18n";
 
 
 
@@ -42,10 +43,13 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     private subgroupTitleEditingMenuItem: HTMLElement | null = null;
 
     private addLinkDialog: InputDialog = new InputDialog(
-        "Add link",
+        t("subgroup.addLinkDialog.title"),
         {
-            "Link title": { type: "string", required: true, maxLength: MAX_TITLE_LENGTH },
-            "URL": { type: "url", required: true, maxLength: MAX_URL_LENGTH }
+            [t("subgroup.addLinkDialog.linkTitle")]:
+                { type: "string", required: true, maxLength: MAX_TITLE_LENGTH,
+                  key: "linkTitle" },
+            [t("dialogs.fields.url")]:
+                { type: "url", required: true, maxLength: MAX_URL_LENGTH, key: "url" }
         },
         ({ linkTitle, url }) => this.VIEW_MODEL.addLink(linkTitle, url));
 
@@ -115,7 +119,10 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         const subgroupDescription = renderTextContainer("span", this.DTO.description);
         const count = subgroupDto.links?.length ?? 0;
         const linkCount = renderTextContainer(
-            "span", count === 0 ? "No items in subgroup yet" : `${count} hidden items`);
+            "span",
+            count === 0
+                ? t("subgroup.collapsed.empty")
+                : t("subgroup.collapsed.hidden", { count }));
         linkCount.classList.add(CLASS_SUBGROUP_LINK_COUNT);
         if (count === 0) linkCount.classList.add("empty");
         subgroupInfoContainer.appendChild(subgroupTitle);
@@ -126,11 +133,11 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         const moveActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_MOVE_ACTIONS]);
         headElem.appendChild(moveActionsContainer);
         moveActionsContainer.appendChild(renderButton(
-            ICON.MOVE_UP, this.DTO.id, [ACT_SUBGROUP_MOVE_UP], "Move subgroup up",
+            ICON.MOVE_UP, this.DTO.id, [ACT_SUBGROUP_MOVE_UP], t("subgroup.moveUp"),
             (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupUp(); }
         ));
         moveActionsContainer.appendChild(renderButton(
-            ICON.MOVE_DOWN, this.DTO.id, [ACT_SUBGROUP_MOVE_DOWN], "Move subgroup down",
+            ICON.MOVE_DOWN, this.DTO.id, [ACT_SUBGROUP_MOVE_DOWN], t("subgroup.moveDown"),
             (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupDown(); }
         ));
 
@@ -144,62 +151,62 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             {
                 openMenuButtonId: `subgroup-${this.id}-menu`,
                 openMenuButtonClass: ACT_EDIT_GROUP,
-                openMenuButtonTooltipText: "Edit the Group"
+                openMenuButtonTooltipText: t("subgroup.menu.tooltip")
             },
             [
                 {
-                    actionTitle: "Add link",
+                    actionTitle: t("subgroup.menu.addLink"),
                     onClick: () => {
                         event?.stopPropagation();
                         this.addLinkDialog.show();
                     }
                 },
                 {
-                    actionTitle: "Expand / Collapse group",
+                    actionTitle: t("subgroup.menu.toggleCollapse"),
                     onClick: () => this.actionSubgroupFold()
                 },
                 {
-                    actionTitle: "Open all links in grouped tabs",
+                    actionTitle: t("subgroup.menu.openGrouped"),
                     onClick: () => {
                         this.actionOpenSubGroupLinks();
                     }
                 },
                 {
-                    actionTitle: "Open all links in separated tabs",
+                    actionTitle: t("subgroup.menu.openSeparate"),
                     onClick: () => {
                         this.actionOpenSubGroupLinksIsolated();
                     }
                 },
                 {
-                    actionTitle: "Catch links into tab group",
+                    actionTitle: t("subgroup.menu.catchLinks"),
                     checkable: true,
                     active: subgroupDto.catchLinksIntoTabGroup,
                     onClick: () => this.VIEW_MODEL.toggleCatchLinksIntoTabGroup()
                 },
                 {
-                    actionTitle: "Grouped tabs color",
+                    actionTitle: t("subgroup.menu.tabGroupColor"),
                     swatchColor: swatchOf(subgroupDto.color).hex,
                     onClick: () => void this.actionPickColor(subgroupDto)
                 },
                 {
-                    actionTitle: "Edit subgroup title & description",
+                    actionTitle: t("subgroup.menu.editTitle"),
                     onClick: () => this.toggleSubgroupTitleEditable(event?.target as HTMLElement)
                 },
                 {
-                    actionTitle: "Manage links",
+                    actionTitle: t("subgroup.menu.manageLinks"),
                     onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
                 },
                 {
-                    actionTitle: "Move all links out of subgroup",
+                    actionTitle: t("subgroup.menu.moveLinksOut"),
                     onClick: () => this.VIEW_MODEL.moveLinksOutOfSubgroup(this.id)
                 },
                 {
-                    actionTitle: "Delete subgroup & move links",
+                    actionTitle: t("subgroup.menu.deleteKeepLinks"),
                     dangerous: true,
                     onClick: () => this.VIEW_MODEL.deleteSubgroupAndMoveLinks(this.id)
                 },
                 {
-                    actionTitle: "Delete subgroup including links",
+                    actionTitle: t("subgroup.menu.deleteWithLinks"),
                     dangerous: true,
                     onClick: () => this.VIEW_MODEL.deleteSubgroup(this.id)
                 },
@@ -211,7 +218,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             ICON.OPEN_GROUPED,
             this.DTO.id,
             [ACT_OPEN_ALL_SUBGROUP_LINKS],
-            "Open all subgroup links in new grouped tabs",
+            t("subgroup.openGroupedTooltip"),
             onClick => {
                 event?.stopPropagation();
                 this.actionOpenSubGroupLinks();
@@ -285,7 +292,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         descriptionElem.classList.toggle("editable");
         if (menuItem.classList.contains("active")) {
             this.subgroupTitleEditingMenuItem = menuItem;
-            setTimeout(() => { menuItem.textContent = "Save subgroup title" }, 250);
+            setTimeout(() => { menuItem.textContent = t("subgroup.menu.saveTitle") }, 250);
             (titleElem as HTMLElement).focus();
         } else {
             this.subgroupTitleEditingMenuItem = null;
@@ -333,9 +340,9 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     private toggleLinksManagementOptions(menuItem: HTMLElement): void {
         this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("managed");
         if (this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.contains("managed")) {
-            setTimeout(() => { menuItem.textContent = "Finish links editing" }, 250);
+            setTimeout(() => { menuItem.textContent = t("subgroup.menu.finishManagingLinks") }, 250);
         } else {
-            setTimeout(() => { menuItem.textContent = "Manage links" }, 250);
+            setTimeout(() => { menuItem.textContent = t("subgroup.menu.manageLinks") }, 250);
         }
     }
 

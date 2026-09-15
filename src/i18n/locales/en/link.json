@@ -1,0 +1,19 @@
+{
+  "editDialog": {
+    "title": "Edit link"
+  },
+  "moveUp": "Move link up",
+  "moveDown": "Move link down",
+  "edit": "Edit link",
+  "delete": "Delete link",
+  "menu": {
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "edit": "Edit link",
+    "copyUrl": "Copy link URL",
+    "refreshIcon": "Refresh icon",
+    "moveOutOfSubgroup": "Move out of subgroup",
+    "moveToSubgroup": "Move to \"{name}\"",
+    "delete": "Delete link"
+  }
+}

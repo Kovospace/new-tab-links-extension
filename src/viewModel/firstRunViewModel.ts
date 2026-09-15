@@ -1,6 +1,7 @@
 import {AppStateRepository} from "../backend/repository/AppStateRepository";
 import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
 import {appStateInit} from "../backend/datasource/init/AppStateInit";
+import { t } from "../i18n/i18n";
 
 export class FirstRunViewModel {
 
@@ -12,7 +13,7 @@ export class FirstRunViewModel {
 
     public addWorkspace(title: string | null | undefined, description?: string): void {
         if (!title) {
-            alert("At least title is mandatory");
+            alert(t("firstRun.titleMandatory"));
         }
         this.REPOSITORY
             .addWorkspace(title!, description)

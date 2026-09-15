@@ -1,4 +1,5 @@
 import { toggleOverlay } from './wrappedHtmlElements';
+import { t } from '../../i18n/i18n';
 
 /** One entry of the dropdown: what it reads as, and what picking it means. */
 export interface SelectOption<VALUE> {
@@ -38,7 +39,7 @@ export class SelectDialog<VALUE> {
     title: string,
     label: string,
     options: ReadonlyArray<SelectOption<VALUE>>,
-    confirmLabel: string = 'OK'
+    confirmLabel: string = t('common.ok')
   ) {
     this.title = title;
     this.label = label;
@@ -123,7 +124,7 @@ export class SelectDialog<VALUE> {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = t('common.cancel');
     cancelBtn.classList.add('danger');
     cancelBtn.addEventListener('click', () => settle(null));
 

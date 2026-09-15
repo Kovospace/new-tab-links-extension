@@ -89,3 +89,72 @@ describe("InputDialog", () => {
         expect(ok().disabled).toBe(true);
     });
 });
+
+/**
+ *  What a field's value reaches the callback under.
+ *
+ *  This matters only because the labels are translated now. The key used to be the label,
+ *  camel-cased, which meant a Slovak dialog handed `addWorkspace` a `nazovPracovnehoPriestoru`
+ *  and an English one a `workspaceName` - and the callback can only be written for one of the
+ *  two. Every field in the extension therefore names its own key, and the label is free to say
+ *  whatever the reader's language says.
+ */
+describe("InputDialog field keys", () => {
+
+    beforeEach(() => {
+        document.body.innerHTML = '<div class="overlay hidden"></div>';
+        (HTMLDialogElement.prototype as any).showModal = function () { this.open = true; };
+        (HTMLDialogElement.prototype as any).close = function () {
+            this.open = false; this.dispatchEvent(new Event('close'));
+        };
+    });
+
+    const field = () => document.querySelector('input') as HTMLInputElement;
+    const ok = () => Array.from(document.querySelectorAll('button'))
+        .find(button => button.textContent === 'OK') as HTMLButtonElement;
+
+    const type = (value: string): void => {
+        field().value = value;
+        field().dispatchEvent(new Event('input'));
+    };
+
+    it("hands the callback the key the field declared, not its label", () => {
+        let received: Record<string, string> | null = null;
+
+        new InputDialog(
+            "Pridať pracovný priestor",
+            {
+                "Názov pracovného priestoru":
+                    { type: "string", required: true, key: "workspaceName" }
+            },
+            values => { received = values; }
+        ).show();
+
+        type("Práca");
+        ok().click();
+
+        expect(received).toEqual({ workspaceName: "Práca" });
+    });
+
+    it("prefills by the declared key too", () => {
+        new InputDialog(
+            "Premenovať",
+            { "Názov profilu": { type: "string", key: "profileName" } },
+            () => {}
+        ).show({ profileName: "Domov" });
+
+        expect(field().value).toBe("Domov");
+    });
+
+    it("still camel-cases the label for a field that declares no key", () => {
+        let received: Record<string, string> | null = null;
+
+        new InputDialog("Add link", { "Link title": "string" }, values => { received = values; })
+            .show();
+
+        type("Docs");
+        ok().click();
+
+        expect(received).toEqual({ linkTitle: "Docs" });
+    });
+});

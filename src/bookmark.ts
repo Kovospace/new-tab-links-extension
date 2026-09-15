@@ -6,6 +6,7 @@ import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { BookmarkViewModel } from "./viewModel/bookmarkViewModel";
 import { BookmarkForm, renderNotice } from "./ui/partials/bookmarkForm";
 import { requestForActiveTab, takePendingBookmark } from "./utils/bookmarkRequest";
+import { t } from "./i18n/i18n";
 
 /**
  *  CSS files
@@ -46,6 +47,8 @@ import './ui/styles/_bookmarkPanel.css'
     // and sized in the same em, and a popup half the size of everything else looks broken.
     await devicePreferencesRepository.init();
     devicePreferencesRepository.applyScale();
+    devicePreferencesRepository.applyLocale();
+    document.title = t("bookmark.pageTitle");
 
     const host = document.body.getElementsByTagName("main")[0];
 
@@ -54,9 +57,8 @@ import './ui/styles/_bookmarkPanel.css'
     if (!request) {
         await renderNotice(
             host,
-            "Nothing to bookmark",
-            "This page cannot be kept as a link. Only ordinary web pages can - not the "
-            + "browser's own pages, and not the new tab page.");
+            t("bookmark.nothingToBookmark.title"),
+            t("bookmark.nothingToBookmark.message"));
         window.close();
         return;
     }
@@ -72,9 +74,8 @@ import './ui/styles/_bookmarkPanel.css'
         // the extension.
         await renderNotice(
             host,
-            "Nowhere to put it",
-            "This profile has no group to keep a link in yet. Open a new tab, make a "
-            + "workspace and a group, and this will have somewhere to save to.");
+            t("bookmark.nowhereToPut.title"),
+            t("bookmark.nowhereToPut.message"));
         window.close();
         return;
     }

@@ -12,10 +12,9 @@ Note for agents:
 - displayed when user is logged in after "synchronised"
 - TODO - where it should point - functionality not yet implemented in the backend
 
-### [BIG] i18n
-- find all hardcoded strings or text strings in variables and put them in one place in json
-- add support for multiple languages
-- add second language - slovak - and translate into it
+### [important]
+- rebranding application as Tabilinks
+- will buy domain tabinlinks.net or tabilinks.com
 
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
@@ -50,6 +49,53 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [BIG] i18n
+- every sentence the interface says is in `src/i18n/locales/<language>/<area>.json`, split the
+  way the screens are - workspace, group, subgroup, link, profiles, settings, closedTabs,
+  bookmark, tips, firstRun, sync - with what several screens say in the same words in the file
+  named after the thing rather than copied into each: common (the buttons every dialog has),
+  dialogs (the input dialog and its validation), errors (the account), dates
+- the file's name is the first segment of every key, so `t("subgroup.menu.addLink")` says where
+  its wording lives. Imported rather than fetched, like the tips already were: a malformed file
+  is a build error, and `t()` can answer synchronously - which every component needs, because
+  rendering here is not asynchronous
+- Slovak throughout, and plurals go through `Intl.PluralRules` rather than `count === 1`:
+  Slovak wants a different word for two, three and four than for five, and English needs "an
+  hour ago" where the naive rule says "1 hours ago"
+- the language is guessed from the browser and falls back to English for a language we do not
+  have. "Follow the browser" is stored as its own value rather than as the guessed language,
+  because the two mean different things - a browser that changes language later is followed by
+  the first and ignored by the second
+- "Language & local customs" in Settings, holding the language and the date format. Both are
+  DEVICE preferences, beside the size slider and not on the profile record: one person's two
+  browsers are routinely set to two languages, and `ProfileSettings` is booleans that would
+  each need a backend column, a snapshot field and a merge rule
+- the date format is a separate question from the language on purpose. The language picks the
+  words, the format picks the order the parts of a date go in, and "local custom" - the default
+  - takes that order from the browser's own region. A Slovak reader on an American team can
+  have Slovak words and 9/3/2026
+- changing the language reloads the page, which is the only honest way to redraw an interface
+  whose every string was read while it was being built. The settings dialog leaves a note in
+  session storage and main.ts opens it again, so setting a language and then a date format is
+  one journey through the menu rather than two
+- `InputDialog` fields now declare the key their value reaches the callback under. They used to
+  be the label camel-cased, which was fine with one wording per field and became a bug with
+  two: a Slovak dialog would have handed `addWorkspace` a `nazovPracovnehoPriestoru`
+- the service worker's two right-click entries are translated as well, which cost it a read of
+  the device preferences and a rebuild when they change - Chrome keeps a context menu entry
+  until it is told otherwise, so one created in English would still say so months later
+- `public/_locales/` and `default_locale` translate what our own runtime cannot reach: the
+  extension's name and description, the toolbar tooltip and the keyboard shortcut's description
+  on chrome://extensions/shortcuts. Those follow the BROWSER's language, not this setting, and
+  that split is the browser's rather than ours
+- NOT translated, deliberately: the automatic device label ("Browser extension on <platform>").
+  It is an identifier - stored on the account, shown on devices reading in another language,
+  and compared as a string against what the worker stamped, which has no chosen language behind
+  it. Translating it would rename a device whenever its owner changed language
+- 33 tests over the new layer plus a completeness test that names any key one language has and
+  another does not, and checks that a translation uses the same `{placeholders}`. Five of the
+  new tests were run against the defect they name and watched to fail
 
 ### [medium] Add trash bin for links
 - the tips bar at the foot of the workspace turns red while a link is being dragged, says

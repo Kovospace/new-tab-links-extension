@@ -1,0 +1,5 @@
+{
+  "offline": "Synchronizačný server nie je dostupný. Skontrolujte pripojenie a skúste to znova.",
+  "notSignedIn": "Nie ste prihlásení.",
+  "requestRefused": "Synchronizačný server požiadavku odmietol."
+}

@@ -1,5 +1,6 @@
 
 import {Logger} from "../../utils/logger";
+import { t } from "../../i18n/i18n";
 
 import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
 import { ICON, renderButton } from "../partials/wrappedHtmlElements"
@@ -179,7 +180,7 @@ export class OptionsMenu {
             this.LOG.debug("Metadata: " + this.metadata);
             toggleOverlay(false);
             if (option.dangerous) {
-                let message = "Are You sure ?";
+                let message = t("common.areYouSure");
                 if (option.dangerConfirmation) {
                     message += `\n\n${option.dangerConfirmation}`;
                 }

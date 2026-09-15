@@ -1,0 +1,36 @@
+{
+  "addDialog": {
+    "title": "Pridať skupinu",
+    "name": "Názov skupiny",
+    "description": "Popis skupiny"
+  },
+  "addSubgroupDialog": {
+    "title": "Pridať podskupinu",
+    "name": "Názov podskupiny",
+    "description": "Popis podskupiny"
+  },
+  "addLinkDialog": {
+    "title": "Pridať odkaz"
+  },
+  "addLinkTooltip": "Pridať odkaz do skupiny",
+  "menu": {
+    "tooltip": "Upraviť skupinu",
+    "addLink": "Pridať odkaz",
+    "addSubgroup": "Pridať podskupinu",
+    "editTitle": "Upraviť názov skupiny",
+    "saveTitle": "Uložiť názov skupiny",
+    "manageLinks": "Spravovať odkazy",
+    "finishManagingLinks": "Ukončiť úpravu odkazov skupiny",
+    "moveLeft": "Posunúť skupinu doľava",
+    "moveRight": "Posunúť skupinu doprava",
+    "migrate": "Presunúť do iného pracovného priestoru",
+    "delete": "Zmazať skupinu",
+    "deleteConfirmation": "Zmažú sa všetky odkazy a podskupiny, ktoré do tejto skupiny patria."
+  },
+  "migrateDialog": {
+    "title": "Presunúť skupinu do iného pracovného priestoru",
+    "field": "Cieľový pracovný priestor",
+    "confirm": "Presunúť",
+    "nowhereToGo": "Nie je iný pracovný priestor, do ktorého by sa dala skupina presunúť. Najprv nejaký pridajte."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "workspaces": "Pracovné priestory",
+  "addWorkspace": "Pridať nový pracovný priestor",
+  "closedTabs": "Nechať panel nedávno zavretých otvorený",
+  "profilesMenu": "Zoznam profilov",
+  "applicationMenu": "Menu aplikácie",
+  "profileButton": "Profil: {name}",
+  "noProfile": "...",
+  "profileMenu": {
+    "export": "Exportovať aktuálny profil",
+    "import": "Importovať profil",
+    "create": "Vytvoriť nový profil",
+    "manage": "Spravovať profily"
+  }
+}

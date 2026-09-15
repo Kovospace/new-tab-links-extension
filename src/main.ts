@@ -16,6 +16,9 @@ import {GroupComponent} from "./ui/components/groupComponent";
 import {LinkComponent} from "./ui/components/linkComponent";
 import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
+import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
+import { t } from "./i18n/i18n";
+
 import {
     ELEM_FIRSTRUN, ELEM_GROUP, ELEM_LINK, ELEM_SUBGROUP, ELEM_WORKSPACE
 } from "./constants";
@@ -59,6 +62,11 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // redraw the page a size larger in front of the user.
     await devicePreferencesRepository.init();
     devicePreferencesRepository.applyScale();
+
+    // Which language this page is drawn in, settled before any component is constructed:
+    // every string here is read once, while its element is being built.
+    devicePreferencesRepository.applyLocale();
+    document.title = t("workspace.pageTitle");
 
     // identity of this installation and the signed-in account, if any - both are read
     // before anything renders so the application menu draws its final state at once
@@ -120,6 +128,13 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
         const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
         workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
         rootContainerElem.appendChild(workspaceElement);
+    }
+
+    // A language change reloads the page, because that is the only way to redraw an interface
+    // whose strings were all read as it was built. This is what brings the user back to the
+    // screen they were standing on when they asked for it.
+    if (consumeSettingsReopen()) {
+        new SettingsDialog().show();
     }
 
 })();

@@ -1,0 +1,56 @@
+{
+  "createDialog": {
+    "title": "Create profile",
+    "name": "Profile name"
+  },
+  "manager": {
+    "title": "Manage profiles",
+    "deleteAllOthers": "Delete all others",
+    "empty": "No profiles.",
+    "onlyOne": "This is your only profile, so there is nothing here to delete.",
+    "current": "{name} (current)",
+    "rename": "Rename {name}",
+    "delete": "Delete {name}",
+    "cannotDeleteActive": "Switch to another profile first"
+  },
+  "contents": {
+    "empty": "empty",
+    "summary": "{workspaces}, {links}",
+    "workspaces": {
+      "one": "{count} workspace",
+      "other": "{count} workspaces"
+    },
+    "links": {
+      "one": "{count} link",
+      "other": "{count} links"
+    }
+  },
+  "renameDialog": {
+    "title": "Rename profile",
+    "name": "Profile name"
+  },
+  "importNamePrompt": "Name for the imported profile?",
+  "nameTooLong": {
+    "title": "That name is too long",
+    "message": "A profile name can be at most {max} characters, and that one is {length}. Your account cannot store it, and keeping it here would stop every other change reaching your other devices."
+  },
+  "nameMissing": "A profile needs a name.",
+  "deleteOne": {
+    "title": "Delete this profile?",
+    "message": "\"{name}\" holds {contents}. Deleting it removes its workspaces, groups and links from this browser and from your account, on every device. This cannot be undone.",
+    "confirm": "Delete it"
+  },
+  "nothingToDelete": {
+    "title": "Nothing to delete",
+    "message": "The profile you are looking at is the only one there is, and it is the one profile this cannot remove."
+  },
+  "deleteAll": {
+    "title": "Delete all other profiles?",
+    "phrase": "delete all profiles",
+    "confirm": "Yes, delete them",
+    "message": {
+      "one": "This deletes {count} profile and everything in it — workspaces, groups and links — from this browser and from your account, on every device. The profile you are looking at now is kept. This cannot be undone.",
+      "other": "This deletes {count} profiles and everything in them — workspaces, groups and links — from this browser and from your account, on every device. The profile you are looking at now is kept. This cannot be undone."
+    }
+  }
+}

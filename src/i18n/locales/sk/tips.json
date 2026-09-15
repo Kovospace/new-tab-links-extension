@@ -1,0 +1,13 @@
+{
+  "tellMeMore": "Viac o tom",
+  "tellMeMoreTooltip": "Prečítať si o tom viac",
+  "previous": "Predchádzajúci tip",
+  "next": "Ďalší tip",
+  "hide": "Skryť tipy",
+  "trash": "Sem pustite odkaz a zmaže sa",
+  "hideConfirmation": {
+    "title": "Skryť tipy?",
+    "message": "Tipy sa prestanú zobrazovať v tomto profile, na každom zariadení, kde ste prihlásení. Vrátiť sa dajú v Nastaveniach v menu aplikácie.",
+    "confirm": "Skryť ich"
+  }
+}

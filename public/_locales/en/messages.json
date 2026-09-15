@@ -1,0 +1,18 @@
+{
+  "extensionName": {
+    "message": "Workspace Links",
+    "description": "Name of the extension, shown in the browser and in the store."
+  },
+  "extensionDescription": {
+    "message": "Custom new tab workspace",
+    "description": "One-line description of the extension, shown in the browser and in the store."
+  },
+  "actionTitle": {
+    "message": "Bookmark this page",
+    "description": "Tooltip of the toolbar button, which opens the bookmarking popup."
+  },
+  "bookmarkCommand": {
+    "message": "Bookmark the current page",
+    "description": "What the keyboard shortcut does, shown on the browser's shortcuts page."
+  }
+}

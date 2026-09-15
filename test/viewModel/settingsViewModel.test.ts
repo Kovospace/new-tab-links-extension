@@ -158,3 +158,104 @@ describe("SettingsViewModel, the size setting", () => {
         expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false, hideTips: false });
     });
 });
+
+/**
+ *  The language and date format section.
+ *
+ *  Both are the device's, like the size slider and for the same reason - and the one thing
+ *  here that really can go wrong is the answer to "did anything change", because that is what
+ *  decides whether the page is torn down and rebuilt in front of the user.
+ */
+describe("SettingsViewModel, language and local customs", () => {
+
+    let profiles: ProfileRepository;
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        (globalThis as { chrome?: unknown }).chrome = {
+            ...(globalThis as { chrome?: object }).chrome,
+            i18n: { getUILanguage: () => "en-GB" }
+        };
+        profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const section = () => settings.observables.settings.get().categories
+        .find(category => category.key === "language-and-local-customs")!;
+
+    const choice = (key: string) => {
+        const setting = section().settings.find(one => one.key === key);
+        if (!setting || setting.kind !== "choice") {
+            throw new Error(`${key} is not a choice setting`);
+        }
+        return setting;
+    };
+
+    it("offers a section of its own", () => {
+        expect(section()).toBeDefined();
+        expect(section().settings.map(one => one.key)).toEqual(["language", "dateFormat"]);
+    });
+
+    /**
+     *  A device nobody has answered follows the browser. Storing the guessed language instead
+     *  would freeze it: a browser that changed language afterwards would be ignored for ever.
+     */
+    it("starts out following the browser", () => {
+        expect(choice("language").value).toBe("auto");
+    });
+
+    it("offers every language, each named in itself", () => {
+        const labels = choice("language").options.map(option => option.label);
+        expect(labels).toContain("English");
+        expect(labels).toContain("Slovenčina");
+    });
+
+    /**
+     *  The whole point of showing a sample: two of the formats differ only in which number
+     *  comes first, and their names alone do not tell them apart at a glance.
+     */
+    it("shows each date format writing the same day", () => {
+        const labels = choice("dateFormat").options.map(option => option.label);
+        expect(labels.some(label => label.includes("25/03/2026"))).toBe(true);
+        expect(labels.some(label => label.includes("03/25/2026"))).toBe(true);
+    });
+
+    it("stores a chosen language and reports that the page has to be rebuilt", async () => {
+        const rebuild = await settings.setChoice("language", "sk");
+
+        expect(rebuild).toBe(true);
+        expect(devicePreferences.getLanguage()).toBe("sk");
+        expect(choice("language").value).toBe("sk");
+    });
+
+    /**
+     *  Reloading the page is what a language change costs, so it has to be the price of an
+     *  actual change. Choosing the language already in force - which a dropdown will happily
+     *  report - would otherwise throw the user's screen away for nothing.
+     */
+    it("does not ask for a rebuild when the language did not change", async () => {
+        await settings.setChoice("language", "sk");
+
+        expect(await settings.setChoice("language", "sk")).toBe(false);
+    });
+
+    /** The date format is read where a date is drawn, so nothing has to be rebuilt for it. */
+    it("stores a date format without asking for a rebuild", async () => {
+        const rebuild = await settings.setChoice("dateFormat", "isoDashes");
+
+        expect(rebuild).toBe(false);
+        expect(devicePreferences.getDateFormat()).toBe("isoDashes");
+        expect(choice("dateFormat").value).toBe("isoDashes");
+    });
+
+    it("refuses a language it does not have, and keeps following the browser", async () => {
+        await settings.setChoice("language", "de");
+
+        expect(devicePreferences.getLanguage()).toBe("auto");
+    });
+});

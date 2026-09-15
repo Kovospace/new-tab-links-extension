@@ -5,6 +5,7 @@ import { ProfileRepository, profileRepository } from "../backend/repository/Prof
 import { isStorableName } from "../backend/sync/SyncContracts";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
+import { t } from "../i18n/i18n";
 
 /** One row of the profile manager. */
 export interface ManagedProfileDTO {
@@ -197,9 +198,11 @@ export class ProfileManagerViewModel {
             active: profile.id === activeProfileId,
             empty: workspaces === 0 && links === 0,
             contentsLabel: workspaces === 0 && links === 0
-                ? "empty"
-                : `${workspaces} ${workspaces === 1 ? "workspace" : "workspaces"}`
-                    + `, ${links} ${links === 1 ? "link" : "links"}`
+                ? t("profiles.contents.empty")
+                : t("profiles.contents.summary", {
+                    workspaces: t("profiles.contents.workspaces", { count: workspaces }),
+                    links: t("profiles.contents.links", { count: links })
+                })
         };
     }
 }
