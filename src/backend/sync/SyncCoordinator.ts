@@ -12,7 +12,7 @@ import { RefreshChannel } from "./RefreshChannel";
 import { SessionRepository, sessionRepository, SyncSession } from "./SessionRepository";
 import { MappedSnapshot, SyncSnapshotMapper } from "./SyncSnapshotMapper";
 import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRepository";
-import { SyncOperation } from "./SyncContracts";
+import { SyncOperation, SyncRejectedOperation } from "./SyncContracts";
 import { ClosedTab } from "../entity/ClosedTabEntity";
 import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
 
@@ -41,6 +41,28 @@ type PushOccasion = "first-contact" | "steady-state";
 
 /** The push that ends a first merge with an account. */
 const FIRST_CONTACT: PushOccasion = "first-contact";
+
+/**
+ *  What a synchronisation had to abandon, for the account menu to tell the user about.
+ *
+ *  The records here are on their way out. A push that was refused anything leaves the baseline
+ *  alone and lets the next pull replace the profile with what the account holds, which is
+ *  everything except these - so this notice is the only trace they will leave, and the user
+ *  made them. Whether that pull has run yet when a subscriber hears of it depends on what
+ *  started the push, so nothing worded from this may claim they are already gone.
+ *
+ *  `sequence` is not decoration. `ObservableValue` compares deeply and drops a value equal to
+ *  the one before it, so two separate refusals describing the same record would be published
+ *  once and the second would be silent.
+ */
+export interface SyncRejectionNotice {
+
+    /** Counts notices, so that no two are ever deep-equal. */
+    sequence: number;
+
+    /** What the account refused, as it described it. */
+    records: SyncRejectedOperation[];
+}
 
 /**
  *  Keeps this device and the account in step.
@@ -94,6 +116,26 @@ export class SyncCoordinator {
 
     /** What the account menu may show about synchronisation. */
     public readonly activity$ = new ObservableValue<SyncActivity>("idle");
+
+    /**
+     *  The last thing the account refused, for whoever is in a position to tell the user.
+     *
+     *  Null until something is, and it is never cleared back to null: a notice that vanished
+     *  on the next clean synchronisation would be a notice the user could miss by not looking.
+     */
+    public readonly rejections$ = new ObservableValue<SyncRejectionNotice | null>(null);
+
+    /** How many notices have been published, which is what keeps them distinguishable. */
+    private rejectionNoticesIssued: number = 0;
+
+    /**
+     *  What the last notice was about, so that the same trouble is not announced twice.
+     *
+     *  A refused record stays in local state until a pull takes it away, and every local
+     *  change in between offers it to the account again. Without this the user is told the
+     *  same thing on every debounced push.
+     */
+    private rejectionAlreadyReported: string | null = null;
 
     constructor(
         appState: AppStateRepository = appStateRepository,
@@ -473,6 +515,14 @@ export class SyncCoordinator {
             return;
         }
 
+        if (result.data.rejected.length > 0) {
+            // Said before the pull below, because the pull is what destroys the evidence: it
+            // replaces the profile with what the account holds, which is everything except
+            // the records just refused. Leaving this to the log meant the user watched
+            // something they had just made disappear and was told nothing anywhere.
+            this.announceRejections(result.data.rejected);
+        }
+
         if (result.data.remaps.length > 0 || result.data.rejected.length > 0) {
             // The server stored something under an identifier of its own, or refused an
             // operation. Either way this device's picture is now wrong in a way a difference
@@ -481,6 +531,10 @@ export class SyncCoordinator {
                 `${result.data.remaps.length} remapped, ${result.data.rejected.length} refused`);
             return;
         }
+
+        // Nothing was refused, so whatever was announced last time is over and a refusal
+        // after this one is news again.
+        this.rejectionAlreadyReported = null;
 
         if (withheld.length > 0) {
             // The baseline must not record a state the account is not in: the records those
@@ -491,6 +545,44 @@ export class SyncCoordinator {
 
         await this.baselines.store(session.userId, current);
         this.activity$.set("idle");
+    }
+
+    /**
+     *  Publishes what the account refused, so that somebody can tell the user.
+     *
+     *  It only publishes. Wording, translating and choosing how to interrupt belong to the
+     *  view model that subscribes - this is the synchronisation layer, and it has no business
+     *  knowing what language the page is in.
+     *
+     *  **Only refusals, never remaps.** A remapped identifier is not a loss: the record is on
+     *  the account under a name the server chose and the pull brings it straight back.
+     *  Reporting that would train the user to dismiss the notice that does mean something.
+     *
+     *  The same trouble is announced once. A refused record stays in local state until a pull
+     *  takes it away, and every local change before that offers it to the account again - so
+     *  without the memory below a single vanished workspace is reported on every debounced
+     *  push for as long as the tab is open.
+     *
+     *  @param records what the account refused, as it described it
+     */
+    private announceRejections(records: SyncRejectedOperation[]): void {
+
+        const signature = records
+            .map(record => `${record.type}:${record.id}:${record.reason}`)
+            .sort()
+            .join("|");
+
+        if (signature === this.rejectionAlreadyReported) {
+            this.LOG.debug("announceRejections", "Already said; not repeating");
+            return;
+        }
+        this.rejectionAlreadyReported = signature;
+        this.rejectionNoticesIssued += 1;
+
+        this.LOG.warn("announceRejections",
+            `Telling the user about ${records.length} refused record(s)`);
+
+        this.rejections$.set({ sequence: this.rejectionNoticesIssued, records });
     }
 
     /**
