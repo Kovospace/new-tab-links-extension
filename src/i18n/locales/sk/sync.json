@@ -25,6 +25,12 @@
   "connectCodeRequired": "Zadajte kód, ktorý je zobrazený na stránke so zariadeniami.",
   "connectCodeRefused": "Tento kód nebol prijatý.",
   "reportedFailure": "{headline}\n\n{message}",
+  "changesRefused": {
+    "one": "Jednu zmenu sa nepodarilo uložiť do vášho účtu, takže na tomto zariadení nezostane. Zvyčajne to znamená, že to, k čomu patrila, bolo vymazané na inom zariadení.",
+    "few": "{count} zmeny sa nepodarilo uložiť do vášho účtu, takže na tomto zariadení nezostanú. Zvyčajne to znamená, že to, k čomu patrili, bolo vymazané na inom zariadení.",
+    "many": "{count} zmien sa nepodarilo uložiť do vášho účtu, takže na tomto zariadení nezostanú. Zvyčajne to znamená, že to, k čomu patrili, bolo vymazané na inom zariadení.",
+    "other": "{count} zmien sa nepodarilo uložiť do vášho účtu, takže na tomto zariadení nezostanú. Zvyčajne to znamená, že to, k čomu patrili, bolo vymazané na inom zariadení."
+  },
   "loggedOutOffline": "Na tomto zariadení ste odhlásení, ale server sa nepodarilo kontaktovať — je možné, že zariadenie je vo vašom účte stále uvedené.",
   "deviceReturning": "Vitajte späť. Toto zariadenie už predtým bolo odhlásené zo „{name}“, takže pokračuje tam, kde prestalo, namiesto toho, aby pribudlo do účtu druhýkrát.",
   "deviceNameTaken": {

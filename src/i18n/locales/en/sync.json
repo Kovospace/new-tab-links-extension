@@ -25,6 +25,10 @@
   "connectCodeRequired": "Enter the code shown on the website's devices page.",
   "connectCodeRefused": "That code was not accepted.",
   "reportedFailure": "{headline}\n\n{message}",
+  "changesRefused": {
+    "one": "One change could not be saved to your account, so it will not be kept on this device. This usually means whatever it belonged to was deleted on another device.",
+    "other": "{count} changes could not be saved to your account, so they will not be kept on this device. This usually means whatever they belonged to was deleted on another device."
+  },
   "loggedOutOffline": "Signed out on this device, but the server could not be reached, so this device may still be listed on your account.",
   "deviceReturning": "Welcome back. This device was signed out of \"{name}\" before, so it has picked up where it left off rather than being added to your account a second time.",
   "deviceNameTaken": {

@@ -2,7 +2,7 @@
 import { ApiResult, backendApiClient, BackendApiClient } from "../backend/sync/BackendApiClient";
 import { SessionRepository, sessionRepository, SyncSession, TokenPairDto } from "../backend/sync/SessionRepository";
 import { buildWebsiteUrl, WEBSITE_PATHS } from "../backend/sync/SyncConfiguration";
-import { SyncActivity, syncCoordinator } from "../backend/sync/SyncCoordinator";
+import { SyncActivity, syncCoordinator, SyncRejectionNotice } from "../backend/sync/SyncCoordinator";
 import { DeviceNameReconciler, DeviceNameVerdict } from "../backend/sync/DeviceNameReconciler";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { ChoiceDialog } from "../ui/partials/choiceDialog";
@@ -71,6 +71,39 @@ export class SyncAccountViewModel {
             this.activity = activity;
             this.publishAccount();
         });
+        syncCoordinator.rejections$.subscribe((notice: SyncRejectionNotice | null) => {
+            this.reportRefusedChanges(notice);
+        });
+    }
+
+    /**
+     *  Tells the user that the account would not take something, and that it is gone.
+     *
+     *  Worth interrupting for, which little else here is: the records named are ones the user
+     *  made, and the pull behind the push is about to take them off this device for good.
+     *  Saying nothing left them to notice a workspace had gone missing on their own.
+     *
+     *  **The wording speaks of what is about to happen, not what has.** `alert()` blocks, so
+     *  this is read before the pull it warns about has run - and on a push that was not
+     *  followed by one, the records are still there and stay until the next. A notice saying
+     *  they were already gone would be read while they were plainly still on the screen.
+     *
+     *  No identifier and no reason code is shown. Neither means anything to the person
+     *  reading, and the reasons the account can give are about its own bookkeeping - a parent
+     *  that is not there, a value it needed - not about anything the user did wrong.
+     *
+     *  @param notice what was refused, or null for the value every subscription starts on
+     */
+    private reportRefusedChanges(notice: SyncRejectionNotice | null): void {
+        if (!notice) {
+            // subscribe() hands over the current value straight away, and at that moment
+            // nothing has been refused. Only what arrives afterwards is news.
+            return;
+        }
+        this.LOG.warn("reportRefusedChanges",
+            `${notice.records.length} change(s) refused by the account`);
+
+        this.report(t("sync.changesRefused", { count: notice.records.length }));
     }
 
     /** Combines who is signed in with how synchronisation is faring. */
