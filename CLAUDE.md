@@ -60,6 +60,10 @@ UI (Web Components) → ViewModel → Repository → Datasource (chrome.storage.
 - **`src/utils/observableValue.ts`** — Custom reactive primitive using `fast-deep-equal` for change detection. Core to the reactive data flow.
 - **`src/backend/sync/`** — synchronization with the NewTabLinks backend. See below.
 
+Which file holds which concern, and which section of this file a task needs:
+
+@.claude/CODEMAP.md
+
 ### Synchronization (`src/backend/sync/`)
 
 Two-way, and entirely in the page — never the service worker, which MV3 stops after thirty
