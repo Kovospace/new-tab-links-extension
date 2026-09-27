@@ -107,6 +107,43 @@ has to be added to `permissions.additionalDirectories` in `.claude/settings.loca
 Its git rules are the same as this repo's, below: pull freely, push only to `feature/**` or
 `bugfix/**`, never to `main`/`master`.
 
+## Changing what the cluster runs — the `devops-engineer` agent
+
+Tabilinks is deployed from the GitOps repository `/home/kovo/IdeaProjects/kovostack-infra-gitops`
+(`Kovospace/kovostack-infra-gitops`). **Read it freely; never write to it.** Argo CD reconciles its
+`main` continuously with `prune` and `selfHeal`, so a push there is a production deployment with
+no approval gate. Every change to it goes through the user-level agent **`devops-engineer`**
+(`~/.claude/agents/devops-engineer.md`, which follows that repo's own
+`.claude/agents/devops-engineer.md`). It asks the user before every push to `main`.
+
+Where a deployment value belongs decides whether it needs that agent at all:
+
+| The value is… | It lives in | Changed by |
+|---|---|---|
+| a non-secret setting that differs from the code's default (a path, a URL, an interval) | `applications/<app>/values.yaml`, the `env:` block | `devops-engineer` |
+| a secret (API key, signing secret, password) | Infisical, pulled into the Pod through `envFrom` — no manifest change | **the user**, in Infisical. Never in git, never in an agent brief |
+| the image tag | `versions/<app>.yaml` | CI, never by hand |
+| the migrations init-container version | `versions/new-tab-links-backend-init.yaml` | the backend pipeline; `devops-engineer` only if it cannot |
+| equal to the code's default | nowhere — leave it unset | — |
+
+`<app>` is `new-tab-links-backend` or `new-tab-links-frontend`. For the frontend, `env:` becomes
+`config.json` at container start, so it is only ever public configuration.
+
+**What to hand it.** It knows Kubernetes, not this application, so a brief names: the app, the
+exact variable name, the exact value, **why** that value, and any ordering against a release
+("before the backend image with X deploys"). Label it implementation, as with any agent. For
+example: *new-tab-links-backend, set `CREEM_CHECKOUT_SUCCESS_PATH=/account?purchase=complete` in
+`env:` — where Creem sends a buyer after paying; must land with or after the frontend release
+that reads that parameter.*
+
+The extension itself is not deployed there — it ships through the Chrome Web Store — but what it
+talks to is: the backend's CORS and WebSocket origins, its environment, the website's address. A
+change the extension needs on that side goes to `backend-developer` first, and to
+`devops-engineer` only when it is a deployment value.
+
+A new variable in code with a working default needs nothing in the cluster. Say so in the report
+rather than asking for a no-op change.
+
 ## Git rules — hard, non-negotiable
 
 - **Pulling/fetching/checking out any branch is allowed**, in this repo and in the backend repo.
