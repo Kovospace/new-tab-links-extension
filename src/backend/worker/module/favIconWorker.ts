@@ -1,6 +1,7 @@
 
 import {BackgroundWorker} from '../abstract/BackgroundWorker'
-import { FavIconRepository } from "../../repository/FavIconRepository"
+import { CachedFavicon, FaviconMiss, FavIconRepository } from "../../repository/FavIconRepository"
+import { extractFaviconCandidates } from "./faviconCandidates"
 
 export interface GetFaviconInput {
   url: string;
@@ -10,15 +11,38 @@ export interface GetFaviconOutput {
   base64: string
 }
 
-/** Resolved favicon: either a real base64 data URI or a fallback asset path */
-interface ResolvedFavicon {
-  pageUrl: string;
-  /** base64 data URI, or a static path like '/gfx/favicon-default.svg' */
-  iconSrc: string;
-}
-
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
 const ICON_BROKEN  = '/gfx/favicon-broken.svg';
+
+/**
+ *  How long a miss is trusted before the network is asked again.
+ *
+ *  Every new tab page asks for the icon of every link it draws, so without a pause a workspace
+ *  of links with no findable icon would fetch each of those pages on every new tab. Chrome's
+ *  own favicon cache is not held to this: it is local, and it is what fills the moment the
+ *  user visits the page.
+ */
+export const NETWORK_RETRY_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
+/** Whether the cache holds a real icon, as opposed to a miss or nothing. */
+export function isIcon(cached: CachedFavicon | null): cached is string {
+  return typeof cached === "string" && cached.startsWith("data:");
+}
+
+/**
+ *  Whether a page with no icon yet should be fetched again.
+ *  A bare asset path is a miss stored before misses carried a time, and is due at once.
+ */
+export function isNetworkRetryDue(cached: CachedFavicon | null, now: number): boolean {
+  if (cached === null || typeof cached === "string") return true;
+  return now - cached.missedAt >= NETWORK_RETRY_INTERVAL_MS;
+}
+
+/** What a page with no icon is drawn with. */
+function fallbackOf(cached: CachedFavicon | null): string {
+  if (cached === null) return ICON_DEFAULT;
+  return typeof cached === "string" ? cached : cached.fallback;
+}
 
 export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconOutput> {
 
@@ -36,60 +60,92 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
     }
   }
 
+  /**
+   *  The icon for a page, looking again for one that is missing.
+   *
+   *  A link synchronised from another browser arrives on one that has never visited it, so
+   *  the first lookup there often finds nothing. That used to be final. Now Chrome's own
+   *  cache is asked on every draw - cheap, and it fills as soon as the page is visited here -
+   *  and the network is asked again once the last miss is old enough.
+   */
   private async get(input: GetFaviconInput) {
-    let iconSrc = await FavIconRepository.get(input.url);
-    if (!iconSrc) {
-      const resolved = await FavIconWorker.resolveFavicon(input.url);
-      await FavIconRepository.save(resolved.pageUrl, resolved.iconSrc);
-      iconSrc = resolved.iconSrc;
+    const cached = await FavIconRepository.get(input.url);
+    if (isIcon(cached)) {
+      return this.response({base64: cached});
     }
-    return this.response({base64: iconSrc});
+
+    const fromChrome = await FavIconWorker.tryChromeFaviconApi(input.url);
+    if (fromChrome) {
+      await FavIconRepository.save(input.url, fromChrome);
+      return this.response({base64: fromChrome});
+    }
+
+    if (!isNetworkRetryDue(cached, Date.now())) {
+      return this.response({base64: fallbackOf(cached)});
+    }
+
+    return this.response({base64: await FavIconWorker.resolveFromNetworkAndStore(input.url)});
   }
 
+  /** Asked for by the user, so it ignores both the cache and the retry interval. */
   private async refresh(input: GetFaviconInput) {
     await FavIconRepository.delete(input.url);
-    const resolved = await FavIconWorker.resolveFavicon(input.url);
-    await FavIconRepository.save(resolved.pageUrl, resolved.iconSrc);
-    return this.response({base64: resolved.iconSrc});
+
+    const fromChrome = await FavIconWorker.tryChromeFaviconApi(input.url);
+    if (fromChrome) {
+      await FavIconRepository.save(input.url, fromChrome);
+      return this.response({base64: fromChrome});
+    }
+    return this.response({base64: await FavIconWorker.resolveFromNetworkAndStore(input.url)});
+  }
+
+  /** Chrome's cached icon for the page, or null when Chrome has none. */
+  private static async tryChromeFaviconApi(pageUrl: string): Promise<string | null> {
+    try {
+      return await FavIconWorker.fetchViaChromeFaviconApi(pageUrl);
+    } catch {
+      return null;
+    }
   }
 
   /**
-   * Determines the icon src for a given page URL.
-   *
-   * 1. Chrome's built-in _favicon API: fast, uses Chrome's favicon cache for visited URLs.
-   * 2. Falls back to fetching page HTML and parsing <link rel="icon"> tags.
-   *    This covers newly added links the user has never visited.
+   *  Fetches the page, finds its icon, and stores what came of it - the icon, or a miss
+   *  with the time it happened. Returns what the link should be drawn with.
    */
-  private static async resolveFavicon(pageUrl: string): Promise<ResolvedFavicon> {
-    try {
-      const iconSrc = await FavIconWorker.fetchViaChromeFaviconApi(pageUrl);
-      return { pageUrl, iconSrc };
-    } catch {
-      // Chrome has no cached favicon for this URL — fall through to HTML parsing
-    }
+  private static async resolveFromNetworkAndStore(pageUrl: string): Promise<string> {
+    const resolved = await FavIconWorker.resolveFromNetwork(pageUrl);
+    await FavIconRepository.save(pageUrl, resolved);
+    return typeof resolved === "string" ? resolved : resolved.fallback;
+  }
+
+  /**
+   *  Fetches the page HTML and tries the icons it declares, then /favicon.ico.
+   *  This covers links this browser has never visited, which Chrome's cache knows nothing of.
+   */
+  private static async resolveFromNetwork(pageUrl: string): Promise<string | FaviconMiss> {
+    const miss = (fallback: string): FaviconMiss => ({ missedAt: Date.now(), fallback });
 
     let html: string;
     try {
       const res = await fetch(pageUrl);
       if (!res.ok) {
-        return { pageUrl, iconSrc: ICON_BROKEN };
+        return miss(ICON_BROKEN);
       }
       html = await res.text();
     } catch {
-      return { pageUrl, iconSrc: ICON_BROKEN };
+      return miss(ICON_BROKEN);
     }
 
-    const candidates = FavIconWorker.extractFaviconCandidates(html, pageUrl);
+    const candidates = extractFaviconCandidates(html, pageUrl);
     for (const candidateUrl of candidates) {
       try {
-        const base64 = await FavIconWorker.fetchFaviconBase64(candidateUrl);
-        return { pageUrl, iconSrc: base64 };
+        return await FavIconWorker.fetchFaviconBase64(candidateUrl);
       } catch {
         // This candidate failed — try the next one
       }
     }
 
-    return { pageUrl, iconSrc: ICON_DEFAULT };
+    return miss(ICON_DEFAULT);
   }
 
   // ── Chrome _favicon API ───────────────────────────────────────────────────
@@ -141,32 +197,7 @@ export class FavIconWorker extends BackgroundWorker<GetFaviconInput, GetFaviconO
     }
   }
 
-  // ── HTML parsing fallback ────────────────────────────────────────────────
-
-  /**
-   * Returns favicon URL candidates in priority order: all <link rel~="icon"> hrefs
-   * from the page HTML, then /favicon.ico as a universal fallback.
-   */
-  private static extractFaviconCandidates(html: string, pageUrl: string): string[] {
-    const candidates: string[] = [];
-    try {
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const links = doc.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]');
-      for (const link of links) {
-        const href = link.getAttribute("href");
-        if (!href) continue;
-        try {
-          candidates.push(new URL(href, pageUrl).href);
-        } catch {
-          // malformed href — skip
-        }
-      }
-    } catch {
-      // DOMParser unavailable — skip to /favicon.ico fallback
-    }
-    candidates.push(new URL("/favicon.ico", pageUrl).href);
-    return candidates;
-  }
+  // ── Icon download ────────────────────────────────────────────────────────
 
   private static async fetchFaviconBase64(faviconUrl: string): Promise<string> {
     // data: URIs need no fetch — validate and return directly
