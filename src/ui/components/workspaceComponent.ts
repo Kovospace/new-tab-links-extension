@@ -302,6 +302,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 onClick: () => {}
             },
             {
+                actionTitle: t("sync.menu.upgradeToPremium"),
+                onClick: () => this.accountViewModel.openAccountSettingsPage()
+            },
+            {
                 actionTitle: t("sync.menu.logOut"),
                 onClick: () => this.accountViewModel.logOut()
             },

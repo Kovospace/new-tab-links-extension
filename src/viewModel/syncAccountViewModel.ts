@@ -141,6 +141,16 @@ export class SyncAccountViewModel {
     }
 
     /**
+     *  Opens the website's account settings in a new tab. Upgrading to premium lives there,
+     *  and the extension deliberately takes no payment itself.
+     */
+    public openAccountSettingsPage(): void {
+        const url = buildWebsiteUrl(WEBSITE_PATHS.accountSettings);
+        this.LOG.debug("openAccountSettingsPage", url);
+        chrome.tabs.create({ url });
+    }
+
+    /**
      *  Signs in with a username or email address and a password.
      *
      *  @param usernameOrEmail what the user typed to identify themselves

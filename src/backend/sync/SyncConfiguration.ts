@@ -63,7 +63,10 @@ export const SYNC_ENDPOINTS = {
 
 /** Website pages the extension links out to. */
 export const WEBSITE_PATHS = {
-    register: "/register"
+    register: "/register",
+
+    /** Account settings, which is where upgrading to premium is offered. */
+    accountSettings: "/account"
 } as const;
 
 /**

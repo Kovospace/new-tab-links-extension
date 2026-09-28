@@ -8,10 +8,6 @@ Note for agents:
 
 ## Features that must be done before release
 
-### [small] Add "upgrade to premium" to app menu (three dots upper right corner)
-- displayed when user is logged in after "synchronised"
-- TODO - where it should point - functionality not yet implemented in the backend
-
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
 - should be located on the right
@@ -45,6 +41,13 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+
+### [small] Add "upgrade to premium" to app menu (three dots upper right corner)
+- shown only when signed in, right after the synchronisation status line
+- opens the website's account settings (WEBSITE_PATHS.accountSettings, "/account") in a new
+  tab, because that is where the upgrade is offered - the extension takes no payment itself
+- shown to every signed-in account for now: nothing tells the extension yet whether an account
+  already is premium, so hiding it for one needs the backend to say so first
 
 ### [important]
 - rebranding application as Tabilinks
