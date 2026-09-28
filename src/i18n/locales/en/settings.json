@@ -4,7 +4,8 @@
   "profileNoteUnnamed": "These apply to the profile you have open.",
   "categories": {
     "uiAndBehavior": "UI and behavior",
-    "languageAndLocalCustoms": "Language & local customs"
+    "languageAndLocalCustoms": "Language & local customs",
+    "search": "Search"
   },
   "enableDragAndDrop": {
     "title": "Enable drag & drop",
@@ -26,5 +27,9 @@
   "dateFormat": {
     "title": "Date format",
     "explanation": "How dates are written. \"Local custom\" writes them the way your browser's region does. Kept on this device only."
+  },
+  "searchEngine": {
+    "title": "Search engine",
+    "explanation": "Where the search bar at the top of the page sends what you type. The icon beside the bar chooses too. Kept on this device only."
   }
 }

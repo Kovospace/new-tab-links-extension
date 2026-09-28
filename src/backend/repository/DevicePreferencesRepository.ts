@@ -5,6 +5,9 @@ import {
 } from "../../i18n/dates";
 import { applyLanguageToDocument, setLanguage } from "../../i18n/i18n";
 import { AUTOMATIC_LANGUAGE, isSupportedLanguage } from "../../i18n/languages";
+import {
+    DEFAULT_SEARCH_ENGINE, normalizeSearchEngine, SearchEngineId
+} from "../entity/SearchEngines";
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
 
@@ -42,6 +45,14 @@ export interface DevicePreferences {
 
     /** How dates are written, or "auto" to follow the browser's region. */
     dateFormat: DateFormatId;
+
+    /**
+     *  Which engine the search bar sends a query to. Per device for the reason the language
+     *  is: one person's work and home browsers routinely want different answers, and a string
+     *  on the profile record would be a backend column for a choice the account has no
+     *  opinion about.
+     */
+    searchEngine: SearchEngineId;
 }
 
 /** The size an interface nobody has resized is drawn at: the browser's own. */
@@ -51,7 +62,8 @@ export const DEFAULT_SCALE = 1;
 const DEFAULTS: DevicePreferences = {
     scale: DEFAULT_SCALE,
     language: AUTOMATIC_LANGUAGE,
-    dateFormat: DEFAULT_DATE_FORMAT
+    dateFormat: DEFAULT_DATE_FORMAT,
+    searchEngine: DEFAULT_SEARCH_ENGINE
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -104,7 +116,8 @@ export class DevicePreferencesRepository {
         this.preferences = {
             scale: normalizeScale(stored?.scale ?? DEFAULT_SCALE),
             language: normalizeLanguagePreference(stored?.language),
-            dateFormat: normalizeDateFormat(stored?.dateFormat)
+            dateFormat: normalizeDateFormat(stored?.dateFormat),
+            searchEngine: normalizeSearchEngine(stored?.searchEngine)
         };
         this.preferences$.set(this.preferences);
     }
@@ -173,6 +186,30 @@ export class DevicePreferencesRepository {
         }
         this.preferences = { ...this.preferences, dateFormat: wanted };
         this.LOG.debug("setDateFormat", wanted);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.preferences$.set(this.preferences);
+    }
+
+    /** Which engine the search bar uses on this browser. */
+    public getSearchEngine(): SearchEngineId {
+        return this.preferences.searchEngine;
+    }
+
+    /**
+     *  Chooses the engine the search bar uses on this browser.
+     *
+     *  Takes effect at once, unlike the language: the bar draws itself from `preferences$`, so
+     *  there is nothing to reload.
+     *
+     *  @param searchEngine one of the engines on offer; anything else means the default
+     */
+    public async setSearchEngine(searchEngine: string): Promise<void> {
+        const wanted = normalizeSearchEngine(searchEngine);
+        if (wanted === this.preferences.searchEngine) {
+            return;
+        }
+        this.preferences = { ...this.preferences, searchEngine: wanted };
+        this.LOG.debug("setSearchEngine", wanted);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
         this.preferences$.set(this.preferences);
     }

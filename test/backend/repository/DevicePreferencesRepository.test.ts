@@ -119,3 +119,67 @@ describe("DevicePreferencesRepository", () => {
         expect(root.style.fontSize).toBe("1.25em");
     });
 });
+
+describe("DevicePreferencesRepository, the search engine", () => {
+
+    let preferences: DevicePreferencesRepository;
+
+    beforeEach(async () => {
+        preferences = new DevicePreferencesRepository();
+        await preferences.init();
+    });
+
+    it("starts with the default engine", () => {
+        expect(preferences.getSearchEngine()).toBe("google");
+    });
+
+    it("remembers an engine, for the next page to read", async () => {
+        await preferences.setSearchEngine("duckduckgo");
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getSearchEngine()).toBe("duckduckgo");
+    });
+
+    /**
+     *  Every preference is stored in one record, so each setter writes all of them. One that
+     *  wrote only its own field would reset the others to their defaults on the next load.
+     */
+    it("keeps the engine when another preference changes", async () => {
+        await preferences.setSearchEngine("bing");
+        await preferences.setScale(1.25);
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getSearchEngine()).toBe("bing");
+        expect(reopened.getScale()).toBe(1.25);
+    });
+
+    /** A record stored before the search bar existed has no engine in it at all. */
+    it("reads a record from before the search bar as the default engine", async () => {
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { scale: 0.75 });
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getSearchEngine()).toBe("google");
+    });
+
+    it("refuses an engine it does not offer", async () => {
+        await preferences.setSearchEngine("bing");
+        await preferences.setSearchEngine("altavista");
+
+        expect(preferences.getSearchEngine()).toBe("google");
+    });
+
+    it("publishes a change, so the search bar can redraw", async () => {
+        const seen: string[] = [];
+        preferences.preferences$.subscribe(value => seen.push(value.searchEngine));
+
+        await preferences.setSearchEngine("duckduckgo");
+
+        expect(seen[seen.length - 1]).toBe("duckduckgo");
+    });
+});

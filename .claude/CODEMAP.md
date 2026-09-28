@@ -38,6 +38,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Components | `ui/components/*Component.ts`, base `ui/abstract/abstractComponent.ts` |
 | Dialogs, menus, bars | `ui/partials/*` — field rules in `ui/partials/fieldValidation.ts` |
 | The ads bar | `ui/partials/adsBar.ts` |
+| Search bar — engines, the bar, its view model | `backend/entity/SearchEngines.ts`, `ui/partials/searchBar.ts`, `viewModel/searchBarViewModel.ts` |
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |
 | Tips | `ui/tips/tipsCatalogue.ts`, `ui/tips/tips.json` |
 | Strings | `i18n/locales/{en,sk}/<area>.json`, loader `i18n/i18n.ts` |

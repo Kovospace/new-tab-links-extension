@@ -42,6 +42,26 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 # DONE
 
+### [medium] Implement Search bar
+- in <workspace-plane-head>, after the title and the workspace's buttons, centred in the room
+  that was spare: [engine icon ▾] [query] [round search button]. On a narrow window it wraps
+  to a line of its own instead of being crushed
+- Enter in the field or the button submits - it is a <form>, so both are the browser's own
+- results open in the current tab, as a link clicked on the page does
+- Google, DuckDuckGo and Bing, from a closed list in backend/entity/SearchEngines.ts; adding
+  one is an entry there. A closed list rather than a URL template the user types, because a
+  typed URL on an extension page is a javascript: href waiting to happen
+- the engine is chosen from the icon's dropdown or in Settings -> "Search", and the two are
+  one value: changing it in either redraws the other
+- remembered as a DEVICE preference, beside language and size, not on the profile: profile
+  settings are booleans synchronised through a backend column each, and which engine one
+  browser searches with is not something the account needs an opinion on. Say the word if it
+  should follow the user instead
+- the engines' icons are their own favicons, through the same worker and cache as links - no
+  brand artwork bundled
+- the bar is one element moved into every redraw of the heading, so renaming or switching a
+  workspace does not throw away a half-typed query
+
 ### [medium] Synced links have no icons in the second browser
 - not a missing sync step: every drawn link already asks the worker for its icon. The lookup
   failed on a browser that had never visited the page, and the placeholder was then stored as
