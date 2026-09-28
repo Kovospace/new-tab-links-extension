@@ -40,8 +40,14 @@ describe("SearchBar", () => {
         expect(input().value).toBe("half a query");
     });
 
-    it("names the engine in use in the field", () => {
-        expect(input().placeholder).toContain("Google");
+    it("starts on the browser's own engine, which it does not pretend to name", () => {
+        expect(input().placeholder).toBe("Search the web");
+        expect(option("Default search engine").getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("offers the browser's own engine first in the list", () => {
+        const first = form.querySelector<HTMLButtonElement>("button.search-bar__engine-option");
+        expect(first?.textContent).toBe("Default search engine");
     });
 
     it("opens the engine list from the icon, and closes it on a click elsewhere", () => {

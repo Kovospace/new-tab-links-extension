@@ -10,6 +10,7 @@ import {
 } from "../i18n/dates";
 import { t } from "../i18n/i18n";
 import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
+import { engineDTO } from "./searchBarViewModel";
 import { AUTOMATIC_LANGUAGE, baseLanguageOf, browserLanguageTag, SUPPORTED_LANGUAGES }
     from "../i18n/languages";
 
@@ -429,7 +430,9 @@ function choiceOptionsOf(key: ChoiceSettingKey): SettingOptionDTO[] {
         case "language":
             return languageOptions();
         case "searchEngine":
-            return SEARCH_ENGINES.map(engine => ({ value: engine.id, label: engine.name }));
+            // The browser's own engine first, as the store requires and as the way back.
+            return SEARCH_ENGINES.map(engineDTO)
+                .map(engine => ({ value: engine.id, label: engine.label }));
         default:
             return dateFormatOptions();
     }

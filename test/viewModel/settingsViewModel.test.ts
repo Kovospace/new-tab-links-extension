@@ -284,9 +284,10 @@ describe("SettingsViewModel, the search engine", () => {
         return setting;
     };
 
-    it("offers each engine by its own name", () => {
+    it("offers the browser's own engine first, then each other engine by its own name", () => {
         expect(engine().options.map(option => option.label))
-            .toEqual(expect.arrayContaining(["Google", "DuckDuckGo", "Bing"]));
+            .toEqual(["Default search engine", "Google", "DuckDuckGo", "Bing"]);
+        expect(engine().value).toBe("browser");
     });
 
     it("stores the chosen engine on the device, without asking for a rebuild", async () => {

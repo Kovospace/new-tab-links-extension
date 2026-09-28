@@ -6,14 +6,27 @@ import {
 
 describe("SEARCH_ENGINES", () => {
 
-    it("offers at least Google, DuckDuckGo and Bing", () => {
+    /**
+     *  The Chrome Web Store's rule for a new tab page with web search: it must default to the
+     *  engine the user set in the browser, reached through the Chrome Search API, and a list of
+     *  providers must have that one first.
+     */
+    it("puts the browser's own engine first, and makes it the default", () => {
+        expect(SEARCH_ENGINES[0].kind).toBe("browser");
+        expect(DEFAULT_SEARCH_ENGINE).toBe("browser");
+    });
+
+    it("offers Google, DuckDuckGo and Bing besides", () => {
         expect(SEARCH_ENGINES.map(engine => engine.id))
             .toEqual(expect.arrayContaining(["google", "duckduckgo", "bing"]));
     });
 
-    it("sends every query over https", () => {
+    it("sends every other engine's query over https, with no partner parameters", () => {
         for (const engine of SEARCH_ENGINES) {
+            if (engine.kind !== "web") continue;
             expect(engine.queryUrlPrefix.startsWith("https://")).toBe(true);
+            // One parameter, the query, and nothing after it.
+            expect(engine.queryUrlPrefix).toMatch(/\?q=$/);
         }
     });
 });
@@ -43,9 +56,9 @@ describe("buildSearchUrl", () => {
         expect(buildSearchUrl("google", "   ")).toBeNull();
     });
 
-    it("searches with the default engine when the one named is not on offer", () => {
-        expect(buildSearchUrl("altavista", "x"))
-            .toBe(searchEngineOf(DEFAULT_SEARCH_ENGINE).queryUrlPrefix + "x");
+    /** The browser's engine is reached through chrome.search, never through a URL of ours. */
+    it("builds no address for the browser's own engine", () => {
+        expect(buildSearchUrl("browser", "weather")).toBeNull();
     });
 });
 
@@ -55,8 +68,9 @@ describe("normalizeSearchEngine", () => {
         expect(normalizeSearchEngine("bing")).toBe("bing");
     });
 
-    it("reads anything else as the default", () => {
-        expect(normalizeSearchEngine(undefined)).toBe(DEFAULT_SEARCH_ENGINE);
-        expect(normalizeSearchEngine("altavista")).toBe(DEFAULT_SEARCH_ENGINE);
+    it("reads anything else as the browser's own engine", () => {
+        expect(normalizeSearchEngine(undefined)).toBe("browser");
+        expect(normalizeSearchEngine("altavista")).toBe("browser");
+        expect(searchEngineOf("altavista").kind).toBe("browser");
     });
 });

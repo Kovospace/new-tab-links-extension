@@ -129,8 +129,8 @@ describe("DevicePreferencesRepository, the search engine", () => {
         await preferences.init();
     });
 
-    it("starts with the default engine", () => {
-        expect(preferences.getSearchEngine()).toBe("google");
+    it("starts with the browser's own engine, as the store requires", () => {
+        expect(preferences.getSearchEngine()).toBe("browser");
     });
 
     it("remembers an engine, for the next page to read", async () => {
@@ -158,20 +158,20 @@ describe("DevicePreferencesRepository, the search engine", () => {
     });
 
     /** A record stored before the search bar existed has no engine in it at all. */
-    it("reads a record from before the search bar as the default engine", async () => {
+    it("reads a record from before the search bar as the browser's own engine", async () => {
         seedFakeStorage(DEVICE_PREFERENCES_KEY, { scale: 0.75 });
 
         const reopened = new DevicePreferencesRepository();
         await reopened.init();
 
-        expect(reopened.getSearchEngine()).toBe("google");
+        expect(reopened.getSearchEngine()).toBe("browser");
     });
 
     it("refuses an engine it does not offer", async () => {
         await preferences.setSearchEngine("bing");
         await preferences.setSearchEngine("altavista");
 
-        expect(preferences.getSearchEngine()).toBe("google");
+        expect(preferences.getSearchEngine()).toBe("browser");
     });
 
     it("publishes a change, so the search bar can redraw", async () => {

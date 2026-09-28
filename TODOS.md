@@ -63,19 +63,24 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
   to a line of its own instead of being crushed
 - Enter in the field or the button submits - it is a <form>, so both are the browser's own
 - results open in the current tab, as a link clicked on the page does
-- Google, DuckDuckGo and Bing, from a closed list in backend/entity/SearchEngines.ts; adding
-  one is an entry there. A closed list rather than a URL template the user types, because a
-  typed URL on an extension page is a javascript: href waiting to happen
-- the engine is chosen from the icon's dropdown or in Settings -> "Search", and the two are
-  one value: changing it in either redraws the other
-- remembered as a DEVICE preference, beside language and size, not on the profile: profile
-  settings are booleans synchronised through a backend column each, and which engine one
-  browser searches with is not something the account needs an opinion on. Say the word if it
-  should follow the user instead
-- the engines' icons are their own favicons, through the same worker and cache as links - no
-  brand artwork bundled
+- the DEFAULT is the browser's own engine, through chrome.search.query (permission "search"),
+  because the Chrome Web Store requires it: a new tab page with web search "must respect the
+  user's existing web search settings by using the Chrome Search API", and a list of providers
+  "must default to the web search provider the user has listed in their settings". Chrome does
+  not say which engine that is, so it is "Default search engine" with a plain magnifying glass
+- Google, DuckDuckGo and Bing besides, as plain search URLs - no partner or affiliate
+  parameters. From a closed list in backend/entity/SearchEngines.ts; adding one is an entry there
+- choosing another engine - from the icon's dropdown or in Settings -> "Search" - is remembered
+  on this device, and the browser's engine stays first in both lists as the way back. The
+  store's FAQ does not settle whether a remembered choice is allowed; it is the user's own
+  choice, off until made, which is the most defensible reading
+- remembered as a DEVICE preference, beside language and size, not on the profile
+- what is typed goes to the engine and nowhere else: not logged, stored, synced or sent to our
+  backend. No suggestions, which would send keystrokes to a provider
+- the engines' icons are their own favicons, through the same worker and cache as links
 - the bar is one element moved into every redraw of the heading, so renaming or switching a
   workspace does not throw away a half-typed query
+- before release: mention the search box in the store listing
 
 ### [medium] Synced links have no icons in the second browser
 - not a missing sync step: every drawn link already asks the worker for its icon. The lookup

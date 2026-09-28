@@ -1,5 +1,4 @@
-import { SearchBarDTO, SearchBarViewModel } from '../../viewModel/searchBarViewModel';
-import { SearchEngine } from '../../backend/entity/SearchEngines';
+import { SearchBarDTO, SearchBarViewModel, SearchEngineDTO } from '../../viewModel/searchBarViewModel';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
 import { t } from '../../i18n/i18n';
 
@@ -20,8 +19,11 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  * **Results replace this page**, as a link clicked on it does: a new tab is where a search
  * starts, so it is the tab the results belong in.
  *
- * The engines are drawn with their own favicons, fetched through the same worker and cache as
- * every link's - no brand artwork is bundled, and an engine added to the list needs no image.
+ * **The browser's own engine is first and the default** - the Chrome Web Store's rule; see
+ * `SearchEngines`. Chrome does not say which engine that is, so it is drawn with a plain
+ * magnifying glass and called "Default search engine". The others are drawn with their own
+ * favicons, fetched through the same worker and cache as every link's - no brand artwork is
+ * bundled, and an engine added to the list needs no image.
  */
 export class SearchBar {
 
@@ -30,8 +32,11 @@ export class SearchBar {
   private form: HTMLFormElement | null = null;
   private input: HTMLInputElement | null = null;
   private engineButton: HTMLButtonElement | null = null;
-  private engineIcon: HTMLImageElement | null = null;
+  private engineIcon: HTMLElement | null = null;
   private engineList: HTMLElement | null = null;
+
+  /** Which engine the button's icon was last drawn for, so a late favicon cannot overwrite a newer choice. */
+  private drawnEngineId: string | null = null;
 
   /** Favicons already asked for, by home page; the list and the button share them. */
   private readonly icons = new Map<string, Promise<string | null>>();
@@ -72,7 +77,8 @@ export class SearchBar {
     this.engineButton.setAttribute('aria-expanded', 'false');
     this.engineButton.addEventListener('click', () => this.toggleEngineList());
 
-    this.engineIcon = this.icon();
+    this.engineIcon = document.createElement('span');
+    this.engineIcon.classList.add('search-bar__engine-icon');
     this.engineButton.appendChild(this.engineIcon);
     const caret = document.createElement('span');
     caret.classList.add('search-bar__caret');
@@ -122,23 +128,22 @@ export class SearchBar {
   private draw(search: SearchBarDTO): void {
     const { engine, engines } = search;
 
-    this.input!.placeholder = t('search.placeholder', { engine: engine.name });
+    this.input!.placeholder = engine.homeUrl === null
+      ? t('search.placeholderBrowser')
+      : t('search.placeholder', { engine: engine.label });
     this.input!.setAttribute('aria-label', this.input!.placeholder);
 
-    const choose = t('search.chooseEngine', { engine: engine.name });
+    const choose = t('search.chooseEngine', { engine: engine.label });
     this.engineButton!.title = choose;
     this.engineButton!.setAttribute('aria-label', choose);
-    this.engineIcon!.alt = engine.name;
-    this.engineIcon!.src = ICON_DEFAULT;
-    void this.iconOf(engine).then(src => {
-      // Asked for asynchronously: by the time it answers, another engine may have been chosen.
-      if (src && this.engineIcon!.alt === engine.name) this.engineIcon!.src = src;
-    });
+
+    this.drawnEngineId = engine.id;
+    this.engineIcon!.replaceChildren(this.engineGlyph(engine, () => this.drawnEngineId === engine.id));
 
     this.engineList!.replaceChildren(...engines.map(one => this.engineOption(one, one.id === engine.id)));
   }
 
-  private engineOption(engine: SearchEngine, selected: boolean): HTMLElement {
+  private engineOption(engine: SearchEngineDTO, selected: boolean): HTMLElement {
     const item = document.createElement('li');
 
     const button = document.createElement('button');
@@ -148,12 +153,10 @@ export class SearchBar {
     button.setAttribute('aria-selected', String(selected));
     if (selected) button.classList.add('active');
 
-    const icon = this.icon();
-    icon.alt = '';
-    void this.iconOf(engine).then(src => { if (src) icon.src = src; });
+    const icon = this.engineGlyph(engine, () => true);
 
     const name = document.createElement('span');
-    name.textContent = engine.name;
+    name.textContent = engine.label;
 
     button.append(icon, name);
     button.addEventListener('click', () => {
@@ -168,12 +171,9 @@ export class SearchBar {
   }
 
   private submit(): void {
-    const url = this.viewModel.searchUrlFor(this.input?.value ?? '');
-    if (!url) {
-      this.input?.focus();
-      return;
-    }
-    window.location.href = url;
+    void this.viewModel.search(this.input?.value ?? '').then(searched => {
+      if (!searched) this.input?.focus();
+    });
   }
 
   private toggleEngineList(): void {
@@ -195,20 +195,31 @@ export class SearchBar {
     return !!this.engineList && !this.engineList.hidden;
   }
 
-  private icon(): HTMLImageElement {
+  /**
+   * What an engine is drawn with: its favicon, or a magnifying glass for the browser's own
+   * engine, which Chrome does not name.
+   *
+   * @param stillWanted asked when the favicon arrives; false once another engine is drawn
+   */
+  private engineGlyph(engine: SearchEngineDTO, stillWanted: () => boolean): Element {
+    if (engine.homeUrl === null) {
+      return magnifierGlyph();
+    }
     const img = document.createElement('img');
     img.width = 16;
     img.height = 16;
+    img.alt = '';
     img.src = ICON_DEFAULT;
     img.draggable = false;
+    void this.iconOf(engine.homeUrl).then(src => { if (src && stillWanted()) img.src = src; });
     return img;
   }
 
-  private iconOf(engine: SearchEngine): Promise<string | null> {
-    let icon = this.icons.get(engine.homeUrl);
+  private iconOf(homeUrl: string): Promise<string | null> {
+    let icon = this.icons.get(homeUrl);
     if (!icon) {
-      icon = FaviconsHandler.handleIconDownloadAndCache(engine.homeUrl).catch(() => null);
-      this.icons.set(engine.homeUrl, icon);
+      icon = FaviconsHandler.handleIconDownloadAndCache(homeUrl).catch(() => null);
+      this.icons.set(homeUrl, icon);
     }
     return icon;
   }

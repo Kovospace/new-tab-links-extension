@@ -1,5 +1,7 @@
 {
   "placeholder": "Hľadať cez {engine}",
   "submit": "Hľadať",
-  "chooseEngine": "Vybrať vyhľadávač ({engine})"
+  "chooseEngine": "Vybrať vyhľadávač ({engine})",
+  "browserDefault": "Predvolený vyhľadávač",
+  "placeholderBrowser": "Hľadať na webe"
 }

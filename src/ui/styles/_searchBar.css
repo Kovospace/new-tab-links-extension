@@ -46,8 +46,14 @@ button.search-bar__engine-button {
     border-radius: 1em;
 }
 
-button.search-bar__engine-button > img,
-button.search-bar__engine-option > img {
+span.search-bar__engine-icon {
+    display: flex;
+}
+
+span.search-bar__engine-icon > img,
+span.search-bar__engine-icon > svg,
+button.search-bar__engine-option > img,
+button.search-bar__engine-option > svg {
     width: 1em;
     height: 1em;
     flex: 0 0 auto;
@@ -115,9 +121,15 @@ button.search-bar__submit {
 }
 
 button.search-bar__submit > svg {
-    display: block;
     width: 100%;
     height: 100%;
+}
+
+/* The magnifying glass: the submit button's, and the browser's own engine's. */
+button.search-bar__submit > svg,
+span.search-bar__engine-icon > svg,
+button.search-bar__engine-option > svg {
+    display: block;
     fill: none;
     stroke: currentColor;
     stroke-width: 2.5;

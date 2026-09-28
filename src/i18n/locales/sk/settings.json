@@ -30,6 +30,6 @@
   },
   "searchEngine": {
     "title": "Vyhľadávač",
-    "explanation": "Kam vyhľadávacie pole v hornej časti stránky odošle, čo napíšete. Vybrať sa dá aj ikonou vedľa poľa. Platí len na tomto zariadení."
+    "explanation": "Kam vyhľadávacie pole v hornej časti stránky odošle, čo napíšete. „Predvolený vyhľadávač“ je ten, ktorý máte nastavený v prehliadači, a používa sa, kým nezvolíte iný - tu alebo ikonou vedľa poľa. Platí len na tomto zariadení."
   }
 }
