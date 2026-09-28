@@ -22,6 +22,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Sync — HTTP calls | `backend/sync/BackendApiClient.ts` |
 | Sync — environment values, every endpoint path, the device headers | `backend/sync/SyncConfiguration.ts` |
 | Sync — tokens, sign-in state | `backend/sync/SessionRepository.ts` |
+| Whether the account is premium (hides the ad slot and the upgrade offer) | `backend/sync/AccountStandingRepository.ts` |
 | Sync — local vs account merge rules | `backend/sync/ProfileMergeEngine.ts` |
 | Sync — what to push, deletion order | `backend/sync/ChangeSetBuilder.ts`, `backend/sync/SyncBaselineRepository.ts` |
 | Sync — snapshot → local state, id rewriting | `backend/sync/SyncSnapshotMapper.ts`, `backend/sync/LocalIdentifierNormalizer.ts` |
@@ -37,8 +38,9 @@ Keep it current: a new module or a new concern adds a row here.
 | View-models (one per component or dialog) | `viewModel/*ViewModel.ts`, base `viewModel/abstract/abstractViewModel.ts` |
 | Components | `ui/components/*Component.ts`, base `ui/abstract/abstractComponent.ts` |
 | Dialogs, menus, bars | `ui/partials/*` — field rules in `ui/partials/fieldValidation.ts` |
-| The ads bar | `ui/partials/adsBar.ts` |
 | Search bar — engines, the bar, its view model | `backend/entity/SearchEngines.ts`, `ui/partials/searchBar.ts`, `viewModel/searchBarViewModel.ts` |
+| The ads bar — an iframe of the website's slot page | `ui/partials/adsBar.ts` |
+| Anonymous new-tab counts, batched and reported | `backend/stats/NewTabUsageReporter.ts`, `backend/worker/module/usageStatsWorker.ts` |
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |
 | Tips | `ui/tips/tipsCatalogue.ts`, `ui/tips/tips.json` |
 | Strings | `i18n/locales/{en,sk}/<area>.json`, loader `i18n/i18n.ts` |

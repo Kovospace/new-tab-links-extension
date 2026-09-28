@@ -8,6 +8,21 @@ Note for agents:
 
 ## Features that must be done before release
 
+### [medium] Usage statistics and ad slot - IN PROGRESS across four repos
+Branch `feature/usage-stats-and-ad-slot` in every repo.
+- extension: DONE - the ad slot frames tabilinks.app/slot/workspace-footer.html and shows it only
+  once the page posts "tabilinks-ad-slot-ready"; new tabs are counted by local day in the service
+  worker and reported every 15 minutes (the server can change that) to POST /api/v1/stats/new-tabs
+- migrations: daily_metric and website_visitor_hash tables
+- backend: the new-tabs and website-visit endpoints, the admin metrics endpoint, nightly cleanup
+- frontend: the static slot page with its headers, the human-visitor signal, and an admin page
+  with two graphs - new tabs and website visitors, never combined
+- before release: mention the anonymous count in the store listing and the privacy policy
+- extension: DONE - no slot for a premium account (not even its space, and the frame is never
+  loaded), and no "Upgrade to premium" in its menu. Read from GET /api/v1/users/me ("premium",
+  judged by the server), remembered per account so no ad flashes, re-asked every 30 minutes and
+  on the next tab after "Upgrade to premium" is clicked
+
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"
 - should be located on the right
