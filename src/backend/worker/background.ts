@@ -3,6 +3,7 @@ import { BackgroundWorker } from './abstract/BackgroundWorker'
 import { FavIconWorker } from './module/favIconWorker'
 import {OpenGroupedTabsWorker} from "./module/openGroupedTabsWorker";
 import {OpenTabsWorker} from "./module/openTabsWorker";
+import {UsageStatsWorker} from "./module/usageStatsWorker";
 import {registerLinkTabGroupCatcher} from "./module/linkTabGroupCatcher";
 import {registerBookmarkContextMenu} from "./module/bookmarkCurrentPage";
 import {registerClosedTabsRecorder} from "./module/closedTabsRecorder";
@@ -47,7 +48,8 @@ class WorkerRouter {
 const router = new WorkerRouter({
   favicon: FavIconWorker,
   openGroupedTabs: OpenGroupedTabsWorker,
-  openTabs: OpenTabsWorker
+  openTabs: OpenTabsWorker,
+  usageStats: UsageStatsWorker
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

@@ -281,6 +281,31 @@ errand, while deleting or saving one is working through the list and leaves it a
   synchronisation something else causes - which on a new tab page is immediate anyway - so
   closing tabs does not make every other signed-in device re-fetch the account.
 
+### Usage statistics and the ad slot (`backend/stats/`, `ui/partials/adsBar.ts`)
+
+- **New tabs are counted anonymously, in daily totals** - a number per local date, never a user,
+  an installation id or an address - and sent to `POST /api/v1/stats/new-tabs` with no
+  credentials. It has to be disclosed in the store listing and the privacy policy.
+- **Counted in the service worker** (`usageStatsWorker`), behind a queue. Two new tab pages
+  counting for themselves would each read, add one and write back, losing a count, and could
+  both send the same counts.
+- **Stored until reported**, by the day they happened. A browser closed early loses nothing: the
+  next session's first tab sends it. MV3 has no dependable "browser is closing" moment, so
+  nothing tries to use one.
+- **The server sets the interval** (`nextReportAfterSeconds`); 15 minutes is the default for a
+  device that has not heard it yet. A failed report waits out the interval like a success does,
+  or an offline browser would retry on every tab.
+- **The ad slot is an iframe of `tabilinks.app/slot/workspace-footer.html`**, so what it shows
+  changes without a release and no remote code runs in the extension. It stays hidden until
+  the page posts `tabilinks-ad-slot-ready` from the website's origin - `load` also fires for the
+  browser's own offline error page.
+- **A premium account has no slot at all** - no frame, no reserved space.
+  `AccountStandingRepository` reads `premium` from `GET /api/v1/users/me`; the server decides,
+  the extension never derives it. It is remembered per account and published before the page
+  draws, so no ad flashes on a premium user's tab, and asked again only after 30 minutes or
+  after "Upgrade to premium" was clicked. Offline keeps the last answer; signed out, or another
+  account, is not premium until asked.
+
 ### Tips on the workspace background (`ui/tips/`)
 
 A card at the bottom of the workspace plane, drawn by `TipsBar` into the `<workspace-plane>`

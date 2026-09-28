@@ -3,6 +3,7 @@ import { devicePreferencesRepository } from "./backend/repository/DevicePreferen
 import { profileRepository } from "./backend/repository/ProfileRepository";
 import { installationIdentity } from "./backend/sync/InstallationIdentity";
 import { sessionRepository } from "./backend/sync/SessionRepository";
+import { accountStandingRepository } from "./backend/sync/AccountStandingRepository";
 import { syncCoordinator } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
@@ -18,6 +19,7 @@ import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
 import { t } from "./i18n/i18n";
+import { sendToWorkerThread } from "./utils/sendToWorker";
 
 import {
     ELEM_FIRSTRUN, ELEM_GROUP, ELEM_LINK, ELEM_SUBGROUP, ELEM_WORKSPACE
@@ -57,6 +59,10 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
 
+    // One more new tab, for the anonymous daily count. Counted by the service worker, which
+    // also decides when to report; not awaited, because nothing on this page depends on it.
+    sendToWorkerThread("usageStats", "recordNewTab", {}).catch(() => undefined);
+
     // How big this browser wants the interface, applied before anything is drawn: everything
     // here is sized in em, so this one number moves the lot, and applying it later would
     // redraw the page a size larger in front of the user.
@@ -72,6 +78,9 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // before anything renders so the application menu draws its final state at once
     await installationIdentity.init();
     await sessionRepository.init();
+    // Whether the account is premium, from what was last known - before anything is drawn, so
+    // a premium user's page never shows an advertisement while the account is being asked.
+    await accountStandingRepository.init();
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();
