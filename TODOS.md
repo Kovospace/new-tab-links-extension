@@ -42,6 +42,23 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 # DONE
 
+### [medium] Synced links have no icons in the second browser
+- not a missing sync step: every drawn link already asks the worker for its icon. The lookup
+  failed on a browser that had never visited the page, and the placeholder was then stored as
+  if it were the icon - so nothing ever asked again, and only "Refresh icon" got past it
+- a miss is now stored as a miss, with the time it happened. Chrome's own favicon cache is
+  asked on every draw of a link without an icon (local and cheap, and it fills the moment the
+  page is visited here); the page itself is fetched again at most every 6 hours per link, so a
+  new tab page does not send a request for every iconless link it draws
+- that retry on draw is also the "go through the links of the current workspace without an
+  icon on every new tab" idea - a new tab page draws exactly those, so no separate event
+- the HTML fallback never worked: it used DOMParser, which a service worker does not have, so
+  only /favicon.ico was ever tried. The `<link rel="icon">` tags are now read without a DOM
+  (faviconCandidates.ts), which is what finds the icon of a page this browser never visited
+- placeholders stored by the old code are read as misses already due, so existing installs
+  heal on the next new tab without anyone pressing "Refresh icon"
+- 12 tests; the placeholder and the DOMParser ones were run against the old worker and fail
+
 ### [small] Add "upgrade to premium" to app menu (three dots upper right corner)
 - shown only when signed in, right after the synchronisation status line
 - opens the website's account settings (WEBSITE_PATHS.accountSettings, "/account") in a new
