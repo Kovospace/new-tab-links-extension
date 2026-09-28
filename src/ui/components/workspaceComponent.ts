@@ -34,6 +34,7 @@ import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
 import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
+import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
@@ -43,6 +44,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     /** The recently closed tabs rail, and the button that holds it open. */
     private closedTabsPanel: ClosedTabsPanel | null = null;
     private closedTabsButton: HTMLButtonElement | null = null;
+
+    /** The search bar in the heading; one element, moved into every redraw of the heading. */
+    private searchBar: SearchBar = new SearchBar();
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
@@ -426,10 +430,12 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             (event) => this.actionAddGroup(workspace.id)
         ));
 
-        // settings menu
+        // The search bar is the same element on every redraw rather than a new one, so that
+        // renaming or switching the workspace does not throw away a query half typed.
         parentElem.replaceChildren(
             titleSectionElem,
-            actionsSectionElem
+            actionsSectionElem,
+            this.searchBar.element()
         );
 
         // reattach listeners because child elements of workspace heading was replaced

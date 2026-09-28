@@ -57,6 +57,31 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 # DONE
 
+### [medium] Implement Search bar
+- in <workspace-plane-head>, after the title and the workspace's buttons, centred in the room
+  that was spare: [engine icon ▾] [query] [round search button]. On a narrow window it wraps
+  to a line of its own instead of being crushed
+- Enter in the field or the button submits - it is a <form>, so both are the browser's own
+- results open in the current tab, as a link clicked on the page does
+- the DEFAULT is the browser's own engine, through chrome.search.query (permission "search"),
+  because the Chrome Web Store requires it: a new tab page with web search "must respect the
+  user's existing web search settings by using the Chrome Search API", and a list of providers
+  "must default to the web search provider the user has listed in their settings". Chrome does
+  not say which engine that is, so it is "Default search engine" with a plain magnifying glass
+- Google, DuckDuckGo and Bing besides, as plain search URLs - no partner or affiliate
+  parameters. From a closed list in backend/entity/SearchEngines.ts; adding one is an entry there
+- choosing another engine - from the icon's dropdown or in Settings -> "Search" - is remembered
+  on this device, and the browser's engine stays first in both lists as the way back. The
+  store's FAQ does not settle whether a remembered choice is allowed; it is the user's own
+  choice, off until made, which is the most defensible reading
+- remembered as a DEVICE preference, beside language and size, not on the profile
+- what is typed goes to the engine and nowhere else: not logged, stored, synced or sent to our
+  backend. No suggestions, which would send keystrokes to a provider
+- the engines' icons are their own favicons, through the same worker and cache as links
+- the bar is one element moved into every redraw of the heading, so renaming or switching a
+  workspace does not throw away a half-typed query
+- before release: mention the search box in the store listing
+
 ### [medium] Synced links have no icons in the second browser
 - not a missing sync step: every drawn link already asks the worker for its icon. The lookup
   failed on a browser that had never visited the page, and the placeholder was then stored as

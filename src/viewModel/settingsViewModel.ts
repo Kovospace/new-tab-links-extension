@@ -9,6 +9,8 @@ import {
     DATE_FORMATS, DateFormatId, sampleOf
 } from "../i18n/dates";
 import { t } from "../i18n/i18n";
+import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
+import { engineDTO } from "./searchBarViewModel";
 import { AUTOMATIC_LANGUAGE, baseLanguageOf, browserLanguageTag, SUPPORTED_LANGUAGES }
     from "../i18n/languages";
 
@@ -88,7 +90,7 @@ export type SettingDTO = ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO;
 export type RangeSettingKey = "uiScale";
 
 /** The settings that are a choice out of a list. */
-export type ChoiceSettingKey = "language" | "dateFormat";
+export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine";
 
 /** A named group of settings, which the dialog draws as one collapsible section. */
 export interface SettingCategoryDTO {
@@ -160,6 +162,15 @@ const CATEGORIES: CategoryDefinition[] = [
         settings: [
             { kind: "choice", key: "language", wording: "language" },
             { kind: "choice", key: "dateFormat", wording: "dateFormat" }
+        ]
+    },
+    {
+        // The same choice the search bar's own dropdown makes; this is where somebody looking
+        // for it in Settings finds it.
+        key: "search",
+        wording: "search",
+        settings: [
+            { kind: "choice", key: "searchEngine", wording: "searchEngine" }
         ]
     }
 ];
@@ -275,6 +286,12 @@ export class SettingsViewModel {
             return this.devicePreferences.getLanguage() !== before;
         }
 
+        if (key === "searchEngine") {
+            await this.devicePreferences.setSearchEngine(value);
+            this.refresh();
+            return false;
+        }
+
         await this.devicePreferences.setDateFormat(value);
         this.refresh();
         return false;
@@ -320,12 +337,8 @@ export class SettingsViewModel {
                 key: definition.key,
                 title,
                 explanation,
-                value: definition.key === "language"
-                    ? this.devicePreferences.getLanguage()
-                    : this.devicePreferences.getDateFormat(),
-                options: definition.key === "language"
-                    ? languageOptions()
-                    : dateFormatOptions(),
+                value: this.choiceValueOf(definition.key),
+                options: choiceOptionsOf(definition.key),
                 disabledReason: null
             };
         }
@@ -345,6 +358,18 @@ export class SettingsViewModel {
             display: `${Math.round(value * 100)}%`,
             disabledReason: null
         };
+    }
+
+    /** What a choice setting is set to on this device. */
+    private choiceValueOf(key: ChoiceSettingKey): string {
+        switch (key) {
+            case "language":
+                return this.devicePreferences.getLanguage();
+            case "searchEngine":
+                return this.devicePreferences.getSearchEngine();
+            default:
+                return this.devicePreferences.getDateFormat();
+        }
     }
 
     /** The active profile's settings, worded for the dialog and in their sections. */
@@ -397,6 +422,20 @@ function languageOptions(): SettingOptionDTO[] {
             label: language.nativeName
         }))
     ];
+}
+
+/** The answers a choice setting offers. */
+function choiceOptionsOf(key: ChoiceSettingKey): SettingOptionDTO[] {
+    switch (key) {
+        case "language":
+            return languageOptions();
+        case "searchEngine":
+            // The browser's own engine first, as the store requires and as the way back.
+            return SEARCH_ENGINES.map(engineDTO)
+                .map(engine => ({ value: engine.id, label: engine.label }));
+        default:
+            return dateFormatOptions();
+    }
 }
 
 /** The date formats on offer, each shown writing the same day, so they can be compared. */

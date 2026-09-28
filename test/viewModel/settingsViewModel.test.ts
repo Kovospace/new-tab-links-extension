@@ -259,3 +259,42 @@ describe("SettingsViewModel, language and local customs", () => {
         expect(devicePreferences.getLanguage()).toBe("auto");
     });
 });
+
+describe("SettingsViewModel, the search engine", () => {
+
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const engine = () => {
+        const section = settings.observables.settings.get().categories
+            .find(category => category.key === "search")!;
+        const setting = section.settings.find(one => one.key === "searchEngine");
+        if (!setting || setting.kind !== "choice") {
+            throw new Error("searchEngine is not a choice setting");
+        }
+        return setting;
+    };
+
+    it("offers the browser's own engine first, then each other engine by its own name", () => {
+        expect(engine().options.map(option => option.label))
+            .toEqual(["Default search engine", "Google", "DuckDuckGo", "Bing"]);
+        expect(engine().value).toBe("browser");
+    });
+
+    it("stores the chosen engine on the device, without asking for a rebuild", async () => {
+        const rebuild = await settings.setChoice("searchEngine", "bing");
+
+        expect(rebuild).toBe(false);
+        expect(devicePreferences.getSearchEngine()).toBe("bing");
+        expect(engine().value).toBe("bing");
+    });
+});

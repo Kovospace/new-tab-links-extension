@@ -1,0 +1,177 @@
+/*
+   The search bar in the workspace heading: [engine ▾] [query] [search].
+
+   It takes the room the heading had spare - growing into it, centred in it by its auto
+   margins, and capped so that on a wide screen it stays a field and not a stripe. The title
+   and the workspace's own buttons keep their place on the left.
+
+   The heading wraps rather than squeezing: on a narrow window the bar drops to a line of its
+   own instead of being crushed to the width of its buttons.
+*/
+workspace-plane-head {
+    flex-wrap: wrap;
+    row-gap: 0.5em;
+}
+
+form.search-bar {
+    display: flex;
+    align-items: center;
+    flex: 1 1 20em;
+    min-width: 16em;
+    max-width: 40em;
+    margin: 0 2em;
+    padding: 0.25em;
+    gap: 0.5em;
+    border-radius: 1.5em;
+    transition: box-shadow var(--time-transition-medium) ease-in-out;
+}
+
+/* ── Engine chooser ─────────────────────────────────────────────────────── */
+
+form.search-bar > div.search-bar__engine {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+form.search-bar button {
+    margin: 0;
+}
+
+button.search-bar__engine-button {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+    height: 2em;
+    padding: 0 0.5em;
+    border-radius: 1em;
+}
+
+span.search-bar__engine-icon {
+    display: flex;
+}
+
+span.search-bar__engine-icon > img,
+span.search-bar__engine-icon > svg,
+button.search-bar__engine-option > img,
+button.search-bar__engine-option > svg {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+}
+
+span.search-bar__caret {
+    font-size: 0.75em;
+}
+
+/* The list opens under the chooser, above the columns, as the menus in this heading do. */
+ul.search-bar__engines {
+    position: absolute;
+    z-index: 101; /* more than overlay, as options-menu */
+    top: 100%;
+    left: 0;
+    margin-top: 0.5em;
+    min-width: 12em;
+    padding: 0.25em;
+    list-style: none;
+    border-radius: var(--radius-normal);
+    border: 0.25em solid var(--color-document-background);
+    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+}
+
+ul.search-bar__engines[hidden] {
+    display: none;
+}
+
+button.search-bar__engine-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    width: 100%;
+    padding: 0.5em;
+    text-align: left;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+/* ── Query field ────────────────────────────────────────────────────────── */
+
+input.search-bar__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 2em;
+    padding: 0 0.75em;
+    font: inherit;
+    font-size: 1em;
+    border: none;
+    border-radius: 1em;
+    outline: none;
+    transition:
+            box-shadow var(--time-transition-medium) ease-in-out,
+            background-color var(--time-transition-medium) ease-in-out;
+}
+
+/* ── Submit ─────────────────────────────────────────────────────────────── */
+
+button.search-bar__submit {
+    flex: 0 0 auto;
+    width: 2em;
+    height: 2em;
+    padding: 0.375em;
+    border-radius: var(--radius-circular);
+}
+
+button.search-bar__submit > svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* The magnifying glass: the submit button's, and the browser's own engine's. */
+button.search-bar__submit > svg,
+span.search-bar__engine-icon > svg,
+button.search-bar__engine-option > svg {
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+/* ── Dark theme colours ─────────────────────────────────────────────────── */
+
+html.dark form.search-bar:focus-within {
+    box-shadow: 0 0 0 0.125em var(--color-textfield-border-active);
+}
+
+html.dark input.search-bar__input {
+    background-color: var(--color-textfield-background);
+    color: var(--color-textfield-text);
+}
+
+html.dark input.search-bar__input:hover {
+    background-color: var(--color-textfield-background-hover);
+    color: var(--color-textfield-text-hover);
+}
+
+html.dark ul.search-bar__engines {
+    background-color: var(--color-component-background);
+}
+
+html.dark button.search-bar__engine-option {
+    background-color: transparent;
+}
+
+html.dark button.search-bar__engine-option:hover {
+    background-color: var(--color-component-background-hover);
+}
+
+html.dark button.search-bar__engine-option.active {
+    background-color: var(--color-button-active-background);
+}
+
+html.dark button.search-bar__submit {
+    background-color: var(--color-button-active-background);
+}
+
+html.dark button.search-bar__submit:hover {
+    background-color: var(--color-button-active-background-hover);
+}

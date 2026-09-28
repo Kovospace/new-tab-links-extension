@@ -11,7 +11,8 @@
     "tabs",
     "tabGroups",
     "contextMenus",
-    "favicon"
+    "favicon",
+    "search"
   ],
   "host_permissions": [
     "<all_urls>"

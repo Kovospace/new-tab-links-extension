@@ -11,6 +11,7 @@ import enGroup from "./locales/en/group.json";
 import enHeader from "./locales/en/header.json";
 import enLink from "./locales/en/link.json";
 import enProfiles from "./locales/en/profiles.json";
+import enSearch from "./locales/en/search.json";
 import enSettings from "./locales/en/settings.json";
 import enSubgroup from "./locales/en/subgroup.json";
 import enSync from "./locales/en/sync.json";
@@ -28,6 +29,7 @@ import skGroup from "./locales/sk/group.json";
 import skHeader from "./locales/sk/header.json";
 import skLink from "./locales/sk/link.json";
 import skProfiles from "./locales/sk/profiles.json";
+import skSearch from "./locales/sk/search.json";
 import skSettings from "./locales/sk/settings.json";
 import skSubgroup from "./locales/sk/subgroup.json";
 import skSync from "./locales/sk/sync.json";
@@ -67,6 +69,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         header: enHeader,
         link: enLink,
         profiles: enProfiles,
+        search: enSearch,
         settings: enSettings,
         subgroup: enSubgroup,
         sync: enSync,
@@ -86,6 +89,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         header: skHeader,
         link: skLink,
         profiles: skProfiles,
+        search: skSearch,
         settings: skSettings,
         subgroup: skSubgroup,
         sync: skSync,

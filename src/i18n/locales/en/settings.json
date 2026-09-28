@@ -4,7 +4,8 @@
   "profileNoteUnnamed": "These apply to the profile you have open.",
   "categories": {
     "uiAndBehavior": "UI and behavior",
-    "languageAndLocalCustoms": "Language & local customs"
+    "languageAndLocalCustoms": "Language & local customs",
+    "search": "Search"
   },
   "enableDragAndDrop": {
     "title": "Enable drag & drop",
@@ -26,5 +27,9 @@
   "dateFormat": {
     "title": "Date format",
     "explanation": "How dates are written. \"Local custom\" writes them the way your browser's region does. Kept on this device only."
+  },
+  "searchEngine": {
+    "title": "Search engine",
+    "explanation": "Where the search bar at the top of the page sends what you type. \"Default search engine\" is the one your browser is set to, and is used until you choose another - here or with the icon beside the bar. Kept on this device only."
   }
 }
