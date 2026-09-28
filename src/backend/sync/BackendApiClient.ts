@@ -1,5 +1,6 @@
 import {
     AUTH_ENDPOINTS, DEVICE_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER, SYNC_ENDPOINTS,
+    USER_ENDPOINTS,
     buildApiUrl
 } from "./SyncConfiguration";
 import { installationIdentity } from "./InstallationIdentity";
@@ -25,6 +26,21 @@ export type ApiResult<PAYLOAD> =
     | { outcome: "success"; data: PAYLOAD }
     | { outcome: "rejected"; status: number; message: string }
     | { outcome: "offline"; message: string };
+
+/**
+ *  The signed-in account, as the backend's UserDto returns it.
+ *  Only the fields this extension reads are mirrored.
+ */
+export interface MyAccountDto {
+    id: string;
+
+    /**
+     *  Whether the account is premium right now. Judged by the server from the account's
+     *  entitlement when it answers - a cancelled subscription stays premium until what was paid
+     *  for runs out - and never derived here.
+     */
+    premium: boolean;
+}
 
 /**
  *  One row of the account's device list, as the backend's UserDeviceDto returns it.
@@ -155,6 +171,11 @@ export class BackendApiClient {
         return this.send<void>(
             AUTH_ENDPOINTS.logout,
             this.buildRequest("POST", { refreshToken: session.refreshToken }));
+    }
+
+    /** The signed-in account, which is where whether it is premium is read from. */
+    public getMyAccount(): Promise<ApiResult<MyAccountDto>> {
+        return this.sendAuthenticated<MyAccountDto>(USER_ENDPOINTS.me, "GET");
     }
 
     /** Lists the devices the account has been signed in from. */

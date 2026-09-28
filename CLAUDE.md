@@ -299,6 +299,12 @@ errand, while deleting or saving one is working through the list and leaves it a
   changes without a release and no remote code runs in the extension. It stays hidden until
   the page posts `tabilinks-ad-slot-ready` from the website's origin - `load` also fires for the
   browser's own offline error page.
+- **A premium account has no slot at all** - no frame, no reserved space.
+  `AccountStandingRepository` reads `premium` from `GET /api/v1/users/me`; the server decides,
+  the extension never derives it. It is remembered per account and published before the page
+  draws, so no ad flashes on a premium user's tab, and asked again only after 30 minutes or
+  after "Upgrade to premium" was clicked. Offline keeps the last answer; signed out, or another
+  account, is not premium until asked.
 
 ### Tips on the workspace background (`ui/tips/`)
 

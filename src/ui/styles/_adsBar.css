@@ -51,3 +51,9 @@ html.dark .ads-bar {
 .ads-bar__frame[hidden] {
     display: none;
 }
+
+/* A premium account has no slot at all, not even its reserved space. The
+   attribute alone would lose to `display: flex` above. */
+.ads-bar[hidden] {
+    display: none;
+}

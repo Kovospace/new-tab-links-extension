@@ -301,10 +301,11 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 noBorder: true,
                 onClick: () => {}
             },
-            {
+            // Offered only to an account that does not have it yet.
+            ...(account.premium ? [] : [{
                 actionTitle: t("sync.menu.upgradeToPremium"),
                 onClick: () => this.accountViewModel.openAccountSettingsPage()
-            },
+            }]),
             {
                 actionTitle: t("sync.menu.logOut"),
                 onClick: () => this.accountViewModel.logOut()

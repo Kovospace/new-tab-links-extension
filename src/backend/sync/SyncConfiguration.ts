@@ -55,6 +55,11 @@ export const DEVICE_ENDPOINTS = {
     takeOver: (deviceId: string): string => `/api/v1/users/me/devices/${deviceId}/take-over`
 } as const;
 
+/** The signed-in account itself. */
+export const USER_ENDPOINTS = {
+    me: "/api/v1/users/me"
+} as const;
+
 /** Synchronisation endpoints of the backend. */
 export const SYNC_ENDPOINTS = {
     snapshot: "/api/v1/sync/snapshot",

@@ -1,5 +1,7 @@
 import { buildWebsiteUrl, SYNC_CONFIGURATION, WEBSITE_PATHS } from '../../backend/sync/SyncConfiguration';
 import { currentLanguage } from '../../i18n/i18n';
+import { accountStandingRepository } from '../../backend/sync/AccountStandingRepository';
+import { ObservableValue } from '../../utils/observableValue';
 
 /** What the slot page posts to its parent once it has drawn something worth showing. */
 export const AD_SLOT_READY_MESSAGE = 'tabilinks-ad-slot-ready';
@@ -26,6 +28,11 @@ export const AD_SLOT_READY_MESSAGE = 'tabilinks-ad-slot-ready';
  * `load` cannot tell that apart: an offline browser loads its own "cannot reach this page"
  * into the frame and fires `load` all the same, and that is not something to put at the foot
  * of somebody's links.
+ *
+ * **Not there at all for a premium account** - no frame, not even the reserved space: the space
+ * is kept for the day an ad lands in it, and for a premium user that day never comes. The frame
+ * is not even loaded, so the website does not hear about a premium user's new tabs either. It
+ * follows the standing both ways: an upgrade takes it away, a lapsed subscription brings it back.
  */
 export class AdsBar {
 
@@ -33,6 +40,16 @@ export class AdsBar {
 
   /** Listens for the slot page saying it has drawn; removed with the bar. */
   private onMessage: ((event: MessageEvent) => void) | null = null;
+
+  private frame: HTMLIFrameElement | null = null;
+  private unsubscribe: (() => void) | null = null;
+
+  /**
+   * @param premium$ whether the account is premium; the account standing in normal use
+   */
+  constructor(
+    private readonly premium$: ObservableValue<boolean> = accountStandingRepository.premium$
+  ) {}
 
   /**
    * Draws the bar into a host.
@@ -50,9 +67,31 @@ export class AdsBar {
     // a screen reader came to a new tab page for.
     this.container.setAttribute('aria-hidden', 'true');
 
-    this.container.appendChild(this.buildFrame());
-
     host.appendChild(this.container);
+
+    this.unsubscribe = this.premium$.subscribe(premium => this.showFor(premium));
+  }
+
+  /** Draws the slot for a free account and takes it away for a premium one. */
+  private showFor(premium: boolean): void {
+    if (!this.container) return;
+
+    this.container.hidden = premium;
+    if (premium) {
+      this.removeFrame();
+    } else if (!this.frame) {
+      this.frame = this.buildFrame();
+      this.container.appendChild(this.frame);
+    }
+  }
+
+  private removeFrame(): void {
+    if (this.onMessage) {
+      window.removeEventListener('message', this.onMessage);
+      this.onMessage = null;
+    }
+    this.frame?.remove();
+    this.frame = null;
   }
 
   private buildFrame(): HTMLIFrameElement {
@@ -90,10 +129,9 @@ export class AdsBar {
   }
 
   public dispose(): void {
-    if (this.onMessage) {
-      window.removeEventListener('message', this.onMessage);
-      this.onMessage = null;
-    }
+    this.unsubscribe?.();
+    this.unsubscribe = null;
+    this.removeFrame();
     this.container?.remove();
     this.container = null;
   }

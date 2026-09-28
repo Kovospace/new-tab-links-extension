@@ -18,7 +18,10 @@ Branch `feature/usage-stats-and-ad-slot` in every repo.
 - frontend: the static slot page with its headers, the human-visitor signal, and an admin page
   with two graphs - new tabs and website visitors, never combined
 - before release: mention the anonymous count in the store listing and the privacy policy
-- NOT done: hiding the slot for premium users - the extension does not know yet who is premium
+- extension: DONE - no slot for a premium account (not even its space, and the frame is never
+  loaded), and no "Upgrade to premium" in its menu. Read from GET /api/v1/users/me ("premium",
+  judged by the server), remembered per account so no ad flashes, re-asked every 30 minutes and
+  on the next tab after "Upgrade to premium" is clicked
 
 ### [big] Add panel (or section) with currently opened tabs
 Note: needs permission "chrome.session"

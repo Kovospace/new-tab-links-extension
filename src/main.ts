@@ -3,6 +3,7 @@ import { devicePreferencesRepository } from "./backend/repository/DevicePreferen
 import { profileRepository } from "./backend/repository/ProfileRepository";
 import { installationIdentity } from "./backend/sync/InstallationIdentity";
 import { sessionRepository } from "./backend/sync/SessionRepository";
+import { accountStandingRepository } from "./backend/sync/AccountStandingRepository";
 import { syncCoordinator } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
@@ -77,6 +78,9 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // before anything renders so the application menu draws its final state at once
     await installationIdentity.init();
     await sessionRepository.init();
+    // Whether the account is premium, from what was last known - before anything is drawn, so
+    // a premium user's page never shows an advertisement while the account is being asked.
+    await accountStandingRepository.init();
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();

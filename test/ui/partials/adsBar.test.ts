@@ -1,16 +1,19 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { AD_SLOT_READY_MESSAGE, AdsBar } from "../../../src/ui/partials/adsBar";
+import { ObservableValue } from "../../../src/utils/observableValue";
 
 describe("AdsBar", () => {
 
     let bar: AdsBar;
     let frame: HTMLIFrameElement;
+    let premium$: ObservableValue<boolean>;
 
     beforeEach(() => {
         bar?.dispose();
         document.body.replaceChildren();
-        bar = new AdsBar();
+        premium$ = new ObservableValue<boolean>(false);
+        bar = new AdsBar(premium$);
         bar.render(document.body);
         frame = document.querySelector<HTMLIFrameElement>("iframe.ads-bar__frame")!;
     });
@@ -51,5 +54,42 @@ describe("AdsBar", () => {
         post(AD_SLOT_READY_MESSAGE, "https://tabilinks.app", window);
 
         expect(frame.hidden).toBe(true);
+    });
+
+    const slot = () => document.querySelector<HTMLElement>(".ads-bar")!;
+
+    it("is not there at all for a premium account, and loads nothing", () => {
+        premium$.set(true);
+
+        expect(slot().hidden).toBe(true);
+        expect(document.querySelector("iframe")).toBeNull();
+    });
+
+    it("comes back when the account is no longer premium", () => {
+        premium$.set(true);
+        premium$.set(false);
+
+        expect(slot().hidden).toBe(false);
+        expect(document.querySelectorAll("iframe")).toHaveLength(1);
+    });
+
+    it("stops listening to a frame it has taken away", () => {
+        premium$.set(true);
+
+        post(AD_SLOT_READY_MESSAGE, "https://tabilinks.app");
+
+        expect(document.querySelector("iframe")).toBeNull();
+    });
+});
+
+describe("AdsBar, for a premium account from the start", () => {
+
+    it("never builds the frame", () => {
+        document.body.replaceChildren();
+        const bar = new AdsBar(new ObservableValue<boolean>(true));
+        bar.render(document.body);
+
+        expect(document.querySelector("iframe")).toBeNull();
+        bar.dispose();
     });
 });

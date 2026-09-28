@@ -5,6 +5,7 @@ import { buildWebsiteUrl, WEBSITE_PATHS } from "../backend/sync/SyncConfiguratio
 import { SyncActivity, syncCoordinator, SyncRejectionNotice } from "../backend/sync/SyncCoordinator";
 import { DeviceNameReconciler, DeviceNameVerdict } from "../backend/sync/DeviceNameReconciler";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
+import { accountStandingRepository, AccountStandingRepository } from "../backend/sync/AccountStandingRepository";
 import { ChoiceDialog } from "../ui/partials/choiceDialog";
 import { InputDialog } from "../ui/partials/inputDialog";
 
@@ -20,6 +21,9 @@ export interface AccountDTO {
 
     /** What to tell the user about synchronisation right now. */
     syncStatus: string | null;
+
+    /** Whether the account is premium, which takes the upgrade offer out of the menu. */
+    premium: boolean;
 }
 
 /**
@@ -41,12 +45,15 @@ export class SyncAccountViewModel {
 
     public readonly observables = {
         account: new ObservableValue<AccountDTO>(
-            { signedIn: false, username: null, syncStatus: null })
+            { signedIn: false, username: null, syncStatus: null, premium: false })
     };
 
     /** Last known session and synchronisation state, combined into the DTO on any change. */
     private session: SyncSession | null = null;
     private activity: SyncActivity = "idle";
+    private premium: boolean = false;
+
+    private standing: AccountStandingRepository;
 
     /**
      *  @param apiClient  talks to the backend; the singleton in normal use.
@@ -54,10 +61,12 @@ export class SyncAccountViewModel {
      */
     constructor(
         apiClient: BackendApiClient = backendApiClient,
-        sessions: SessionRepository = sessionRepository
+        sessions: SessionRepository = sessionRepository,
+        standing: AccountStandingRepository = accountStandingRepository
     ) {
         this.apiClient = apiClient;
         this.sessions = sessions;
+        this.standing = standing;
         this.deviceNames = new DeviceNameReconciler(apiClient, sessions);
     }
 
@@ -69,6 +78,10 @@ export class SyncAccountViewModel {
         });
         syncCoordinator.activity$.subscribe((activity: SyncActivity) => {
             this.activity = activity;
+            this.publishAccount();
+        });
+        this.standing.premium$.subscribe((premium: boolean) => {
+            this.premium = premium;
             this.publishAccount();
         });
         syncCoordinator.rejections$.subscribe((notice: SyncRejectionNotice | null) => {
@@ -111,7 +124,8 @@ export class SyncAccountViewModel {
         this.observables.account.set({
             signedIn: this.session !== null,
             username: this.session?.username ?? null,
-            syncStatus: this.session === null ? null : this.describeActivity()
+            syncStatus: this.session === null ? null : this.describeActivity(),
+            premium: this.session !== null && this.premium
         });
     }
 
@@ -145,6 +159,9 @@ export class SyncAccountViewModel {
      *  and the extension deliberately takes no payment itself.
      */
     public openAccountSettingsPage(): void {
+        // Whoever goes to upgrade comes back to a new tab expecting the advertisement to be
+        // gone, so that tab asks the account instead of trusting what it last heard.
+        void this.standing.markStale();
         const url = buildWebsiteUrl(WEBSITE_PATHS.accountSettings);
         this.LOG.debug("openAccountSettingsPage", url);
         chrome.tabs.create({ url });
