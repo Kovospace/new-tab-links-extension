@@ -9,6 +9,7 @@
   "forgetOne": "Zabudnúť túto",
   "rowTooltip": "{url}\nOtvoriť znova",
   "closedOn": "Zavreté na {device}",
+  "clear": "Vyčistiť",
   "nowhereToPut": {
     "title": "Nie je kam to uložiť",
     "message": "Tento profil zatiaľ nemá skupinu, do ktorej by sa dal odkaz uložiť. Najprv vytvorte pracovný priestor a skupinu."

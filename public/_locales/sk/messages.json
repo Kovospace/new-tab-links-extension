@@ -1,11 +1,11 @@
 {
   "extensionName": {
-    "message": "Workspace Links",
-    "description": "Name of the extension, shown in the browser and in the store."
+    "message": "TabiLinks",
+    "description": "Záložky, história, správa kariet"
   },
   "extensionDescription": {
-    "message": "Vlastný pracovný priestor na stránke novej karty",
-    "description": "One-line description of the extension, shown in the browser and in the store."
+    "message": "Skupiny so záložkami, história zatvorených kariet a vyhľadávanie na novej karte",
+    "description": "Rozšírenie, ktoré využije prázdne miesto novej karty na Vaše obľúbené položky, záložky a históriu zatvorených kariet"
   },
   "actionTitle": {
     "message": "Uložiť túto stránku",

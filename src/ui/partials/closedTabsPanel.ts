@@ -224,7 +224,7 @@ export class ClosedTabsPanel {
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
     clearBtn.classList.add('closed-tabs__head-action', CLASS_ACTION_DANGER);
-    clearBtn.textContent = 'Clear';
+    clearBtn.textContent = t('closedTabs.clear');
     clearBtn.title = t('closedTabs.forgetAll');
     clearBtn.addEventListener('click', () => void this.clearAll());
 

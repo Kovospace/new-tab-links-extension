@@ -9,6 +9,7 @@
   "forgetOne": "Forget this one",
   "rowTooltip": "{url}\nOpen again",
   "closedOn": "Closed on {device}",
+  "clear": "Clear",
   "nowhereToPut": {
     "title": "Nowhere to put it",
     "message": "This profile has no group to keep a link in yet. Make a workspace and a group first."
