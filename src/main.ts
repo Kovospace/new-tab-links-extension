@@ -18,6 +18,7 @@ import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
 import { t } from "./i18n/i18n";
+import { sendToWorkerThread } from "./utils/sendToWorker";
 
 import {
     ELEM_FIRSTRUN, ELEM_GROUP, ELEM_LINK, ELEM_SUBGROUP, ELEM_WORKSPACE
@@ -56,6 +57,10 @@ customElements.define(ELEM_LINK, LinkComponent);
 customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
+
+    // One more new tab, for the anonymous daily count. Counted by the service worker, which
+    // also decides when to report; not awaited, because nothing on this page depends on it.
+    sendToWorkerThread("usageStats", "recordNewTab", {}).catch(() => undefined);
 
     // How big this browser wants the interface, applied before anything is drawn: everything
     // here is sized in em, so this one number moves the lot, and applying it later would

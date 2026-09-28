@@ -1,3 +1,9 @@
+import { buildWebsiteUrl, SYNC_CONFIGURATION, WEBSITE_PATHS } from '../../backend/sync/SyncConfiguration';
+import { currentLanguage } from '../../i18n/i18n';
+
+/** What the slot page posts to its parent once it has drawn something worth showing. */
+export const AD_SLOT_READY_MESSAGE = 'tabilinks-ad-slot-ready';
+
 /**
  * The space an advertisement goes in.
  *
@@ -9,10 +15,24 @@
  * the tips are: what goes in here is going to grow a loader, a size that depends on the window,
  * and a reason not to draw at all for somebody who has paid not to see it. None of that belongs
  * in the component that draws the workspace.
+ *
+ * **What is in it is a page on the website, in an iframe** (`WEBSITE_PATHS.adSlot`). Our own
+ * promotion today and an ad network tomorrow, without an extension release - and without
+ * remotely hosted code, which MV3 forbids: whatever runs in the frame runs on the website's
+ * origin, not the extension's. The frame is sandboxed to what an ad needs - scripts, and links
+ * that open a new tab - and is sent no referrer.
+ *
+ * **It stays invisible until the page says it is ready**, by posting `AD_SLOT_READY_MESSAGE`.
+ * `load` cannot tell that apart: an offline browser loads its own "cannot reach this page"
+ * into the frame and fires `load` all the same, and that is not something to put at the foot
+ * of somebody's links.
  */
 export class AdsBar {
 
   private container: HTMLElement | null = null;
+
+  /** Listens for the slot page saying it has drawn; removed with the bar. */
+  private onMessage: ((event: MessageEvent) => void) | null = null;
 
   /**
    * Draws the bar into a host.
@@ -30,7 +50,38 @@ export class AdsBar {
     // a screen reader came to a new tab page for.
     this.container.setAttribute('aria-hidden', 'true');
 
+    this.container.appendChild(this.buildFrame());
+
     host.appendChild(this.container);
+  }
+
+  private buildFrame(): HTMLIFrameElement {
+    const frame = document.createElement('iframe');
+    frame.classList.add('ads-bar__frame');
+
+    const url = new URL(buildWebsiteUrl(WEBSITE_PATHS.adSlot));
+    url.searchParams.set('lang', currentLanguage());
+    frame.src = url.href;
+
+    frame.setAttribute('sandbox',
+      'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+    frame.referrerPolicy = 'no-referrer';
+    frame.title = 'Advertisement';
+    // Out of the tab order, as the container is out of the accessibility tree.
+    frame.tabIndex = -1;
+    frame.hidden = true;
+
+    const websiteOrigin = new URL(SYNC_CONFIGURATION.websiteBaseUrl).origin;
+    this.onMessage = (event: MessageEvent) => {
+      if (event.source === frame.contentWindow
+          && event.origin === websiteOrigin
+          && event.data === AD_SLOT_READY_MESSAGE) {
+        frame.hidden = false;
+      }
+    };
+    window.addEventListener('message', this.onMessage);
+
+    return frame;
   }
 
   /** The element an advertisement would be put into, or null before it is drawn. */
@@ -39,6 +90,10 @@ export class AdsBar {
   }
 
   public dispose(): void {
+    if (this.onMessage) {
+      window.removeEventListener('message', this.onMessage);
+      this.onMessage = null;
+    }
     this.container?.remove();
     this.container = null;
   }

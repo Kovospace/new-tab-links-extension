@@ -53,3 +53,10 @@ export const INSTALLATION_NAME_KEY = "sync_installation_name";
  *  drawn at, for now. Never synchronised - see `DevicePreferencesRepository`.
  */
 export const DEVICE_PREFERENCES_KEY = "device_preferences";
+
+/**
+ *  New tabs opened and not yet reported, by local day, with when the last report was made and
+ *  how long the server asked to wait before the next. Written only by the service worker, so
+ *  two new tab pages opening at once cannot lose a count or send one twice.
+ */
+export const NEW_TAB_USAGE_KEY = "new_tab_usage";

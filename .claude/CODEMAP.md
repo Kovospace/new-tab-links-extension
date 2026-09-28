@@ -37,7 +37,8 @@ Keep it current: a new module or a new concern adds a row here.
 | View-models (one per component or dialog) | `viewModel/*ViewModel.ts`, base `viewModel/abstract/abstractViewModel.ts` |
 | Components | `ui/components/*Component.ts`, base `ui/abstract/abstractComponent.ts` |
 | Dialogs, menus, bars | `ui/partials/*` — field rules in `ui/partials/fieldValidation.ts` |
-| The ads bar | `ui/partials/adsBar.ts` |
+| The ads bar — an iframe of the website's slot page | `ui/partials/adsBar.ts` |
+| Anonymous new-tab counts, batched and reported | `backend/stats/NewTabUsageReporter.ts`, `backend/worker/module/usageStatsWorker.ts` |
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |
 | Tips | `ui/tips/tipsCatalogue.ts`, `ui/tips/tips.json` |
 | Strings | `i18n/locales/{en,sk}/<area>.json`, loader `i18n/i18n.ts` |

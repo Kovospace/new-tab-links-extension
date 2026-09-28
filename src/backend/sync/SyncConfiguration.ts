@@ -61,12 +61,27 @@ export const SYNC_ENDPOINTS = {
     push: "/api/v1/sync/push"
 } as const;
 
+/**
+ *  Anonymous usage statistics. Aggregates only: what is sent is how many new tabs were opened
+ *  on which day, and nothing that says whose they were.
+ */
+export const STATS_ENDPOINTS = {
+    newTabs: "/api/v1/stats/new-tabs"
+} as const;
+
 /** Website pages the extension links out to. */
 export const WEBSITE_PATHS = {
     register: "/register",
 
     /** Account settings, which is where upgrading to premium is offered. */
-    accountSettings: "/account"
+    accountSettings: "/account",
+
+    /**
+     *  The page shown in the new tab page's ad slot. A page on the website rather than markup
+     *  in the extension, so what is advertised - our own promotion, later an ad network - can
+     *  change without an extension release, and no remote code ever runs in the extension.
+     */
+    adSlot: "/slot/workspace-footer.html"
 } as const;
 
 /**
