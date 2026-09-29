@@ -635,17 +635,26 @@ Defined in `src/constants.ts`: custom element tag names, action classes and plai
   This extension has one too — **`extension-developer`** — which is how the other three reach it;
   it points at `backend-sync.md` above and covers the whole repo, not only sync work. The backend
   remote is `git@github.com:Kovospace/new-tab-links-backend.git`.
-- **Sibling access is read-only, and it is this session's, not the agent's.** A subagent runs
-  inside the session that starts it and inherits its permissions; its agent file says where to
-  look, the permissions decide whether it may. The gitignored `.claude/settings.local.json`
-  lists all three checkouts under `permissions.additionalDirectories` and denies `Edit` on each
-  (`Edit(//home/kovo/IdeaProjects/<repo>/**)`), so they can be read from here but not changed.
-  It is local and so not in a fresh clone: without it every read outside this repo is refused
-  (`blockReadsOutsideWorkingDirectories`) and the sibling agents cannot see their own repos.
-  Directories are fixed when a session starts - a new file takes effect on the next session,
-  or through `/add-dir` in this one. The deny rules stop Claude's file tools, not a shell
-  command; a change to a sibling repo belongs in a session opened in that repo, under its own
-  CLAUDE.md and hooks.
+- **Sibling access is this session's, not the agent's.** A subagent runs inside the session that
+  starts it and inherits its permissions; its agent file says where to look, the permissions
+  decide whether it may. The gitignored `.claude/settings.local.json` lists all three checkouts
+  under `permissions.additionalDirectories`. It is local and so not in a fresh clone: without it
+  every read outside this repo is refused (`blockReadsOutsideWorkingDirectories`) and the
+  sibling agents cannot see their own repos. Directories are fixed when a session starts - a new
+  file takes effect on the next session, or through `/add-dir` in this one.
+- **The backend and the website can be changed from here; the cluster cannot.** Only
+  `kovostack-infra-gitops` keeps a deny rule (`Edit(//home/kovo/IdeaProjects/kovostack-infra-gitops/**)`),
+  because a merge there is a deploy. The backend and frontend used to be denied too, which only
+  meant a change spanning two repos had to be written up here and pasted into a second session.
+  A deny rule stops Claude's file tools, not a shell command, so it is never to be worked around.
+- **Working in a sibling from here, its own rules have to be read by hand.** This session loaded
+  this repo's CLAUDE.md, skills and hooks - not the sibling's. Before changing one: read its
+  CLAUDE.md, read any skill it names as required (`<repo>/.claude/skills/<name>/SKILL.md`; they
+  are not registered here), and follow its git rules, since its `PreToolUse` hooks do not fire
+  (`$CLAUDE_PROJECT_DIR` is this repo). The backend, for one, commits only when asked, builds
+  with `JAVA_HOME=$HOME/.jdks/openjdk-26.0.2 ./mvnw`, and requires `java-code-standards` and
+  `authentication` before security work. Branch it off its own `main`, and keep the branch name
+  in step with this repo's when the change spans both.
 - **mirrord does not apply here.** The other two repos use it to run a local process inside the
   cluster; this extension runs inside Chrome, which mirrord cannot reach. To develop against real
   data, run the backend under mirrord (`new-tab-links-backend/.mirrord/README.md`) and point this
