@@ -1,8 +1,9 @@
 import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageWrapper";
 import { ObservableValue } from "../../utils/observableValue";
 import { Logger } from "../../utils/logger";
+import deepEqual from "fast-deep-equal";
 
-const SESSION_KEY = "sync_session";
+export const SESSION_KEY = "sync_session";
 
 /**
  *  Token pair as the backend returns it from every endpoint that signs a client in
@@ -48,10 +49,15 @@ export interface SyncSession {
  *
  *  It owns tokens only. Signing out clears this repository and nothing else — the user's
  *  links, groups and profiles are untouched by anything in here.
+ *
+ *  Every open new tab page has an instance of its own, and they must never disagree for long:
+ *  the refresh token is single use, so a page still holding the one another page has just
+ *  spent is a page whose next refresh is refused - and a refused refresh ends the session for
+ *  every page. So each instance adopts what the others write.
  */
 export class SessionRepository {
 
-    private LOG!: Logger;
+    private LOG: Logger = new Logger("SessionRepository");
     private datasource = new ChromeStorageWrapper();
     private session: SyncSession | null = null;
 
@@ -59,12 +65,22 @@ export class SessionRepository {
 
     /** Loads the persisted session, if there is one. Awaited during application startup. */
     public async init(): Promise<void> {
-        this.LOG = new Logger("SessionRepository");
         this.session = await this.datasource.get<SyncSession>(SESSION_KEY);
         this.LOG.debug("init", this.session
             ? `Signed in as ${this.session.username}`
             : "No stored session");
         this.session$.set(this.session);
+        this.watchForWritesFromOtherPages();
+    }
+
+    /**
+     *  Re-reads the stored session and adopts it, for a caller that must not act on a copy
+     *  another page may have replaced a moment ago - the token refresh, above all, which reads
+     *  this while holding the lock every page refreshes under.
+     */
+    public async reload(): Promise<SyncSession | null> {
+        this.adopt(await this.datasource.get<SyncSession>(SESSION_KEY));
+        return this.session;
     }
 
     public getSession(): SyncSession | null {
@@ -113,11 +129,45 @@ export class SessionRepository {
 
     /**
      *  Forgets the tokens. Local data is never part of this — only syncing stops.
+     *
+     *  Every other open page adopts the sign-out too, through chrome.storage.onChanged.
      */
     public async clear(): Promise<void> {
         this.session = null;
         await this.datasource.save<SyncSession | null>(SESSION_KEY, null);
         this.session$.set(null);
+    }
+
+    /**
+     *  Takes over a session another page stored: a refreshed pair, a sign-in, a sign-out.
+     *
+     *  A write this instance made itself arrives here as well and is deep-equal to what it
+     *  holds, so it changes nothing. chrome.storage.onChanged is absent where a test fakes only
+     *  the storage, so its absence is not an error.
+     */
+    private watchForWritesFromOtherPages(): void {
+
+        if (!chrome.storage?.onChanged?.addListener) {
+            return;
+        }
+
+        chrome.storage.onChanged.addListener((changes, areaName) => {
+            if (areaName !== "local" || !(SESSION_KEY in changes)) {
+                return;
+            }
+            this.adopt((changes[SESSION_KEY].newValue as SyncSession | null | undefined) ?? null);
+        });
+    }
+
+    private adopt(stored: SyncSession | null): void {
+        if (deepEqual(stored, this.session)) {
+            return;
+        }
+        this.LOG.debug("adopt", stored
+            ? "Adopting a session another page stored"
+            : "Another page signed out");
+        this.session = stored;
+        this.session$.set(stored);
     }
 }
 

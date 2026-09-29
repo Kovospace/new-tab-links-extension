@@ -5,10 +5,24 @@ import {
 } from "./SyncConfiguration";
 import { installationIdentity } from "./InstallationIdentity";
 import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
-import { SessionRepository, sessionRepository, TokenPairDto } from "./SessionRepository";
+import { SessionRepository, sessionRepository, SyncSession, TokenPairDto } from "./SessionRepository";
 import { Logger } from "../../utils/logger";
+import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { resolveDeviceName } from "./DeviceName";
 import { t } from "../../i18n/i18n";
+
+/** Held by whichever page is trading the refresh token, so that no two pages spend it at once. */
+const TOKEN_REFRESH_LOCK = "tabilinks-token-refresh";
+
+/**
+ *  The answers to a refresh that mean the session is really over.
+ *
+ *  401 is the backend refusing the token - unknown, spent, expired, or its account gone - and
+ *  400 or 403 are refusals no repetition will change. Anything else is the server, not the
+ *  token: a 502 or 503 from the ingress while a new version rolls out, a 500, a 429. Ending the
+ *  session on those signed everybody out whose access token happened to expire during a deploy.
+ */
+const SESSION_ENDING_REFRESH_STATUSES: ReadonlySet<number> = new Set([400, 401, 403]);
 
 /** HTTP methods the backend accepts. */
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -235,7 +249,7 @@ export class BackendApiClient {
             return firstAttempt;
         }
 
-        const refreshed = await this.refreshTokenPair();
+        const refreshed = await this.refreshTokenPair(session);
         if (refreshed.outcome !== "success") {
             return refreshed;
         }
@@ -246,31 +260,52 @@ export class BackendApiClient {
     }
 
     /**
-     *  Trades the stored refresh token for a fresh pair and stores it.
+     *  Trades the refresh token for a fresh pair and stores it.
      *
-     *  The presented token is revoked by the backend in the process, so the returned pair
-     *  has to replace what is stored — and a refusal means the session is genuinely over,
-     *  which is why it clears it. An offline result changes nothing: the token is still
-     *  valid, the network is not.
+     *  The backend revokes the presented token in the process, and every open new tab page
+     *  holds the same one - so this runs under a lock all pages share, and first looks at what
+     *  is stored now. If that is no longer the session whose access token was just refused,
+     *  another page has refreshed in the meantime, and its pair is used rather than a second
+     *  refresh spending a token that is already spent. Without that, the second page's refresh
+     *  was refused and it ended the session for every page.
+     *
+     *  Only a definitive refusal ends the session (`SESSION_ENDING_REFRESH_STATUSES`). Any
+     *  other failure is reported as offline: the token is still good, the server is not, and
+     *  the next synchronisation tries again.
+     *
+     *  @param refusedSession  the session whose access token the backend just refused
      */
-    private async refreshTokenPair(): Promise<ApiResult<TokenPairDto>> {
+    private refreshTokenPair(refusedSession: SyncSession): Promise<ApiResult<SyncSession>> {
+        return withExclusiveLock(TOKEN_REFRESH_LOCK, async () => {
 
-        const session = this.sessions.getSession();
-        if (!session) {
-            return { outcome: "rejected", status: 401, message: notSignedInMessage() };
-        }
+            const stored = await this.sessions.reload();
+            if (!stored) {
+                return { outcome: "rejected", status: 401, message: notSignedInMessage() };
+            }
+            if (stored.refreshToken !== refusedSession.refreshToken) {
+                this.LOG.debug("refreshTokenPair", "Another page already refreshed; using its pair");
+                return { outcome: "success", data: stored };
+            }
 
-        const result = await this.send<TokenPairDto>(
-            AUTH_ENDPOINTS.refresh,
-            this.buildRequest("POST", { refreshToken: session.refreshToken }));
+            const result = await this.send<TokenPairDto>(
+                AUTH_ENDPOINTS.refresh,
+                this.buildRequest("POST", { refreshToken: stored.refreshToken }));
 
-        if (result.outcome === "success") {
-            await this.sessions.storeTokenPair(result.data);
-        } else if (result.outcome === "rejected") {
-            this.LOG.warn("refreshTokenPair", "Refresh token refused, session ended");
-            await this.sessions.clear();
-        }
-        return result;
+            if (result.outcome === "success") {
+                return { outcome: "success", data: await this.sessions.storeTokenPair(result.data) };
+            }
+            if (result.outcome === "offline") {
+                return result;
+            }
+            if (SESSION_ENDING_REFRESH_STATUSES.has(result.status)) {
+                this.LOG.warn("refreshTokenPair", "Refresh token refused, session ended");
+                await this.sessions.clear();
+                return result;
+            }
+            this.LOG.warn("refreshTokenPair",
+                `Refresh failed with ${result.status}; keeping the session for the next attempt`);
+            return { outcome: "offline", message: offlineMessage() };
+        });
     }
 
     /** Assembles a request, with the bearer token when one was given. */

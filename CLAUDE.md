@@ -121,6 +121,15 @@ Rules that are load-bearing, and easy to break by accident:
   collapsed subgroup.
 - **Which profile and which workspace are open is per-device and never synchronized.** The data
   under them is shared; the choice is not.
+- **Only a definitive refusal of the refresh token ends the session** - 400, 401 or 403. A 5xx
+  or 429 on `/refresh` is the server, not the token, and is reported as offline; clearing on it
+  signed out everybody whose access token expired while a deploy was rolling out.
+- **Every open page shares one refresh token, and it is single use.** `SessionRepository`
+  adopts what other pages store (`chrome.storage.onChanged`), and `BackendApiClient` refreshes
+  under a lock all pages share (`utils/exclusiveLock.ts`, the Web Locks API), re-reading the
+  stored session first: if the refresh token changed, another page already refreshed and its
+  pair is used. Two pages spending the same token used to get the second refused, and that
+  page cleared the session for all of them.
 
 ### Background service worker (`src/backend/worker/`)
 
