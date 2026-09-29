@@ -121,6 +121,12 @@ Rules that are load-bearing, and easy to break by accident:
   collapsed subgroup.
 - **Which profile and which workspace are open is per-device and never synchronized.** The data
   under them is shared; the choice is not.
+- **A re-established refresh channel is a reason to pull.** A change notification is sent once
+  and never replayed, so whatever the account announced while the socket was down - a backend
+  pod replaced during a deploy, a laptop asleep - reached nobody. `RefreshChannel.onReconnected`
+  fires on every STOMP session after the first (a deliberate `disconnect()` resets that), and
+  `SyncCoordinator` schedules a pull on it. The first connection does not count: signing in
+  already pulls.
 - **Only a definitive refusal of the refresh token ends the session** - 400, 401 or 403. A 5xx
   or 429 on `/refresh` is the server, not the token, and is reported as offline; clearing on it
   signed out everybody whose access token expired while a deploy was rolling out.
