@@ -17,6 +17,9 @@ export interface DataChangedNotification {
 /** Told when a change lands. */
 export type RefreshListener = (notification: DataChangedNotification) => void;
 
+/** Told when a dropped session has been re-established, as opposed to opened the first time. */
+export type ReconnectListener = () => void;
+
 /** Asked for the access token to authenticate with, each time a connection is opened. */
 export type AccessTokenProvider = () => string | null;
 
@@ -52,6 +55,7 @@ export class RefreshChannel {
 
     private readonly accessTokenProvider: AccessTokenProvider;
     private readonly listeners: Set<RefreshListener> = new Set();
+    private readonly reconnectListeners: Set<ReconnectListener> = new Set();
 
     private socket: WebSocket | null = null;
     private heartbeatTimer: number | null = null;
@@ -63,6 +67,13 @@ export class RefreshChannel {
 
     /** Set once disconnect() is called, so a deliberate close does not reconnect. */
     private closedDeliberately: boolean = false;
+
+    /**
+     *  Whether a STOMP session has been established since the channel was last opened on
+     *  purpose. What tells a reconnection from a first connection; disconnect() resets it,
+     *  because opening again after that is a fresh start whose caller pulls anyway.
+     */
+    private hasBeenConnected: boolean = false;
 
     /**
      *  @param accessTokenProvider  consulted on every connection attempt, so a reconnection
@@ -77,6 +88,19 @@ export class RefreshChannel {
     public onRefresh(listener: RefreshListener): () => void {
         this.listeners.add(listener);
         return () => this.listeners.delete(listener);
+    }
+
+    /**
+     *  Registers a listener for re-established sessions; returns the function that removes it.
+     *
+     *  A notification is sent once and never replayed. Anything the account announced while
+     *  this channel was down - a pod replaced during a deploy, a laptop waking up, a network
+     *  blip - was announced to nobody, so the reconnection itself is the only sign that
+     *  something may have been missed.
+     */
+    public onReconnected(listener: ReconnectListener): () => void {
+        this.reconnectListeners.add(listener);
+        return () => this.reconnectListeners.delete(listener);
     }
 
     /**
@@ -100,6 +124,7 @@ export class RefreshChannel {
     /** Closes the channel and stops reconnecting. Safe to call when already closed. */
     public disconnect(): void {
         this.closedDeliberately = true;
+        this.hasBeenConnected = false;
         this.clearTimers();
 
         if (this.socket) {
@@ -203,6 +228,10 @@ export class RefreshChannel {
                     this.sendSubscribeFrame(this.socket);
                     this.startHeartbeat(this.socket);
                 }
+                if (this.hasBeenConnected) {
+                    this.reconnectListeners.forEach(listener => listener());
+                }
+                this.hasBeenConnected = true;
                 return;
 
             case "MESSAGE":

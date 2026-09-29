@@ -173,6 +173,14 @@ export class SyncCoordinator {
             this.schedulePull();
         });
 
+        // Notifications are not replayed. While the channel was down - a backend pod replaced
+        // during a deploy, the laptop asleep - whatever the account announced reached nobody,
+        // so coming back is itself the reason to look.
+        this.channel.onReconnected(() => {
+            this.LOG.debug("onReconnected", "Refresh channel is back; pulling what it may have missed");
+            this.schedulePull();
+        });
+
         this.appState.persisted$.subscribe(() => this.onLocalChange());
         this.profiles.profiles$.subscribe(() => this.onLocalChange());
 
