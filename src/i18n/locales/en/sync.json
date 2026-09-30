@@ -43,5 +43,9 @@
   "renameDeviceDialog": {
     "title": "Name this device"
   },
-  "deviceNotRenamed": "This device was not renamed - the server could not be reached."
+  "deviceNotRenamed": "This device was not renamed - the server could not be reached.",
+  "signedOutNotice": {
+    "text": "Signed out of {username}",
+    "tooltip": "Sync is paused. Your links stay here and are sent when you log in again."
+  }
 }

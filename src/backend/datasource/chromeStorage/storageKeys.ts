@@ -9,6 +9,20 @@
 /** The profile registry: which profiles exist and which one is loaded. */
 export const PROFILE_REGISTRY_KEY = "profile_registry";
 
+/**
+ *  Where the profiles of an account other than the visible one are kept, hidden.
+ *
+ *  `profile_registry` is always the visible set - every reader of it, the service worker and
+ *  the bookmarking popup included, sees what the page shows. When another account signs in,
+ *  the visible set moves here under its owner, and comes back when that owner signs in again.
+ *  Only the list moves: each profile's data stays under its own key, which is unique anyway.
+ */
+export const HIDDEN_PROFILE_REGISTRY_PREFIX = "profile_registry_";
+
+export function hiddenProfileRegistryKey(accountId: string): string {
+    return HIDDEN_PROFILE_REGISTRY_PREFIX + accountId;
+}
+
 /** Prefix of the key holding one profile's data; the profile identifier completes it. */
 export const APP_STATE_PREFIX = "app_state_";
 

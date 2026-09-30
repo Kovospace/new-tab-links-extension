@@ -110,12 +110,29 @@ Rules that are load-bearing, and easy to break by accident:
   record under the same uuid means one record described two ways, and the account's
   description wins. Only a record the account has never heard of is matched by name, which is
   all two devices that have never met can agree on. Matching on the name first was a data-loss
-  bug: signing out clears the baseline and keeps the data, so a device that comes back still
-  has the account's identifiers, and anything renamed or moved elsewhere meanwhile failed to
+  bug: signing out used to clear the baseline and keep the data, so a device that came back
+  still had the account's identifiers, and anything renamed or moved elsewhere meanwhile failed to
   match, took the "carry it over under its own identifier" branch, and overwrote the account's
   record in the merged map - then pushed it as an upsert, which first contact does not withhold.
   Identity is settled for a whole entity kind before any name is compared, so the outcome
   cannot depend on the order records happen to be iterated in.
+- **Local data belongs to the account it was synchronised with.** The visible profile set
+  (`profile_registry`) carries an `owner`, set when first contact merges it into an account.
+  Signing out changes nothing - the links stay visible, stay that account's, and so does its
+  baseline, which is now kept per account: signing back in pushes what was done meanwhile,
+  deletions included, where a first contact would have withheld them. Another account signing
+  in never merges them: `SyncCoordinator.showProfilesOf` hides the set under
+  `profile_registry_<ownerId>` and shows that account's own - its hidden set if this browser
+  has one, otherwise a single empty placeholder (`awaitingAccount`) that first contact drops
+  once the account's profiles are in. Only the registry moves; profile data keys are unique.
+  Merging the leftovers of whoever signed out last is what sent one person's links into
+  another's account on a shared browser. `push`, `pull` and `mergeWithAccount` each refuse a
+  visible set another account owns, and `pull` refuses one nobody owns yet, since it replaces
+  local data. The swap runs under a cross-page lock from a registry re-read from storage, and
+  every open page reloads when the visible set changes owner (`main.ts`) - a page acting on
+  the registry it loaded at startup would merge the old set into the new account.
+  While signed out with an owned set, the workspace head shows "Signed out of {username}"
+  with a log-in button; a browser whose links belong to no account never shows it.
 - **`persisted$`, not `state$`, is what synchronization listens to.** `state$` is for redrawing
   and is deliberately not fired by `saveQuiet()`; subscribing to it would never synchronize a
   collapsed subgroup.

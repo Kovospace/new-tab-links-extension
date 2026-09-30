@@ -8,6 +8,7 @@ import {
     ACT_ADD_WORKSPACE,
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
+    CLASS_SIGNED_OUT_NOTICE,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
     ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
 } from "../../constants"
@@ -47,6 +48,14 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     /** The search bar in the heading; one element, moved into every redraw of the heading. */
     private searchBar: SearchBar = new SearchBar();
+
+    /**
+     *  "Signed out of {username}", first in the workspace head while nobody is signed in and the
+     *  links on screen belong to an account. One element for the page's lifetime, like the search
+     *  bar: the head is redrawn whenever the workspace changes, and the notice is shown or hidden
+     *  from the account state rather than rebuilt with it.
+     */
+    private signedOutNotice: HTMLElement = this.buildSignedOutNotice();
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
@@ -262,10 +271,44 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         this.accountViewModel.initialize();
         this.accountViewModel.observables.account
-            .subscribe((account: AccountDTO) => accountMenu.updateOptions(
-                account.signedIn
-                    ? this.buildSignedInAccountMenuItems(account)
-                    : this.buildSignedOutAccountMenuItems()));
+            .subscribe((account: AccountDTO) => {
+                accountMenu.updateOptions(
+                    account.signedIn
+                        ? this.buildSignedInAccountMenuItems(account)
+                        : this.buildSignedOutAccountMenuItems());
+                this.updateSignedOutNotice(account);
+            });
+    }
+
+    /** The notice's element, hidden until there is an account to have been signed out of. */
+    private buildSignedOutNotice(): HTMLElement {
+        const noticeElem: HTMLElement = renderContainer([CLASS_SIGNED_OUT_NOTICE]);
+        noticeElem.hidden = true;
+        noticeElem.title = t("sync.signedOutNotice.tooltip");
+        noticeElem.appendChild(renderTextContainer("span", ""));
+        noticeElem.appendChild(renderButton(
+            t("sync.menu.logIn"),
+            "",
+            [],
+            t("sync.menu.logIn"),
+            () => this.logInDialog.show()
+        ));
+        return noticeElem;
+    }
+
+    /**
+     *  Shows the notice while the links on screen belong to an account nobody is signed in to.
+     *
+     *  @param account the account state, whose signedOutOf names that account
+     */
+    private updateSignedOutNotice(account: AccountDTO): void {
+        this.signedOutNotice.hidden = account.signedOutOf === null;
+        const textElem = this.signedOutNotice.querySelector("span");
+        if (textElem) {
+            textElem.textContent = account.signedOutOf === null
+                ? ""
+                : t("sync.signedOutNotice.text", { username: account.signedOutOf });
+        }
     }
 
     /**
@@ -433,6 +476,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // The search bar is the same element on every redraw rather than a new one, so that
         // renaming or switching the workspace does not throw away a query half typed.
         parentElem.replaceChildren(
+            this.signedOutNotice,
             titleSectionElem,
             actionsSectionElem,
             this.searchBar.element()

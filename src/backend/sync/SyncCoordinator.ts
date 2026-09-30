@@ -17,6 +17,7 @@ import { ClosedTab } from "../entity/ClosedTabEntity";
 import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
 
 import { Logger } from "../../utils/logger";
+import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { ObservableValue } from "../../utils/observableValue";
 
 /** How long to wait after a local change before pushing, so a burst becomes one request. */
@@ -24,6 +25,12 @@ const PUSH_DEBOUNCE = 800;
 
 /** How long to wait after being told the account changed elsewhere before pulling. */
 const PULL_DEBOUNCE = 400;
+
+/**
+ *  Held while a sign-in decides whose profiles are visible. Every open new tab page reacts to a
+ *  sign-in, and two deciding at once from what each loaded at startup could both swap the set.
+ */
+const ACCOUNT_TRANSITION_LOCK = "tabilinks-account-transition";
 
 /** What the account menu can say about synchronisation. */
 export type SyncActivity = "idle" | "working" | "offline";
@@ -203,7 +210,10 @@ export class SyncCoordinator {
         if (session && !this.running) {
             this.running = true;
             this.LOG.log("onSessionChanged", `Synchronising account ${session.username}`);
-            await this.enqueue(() => this.beginForAccount(session));
+            await this.enqueue(async () => {
+                await this.showProfilesOf(session);
+                await this.beginForAccount(session);
+            });
             return;
         }
 
@@ -212,10 +222,61 @@ export class SyncCoordinator {
             this.LOG.log("onSessionChanged", "Signed out; synchronisation stopped");
             this.cancelTimers();
             this.channel.disconnect();
-            // The baseline describes an account this device is no longer talking to. The
-            // user's links, groups and profiles are deliberately left exactly as they are.
-            await this.baselines.clear();
+            // Everything stays: the profiles remain visible and remain the account's, and so
+            // does its baseline. Whatever is done to them while signed out is the difference
+            // the next sign-in of the same account pushes - deletions included, which a fresh
+            // first contact would never push.
         }
+    }
+
+    /**
+     *  Makes the signing-in account's profiles the visible ones, when they are not already.
+     *
+     *  Local data belongs to the account it was synchronised with. Another account's profiles
+     *  are never merged into this one: they are hidden, untouched, and come back when their
+     *  owner signs in again. Profiles that belong to no account - a device that has never
+     *  synchronised - are left visible for first contact to merge, as before.
+     *
+     *  The registry is read from storage under a lock rather than trusted from memory, because
+     *  every open new tab page reacts to the sign-in and only one of them may make the swap.
+     */
+    private async showProfilesOf(session: SyncSession): Promise<void> {
+        const signingIn = { accountId: session.userId, username: session.username };
+
+        const swapped = await withExclusiveLock(ACCOUNT_TRANSITION_LOCK, async () => {
+            await this.profiles.reload();
+            const owner = this.profiles.getOwner();
+
+            if (!owner) {
+                // Synchronised with this account before ownership was recorded: its baseline
+                // says so, and those profiles are this account's.
+                if (this.baselines.getFor(session.userId)) {
+                    await this.profiles.claimFor(signingIn);
+                }
+                return false;
+            }
+            if (owner.accountId === session.userId) {
+                return false;
+            }
+            this.LOG.log("showProfilesOf",
+                `Hiding ${owner.username}'s profiles; showing ${session.username}'s`);
+            await this.profiles.showAccount(signingIn);
+            return true;
+        });
+
+        if (swapped) {
+            await this.reloadActiveProfile();
+        }
+    }
+
+    /**
+     *  Whether the visible profiles may be synchronised with this account: they are its own, or
+     *  nobody's yet. The last line of defence against another account's links reaching this one,
+     *  whatever path led here.
+     */
+    private visibleProfilesBelongTo(session: SyncSession): boolean {
+        const owner = this.profiles.getOwner();
+        return owner === null || owner.accountId === session.userId;
     }
 
     /**
@@ -228,7 +289,7 @@ export class SyncCoordinator {
 
         await this.makeLocalIdentifiersStorable();
 
-        if (this.baselines.getFor(session.userId) === null) {
+        if (this.baselines.getFor(session.userId) === null || this.profiles.isAwaitingAccount()) {
             await this.mergeWithAccount(session);
         } else {
             await this.pushThenPull();
@@ -247,6 +308,11 @@ export class SyncCoordinator {
      *  device ends up naming it the same way, and its contents go through the merge rules.
      */
     private async mergeWithAccount(session: SyncSession): Promise<void> {
+
+        if (!this.visibleProfilesBelongTo(session)) {
+            this.LOG.warn("mergeWithAccount", "Visible profiles belong to another account; not merging");
+            return;
+        }
 
         const snapshot = await this.fetchSnapshot();
         if (!snapshot) {
@@ -268,7 +334,11 @@ export class SyncCoordinator {
         // considered first.
         const pairedByIdentity = this.pairProfilesByIdentity(unpairedRemoteProfiles);
 
-        for (const local of this.profiles.getProfiles()) {
+        // A placeholder that stood in for this account's profiles is set aside, not merged: an
+        // empty "Default" the account has no counterpart for would otherwise be pushed to it.
+        const placeholders = await this.emptyPlaceholdersToReplace(snapshot);
+
+        for (const local of this.profiles.getProfiles().filter(profile => !placeholders.has(profile.id))) {
             const remote = pairedByIdentity.get(local.id)
                 ?? this.takeRemoteCounterpart(candidatesByName, unpairedRemoteProfiles, local);
 
@@ -303,6 +373,12 @@ export class SyncCoordinator {
                         ?? SyncSnapshotMapper.emptyProfileData()));
         }
 
+        // Only now, with the account's profiles in place, so that the set is never empty.
+        for (const placeholderId of placeholders) {
+            await this.profiles.removeProfile(placeholderId);
+            await this.appState.discardProfileData(placeholderId);
+        }
+
         // The baseline is what the account holds, not what this device now holds, so the push
         // that follows carries exactly the local additions the merge kept.
         await this.baselines.store(session.userId, {
@@ -311,6 +387,10 @@ export class SyncCoordinator {
             closedTabsByProfileId: snapshot.closedTabsByProfileId,
             closedTabsSupported: snapshot.closedTabsSupported
         });
+
+        // From here the visible profiles are this account's.
+        await this.profiles.markAccountArrived();
+        await this.profiles.claimFor({ accountId: session.userId, username: session.username });
 
         await this.reloadActiveProfile();
         await this.push(FIRST_CONTACT);
@@ -472,8 +552,13 @@ export class SyncCoordinator {
             return;
         }
 
+        if (!this.visibleProfilesBelongTo(session)) {
+            this.LOG.warn("push", "Visible profiles belong to another account; not pushing");
+            return;
+        }
+
         const baseline = this.baselines.getFor(session.userId);
-        if (!baseline) {
+        if (!baseline || this.profiles.isAwaitingAccount()) {
             // This device has never synchronised this account, which normally means the merge
             // at sign-in could not reach the server. Retry it here rather than waiting for a
             // reload, and stop: merging ends by pushing anyway. Pushing without having merged
@@ -615,6 +700,13 @@ export class SyncCoordinator {
 
         const session = this.sessions.getSession();
         if (!session) {
+            return;
+        }
+        // A pull replaces the visible profiles with the account's, so it needs them to be the
+        // account's already - merged and claimed. Pulling over another account's profiles would
+        // overwrite them; pulling over profiles nobody has merged yet would discard them.
+        if (this.profiles.getOwner()?.accountId !== session.userId) {
+            this.LOG.warn("pull", "Visible profiles are not this account's yet; not pulling");
             return;
         }
         const snapshot = await this.fetchSnapshot();
@@ -877,6 +969,31 @@ export class SyncCoordinator {
     }
 
     /** Reloads whatever is now stored for the active profile, so the page shows it. */
+    /**
+     *  The placeholder profiles to drop in favour of what the account holds.
+     *
+     *  Only while the visible set is still awaiting its account, only when the account has
+     *  profiles to take their place, and only placeholders that are still empty - anything the
+     *  user put in one while waiting was put there as this account, and is merged like any
+     *  other local profile.
+     *
+     *  @param snapshot what the account holds
+     *  @return the identifiers of the placeholders to drop
+     */
+    private async emptyPlaceholdersToReplace(snapshot: MappedSnapshot): Promise<Set<string>> {
+        if (!this.profiles.isAwaitingAccount() || snapshot.profiles.length === 0) {
+            return new Set();
+        }
+        const empty = new Set<string>();
+        for (const profile of this.profiles.getProfiles()) {
+            const data = await this.readProfileData(profile.id);
+            if (!data || Object.keys(data.environments).length === 0) {
+                empty.add(profile.id);
+            }
+        }
+        return empty;
+    }
+
     private async reloadActiveProfile(): Promise<void> {
         this.applyingRemoteState = true;
         try {

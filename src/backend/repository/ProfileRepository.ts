@@ -7,11 +7,37 @@ import { DEFAULT_PROFILE_ID } from "../datasource/init/AppStateInit";
 import { uid } from "./AppStateRepositoryUtils";
 import { isStorableName } from "../sync/SyncContracts";
 import { Logger } from "../../utils/logger";
-import { PROFILE_REGISTRY_KEY } from "../datasource/chromeStorage/storageKeys";
+import { hiddenProfileRegistryKey, PROFILE_REGISTRY_KEY } from "../datasource/chromeStorage/storageKeys";
 
+/** The account a set of profiles belongs to. */
+export interface RegistryOwner {
+    accountId: string;
+    username: string;
+}
+
+/**
+ *  One set of profiles: which of them is open, and whose they are.
+ *
+ *  The visible set is stored under `profile_registry`; the sets of other accounts that have
+ *  used this browser are stored hidden, one per account (see `hiddenProfileRegistryKey`).
+ */
 export interface ProfileRegistry {
     activeProfileId: string;
     profiles: Record<string, ProfileMeta>;
+
+    /**
+     *  The account these profiles belong to. Absent or null while they belong to none - a
+     *  device that has never synchronised - and set the first time they reach an account.
+     *  Device-local: never part of anything pushed.
+     */
+    owner?: RegistryOwner | null;
+
+    /**
+     *  Set on a set made for an account whose data has not reached this device yet: a single
+     *  empty placeholder profile, standing in until the account answers. What the account holds
+     *  then replaces it rather than being merged with it.
+     */
+    awaitingAccount?: boolean;
 }
 
 export class ProfileRepository {
@@ -21,6 +47,13 @@ export class ProfileRepository {
     private registry!: ProfileRegistry;
 
     readonly profiles$ = new ObservableValue<ProfileMeta[]>([]);
+
+    /**
+     *  Whose profiles are visible, as stored - updated when another page of the extension
+     *  changes it too, which is how every open new tab page learns that another account's
+     *  profiles have taken over and redraws itself.
+     */
+    readonly owner$ = new ObservableValue<RegistryOwner | null>(null);
 
     public async init(): Promise<void> {
         this.LOG = new Logger("ProfileRepository");
@@ -35,6 +68,126 @@ export class ProfileRepository {
             await this.saveRegistry();
         }
         this.profiles$.set(Object.values(this.registry.profiles));
+        this.owner$.set(this.getOwner());
+        this.watchOwnerChangesInOtherPages();
+    }
+
+    /**
+     *  Reads the visible set from storage again, dropping whatever this page held in memory.
+     *
+     *  For decisions that another page may already have made: every open new tab page reacts to
+     *  a sign-in, and one that decided from the registry it loaded at startup could act on a set
+     *  that has since been replaced.
+     */
+    public async reload(): Promise<void> {
+        const saved = await this.datasource.get<ProfileRegistry>(PROFILE_REGISTRY_KEY);
+        if (!saved) {
+            return;
+        }
+        this.registry = saved;
+        await this.repairRegistryIfUnusable();
+        this.profiles$.set(Object.values(this.registry.profiles));
+        this.owner$.set(this.getOwner());
+    }
+
+    /** Whose profiles are visible, or null while they belong to no account. */
+    public getOwner(): RegistryOwner | null {
+        return this.registry.owner ?? null;
+    }
+
+    /** Whether the visible set is a placeholder still waiting for its account's data. */
+    public isAwaitingAccount(): boolean {
+        return this.registry.awaitingAccount === true;
+    }
+
+    /**
+     *  Records that the visible profiles belong to an account, once they have reached it.
+     *  A set that already has an owner keeps it.
+     */
+    public async claimFor(owner: RegistryOwner): Promise<void> {
+        if (this.registry.owner) {
+            return;
+        }
+        this.registry = { ...this.registry, owner };
+        await this.saveRegistry();
+        this.owner$.set(owner);
+    }
+
+    /** The account's data has arrived; the visible set is no longer a placeholder. */
+    public async markAccountArrived(): Promise<void> {
+        if (!this.registry.awaitingAccount) {
+            return;
+        }
+        const { awaitingAccount: _arrived, ...registry } = this.registry;
+        this.registry = registry;
+        await this.saveRegistry();
+    }
+
+    /**
+     *  Makes an account's profiles the visible ones, hiding the set that was visible.
+     *
+     *  The visible set is kept under its owner, untouched, and comes back when that owner signs
+     *  in again. The account's own set comes back if this device has held it before; otherwise
+     *  the account starts from a single empty placeholder profile, marked as awaiting the
+     *  account, which what the account holds replaces when it arrives. Never the seeded example
+     *  data, which first contact would push into the account.
+     *
+     *  Only the lists move. Each profile's data is stored under its own identifier, and those
+     *  are unique across accounts.
+     *
+     *  @param owner the account signing in
+     */
+    public async showAccount(owner: RegistryOwner): Promise<void> {
+        const visibleOwner = this.getOwner();
+        if (visibleOwner) {
+            await this.datasource.save(hiddenProfileRegistryKey(visibleOwner.accountId), this.registry);
+        }
+
+        const hiddenKey = hiddenProfileRegistryKey(owner.accountId);
+        const hidden = await this.datasource.get<ProfileRegistry>(hiddenKey);
+        this.registry = hidden
+            ? { ...hidden, owner }
+            : this.placeholderRegistryFor(owner);
+        await this.saveRegistry();
+        if (hidden) {
+            await this.datasource.save<ProfileRegistry | null>(hiddenKey, null);
+        }
+
+        this.LOG.log("showAccount", hidden
+            ? `Showing the profiles ${owner.username} left on this device`
+            : `Waiting for ${owner.username}'s profiles to arrive`);
+        this.profiles$.set(Object.values(this.registry.profiles));
+        this.owner$.set(owner);
+    }
+
+    /** A set holding one empty profile, standing in for an account's own until they arrive. */
+    private placeholderRegistryFor(owner: RegistryOwner): ProfileRegistry {
+        const id = uid();
+        return {
+            activeProfileId: id,
+            profiles: { [id]: { id, name: "Default", createdAt: Date.now() } },
+            owner,
+            awaitingAccount: true
+        };
+    }
+
+    /**
+     *  Follows the owner of the visible set when another page of the extension changes it.
+     *
+     *  chrome.storage.onChanged is absent in the tests, which fake the storage rather than the
+     *  whole API, so its absence is not an error.
+     */
+    private watchOwnerChangesInOtherPages(): void {
+        if (!chrome.storage?.onChanged?.addListener) {
+            return;
+        }
+        chrome.storage.onChanged.addListener((changes, areaName) => {
+            if (areaName !== "local" || !(PROFILE_REGISTRY_KEY in changes)) {
+                return;
+            }
+            const stored = changes[PROFILE_REGISTRY_KEY].newValue as ProfileRegistry | undefined;
+            this.owner$.set(stored?.owner ?? null);
+        });
     }
 
     /**
@@ -54,7 +207,7 @@ export class ProfileRepository {
 
         if (Object.keys(this.registry.profiles).length === 0) {
             this.LOG.debug("repairRegistryIfUnusable", "Registry holds no profiles; reseeding");
-            this.registry = this.seededRegistry();
+            this.registry = { ...this.seededRegistry(), owner: this.registry.owner ?? null };
             await this.saveRegistry();
             return;
         }

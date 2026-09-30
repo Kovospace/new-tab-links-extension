@@ -6,6 +6,7 @@ import { SyncActivity, syncCoordinator, SyncRejectionNotice } from "../backend/s
 import { DeviceNameReconciler, DeviceNameVerdict } from "../backend/sync/DeviceNameReconciler";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { accountStandingRepository, AccountStandingRepository } from "../backend/sync/AccountStandingRepository";
+import { profileRepository, ProfileRepository, RegistryOwner } from "../backend/repository/ProfileRepository";
 import { ChoiceDialog } from "../ui/partials/choiceDialog";
 import { InputDialog } from "../ui/partials/inputDialog";
 
@@ -24,6 +25,13 @@ export interface AccountDTO {
 
     /** Whether the account is premium, which takes the upgrade offer out of the menu. */
     premium: boolean;
+
+    /**
+     *  Whose links are on screen while nobody is signed in: the account they belong to, which
+     *  this browser was signed out of. Null while signed in, and on a browser whose links
+     *  belong to no account - a fresh install is never told it was signed out.
+     */
+    signedOutOf: string | null;
 }
 
 /**
@@ -45,15 +53,17 @@ export class SyncAccountViewModel {
 
     public readonly observables = {
         account: new ObservableValue<AccountDTO>(
-            { signedIn: false, username: null, syncStatus: null, premium: false })
+            { signedIn: false, username: null, syncStatus: null, premium: false, signedOutOf: null })
     };
 
     /** Last known session and synchronisation state, combined into the DTO on any change. */
     private session: SyncSession | null = null;
     private activity: SyncActivity = "idle";
     private premium: boolean = false;
+    private profilesOwner: RegistryOwner | null = null;
 
     private standing: AccountStandingRepository;
+    private profiles: ProfileRepository;
 
     /**
      *  @param apiClient  talks to the backend; the singleton in normal use.
@@ -62,11 +72,13 @@ export class SyncAccountViewModel {
     constructor(
         apiClient: BackendApiClient = backendApiClient,
         sessions: SessionRepository = sessionRepository,
-        standing: AccountStandingRepository = accountStandingRepository
+        standing: AccountStandingRepository = accountStandingRepository,
+        profiles: ProfileRepository = profileRepository
     ) {
         this.apiClient = apiClient;
         this.sessions = sessions;
         this.standing = standing;
+        this.profiles = profiles;
         this.deviceNames = new DeviceNameReconciler(apiClient, sessions);
     }
 
@@ -82,6 +94,10 @@ export class SyncAccountViewModel {
         });
         this.standing.premium$.subscribe((premium: boolean) => {
             this.premium = premium;
+            this.publishAccount();
+        });
+        this.profiles.owner$.subscribe((owner: RegistryOwner | null) => {
+            this.profilesOwner = owner;
             this.publishAccount();
         });
         syncCoordinator.rejections$.subscribe((notice: SyncRejectionNotice | null) => {
@@ -125,7 +141,8 @@ export class SyncAccountViewModel {
             signedIn: this.session !== null,
             username: this.session?.username ?? null,
             syncStatus: this.session === null ? null : this.describeActivity(),
-            premium: this.session !== null && this.premium
+            premium: this.session !== null && this.premium,
+            signedOutOf: this.session === null ? this.profilesOwner?.username ?? null : null
         });
     }
 

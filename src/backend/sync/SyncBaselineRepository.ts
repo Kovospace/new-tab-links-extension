@@ -4,67 +4,67 @@ import { Logger } from "../../utils/logger";
 
 const BASELINE_KEY = "sync_baseline";
 
-/** The baseline, together with whose account it describes. */
-interface StoredBaseline extends SyncBaseline {
+/** Every account's baseline this device holds, by the account's user id. */
+type StoredBaselines = Record<string, SyncBaseline>;
+
+/**
+ *  The shape stored before baselines were kept per account: one baseline, naming its account.
+ *  Read once, on the way to the current shape.
+ */
+interface SingleAccountBaseline extends SyncBaseline {
     accountUserId: string;
 }
 
 /**
- *  Remembers what the account is believed to hold, so the next push can send only what
- *  changed since.
+ *  What each account is believed to hold, as of the last synchronisation this device had with it.
  *
- *  It is written only after the server has confirmed something - a successful push, or a
- *  snapshot just applied. That is what makes an interrupted push harmless: the baseline still
- *  describes the last state the server actually acknowledged, so the next attempt computes
- *  the same work again rather than assuming it was done.
- *
- *  The account is recorded alongside it because a baseline is meaningless against a different
- *  account. Signing in as somebody else must not be able to diff one person's links against
- *  another's and conclude that everything was deleted.
+ *  **One per account, kept across sign-out.** It used to be a single slot, cleared when the user
+ *  signed out. Local data now belongs to an account and stays on the device after sign-out - so
+ *  when that account signs in again, the difference between its baseline and its data is exactly
+ *  what was done meanwhile, deletions included. Without the baseline the return would be a first
+ *  contact, and first contact never pushes a deletion: a link removed while signed out would come
+ *  back from the account.
  */
 export class SyncBaselineRepository {
 
     private LOG: Logger = new Logger("SyncBaselineRepository");
     private datasource = new ChromeStorageWrapper();
-    private stored: StoredBaseline | null = null;
+    private stored: StoredBaselines = {};
 
-    /** Loads the persisted baseline, if there is one. */
     public async init(): Promise<void> {
-        this.stored = await this.datasource.get<StoredBaseline>(BASELINE_KEY);
-        this.LOG.debug("init", this.stored ? "Baseline restored" : "No baseline yet");
+        const saved = await this.datasource.get<StoredBaselines | SingleAccountBaseline>(BASELINE_KEY);
+        this.stored = SyncBaselineRepository.inCurrentShape(saved);
+        this.LOG.debug("init", `Baselines restored for ${Object.keys(this.stored).length} account(s)`);
     }
 
-    /**
-     *  The baseline for one account, or null when this device has never synchronised it.
-     *
-     *  A null answer is what tells the coordinator that this is a first connection, and that
-     *  the account's data has to be merged with what is already here rather than replacing it.
-     */
     public getFor(accountUserId: string): SyncBaseline | null {
-        if (!this.stored || this.stored.accountUserId !== accountUserId) {
-            return null;
-        }
-        // Everything that was stored, minus the account it belongs to - never a list of
-        // fields picked out by hand. This used to name two of them, and a baseline that
-        // forgets part of what the account holds is a device that offers that part again on
-        // every synchronisation, for ever. Closed tabs were added to the baseline and not to
-        // this line, so every push carried the whole list, every push drew a change
-        // notification, and a second connected browser answered each one with a push of its
-        // own. Nothing was wrong with the data; the two simply never ran out of things to say.
-        const { accountUserId: _account, ...baseline } = this.stored;
-        return baseline;
+        // Handed back whole, never field by field. This used to name two of the fields, and a
+        // baseline that forgets part of what the account holds is a device that offers that part
+        // again on every synchronisation, for ever. Closed tabs were added to the baseline and not
+        // to that line, so every push carried the whole list, every push drew a change
+        // notification, and a second connected browser answered each one with a push of its own.
+        return this.stored[accountUserId] ?? null;
     }
 
-    /** Records what the account is now known to hold. */
     public async store(accountUserId: string, baseline: SyncBaseline): Promise<void> {
-        this.stored = { accountUserId, ...baseline };
+        this.stored = { ...this.stored, [accountUserId]: baseline };
         await this.datasource.save(BASELINE_KEY, this.stored);
     }
 
-    /** Forgets the baseline, on sign-out. The user's own data is not touched. */
-    public async clear(): Promise<void> {
-        this.stored = null;
-        await this.datasource.save(BASELINE_KEY, null);
+    /**
+     *  Reads whatever was stored into one baseline per account.
+     *
+     *  @param saved the stored value: the current map, the older single baseline, or nothing
+     */
+    private static inCurrentShape(saved: StoredBaselines | SingleAccountBaseline | null): StoredBaselines {
+        if (!saved) {
+            return {};
+        }
+        if (typeof (saved as SingleAccountBaseline).accountUserId === "string") {
+            const { accountUserId, ...baseline } = saved as SingleAccountBaseline;
+            return { [accountUserId]: baseline };
+        }
+        return saved as StoredBaselines;
     }
 }
 

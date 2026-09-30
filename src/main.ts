@@ -140,6 +140,21 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
         rootContainerElem.appendChild(workspaceElement);
     }
 
+    // Another account's profiles have replaced the ones this page was built from - a sign-in
+    // here or in another tab. Everything on the page was drawn from the old set, so it starts
+    // again from the new one, exactly as a language change does. A set being claimed by the
+    // account it was just merged into changes nothing on screen, so only a change from one
+    // account to another counts.
+    let shownOwner = profileRepository.getOwner()?.accountId ?? null;
+    profileRepository.owner$.subscribe(owner => {
+        const newOwner = owner?.accountId ?? null;
+        if (shownOwner !== null && newOwner !== null && newOwner !== shownOwner) {
+            window.location.reload();
+            return;
+        }
+        shownOwner = newOwner ?? shownOwner;
+    });
+
     // A language change reloads the page, because that is the only way to redraw an interface
     // whose strings were all read as it was built. This is what brings the user back to the
     // screen they were standing on when they asked for it.

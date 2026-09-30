@@ -107,7 +107,7 @@ link-subgroup-body.rolled {
 }
 
 link-subgroup-body > link-container:first-child {
-    margin-top: 0.75em;
+    margin-top: 0.25em;
 }
 
 /* Link count badge — visible only when the subgroup is collapsed */
