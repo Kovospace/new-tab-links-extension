@@ -476,10 +476,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // The search bar is the same element on every redraw rather than a new one, so that
         // renaming or switching the workspace does not throw away a query half typed.
         parentElem.replaceChildren(
-            this.signedOutNotice,
             titleSectionElem,
             actionsSectionElem,
-            this.searchBar.element()
+            this.searchBar.element(),
+            this.signedOutNotice
         );
 
         // reattach listeners because child elements of workspace heading was replaced
