@@ -50,8 +50,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     private searchBar: SearchBar = new SearchBar();
 
     /**
-     *  "Signed out of {username}", first in the workspace head while nobody is signed in and the
-     *  links on screen belong to an account. One element for the page's lifetime, like the search
+     *  "Signed out of {username}", last in the workspace head - pushed to its right end - while
+     *  nobody is signed in and the links on screen belong to an account. One element for the page's lifetime, like the search
      *  bar: the head is redrawn whenever the workspace changes, and the notice is shown or hidden
      *  from the account state rather than rebuilt with it.
      */
