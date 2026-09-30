@@ -62,6 +62,25 @@ describe("InputDialog", () => {
         expect(document.querySelector('dialog')).toBeNull();
     });
 
+    /**
+     *  The dialog focuses its first field as it opens, so leaving that field is the first thing
+     *  anybody does. Counting that as having touched it printed "is required" under a field the
+     *  user had not typed a character into.
+     */
+    it("says nothing about a field the user has only moved through", () => {
+        new InputDialog("Log in", {
+            "Username": { type: "string", required: true },
+            "Password": { type: "password", required: true }
+        }, vi.fn()).show();
+
+        inputs()[0].dispatchEvent(new Event('blur'));
+        inputs()[1].dispatchEvent(new Event('focus'));
+        inputs()[1].dispatchEvent(new Event('blur'));
+
+        expect(errors()).toEqual([]);
+        expect(ok().disabled).toBe(true);
+    });
+
     it("refuses a javascript address, and assumes https for one typed without a scheme", () => {
         const confirmed = vi.fn();
         new InputDialog("Add link", {

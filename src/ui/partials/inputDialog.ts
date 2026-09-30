@@ -63,7 +63,7 @@ interface FieldRef {
   constraints: FieldConstraints;
   el: HTMLInputElement;
   errorEl: HTMLElement;
-  /** Whether the user has touched it yet; an untouched field is not told off. */
+  /** Whether the user has typed into it, or it arrived prefilled; an untouched field is not told off. */
   touched: boolean;
 }
 
@@ -79,8 +79,9 @@ interface FieldRef {
  *
  * **A dialog does not open shouting.** An empty required field is a reason to leave the
  * confirming button disabled, and not yet a reason to print a complaint under a field the user
- * has not reached: the message appears once a field has been touched, or as soon as somebody
- * tries to confirm anyway.
+ * has not reached: the message appears once something has been typed into the field, or as
+ * soon as somebody tries to confirm anyway. Merely leaving a field does not count - the dialog
+ * focuses its first field itself, so that would complain about a field the user never chose.
  */
 export class InputDialog {
 
@@ -195,13 +196,10 @@ export class InputDialog {
       };
       this.fieldRefs.push(ref);
 
+      // Typing is what touches a field - not focus leaving it. The dialog focuses its first
+      // field as it opens, so leaving that field is the first thing anyone does: clicking on to
+      // the second one printed "is required" under the first before a key had been pressed.
       input.addEventListener('input', () => {
-        ref.touched = true;
-        this.revalidate();
-      });
-      // Leaving a field the user has been in is the moment to say what is wrong with it, even
-      // if they never typed anything.
-      input.addEventListener('blur', () => {
         ref.touched = true;
         this.revalidate();
       });
