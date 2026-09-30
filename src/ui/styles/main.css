@@ -159,6 +159,15 @@ span
     display: block;
 }
 
+/* The rule above gives every div and span an explicit display, and any author display beats the
+   hidden attribute - so an element given `hidden` stayed on screen. Every component that used
+   the attribute had to add its own [hidden] rule; the input dialog's error messages did not, and
+   every one of them was visible the moment the dialog opened. This makes the attribute mean what
+   it says everywhere. !important because it has to beat the rule above and any later one. */
+[hidden] {
+    display: none !important;
+}
+
 h1 {
     font-size: 2em;
 }
