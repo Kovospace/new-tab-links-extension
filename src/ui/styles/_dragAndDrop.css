@@ -116,17 +116,13 @@ link-group.dnd-over-after::after {
     box-shadow: inset 0 0 0 0.125em var(--color-button-active-background);
 }
 
-/* A group and a subgroup are each dragged by their whole selves, so the heading
-   is what the cursor should be over to start. The links keep their own pointer,
-   since dragging one starts from anywhere on it. */
-link-subgroup[draggable="true"] > link-subgroup-head {
-    cursor: grab;
-}
-
-link-subgroup[draggable="true"]:active > link-subgroup-head {
-    cursor: grabbing;
-}
-
+/* The grab cursor goes only where a press has nothing else to do. A group's
+   heading is such a place, so it says "grab". A link opens and a subgroup's
+   heading folds it when clicked, so both keep their pointer even though they
+   can be dragged too: the cursor promises what a click will do, and grabbing
+   there - every link but the bare text of its anchor - read as "this does not
+   open". A drag still starts from them; the browser draws its own cursor once
+   it does. */
 link-group[draggable="true"] > link-group-head {
     cursor: grab;
 }
@@ -144,13 +140,9 @@ link-subgroup-head.dnd-over-into {
    A link is picked up from anywhere on it, its name and icon included. The text
    is not selectable while it can be dragged, because a press on text starts a
    selection and the drag never begins - the same reason the anchor inside it is
-   told not to drag itself.
+   told not to drag itself. Its cursor stays the pointer from link.css - see the
+   grab rule above.
 */
 link-container[draggable="true"] {
-    cursor: grab;
     user-select: none;
-}
-
-link-container[draggable="true"]:active {
-    cursor: grabbing;
 }

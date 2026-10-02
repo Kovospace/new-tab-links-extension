@@ -36,10 +36,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [medium] Cursor icon over items always drag and drop
-- cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
-  then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
-
 ### [small] Enable drag and drop by default
 - self-explanatory
 
@@ -54,6 +50,15 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+### [medium] Cursor icon over items always drag and drop
+- cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
+  then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
+- DONE: links and subgroup headings wore cursor: grab whenever drag and drop was on, so
+  everywhere on a link but its anchor's text said grab - yet a click there opens it, and a
+  click on a subgroup heading folds it. Both keep the pointer now; a group heading (a click
+  does nothing there) and a closed tab's row outside its text still say grab
+- a stylesheet contract test, failing against the old rules
+
 ### [high] Changing size in settings does not change link's icons size
 - self-explanatory
 - DONE: a link's favicon was sized only by its img's width and height attributes, which are

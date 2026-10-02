@@ -445,6 +445,10 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   can look a closed tab up - nor should have to reach into the panel to do it. The tab stays in
   the panel afterwards and is marked as kept; it is a record of something that happened, and it
   happened whether or not the page has since been saved.
+- **The grab cursor goes only where a click does nothing else.** A link opens and a subgroup's
+  heading folds when clicked, so both keep the pointer although they can be dragged; a group's
+  heading and a closed tab's row outside its text are grabbed. A cursor that says "grab" over a
+  link reads as "this does not open" (`test/ui/styles/dragCursor.test.ts`).
 - **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
   group's root-level links, so it can be dropped beside one of them; its own links travel with
   it, because a link names the group it is in as well as the subgroup, and one left behind
