@@ -45,5 +45,11 @@
     "change": "Zmeniť obrázok…",
     "remove": "Odstrániť",
     "failed": "Tento súbor sa nedá použiť ako pozadie. Skúste iný obrázok."
+  },
+  "bookmarkShortcut": {
+    "title": "Skratka na uloženie stránky",
+    "explanation": "Klávesy, ktoré uložia stránku, na ktorej práve ste, do Tabilinks. Chrome ich dovoľuje zmeniť len na svojej stránke skratiek - nastavte tam Ctrl+D a stránka sa uloží sem namiesto záložiek Chromu.",
+    "notSet": "Nenastavená",
+    "change": "Zmeniť v Chrome…"
   }
 }

@@ -204,6 +204,56 @@ describe("SettingsViewModel, the closed-tabs opening delay", () => {
     });
 });
 
+describe("SettingsViewModel, the bookmarking shortcut", () => {
+
+    let shortcut: string | null;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        shortcut = "Alt+Shift+D";
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences, undefined, undefined,
+            async () => shortcut);
+        settings.refresh();
+    });
+
+    const row = () => {
+        const setting = settings.observables.settings.get().categories[0].settings
+            .find(one => one.kind === "shortcut");
+        if (!setting || setting.kind !== "shortcut") {
+            throw new Error("no shortcut on the first category");
+        }
+        return setting;
+    };
+
+    it("sits in UI and behavior and shows what Chrome has it bound to", async () => {
+        await settings.refreshShortcut();
+
+        expect(row().shortcut).toBe("Alt+Shift+D");
+        expect(row().display).toBe("Alt+Shift+D");
+    });
+
+    it("says so when nothing is bound", async () => {
+        shortcut = null;
+        await settings.refreshShortcut();
+
+        expect(row().shortcut).toBeNull();
+        expect(row().display).toBe("Not set");
+    });
+
+    it("shows a shortcut changed elsewhere once it is asked again", async () => {
+        // It is changed on Chrome's page in another tab; the dialog asks again on focus.
+        await settings.refreshShortcut();
+        shortcut = "Ctrl+D";
+        await settings.refreshShortcut();
+
+        expect(row().display).toBe("Ctrl+D");
+    });
+});
+
 describe("SettingsViewModel, language and local customs", () => {
 
     let profiles: ProfileRepository;

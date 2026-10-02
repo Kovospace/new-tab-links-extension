@@ -1,7 +1,7 @@
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { settingsOf } from "../backend/entity/ProfileSettings";
 
-import { randomTipIndex, textOf, TIPS, urlOf } from "../ui/tips/tipsCatalogue";
+import { buttonLabelOf, randomTipIndex, textOf, TIPS, urlOf } from "../ui/tips/tipsCatalogue";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 
@@ -16,6 +16,9 @@ export interface TipDTO {
 
     /** Where "tell me more" leads, or null when the tip explains itself. */
     url: string | null;
+
+    /** What the button says, when the tip names its own words for it; null means "tell me more". */
+    buttonLabel: string | null;
 
     /** Whether there is more than one tip, which is what makes the arrows worth drawing. */
     navigable: boolean;
@@ -138,6 +141,7 @@ export class TipsViewModel {
                 id: tip.id,
                 text: textOf(tip),
                 url: urlOf(tip),
+                buttonLabel: buttonLabelOf(tip),
                 navigable: TIPS.length > 1
             }
         };

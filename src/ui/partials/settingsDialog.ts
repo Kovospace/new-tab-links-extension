@@ -1,6 +1,6 @@
 import {
   ChoiceSettingDTO, ImageSettingDTO, RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO,
-  SettingsViewModel, ToggleSettingDTO
+  SettingsViewModel, ShortcutSettingDTO, ToggleSettingDTO
 } from '../../viewModel/settingsViewModel';
 import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
@@ -71,6 +71,12 @@ export class SettingsDialog {
   private listEl: HTMLElement | null = null;
   private unsubscribe: (() => void) | null = null;
 
+  /**
+   * Re-reads the shortcut when the page gets the focus back: it is changed on Chrome's own page,
+   * in another tab, and somebody returning from there expects to see what they just set.
+   */
+  private readonly regainedFocus = () => void this.viewModel.refreshShortcut();
+
   /** Set when the last picture chosen could not be used; said under the setting until the next. */
   private imageFailed = false;
 
@@ -94,6 +100,8 @@ export class SettingsDialog {
     toggleOverlay(true);
 
     this.viewModel.refresh();
+    void this.viewModel.refreshShortcut();
+    window.addEventListener('focus', this.regainedFocus);
   }
 
   private hide(): void {
@@ -102,6 +110,7 @@ export class SettingsDialog {
 
   /** Detaches the subscription and the element; the dialog is rebuilt on the next open. */
   private dispose(): void {
+    window.removeEventListener('focus', this.regainedFocus);
     this.unsubscribe?.();
     this.unsubscribe = null;
     toggleOverlay(false);
@@ -206,6 +215,8 @@ export class SettingsDialog {
         return this.buildChoice(setting);
       case 'image':
         return this.buildImage(setting);
+      case 'shortcut':
+        return this.buildShortcut(setting);
       default:
         return this.buildRange(setting);
     }
@@ -311,6 +322,52 @@ export class SettingsDialog {
     text.appendChild(explanation);
 
     row.appendChild(checkbox);
+    row.appendChild(text);
+    return row;
+  }
+
+  /**
+   * A keyboard shortcut: what it is set to, and a button to Chrome's page for changing it.
+   */
+  private buildShortcut(setting: ShortcutSettingDTO): HTMLElement {
+
+    const row = document.createElement('div');
+    row.classList.add('settings-dialog__row', 'settings-dialog__row--shortcut');
+
+    const text = document.createElement('div');
+    text.classList.add('settings-dialog__text');
+
+    const heading = document.createElement('div');
+    heading.classList.add('settings-dialog__range-heading');
+
+    const title = document.createElement('span');
+    title.classList.add('settings-dialog__name');
+    title.textContent = setting.title;
+
+    const value = document.createElement(setting.shortcut ? 'kbd' : 'span');
+    value.classList.add('settings-dialog__value');
+    value.textContent = setting.display;
+
+    heading.appendChild(title);
+    heading.appendChild(value);
+
+    const actions = document.createElement('div');
+    actions.classList.add('settings-dialog__image-actions');
+
+    const change = document.createElement('button');
+    change.type = 'button';
+    change.classList.add('add', 'settings-dialog__shortcut-change');
+    change.textContent = t('settings.bookmarkShortcut.change');
+    change.addEventListener('click', () => this.viewModel.openShortcutSettings());
+    actions.appendChild(change);
+
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = setting.explanation;
+
+    text.appendChild(heading);
+    text.appendChild(actions);
+    text.appendChild(explanation);
     row.appendChild(text);
     return row;
   }

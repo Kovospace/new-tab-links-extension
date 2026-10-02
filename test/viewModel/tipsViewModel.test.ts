@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
 import { TipsViewModel } from "../../src/viewModel/tipsViewModel";
-import { Tip, TIPS, textOf, urlOf } from "../../src/ui/tips/tipsCatalogue";
+import { buttonLabelOf, Tip, TIPS, textOf, urlOf } from "../../src/ui/tips/tipsCatalogue";
 
 /** Always picks the first tip, so a test can say which tip it is talking about. */
 const first = () => 0;
@@ -151,5 +151,38 @@ describe("a tip's link", () => {
     it("offers nothing for a tip with no link at all", () => {
         expect(urlOf({ id: "x", text: { en: "x" } }, "en")).toBeNull();
         expect(urlOf({ id: "x", text: { en: "x" }, url: {} }, "en")).toBeNull();
+    });
+});
+
+/**
+ *  A tip can lead somewhere other than a write-up - Chrome's shortcuts page - and then says so
+ *  on its button instead of "tell me more".
+ */
+describe("a tip that does something", () => {
+
+    const ctrlD = TIPS.find(tip => tip.id === "ctrl-d-saves-here")!;
+
+    it("leads to Chrome's shortcuts page as it stands, not to the website", () => {
+        expect(urlOf(ctrlD, "en")).toBe("chrome://extensions/shortcuts");
+        expect(urlOf(ctrlD, "sk")).toBe("chrome://extensions/shortcuts");
+    });
+
+    it("names its button in the reader's language", () => {
+        expect(buttonLabelOf(ctrlD, "en")).toBe("Set the shortcut");
+        expect(buttonLabelOf(ctrlD, "sk")).toBe("Nastaviť skratku");
+    });
+
+    it("leaves every other tip's button as tell me more", () => {
+        const plain: Tip = { id: "x", text: { en: "x" }, url: { en: "/tips/x" } };
+
+        expect(buttonLabelOf(plain, "en")).toBeNull();
+    });
+
+    it("names its button in every language its sentence is in", () => {
+        for (const tip of TIPS.filter(one => one.button)) {
+            for (const language of Object.keys(tip.text)) {
+                expect(tip.button![language], `tip "${tip.id}" has no ${language} button`).toBeTruthy();
+            }
+        }
     });
 });
