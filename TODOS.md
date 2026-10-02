@@ -45,6 +45,13 @@ Note: needs permission "chrome.session"
 - so the whole strict check is unusable until it is fixed - which is what it costs: nothing
   else it would catch can be seen while these five are in the way
 
+### [high] Annoying behaviour when going to the settings
+- add some mouseover timeout (lets say 500 ms) to the last closed tabs bar because when user navigates its way to the
+  extension settins it sometimes gets triggered
+
+### [high] Changing size in settings does not change link's icons size
+- self-explanatory
+
 
 ## TO BE approved / analyzed
 
