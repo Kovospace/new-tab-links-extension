@@ -72,6 +72,7 @@ export class ClosedTabsPanel {
 
   /** The document listeners, kept so they can be taken off again. */
   private readonly pointerMoved = (event: MouseEvent) => this.followPointer(event);
+  private readonly pointerLeft = (event: MouseEvent) => this.followPointerOut(event);
   private readonly clicked = (event: MouseEvent) => this.clickedSomewhere(event);
 
   /** How long the pointer has to rest on the rail, read each time it arrives. */
@@ -105,6 +106,7 @@ export class ClosedTabsPanel {
     // On the document rather than on the panel: the rule is about where the pointer is on the
     // screen, including where the panel is not, which an element's own events cannot report.
     document.addEventListener("mousemove", this.pointerMoved);
+    document.addEventListener("mouseout", this.pointerLeft);
     document.addEventListener("click", this.clicked);
 
     await this.viewModel.initialize();
@@ -144,6 +146,30 @@ export class ClosedTabsPanel {
    * settings button up in the corner, and reaching for those opened the panel underneath them.
    */
   private followPointer(event: MouseEvent): void {
+    this.followPointerAt(event.clientX, event.clientY);
+  }
+
+  /**
+   * Follows the pointer out of the page, which a mousemove never reports.
+   *
+   * In a maximised window the last pixel or two at the screen's edge can belong to the window
+   * frame rather than to the page. A pointer flung at that edge sends its last mousemove from
+   * somewhere left of the rail and its next position is already outside the page - so no
+   * event ever arrived over the rail, nothing in it so much as lit up, and it never opened.
+   * Leaving the page is reported, as a mouseout with nowhere to go, and where it left is read
+   * as the nearest point still inside: out through the right edge beside the rail is "on the
+   * rail", out through the top is "above it".
+   */
+  private followPointerOut(event: MouseEvent): void {
+    if (event.relatedTarget !== null) {
+      return;     // only into another element of this page, which a mousemove will report
+    }
+    const x = Math.min(Math.max(event.clientX, 0), window.innerWidth - 1);
+    const y = Math.min(Math.max(event.clientY, 0), window.innerHeight - 1);
+    this.followPointerAt(x, y);
+  }
+
+  private followPointerAt(clientX: number, clientY: number): void {
     if (this.pinned || !this.panelEl) {
       return;
     }
@@ -152,8 +178,8 @@ export class ClosedTabsPanel {
     // pointer that has just closed it is left of the narrower edge too. The top and bottom do
     // not move, so they need no such care.
     const panel = this.panelEl.getBoundingClientRect();
-    const besideIt = event.clientY >= panel.top && event.clientY <= panel.bottom;
-    const wantsOpen = besideIt && event.clientX >= panel.left;
+    const besideIt = clientY >= panel.top && clientY <= panel.bottom;
+    const wantsOpen = besideIt && clientX >= panel.left;
 
     if (!wantsOpen) {
       this.cancelPendingOpen();
@@ -236,6 +262,7 @@ export class ClosedTabsPanel {
   public dispose(): void {
     this.cancelPendingOpen();
     document.removeEventListener("mousemove", this.pointerMoved);
+    document.removeEventListener("mouseout", this.pointerLeft);
     document.removeEventListener("click", this.clicked);
     this.unsubscribe?.();
     this.unsubscribe = null;

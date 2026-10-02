@@ -118,6 +118,40 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(isOpen()).toBe(true);
     });
 
+    it("opens for a pointer flung out of the page through the edge beside it", () => {
+        // The bug: in a maximised window the screen's last pixels are the window's frame. A
+        // fast pointer's last mousemove was left of the rail and its next position outside
+        // the page, so the rail never heard from it - no row even lit up - and stayed shut.
+        edgeAt(960);
+        pass(400);
+
+        document.dispatchEvent(new MouseEvent('mouseout',
+            { clientX: window.innerWidth + 3, clientY: 300, relatedTarget: null, bubbles: true }));
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(true);
+    });
+
+    it("stays shut for a pointer that leaves the page through the top", () => {
+        edgeAt(960);
+
+        document.dispatchEvent(new MouseEvent('mouseout',
+            { clientX: 980, clientY: -5, relatedTarget: null, bubbles: true }));
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("ignores the pointer moving between elements of the page", () => {
+        edgeAt(960);
+
+        document.querySelector('main')!.dispatchEvent(new MouseEvent('mouseout',
+            { clientX: 980, clientY: 300, relatedTarget: document.body, bubbles: true }));
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(false);
+    });
+
     it("stays shut for a pointer that only passes over the rail", () => {
         edgeAt(960);
 

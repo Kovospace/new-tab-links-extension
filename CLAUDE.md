@@ -261,7 +261,10 @@ reaching for those opened the panel underneath them.
 **Opening waits; closing does not.** The pointer has to rest in that zone before the panel
 widens, because the rail sits under the settings button and a pointer on its way there crossed
 it. How long is a device preference (`closedTabsOpenDelay`, 0-2000 ms, 500 by default, a slider
-in "UI and behavior"), read each time the pointer arrives so a change needs no reload. The wait is started once and not restarted by movement within
+in "UI and behavior"), read each time the pointer arrives so a change needs no reload.
+Leaving the page counts as a position too (a `mouseout` with no `relatedTarget`, clamped into
+the viewport): in a maximised window the screen's last pixels are the window frame, and a
+pointer flung at that edge sent its last mousemove from left of the rail and never reached it. The wait is started once and not restarted by movement within
 the rail - a pointer that has stopped sends no more events, so the timer finishes the job.
 
 **The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
