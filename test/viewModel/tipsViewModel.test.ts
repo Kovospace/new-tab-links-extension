@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
 import { TipsViewModel } from "../../src/viewModel/tipsViewModel";
-import { TIPS, textOf, urlOf } from "../../src/ui/tips/tipsCatalogue";
+import { Tip, TIPS, textOf, urlOf } from "../../src/ui/tips/tipsCatalogue";
 
 /** Always picks the first tip, so a test can say which tip it is talking about. */
 const first = () => 0;
@@ -124,7 +124,9 @@ describe("the tips file", () => {
 describe("a tip's link", () => {
 
     const linked = TIPS.find(tip => tip.url?.sk)!;
-    const englishOnly = TIPS.find(tip => tip.url?.en && !tip.url?.sk)!;
+    // Built here rather than found in the file: every tip there has a Slovak page today, and a
+    // test that silently finds nothing to check would pass for the wrong reason.
+    const englishOnly: Tip = { id: "x", text: { en: "x", sk: "x" }, url: { en: "/tips/x" } };
 
     it("takes the reader's own language when the tip has one", () => {
         expect(urlOf(linked, "sk")).toContain(linked.url!.sk);

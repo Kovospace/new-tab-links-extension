@@ -1,23 +1,112 @@
 [
   {
-    "id": "catch-links-into-tab-group",
+    "id": "change-background",
     "text": {
-      "en": "A subgroup can pull tabs into its own tab group — open its menu and turn on \"Catch links into tab group\".",
-      "sk": "Podskupina vie ťahať karty do vlastnej skupiny kariet — v jej menu zapnite „Catch links into tab group“."
+      "en": "Pro users can put a picture of their own behind the page: Settings → \"UI and behavior\" → \"Background\".",
+      "sk": "Používatelia Pro si môžu dať za stránku vlastný obrázok: Nastavenia → „Vzhľad a správanie“ → „Pozadie“."
     },
     "url": {
-      "en": "/tutorials/tab-groups",
-      "sk": "/sk/navody/skupiny-kariet"
+      "en": "/tips/change-background",
+      "sk": "/sk/tips/change-background"
     }
   },
   {
-    "id": "grouped-tabs-color",
+    "id": "disable-ads",
     "text": {
-      "en": "Each subgroup has a colour, and Chrome paints its tab group with it. Change it from the subgroup menu.",
-      "sk": "Každá podskupina má farbu a Chrome ňou zafarbí jej skupinu kariet. Zmeníte ju v menu podskupiny."
+      "en": "Choose \"Upgrade to premium\" in the application menu and the ad bar at the bottom of the page is gone.",
+      "sk": "Zvoľte „Prejsť na prémiovú verziu“ v menu aplikácie a reklamný pruh v spodnej časti stránky zmizne."
     },
     "url": {
-      "en": "/tutorials/tab-group-colours"
+      "en": "/tips/disable-ads",
+      "sk": "/sk/tips/disable-ads"
+    }
+  },
+  {
+    "id": "discover-premium-features",
+    "text": {
+      "en": "See what premium adds — no ad bar and a background of your own, among other things.",
+      "sk": "Pozrite sa, čo pridáva prémiová verzia — okrem iného žiadny reklamný pruh a vlastné pozadie."
+    },
+    "url": {
+      "en": "/tips/discover-premium-features",
+      "sk": "/sk/tips/discover-premium-features"
+    }
+  },
+  {
+    "id": "hide-tips",
+    "text": {
+      "en": "Don't need these tips? Turn on \"Hide tips\" in Settings → \"UI and behavior\".",
+      "sk": "Tipy nepotrebujete? Zapnite „Skryť tipy“ v Nastaveniach → „Vzhľad a správanie“."
+    },
+    "url": {
+      "en": "/tips/hide-tips",
+      "sk": "/sk/tips/hide-tips"
+    }
+  },
+  {
+    "id": "open-all-subgroups-link",
+    "text": {
+      "en": "The \"Open all subgroup links in new grouped tabs\" button beside a subgroup's title opens all its links at once.",
+      "sk": "Tlačidlo „Otvoriť všetky odkazy podskupiny v novej skupine kariet“ vedľa názvu podskupiny otvorí všetky jej odkazy naraz."
+    },
+    "url": {
+      "en": "/tips/open-all-subgroups-link",
+      "sk": "/sk/tips/open-all-subgroups-link"
+    }
+  },
+  {
+    "id": "roll-the-subgroup",
+    "text": {
+      "en": "Click a subgroup's title to roll it up — only the number of hidden items stays, and it is remembered.",
+      "sk": "Kliknutím na názov podskupiny ju zbalíte — zostane len počet skrytých položiek a zapamätá sa to."
+    },
+    "url": {
+      "en": "/tips/roll-the-subgroup",
+      "sk": "/sk/tips/roll-the-subgroup"
+    }
+  },
+  {
+    "id": "set-size",
+    "text": {
+      "en": "Everything too big or too small? Settings → \"UI and behavior\" → \"Size\".",
+      "sk": "Je všetko priveľké alebo primalé? Nastavenia → „Vzhľad a správanie“ → „Veľkosť“."
+    },
+    "url": {
+      "en": "/tips/set-size",
+      "sk": "/sk/tips/set-size"
+    }
+  },
+  {
+    "id": "subgroup-links-into-tab-group",
+    "text": {
+      "en": "Turn on \"Catch links into tab group\" in a subgroup's menu and its links open together in one tab group.",
+      "sk": "Zapnite „Zachytávať odkazy do skupiny kariet“ v menu podskupiny a jej odkazy sa otvoria spolu v jednej skupine kariet."
+    },
+    "url": {
+      "en": "/tips/subgroup-links-into-tab-group",
+      "sk": "/sk/tips/subgroup-links-into-tab-group"
+    }
+  },
+  {
+    "id": "use-drag-and-drop",
+    "text": {
+      "en": "Turn on \"Enable drag & drop\" in Settings → \"UI and behavior\" and move links, subgroups and groups with the mouse.",
+      "sk": "Zapnite „Zapnúť ťahanie myšou“ v Nastaveniach → „Vzhľad a správanie“ a presúvajte odkazy, podskupiny aj skupiny myšou."
+    },
+    "url": {
+      "en": "/tips/use-drag-and-drop",
+      "sk": "/sk/tips/use-drag-and-drop"
+    }
+  },
+  {
+    "id": "use-searchbar",
+    "text": {
+      "en": "The search bar uses your browser's search engine — pick another with the icon beside it.",
+      "sk": "Vyhľadávacie pole používa vyhľadávač vášho prehliadača — iný zvolíte ikonou vedľa neho."
+    },
+    "url": {
+      "en": "/tips/use-searchbar",
+      "sk": "/sk/tips/use-searchbar"
     }
   },
   {
@@ -42,24 +131,10 @@
     }
   },
   {
-    "id": "open-whole-subgroup",
-    "text": {
-      "en": "\"Open all links in grouped tabs\" opens a whole subgroup at once, in one tab group.",
-      "sk": "„Open all links in grouped tabs“ otvorí celú podskupinu naraz, v jednej skupine kariet."
-    }
-  },
-  {
     "id": "sync",
     "text": {
       "en": "Signed in, your links follow you: everything here is on every device you sign in on.",
       "sk": "Po prihlásení vás odkazy sledujú: všetko odtiaľto máte na každom prihlásenom zariadení."
-    }
-  },
-  {
-    "id": "settings",
-    "text": {
-      "en": "These tips can be turned off — and back on — from Settings in the application menu.",
-      "sk": "Tieto tipy sa dajú vypnúť — aj znova zapnúť — v Nastaveniach v menu aplikácie."
     }
   }
 ]
