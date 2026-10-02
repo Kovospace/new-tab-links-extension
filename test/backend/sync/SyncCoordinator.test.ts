@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
-import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
+import { stateWithLinks } from "../../support/profileDataFixtures";
 
 import { ApiResult } from "../../../src/backend/sync/BackendApiClient";
 import { installationIdentity } from "../../../src/backend/sync/InstallationIdentity";
@@ -121,7 +121,7 @@ describe("SyncCoordinator, first contact with an account", () => {
 
         appState = new AppStateRepository();
         // The seed data every fresh install starts with: "Work", "Personal", test links.
-        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.init(stateWithLinks(), profiles.getActiveProfileId());
 
         sessions = new SessionRepository();
         await sessions.init();
@@ -346,7 +346,7 @@ describe("SyncCoordinator against an account that does not keep closed tabs", ()
         await profiles.init();
 
         appState = new AppStateRepository();
-        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.init(stateWithLinks(), profiles.getActiveProfileId());
 
         sessions = new SessionRepository();
         await sessions.init();

@@ -38,6 +38,11 @@ past defect was checked by restoring the old behaviour and watching it fail - tw
 against the reverted code on the first attempt and were rewritten. A test that cannot fail is
 worse than no test, because it is read as a guarantee.
 
+**Debug logging exists only in development.** `Logger.level` is `import.meta.env.DEV ? DEBUG :
+WARN` - every `LOG.debug` shows under `npm run dev` and in the tests, and a `npm run build`
+(what goes to the store) keeps warnings and errors only. `vite/client` is in `tsconfig.json`'s
+types for that reason.
+
 To load the extension in Chrome: open `chrome://extensions`, enable Developer Mode, click "Load unpacked", select the `/dist` folder.
 
 ## Architecture

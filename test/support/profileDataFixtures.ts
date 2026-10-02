@@ -1,4 +1,5 @@
-import { Environment, Group, Link, ProfileData, Subgroup } from "../../src/backend/entity/AppStateEntity";
+import { AppState, Environment, Group, Link, ProfileData, Subgroup } from "../../src/backend/entity/AppStateEntity";
+import { appStateInit, buildExampleProfileData } from "../../src/backend/datasource/init/AppStateInit";
 
 /**
  *  Builders for the profile shapes the synchronisation tests compare.
@@ -76,4 +77,14 @@ export function link(
         createdAt: 0,
         type: "link"
     };
+}
+
+/**
+ *  A device that already holds links: the empty first-run state with the example set loaded.
+ *
+ *  Fresh installs start empty now, so a test that needs "this browser has links of its own"
+ *  says so here rather than relying on the seed, which used to be a developer's test data.
+ */
+export function stateWithLinks(): AppState {
+    return { ...appStateInit, ...buildExampleProfileData() };
 }

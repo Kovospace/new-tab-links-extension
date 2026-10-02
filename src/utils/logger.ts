@@ -8,7 +8,14 @@ export enum LogLevel {
 }
 
 export class Logger {
-    static level: LogLevel = LogLevel.DEBUG;
+    /**
+     *  Everything while developing; warnings and errors only in a build that ships.
+     *
+     *  `import.meta.env.DEV` is replaced by Vite at build time - true under `npm run dev` and
+     *  in the tests, false in `npm run build` - so a store build does not write a debug line
+     *  for every save, sync and favicon into the console of every user.
+     */
+    static level: LogLevel = import.meta.env.DEV ? LogLevel.DEBUG : LogLevel.WARN;
 
     constructor(private readonly scope: string) {}
 
