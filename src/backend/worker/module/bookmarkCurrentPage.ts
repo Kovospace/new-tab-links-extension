@@ -107,7 +107,10 @@ async function adoptDeviceLanguage(): Promise<void> {
 /** The two entries, named after the extension so the menu says who is doing the keeping. */
 function createMenuItems(): void {
 
-    const extensionName = chrome.runtime.getManifest().name;
+    // The short name: the full one is the store title ("Tabilinks – grouped links on every
+    // new tab"), and a menu entry reading "Bookmark this page with" all of that is a sentence.
+    const manifest = chrome.runtime.getManifest();
+    const extensionName = manifest.short_name ?? manifest.name;
 
     chrome.contextMenus.create({
         id: MENU_ITEM_PAGE,
