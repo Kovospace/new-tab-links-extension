@@ -184,8 +184,9 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
 
 .closed-tabs__favicon {
     flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
+    /* rem, not px: the rail is sized in em and has to scale with what it holds. */
+    width: 1rem;
+    height: 1rem;
 }
 
 /* The row's text is the button that reopens it: the whole line is the target,

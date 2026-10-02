@@ -36,9 +36,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [high] Changing size in settings does not change link's icons size
-- self-explanatory
-
 ### [medium] Cursor icon over items always drag and drop
 - cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
   then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
@@ -57,6 +54,14 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+### [high] Changing size in settings does not change link's icons size
+- self-explanatory
+- DONE: a link's favicon was sized only by its img's width and height attributes, which are
+  pixels, so it stayed 32px whatever the root font size was. It is now 2rem in link.css; the
+  closed-tabs favicons (16px) and the bookmark popup's (32px) had the same rule and got the
+  same fix
+- pinned by a stylesheet contract test, since jsdom lays nothing out
+
 ### [high] Annoying behaviour when going to the settings
 - add some mouseover timeout (lets say 500 ms) to the last closed tabs bar because when user navigates its way to the
   extension settins it sometimes gets triggered
