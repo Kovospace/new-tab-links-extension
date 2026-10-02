@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
-import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
+import { stateWithLinks } from "../../support/profileDataFixtures";
 import { ApiResult } from "../../../src/backend/sync/BackendApiClient";
 import { installationIdentity } from "../../../src/backend/sync/InstallationIdentity";
 import { SessionRepository } from "../../../src/backend/sync/SessionRepository";
@@ -40,7 +40,7 @@ describe("profiles on this browser belong to the account they were synchronised 
         await profiles.init();
         appState = new AppStateRepository();
         // The seed data a fresh install starts with, belonging to no account yet.
-        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.init(stateWithLinks(), profiles.getActiveProfileId());
         sessions = new SessionRepository();
         await sessions.init();
         const baselines = new SyncBaselineRepository();

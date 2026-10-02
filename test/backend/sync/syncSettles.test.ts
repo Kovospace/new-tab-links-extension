@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
-import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
+import { stateWithLinks } from "../../support/profileDataFixtures";
 import { ApiResult } from "../../../src/backend/sync/BackendApiClient";
 import { installationIdentity } from "../../../src/backend/sync/InstallationIdentity";
 import { SessionRepository } from "../../../src/backend/sync/SessionRepository";
@@ -43,8 +43,8 @@ describe("synchronisation settles", () => {
         await profiles.init();
 
         appState = new AppStateRepository();
-        // The seed data every fresh install starts with: workspaces, groups, subgroups, links.
-        await appState.init(appStateInit, profiles.getActiveProfileId());
+        // A device with links of its own: workspaces, groups, subgroups, links.
+        await appState.init(stateWithLinks(), profiles.getActiveProfileId());
 
         sessions = new SessionRepository();
         await sessions.init();

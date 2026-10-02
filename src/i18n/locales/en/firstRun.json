@@ -10,5 +10,12 @@
   "accountPrompt": "... or bring in the links you already have in your NewTabLinks account",
   "signedInAs": "Signed in as {username}",
   "defaultWorkspaceDescription": "Default workspace",
-  "titleMandatory": "At least title is mandatory"
+  "titleMandatory": "At least title is mandatory",
+  "examples": {
+    "workspace": "Examples",
+    "everyday": "Everyday",
+    "work": "Work",
+    "developer": "Developer",
+    "developerDescription": "A subgroup - fold it by clicking its heading"
+  }
 }

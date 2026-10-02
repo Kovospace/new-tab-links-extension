@@ -10,5 +10,12 @@
   "accountPrompt": "... alebo si prineste odkazy, ktoré už máte vo svojom účte NewTabLinks",
   "signedInAs": "Prihlásený ako {username}",
   "defaultWorkspaceDescription": "Predvolený pracovný priestor",
-  "titleMandatory": "Názov je povinný"
+  "titleMandatory": "Názov je povinný",
+  "examples": {
+    "workspace": "Príklady",
+    "everyday": "Každý deň",
+    "work": "Práca",
+    "developer": "Vývoj",
+    "developerDescription": "Podskupina - zbalíte ju kliknutím na jej nadpis"
+  }
 }

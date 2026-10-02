@@ -1,6 +1,6 @@
 import {AppStateRepository} from "../backend/repository/AppStateRepository";
 import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
-import {appStateInit} from "../backend/datasource/init/AppStateInit";
+import {buildExampleProfileData} from "../backend/datasource/init/AppStateInit";
 import { t } from "../i18n/i18n";
 
 export class FirstRunViewModel {
@@ -30,10 +30,7 @@ export class FirstRunViewModel {
     }
 
     public async loadDefaults(): Promise<void> {
-        const { environments, groups, subgroups, links, activeEnvironmentId } = appStateInit;
-        await this.REPOSITORY.replaceCurrentProfileData(
-            { environments, groups, subgroups, links, activeEnvironmentId }
-        );
+        await this.REPOSITORY.replaceCurrentProfileData(buildExampleProfileData());
         window.location.reload();
     }
 
