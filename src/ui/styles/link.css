@@ -20,7 +20,8 @@ link-container > div {
 }
 
 link-container > div.cls-link-icon {
-
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 /* In rem, so the icon follows the size setting with everything else. The img's own width and
