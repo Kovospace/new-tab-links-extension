@@ -56,6 +56,9 @@ Note: needs permission "chrome.session"
 - cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
   then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
 
+### [small] Enable drag and drop by default
+- self-explanatory
+
 
 ## TO BE approved / analyzed
 
