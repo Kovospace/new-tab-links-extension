@@ -52,6 +52,10 @@ Note: needs permission "chrome.session"
 ### [high] Changing size in settings does not change link's icons size
 - self-explanatory
 
+### [medium] Cursor icon over items always drag and drop
+- cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
+  then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
+
 
 ## TO BE approved / analyzed
 
