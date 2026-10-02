@@ -31,5 +31,14 @@
   "searchEngine": {
     "title": "Search engine",
     "explanation": "Where the search bar at the top of the page sends what you type. \"Default search engine\" is the one your browser is set to, and is used until you choose another - here or with the icon beside the bar. Kept on this device only."
+  },
+  "backgroundImage": {
+    "title": "Background",
+    "explanation": "Put a picture of your own behind the page, in place of the logo in the corner. It covers the whole window and is kept on this device only.",
+    "proOnly": "Only Pro users can change the background.",
+    "choose": "Choose picture…",
+    "change": "Change picture…",
+    "remove": "Remove",
+    "failed": "That file could not be used as a background. Try another picture."
   }
 }

@@ -1,5 +1,5 @@
 import {
-  ChoiceSettingDTO, RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO,
+  ChoiceSettingDTO, ImageSettingDTO, RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO,
   SettingsViewModel, ToggleSettingDTO
 } from '../../viewModel/settingsViewModel';
 import { t } from '../../i18n/i18n';
@@ -70,6 +70,9 @@ export class SettingsDialog {
   private dialogEl: HTMLDialogElement | null = null;
   private listEl: HTMLElement | null = null;
   private unsubscribe: (() => void) | null = null;
+
+  /** Set when the last picture chosen could not be used; said under the setting until the next. */
+  private imageFailed = false;
 
   /**
    * @param viewModel supplies the settings and stores the changes; injectable for testing
@@ -201,6 +204,8 @@ export class SettingsDialog {
         return this.buildToggle(setting);
       case 'choice':
         return this.buildChoice(setting);
+      case 'image':
+        return this.buildImage(setting);
       default:
         return this.buildRange(setting);
     }
@@ -308,6 +313,95 @@ export class SettingsDialog {
     row.appendChild(checkbox);
     row.appendChild(text);
     return row;
+  }
+
+  /**
+   * A setting that is a picture: its name, a button that opens a file picker, and - once there
+   * is one - a button that takes it away.
+   *
+   * The tooltip is on the name for everybody, not only when the setting is greyed out: it is
+   * the sentence that says what the feature costs, and a premium user hovering over it learns
+   * why the free version of a friend's page has no such row to use.
+   */
+  private buildImage(setting: ImageSettingDTO): HTMLElement {
+
+    const row = document.createElement('div');
+    row.classList.add('settings-dialog__row', 'settings-dialog__row--image');
+    if (setting.disabledReason) {
+      row.classList.add('settings-dialog__row--disabled');
+      row.title = setting.tooltip;
+    }
+
+    const text = document.createElement('div');
+    text.classList.add('settings-dialog__text');
+
+    const heading = document.createElement('div');
+    heading.classList.add('settings-dialog__range-heading');
+
+    const title = document.createElement('span');
+    title.classList.add('settings-dialog__name');
+    title.textContent = setting.title;
+    title.title = setting.tooltip;
+
+    const proMark = document.createElement('span');
+    proMark.classList.add('settings-dialog__pro-mark');
+    proMark.textContent = 'PRO';
+    proMark.title = setting.tooltip;
+
+    heading.appendChild(title);
+    heading.appendChild(proMark);
+
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/*';
+    picker.hidden = true;
+    picker.addEventListener('change', () => {
+      const file = picker.files?.[0];
+      if (file) void this.answerImage(file);
+    });
+
+    const actions = document.createElement('div');
+    actions.classList.add('settings-dialog__image-actions');
+
+    const choose = document.createElement('button');
+    choose.type = 'button';
+    choose.classList.add('add');
+    choose.textContent = t(setting.hasImage
+      ? 'settings.backgroundImage.change' : 'settings.backgroundImage.choose');
+    choose.disabled = Boolean(setting.disabledReason);
+    choose.addEventListener('click', () => picker.click());
+    actions.appendChild(choose);
+
+    if (setting.hasImage) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.classList.add('danger');
+      remove.textContent = t('settings.backgroundImage.remove');
+      remove.addEventListener('click', () => {
+        this.imageFailed = false;
+        void this.viewModel.clearBackgroundImage();
+      });
+      actions.appendChild(remove);
+    }
+
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = this.imageFailed
+      ? t('settings.backgroundImage.failed')
+      : setting.disabledReason ?? setting.explanation;
+
+    text.appendChild(heading);
+    text.appendChild(actions);
+    text.appendChild(picker);
+    text.appendChild(explanation);
+    row.appendChild(text);
+    return row;
+  }
+
+  /** Stores the chosen picture, and says so under the setting if it could not be used. */
+  private async answerImage(file: File): Promise<void> {
+    this.imageFailed = !(await this.viewModel.setBackgroundImage(file));
+    this.viewModel.refresh();
   }
 
   /**

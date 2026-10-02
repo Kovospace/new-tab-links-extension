@@ -81,3 +81,11 @@ export const NEW_TAB_USAGE_KEY = "new_tab_usage";
  *  while the account is asked. Written by `AccountStandingRepository`.
  */
 export const ACCOUNT_STANDING_KEY = "account_standing";
+
+/**
+ *  The picture a premium user put behind the new tab page, as a data URL, or nothing. A key of
+ *  its own rather than a field of the device preferences: it is the one thing here measured in
+ *  hundreds of kilobytes, and every read of the preferences would otherwise carry it.
+ *  Per device and never synchronised - see `BackgroundImageRepository`.
+ */
+export const BACKGROUND_IMAGE_KEY = "background_image";

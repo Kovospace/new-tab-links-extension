@@ -31,5 +31,14 @@
   "searchEngine": {
     "title": "Vyhľadávač",
     "explanation": "Kam vyhľadávacie pole v hornej časti stránky odošle, čo napíšete. „Predvolený vyhľadávač“ je ten, ktorý máte nastavený v prehliadači, a používa sa, kým nezvolíte iný - tu alebo ikonou vedľa poľa. Platí len na tomto zariadení."
+  },
+  "backgroundImage": {
+    "title": "Pozadie",
+    "explanation": "Dajte za stránku vlastný obrázok namiesto loga v rohu. Pokryje celé okno a uchováva sa len v tomto zariadení.",
+    "proOnly": "Pozadie môžu meniť iba používatelia Pro.",
+    "choose": "Vybrať obrázok…",
+    "change": "Zmeniť obrázok…",
+    "remove": "Odstrániť",
+    "failed": "Tento súbor sa nedá použiť ako pozadie. Skúste iný obrázok."
   }
 }

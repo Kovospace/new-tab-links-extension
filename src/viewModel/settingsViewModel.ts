@@ -10,6 +10,11 @@ import {
 } from "../i18n/dates";
 import { t } from "../i18n/i18n";
 import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
+import {
+    BackgroundImageRepository, backgroundImageRepository
+} from "../backend/repository/BackgroundImageRepository";
+import { accountStandingRepository } from "../backend/sync/AccountStandingRepository";
+import { downscaleImage } from "../utils/imageDownscale";
 import { engineDTO } from "./searchBarViewModel";
 import { AUTOMATIC_LANGUAGE, baseLanguageOf, browserLanguageTag, SUPPORTED_LANGUAGES }
     from "../i18n/languages";
@@ -83,8 +88,27 @@ export interface SettingOptionDTO {
     label: string;
 }
 
+/**
+ *  A setting that is a picture: chosen from a file, or taken away again.
+ *
+ *  Premium only. A free account is still shown it, greyed out, because a feature nobody can
+ *  see is a feature nobody will pay for - and `tooltip` says so when the pointer rests on it.
+ */
+export interface ImageSettingDTO extends SettingCommonDTO {
+    kind: "image";
+    /** Which setting this is. One so far. */
+    key: ImageSettingKey;
+    /** Whether a picture is stored, which is what offers "remove". */
+    hasImage: boolean;
+    /** Shown over the setting's name: what it takes to be able to use it. */
+    tooltip: string;
+}
+
 /** One setting, as the dialog draws it. */
-export type SettingDTO = ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO;
+export type SettingDTO = ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO | ImageSettingDTO;
+
+/** The settings that are a picture. */
+export type ImageSettingKey = "backgroundImage";
 
 /** The settings that are numbers. One so far. */
 export type RangeSettingKey = "uiScale";
@@ -126,7 +150,8 @@ export interface SettingsDTO {
 type SettingDefinition =
     | { kind: "toggle"; key: keyof ProfileSettings; wording: string }
     | { kind: "range"; key: RangeSettingKey; wording: string }
-    | { kind: "choice"; key: ChoiceSettingKey; wording: string };
+    | { kind: "choice"; key: ChoiceSettingKey; wording: string }
+    | { kind: "image"; key: ImageSettingKey; wording: string };
 
 /** A category, and what is in it. */
 interface CategoryDefinition {
@@ -150,7 +175,8 @@ const CATEGORIES: CategoryDefinition[] = [
         settings: [
             { kind: "toggle", key: "enableDragAndDrop", wording: "enableDragAndDrop" },
             { kind: "toggle", key: "hideTips", wording: "hideTips" },
-            { kind: "range", key: "uiScale", wording: "uiScale" }
+            { kind: "range", key: "uiScale", wording: "uiScale" },
+            { kind: "image", key: "backgroundImage", wording: "backgroundImage" }
         ]
     },
     {
@@ -201,6 +227,8 @@ export class SettingsViewModel {
 
     private readonly profiles: ProfileRepository;
     private readonly devicePreferences: DevicePreferencesRepository;
+    private readonly backgroundImages: BackgroundImageRepository;
+    private readonly premium$: ObservableValue<boolean>;
 
     /** Categories the user has folded away; the first one starts out of it. */
     private readonly collapsed: Set<string> = new Set(
@@ -211,18 +239,21 @@ export class SettingsViewModel {
     };
 
     /**
-     *  @param profiles the profile registry; the singleton in normal use
-     */
-    /**
      *  @param profiles          the profile registry; the singleton in normal use
      *  @param devicePreferences what this browser prefers, which the profile has no say in
+     *  @param backgroundImages  the picture behind the page, kept on this device
+     *  @param premium$          whether the account is premium, which the picture needs
      */
     constructor(
         profiles: ProfileRepository = profileRepository,
-        devicePreferences: DevicePreferencesRepository = devicePreferencesRepository
+        devicePreferences: DevicePreferencesRepository = devicePreferencesRepository,
+        backgroundImages: BackgroundImageRepository = backgroundImageRepository,
+        premium$: ObservableValue<boolean> = accountStandingRepository.premium$
     ) {
         this.profiles = profiles;
         this.devicePreferences = devicePreferences;
+        this.backgroundImages = backgroundImages;
+        this.premium$ = premium$;
     }
 
     /** Loads the active profile's settings into the observable. */
@@ -298,6 +329,37 @@ export class SettingsViewModel {
     }
 
     /**
+     *  Puts a picture behind the page, shrunk first so that storage can hold it.
+     *
+     *  Refused for a free account: the dialog does not offer it, so this is the backstop for a
+     *  caller that is not the dialog.
+     *
+     *  @param file the picture the user chose
+     *  @return whether it was stored; false when it was refused or could not be read
+     */
+    public async setBackgroundImage(file: Blob): Promise<boolean> {
+        if (!this.premium$.get()) {
+            this.LOG.warn("setBackgroundImage", "refused: not a premium account");
+            return false;
+        }
+        try {
+            await this.backgroundImages.setImage(await downscaleImage(file));
+            return true;
+        } catch (error) {
+            this.LOG.warn("setBackgroundImage", `could not use the picture: ${error}`);
+            return false;
+        } finally {
+            this.refresh();
+        }
+    }
+
+    /** Takes the picture away, which brings the logo back. */
+    public async clearBackgroundImage(): Promise<void> {
+        await this.backgroundImages.clear();
+        this.refresh();
+    }
+
+    /**
      *  Folds a category away, or unfolds it, and redraws.
      *
      *  @param key which category
@@ -340,6 +402,20 @@ export class SettingsViewModel {
                 value: this.choiceValueOf(definition.key),
                 options: choiceOptionsOf(definition.key),
                 disabledReason: null
+            };
+        }
+
+        if (definition.kind === "image") {
+            return {
+                kind: "image",
+                key: definition.key,
+                title,
+                explanation,
+                hasImage: this.backgroundImages.getImage() !== null,
+                tooltip: t(`settings.${definition.wording}.proOnly`),
+                disabledReason: this.premium$.get()
+                    ? null
+                    : t(`settings.${definition.wording}.proOnly`)
             };
         }
 

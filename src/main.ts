@@ -4,6 +4,7 @@ import { profileRepository } from "./backend/repository/ProfileRepository";
 import { installationIdentity } from "./backend/sync/InstallationIdentity";
 import { sessionRepository } from "./backend/sync/SessionRepository";
 import { accountStandingRepository } from "./backend/sync/AccountStandingRepository";
+import { backgroundImageRepository } from "./backend/repository/BackgroundImageRepository";
 import { syncCoordinator } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
@@ -18,6 +19,7 @@ import {LinkComponent} from "./ui/components/linkComponent";
 import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
+import { PageBackground } from "./ui/partials/pageBackground";
 import { t } from "./i18n/i18n";
 import { sendToWorkerThread } from "./utils/sendToWorker";
 
@@ -82,6 +84,10 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // Whether the account is premium, from what was last known - before anything is drawn, so
     // a premium user's page never shows an advertisement while the account is being asked.
     await accountStandingRepository.init();
+    // A premium user's own background, read before drawing for the same reason: the logo
+    // should not flash in the corner of a page that is about to be covered by a picture.
+    await backgroundImageRepository.init();
+    new PageBackground().render(document.body);
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();

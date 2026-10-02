@@ -46,6 +46,8 @@ Keep it current: a new module or a new concern adds a row here.
 | Tips | `ui/tips/tipsCatalogue.ts`, `ui/tips/tips.json` |
 | Strings | `i18n/locales/{en,sk}/<area>.json`, loader `i18n/i18n.ts` |
 | Manifest, host permissions | `../public/manifest.json` |
+| The extension's icon (toolbar, context menu, tab) | `../public/icons/` - rendered from the logo SVG |
+| What is behind the page - the corner logo with its FREE/PRO badge, a premium user's own picture | `ui/partials/pageBackground.ts`, `backend/repository/BackgroundImageRepository.ts`, `utils/imageDownscale.ts` |
 
 ## Files big enough to read by range
 
