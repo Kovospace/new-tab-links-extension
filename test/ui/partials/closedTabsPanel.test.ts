@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
-import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { ClosedTabsPanel, OPEN_DELAY_MS } from "../../../src/ui/partials/closedTabsPanel";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
 
@@ -25,8 +25,13 @@ function edgeAt(x: number) {
 }
 
 /** A pointer somewhere on the page; beside the panel unless a test says otherwise. */
-const move = (x: number, y: number = 300) =>
+const pass = (x: number, y: number = 300) =>
     document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+/** A pointer that comes to rest there - long enough for the panel to act on it. */
+const move = (x: number, y: number = 300) => {
+    pass(x, y);
+    vi.advanceTimersByTime(OPEN_DELAY_MS);
+};
 const isOpen = () => document.querySelector('.closed-tabs')!.classList.contains('closed-tabs--open');
 
 /**
@@ -55,6 +60,12 @@ describe("ClosedTabsPanel, opening and closing", () => {
         panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState));
         await panel.render(document.body);
         await flushStorageNotifications();
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    afterEach(() => {
+        panel.dispose();
+        vi.useRealTimers();
     });
 
     it("opens over the rail, stays open to the right, closes to the left", () => {
@@ -70,6 +81,42 @@ describe("ClosedTabsPanel, opening and closing", () => {
 
         move(400);                   // away to the left, over the columns
         expect(isOpen()).toBe(false);
+    });
+
+    it("waits for the pointer to stay before opening", () => {
+        // The bug: on the way to the settings button the pointer crossed the rail, and the
+        // panel opened underneath it.
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS - 1);
+        expect(isOpen()).toBe(false);
+
+        vi.advanceTimersByTime(1);
+        expect(isOpen()).toBe(true);
+    });
+
+    it("stays shut for a pointer that only passes over the rail", () => {
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS / 2);
+        expect(isOpen()).toBe(false);
+        pass(980, HEADER_BOTTOM - 20);             // on up to the settings button
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("does not restart the wait while the pointer moves within the rail", () => {
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS / 2);
+        pass(975, 320);
+        vi.advanceTimersByTime(OPEN_DELAY_MS / 2);
+
+        expect(isOpen()).toBe(true);
     });
 
     it("stays shut for a pointer that is merely far enough right", () => {

@@ -31,6 +31,11 @@ import {CLASS_ACTION_DANGER} from "../../constants";
  * cannot flap, because the edge it is compared against moves with the panel: closing puts the
  * edge to the right of the pointer, which is not a reason to open again.
  *
+ * **Opening waits for the pointer to stay.** Closing is immediate, but the pointer has to rest
+ * in that place for {@link OPEN_DELAY_MS} before the panel widens. The rail sits right under
+ * the settings button, and a pointer on its way there crossed it and pulled the panel open
+ * underneath - somebody heading for the list stops on it, somebody passing through does not.
+ *
  * **The button takes precedence over all of that.** Pinned, the panel ignores the pointer and
  * stays open until it is unpinned, something outside it is clicked, or a row is opened - the
  * three ways of saying "done with this".
@@ -40,6 +45,9 @@ import {CLASS_ACTION_DANGER} from "../../constants";
  * time - and the list is the profile's, so it is the same list on every device the profile is
  * signed in on, which is why a row says where it was closed when that was somewhere else.
  */
+/** How long the pointer has to stay over the rail before the panel opens. */
+export const OPEN_DELAY_MS = 500;
+
 export class ClosedTabsPanel {
 
   private readonly viewModel: ClosedTabsViewModel;
@@ -59,6 +67,9 @@ export class ClosedTabsPanel {
    * button that only listened to its own clicks would go on looking pressed afterwards.
    */
   public readonly pinned$ = new ObservableValue<boolean>(false);
+
+  /** The pending open, while the pointer is resting on the rail but has not stayed long enough. */
+  private openTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** The document listeners, kept so they can be taken off again. */
   private readonly pointerMoved = (event: MouseEvent) => this.followPointer(event);
@@ -109,6 +120,7 @@ export class ClosedTabsPanel {
    * to move would look like the button had not worked.
    */
   public togglePinned(): void {
+    this.cancelPendingOpen();
     this.setPinned(!this.pinned);
     this.setOpen(this.pinned);
   }
@@ -133,8 +145,26 @@ export class ClosedTabsPanel {
     // not move, so they need no such care.
     const panel = this.panelEl.getBoundingClientRect();
     const besideIt = event.clientY >= panel.top && event.clientY <= panel.bottom;
+    const wantsOpen = besideIt && event.clientX >= panel.left;
 
-    this.setOpen(besideIt && event.clientX >= panel.left);
+    if (!wantsOpen) {
+      this.cancelPendingOpen();
+      this.setOpen(false);
+    } else if (!this.isOpen() && this.openTimer === null) {
+      // Started once and left running while the pointer moves within the rail: a pointer
+      // stopping there sends no more events, so the timer is what has to finish the job.
+      this.openTimer = setTimeout(() => {
+        this.openTimer = null;
+        this.setOpen(true);
+      }, OPEN_DELAY_MS);
+    }
+  }
+
+  private cancelPendingOpen(): void {
+    if (this.openTimer !== null) {
+      clearTimeout(this.openTimer);
+      this.openTimer = null;
+    }
   }
 
   /**
@@ -191,6 +221,7 @@ export class ClosedTabsPanel {
   }
 
   public dispose(): void {
+    this.cancelPendingOpen();
     document.removeEventListener("mousemove", this.pointerMoved);
     document.removeEventListener("click", this.clicked);
     this.unsubscribe?.();

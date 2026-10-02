@@ -258,6 +258,11 @@ half is not decoration: the rail is a grid column starting below the header, so 
 right" alone is also true of the application menu and the settings button in the corner, and
 reaching for those opened the panel underneath them.
 
+**Opening waits 500 ms; closing does not.** The pointer has to rest in that zone before the
+panel widens (`OPEN_DELAY_MS`), because the rail sits under the settings button and a pointer
+on its way there crossed it. The wait is started once and not restarted by movement within
+the rail - a pointer that has stopped sends no more events, so the timer finishes the job.
+
 **The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
 unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
 errand, while deleting or saving one is working through the list and leaves it alone.

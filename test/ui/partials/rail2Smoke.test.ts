@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
-import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { ClosedTabsPanel, OPEN_DELAY_MS } from "../../../src/ui/partials/closedTabsPanel";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
 
@@ -13,7 +13,10 @@ function edgeAt(x: number) {
     const panel = document.querySelector('.closed-tabs') as HTMLElement;
     panel.getBoundingClientRect = () => ({ left: x, right: 1000, top: 0, bottom: 800, width: 1000 - x, height: 800, x, y: 0, toJSON: () => ({}) }) as DOMRect;
 }
-const move = (x: number) => document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, bubbles: true }));
+const move = (x: number) => {
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, bubbles: true }));
+    vi.advanceTimersByTime(OPEN_DELAY_MS);
+};
 const isOpen = () => document.querySelector('.closed-tabs')!.classList.contains('closed-tabs--open');
 
 describe("rail pointer logic", () => {
@@ -33,6 +36,12 @@ describe("rail pointer logic", () => {
         panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState));
         await panel.render(document.body);
         await flushStorageNotifications();
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    afterEach(() => {
+        panel.dispose();
+        vi.useRealTimers();
     });
 
     it("opens over the rail, stays open to the right, closes to the left", () => {
