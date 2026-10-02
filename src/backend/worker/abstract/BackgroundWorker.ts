@@ -23,7 +23,7 @@ export abstract class BackgroundWorker<
   abstract handle(
     action: string,
     payload: TPayload
-  ): Promise<TResult>;
+  ): Promise<WorkerResponse<TResult> | WorkerResponse>;
 
   protected response(data: TResult): WorkerResponse<TResult> {
     return {

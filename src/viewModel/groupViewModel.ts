@@ -77,7 +77,8 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
             id: this.DTO.id,
             items: result,
             title: this.DTO.title,
-            description: this.DTO.description
+            description: this.DTO.description,
+            order: this.DTO.order
         } satisfies GroupDTO);
     }
 
