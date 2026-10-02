@@ -369,7 +369,7 @@ space when there is little to show, and below the columns when there is a lot.
   and it would make pressing an arrow a write to the profile and so a push to the account.
 - **Dismissing is a profile setting** (`hideTips`), not a device one, so it follows the user
   and Settings is the way back - which is what the confirmation says. It is named for hiding
-  rather than for showing because every setting defaults to off, and off has to mean the
+  rather than for showing because a new setting defaults to off, and off has to mean the
   behaviour a profile had before the setting existed.
 - **While a link is being dragged the same bar is the trash.** Turning red under something
   that was already there is what says "this is dangerous now", and a colour cannot transition
@@ -571,6 +571,14 @@ through `settingsOf()`, never straight off the profile: a profile stored before 
 existed says nothing about it, and so does an account whose backend does not know it yet, and
 both have to read as the default rather than as `undefined` - the two compare differently, and
 the difference would be pushed.
+
+**`enableDragAndDrop` is the one exception: it defaults to on.** It was added off, while the
+dragging did not exist; now dragging is how the page is used and off is the opt-out. Renaming
+it to a "disable" setting would have kept the rule at the price of a backend column. What the
+flip costs: a profile that never said anything reads as on, while one ever pulled from an
+account has the account's value written out and keeps it. A snapshot that omits the field is
+mapped to `DEFAULT_PROFILE_SETTINGS`, never to a literal `false`. A new setting still defaults
+to off.
 
 The backend mirrors this exactly, profiles included. **A new field on an entity has to be
 threaded through five places** or it is silently lost: the entity here, `SyncContracts`

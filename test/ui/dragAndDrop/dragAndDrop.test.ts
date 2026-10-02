@@ -53,7 +53,12 @@ describe("dragAndDrop", () => {
      */
     describe("the setting", () => {
 
-        it("refuses to start a drag while dragging is switched off", () => {
+        it("is switched on for a profile that never said otherwise", () => {
+            expect(isDragAndDropEnabled()).toBe(true);
+        });
+
+        it("refuses to start a drag while dragging is switched off", async () => {
+            await profiles.updateSettings({ enableDragAndDrop: false });
             const element = document.createElement("div");
             makeDraggable(element, { kind: "link", id: "a" });
 

@@ -36,10 +36,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [small] Enable drag and drop by default
-- self-explanatory
-
-
 ## TO BE approved / analyzed
 
 ### [big] History panel
@@ -50,6 +46,18 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+### [small] Enable drag and drop by default
+- self-explanatory
+- DONE: DEFAULT_PROFILE_SETTINGS.enableDragAndDrop is true, and a snapshot that omits the field
+  maps to the default rather than to a literal false. The one setting that breaks "every
+  setting defaults to off" - recorded in ProfileSettings.ts and CLAUDE.md
+- what it reaches: every profile that never said anything, including new ones. A profile that
+  was ever pulled from an account has the account's value written out and keeps it - and every account row
+  made so far holds false unless its owner turned dragging on, because false is what the old
+  default pushed. Those users turn it on once in Settings. The backend has no default of its
+  own (a primitive boolean), so whatever the extension sends is what it stores
+- tests updated to the new default; the ones that pin it fail against the old one
+
 ### [medium] Cursor icon over items always drag and drop
 - cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
   then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor

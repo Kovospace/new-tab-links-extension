@@ -225,13 +225,13 @@ describe("ChangeSetBuilder, profile settings", () => {
             baselineOf(),
             [{
                 id: PROFILE_ID, name: "Default", createdAt: 0,
-                settings: { enableDragAndDrop: true, hideTips: false }
+                settings: { enableDragAndDrop: false, hideTips: false }
             }],
             { [PROFILE_ID]: emptyProfile() });
 
         const profiles = operations.filter(operation => operation.type === "profile");
         expect(profiles).toHaveLength(1);
-        expect(profiles[0].enableDragAndDrop).toBe(true);
+        expect(profiles[0].enableDragAndDrop).toBe(false);
     });
 
     it("says nothing about a profile whose settings did not change", () => {

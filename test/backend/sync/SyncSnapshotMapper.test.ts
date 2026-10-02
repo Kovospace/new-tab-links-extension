@@ -99,12 +99,12 @@ describe("SyncSnapshotMapper, profile settings", () => {
             .toEqual({ enableDragAndDrop: true, hideTips: false });
     });
 
-    it("reads a backend that does not store settings yet as having them off", () => {
+    it("reads a backend that does not store settings yet as having the defaults", () => {
         // The field is absent, not false, and absent must not arrive as undefined: a profile
         // whose settings are undefined compares differently from one whose settings are the
         // defaults, and the difference would be pushed straight back.
         expect(mappedProfile(accountWithProfile({})).settings)
-            .toEqual({ enableDragAndDrop: false, hideTips: false });
+            .toEqual({ enableDragAndDrop: true, hideTips: false });
     });
 
     it("keeps an account that has them off, off", () => {

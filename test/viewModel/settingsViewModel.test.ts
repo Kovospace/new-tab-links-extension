@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
+import { DEFAULT_PROFILE_SETTINGS } from "../../src/backend/entity/ProfileSettings";
 import { SettingsViewModel } from "../../src/viewModel/settingsViewModel";
 import {
     DevicePreferencesRepository, MAX_SCALE, MIN_SCALE, SCALE_STEP
@@ -50,17 +51,18 @@ describe("SettingsViewModel", () => {
     });
 
     it("shows what the profile actually holds", async () => {
-        await profiles.updateSettings({ enableDragAndDrop: true });
+        await profiles.updateSettings({ enableDragAndDrop: false });
         settings.refresh();
 
-        expect(toggleAt(0).enabled).toBe(true);
+        expect(toggleAt(0).enabled).toBe(false);
     });
 
-    it("stores a setting the user turns on", async () => {
-        await settings.toggle("enableDragAndDrop", true);
+    it("stores a setting the user changes", async () => {
+        // Dragging is on by default, so turning it off is the change there is to store.
+        await settings.toggle("enableDragAndDrop", false);
 
-        expect(profiles.getSettings().enableDragAndDrop).toBe(true);
-        expect(toggleAt(0).enabled).toBe(true);
+        expect(profiles.getSettings().enableDragAndDrop).toBe(false);
+        expect(toggleAt(0).enabled).toBe(false);
     });
 
     it("folds a category away and back", () => {
@@ -81,7 +83,7 @@ describe("SettingsViewModel", () => {
         settings.toggleCategory(firstCategory().key);
 
         expect(published).toBe(before);
-        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false, hideTips: false });
+        expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
     });
 
     it("keeps a folded category folded while the settings on it change", async () => {
@@ -155,7 +157,7 @@ describe("SettingsViewModel, the size setting", () => {
         await settings.setRange("uiScale", 1.25);
 
         expect(published).toBe(before);
-        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false, hideTips: false });
+        expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
     });
 });
 
