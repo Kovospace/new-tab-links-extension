@@ -258,6 +258,15 @@ half is not decoration: the rail is a grid column starting below the header, so 
 right" alone is also true of the application menu and the settings button in the corner, and
 reaching for those opened the panel underneath them.
 
+**Opening waits; closing does not.** The pointer has to rest in that zone before the panel
+widens, because the rail sits under the settings button and a pointer on its way there crossed
+it. How long is a device preference (`closedTabsOpenDelay`, 0-2000 ms, 500 by default, a slider
+in "UI and behavior"), read each time the pointer arrives so a change needs no reload.
+Leaving the page counts as a position too (a `mouseout` with no `relatedTarget`, clamped into
+the viewport): in a maximised window the screen's last pixels are the window frame, and a
+pointer flung at that edge sent its last mousemove from left of the rail and never reached it. The wait is started once and not restarted by movement within
+the rail - a pointer that has stopped sends no more events, so the timer finishes the job.
+
 **The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
 unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
 errand, while deleting or saving one is working through the list and leaves it alone.
@@ -278,6 +287,9 @@ errand, while deleting or saving one is working through the list and leaves it a
   makes the panel fill as tabs are closed in other windows.
 - A row is marked as already kept by comparing addresses the way `linkTabGroupCatcher` does,
   and names the device that closed it only when that was not this one.
+- **The whole row reopens the tab**, not only its text. Folded, the rail draws nothing but the
+  favicons, so a row that answered only to its text was a column of icons that did nothing.
+  The text stays a button for the keyboard; the "+" and "x" are excluded.
 - Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
   a second way.
 - **Only synchronised with an account that keeps them.** A snapshot naming no `closedTabs`
@@ -364,7 +376,7 @@ space when there is little to show, and below the columns when there is a lot.
   and it would make pressing an arrow a write to the profile and so a push to the account.
 - **Dismissing is a profile setting** (`hideTips`), not a device one, so it follows the user
   and Settings is the way back - which is what the confirmation says. It is named for hiding
-  rather than for showing because every setting defaults to off, and off has to mean the
+  rather than for showing because a new setting defaults to off, and off has to mean the
   behaviour a profile had before the setting existed.
 - **While a link is being dragged the same bar is the trash.** Turning red under something
   that was already there is what says "this is dangerous now", and a colour cannot transition
@@ -440,6 +452,10 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   can look a closed tab up - nor should have to reach into the panel to do it. The tab stays in
   the panel afterwards and is marked as kept; it is a record of something that happened, and it
   happened whether or not the page has since been saved.
+- **The grab cursor goes only where a click does nothing else.** A link opens and a subgroup's
+  heading folds when clicked, so both keep the pointer although they can be dragged, and so does
+  a closed tab's row; only a group's heading is grabbed. A cursor that says "grab" over a
+  link reads as "this does not open" (`test/ui/styles/dragCursor.test.ts`).
 - **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
   group's root-level links, so it can be dropped beside one of them; its own links travel with
   it, because a link names the group it is in as well as the subgroup, and one left behind
@@ -562,6 +578,14 @@ through `settingsOf()`, never straight off the profile: a profile stored before 
 existed says nothing about it, and so does an account whose backend does not know it yet, and
 both have to read as the default rather than as `undefined` - the two compare differently, and
 the difference would be pushed.
+
+**`enableDragAndDrop` is the one exception: it defaults to on.** It was added off, while the
+dragging did not exist; now dragging is how the page is used and off is the opt-out. Renaming
+it to a "disable" setting would have kept the rule at the price of a backend column. What the
+flip costs: a profile that never said anything reads as on, while one ever pulled from an
+account has the account's value written out and keeps it. A snapshot that omits the field is
+mapped to `DEFAULT_PROFILE_SETTINGS`, never to a literal `false`. A new setting still defaults
+to off.
 
 The backend mirrors this exactly, profiles included. **A new field on an entity has to be
 threaded through five places** or it is silently lost: the entity here, `SyncContracts`

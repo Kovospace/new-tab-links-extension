@@ -1,10 +1,11 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
 import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
 
@@ -25,8 +26,13 @@ function edgeAt(x: number) {
 }
 
 /** A pointer somewhere on the page; beside the panel unless a test says otherwise. */
-const move = (x: number, y: number = 300) =>
+const pass = (x: number, y: number = 300) =>
     document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+/** A pointer that comes to rest there - long enough for the panel to act on it. */
+const move = (x: number, y: number = 300) => {
+    pass(x, y);
+    vi.advanceTimersByTime(OPEN_DELAY_MS);
+};
 const isOpen = () => document.querySelector('.closed-tabs')!.classList.contains('closed-tabs--open');
 
 /**
@@ -55,6 +61,12 @@ describe("ClosedTabsPanel, opening and closing", () => {
         panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState));
         await panel.render(document.body);
         await flushStorageNotifications();
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    afterEach(() => {
+        panel.dispose();
+        vi.useRealTimers();
     });
 
     it("opens over the rail, stays open to the right, closes to the left", () => {
@@ -70,6 +82,97 @@ describe("ClosedTabsPanel, opening and closing", () => {
 
         move(400);                   // away to the left, over the columns
         expect(isOpen()).toBe(false);
+    });
+
+    it("waits for the pointer to stay before opening", () => {
+        // The bug: on the way to the settings button the pointer crossed the rail, and the
+        // panel opened underneath it.
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS - 1);
+        expect(isOpen()).toBe(false);
+
+        vi.advanceTimersByTime(1);
+        expect(isOpen()).toBe(true);
+    });
+
+    it("waits as long as this device's setting says, read when the pointer arrives", () => {
+        let delay = 1000;
+        panel.dispose();
+        document.body.innerHTML = '<main></main>';
+        panel = new ClosedTabsPanel(
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState), () => delay);
+        void panel.render(document.body);
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+        expect(isOpen()).toBe(false);
+        vi.advanceTimersByTime(1000 - OPEN_DELAY_MS);
+        expect(isOpen()).toBe(true);
+
+        pass(400);
+        delay = 0;                                 // changed in the settings meanwhile
+        pass(970);
+        expect(isOpen()).toBe(true);
+    });
+
+    it("opens for a pointer flung out of the page through the edge beside it", () => {
+        // The bug: in a maximised window the screen's last pixels are the window's frame. A
+        // fast pointer's last mousemove was left of the rail and its next position outside
+        // the page, so the rail never heard from it - no row even lit up - and stayed shut.
+        edgeAt(960);
+        pass(400);
+
+        document.dispatchEvent(new MouseEvent('mouseout',
+            { clientX: window.innerWidth + 3, clientY: 300, relatedTarget: null, bubbles: true }));
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(true);
+    });
+
+    it("stays shut for a pointer that leaves the page through the top", () => {
+        edgeAt(960);
+
+        document.dispatchEvent(new MouseEvent('mouseout',
+            { clientX: 980, clientY: -5, relatedTarget: null, bubbles: true }));
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("ignores the pointer moving between elements of the page", () => {
+        edgeAt(960);
+
+        document.querySelector('main')!.dispatchEvent(new MouseEvent('mouseout',
+            { clientX: 980, clientY: 300, relatedTarget: document.body, bubbles: true }));
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("stays shut for a pointer that only passes over the rail", () => {
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS / 2);
+        expect(isOpen()).toBe(false);
+        pass(980, HEADER_BOTTOM - 20);             // on up to the settings button
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+
+        expect(isOpen()).toBe(false);
+    });
+
+    it("does not restart the wait while the pointer moves within the rail", () => {
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS / 2);
+        pass(975, 320);
+        vi.advanceTimersByTime(OPEN_DELAY_MS / 2);
+
+        expect(isOpen()).toBe(true);
     });
 
     it("stays shut for a pointer that is merely far enough right", () => {
@@ -156,6 +259,29 @@ describe("ClosedTabsPanel, opening and closing", () => {
 
         expect(panel.isPinned()).toBe(false);
         expect(isOpen()).toBe(false);
+    });
+
+    it("reopens the tab from its favicon, which is all the folded rail shows", () => {
+        // The bug: only the row's text reopened it, and folded the text is not drawn - so the
+        // rail was a column of icons that did nothing when clicked.
+        const reopen = vi.fn();
+        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
+            .chrome.tabs.create = reopen;
+
+        (document.querySelector('.closed-tabs__favicon') as HTMLElement).click();
+
+        expect(reopen).toHaveBeenCalledWith(expect.objectContaining({ url: "https://example.com/x" }));
+    });
+
+    it("does not reopen the tab when one of its own buttons is pressed", () => {
+        const reopen = vi.fn();
+        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
+            .chrome.tabs.create = reopen;
+
+        const buttons = document.querySelector('.closed-tabs__row')!.querySelectorAll('button');
+        (buttons[buttons.length - 1] as HTMLButtonElement).click();
+
+        expect(reopen).not.toHaveBeenCalled();
     });
 
     it("puts the device on a line of its own, and only when it was another one", async () => {

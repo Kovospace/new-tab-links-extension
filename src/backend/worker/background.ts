@@ -1,5 +1,5 @@
 
-import { BackgroundWorker } from './abstract/BackgroundWorker'
+import { BackgroundWorker, WorkerMessage } from './abstract/BackgroundWorker'
 import { FavIconWorker } from './module/favIconWorker'
 import {OpenGroupedTabsWorker} from "./module/openGroupedTabsWorker";
 import {OpenTabsWorker} from "./module/openTabsWorker";
@@ -17,7 +17,7 @@ class WorkerRouter {
       private registry: Record<string, ModuleConstructor>
   ) {}
 
-  async dispatch(message: BackgroundMessage) {
+  async dispatch(message: WorkerMessage) {
     const { target, action, payload } = message;
 
     const Module = this.registry[target];

@@ -2,7 +2,8 @@ import { ProfileRepository, profileRepository } from "../backend/repository/Prof
 import { ProfileSettings } from "../backend/entity/ProfileSettings";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
-    MAX_SCALE, MIN_SCALE, SCALE_STEP
+    CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
+    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP
 } from "../backend/repository/DevicePreferencesRepository";
 
 import {
@@ -110,8 +111,8 @@ export type SettingDTO = ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO |
 /** The settings that are a picture. */
 export type ImageSettingKey = "backgroundImage";
 
-/** The settings that are numbers. One so far. */
-export type RangeSettingKey = "uiScale";
+/** The settings that are numbers. */
+export type RangeSettingKey = "uiScale" | "closedTabsOpenDelay";
 
 /** The settings that are a choice out of a list. */
 export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine";
@@ -176,6 +177,7 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "toggle", key: "enableDragAndDrop", wording: "enableDragAndDrop" },
             { kind: "toggle", key: "hideTips", wording: "hideTips" },
             { kind: "range", key: "uiScale", wording: "uiScale" },
+            { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
             { kind: "image", key: "backgroundImage", wording: "backgroundImage" }
         ]
     },
@@ -288,6 +290,8 @@ export class SettingsViewModel {
         if (key === "uiScale") {
             await this.devicePreferences.setScale(value);
             this.devicePreferences.applyScale();
+        } else if (key === "closedTabsOpenDelay") {
+            await this.devicePreferences.setClosedTabsOpenDelay(value);
         }
         this.refresh();
     }
@@ -416,6 +420,22 @@ export class SettingsViewModel {
                 disabledReason: this.premium$.get()
                     ? null
                     : t(`settings.${definition.wording}.proOnly`)
+            };
+        }
+
+        if (definition.key === "closedTabsOpenDelay") {
+            const delay = this.devicePreferences.getClosedTabsOpenDelay();
+            return {
+                kind: "range",
+                key: definition.key,
+                title,
+                explanation,
+                value: delay,
+                min: MIN_CLOSED_TABS_OPEN_DELAY,
+                max: MAX_CLOSED_TABS_OPEN_DELAY,
+                step: CLOSED_TABS_OPEN_DELAY_STEP,
+                display: t("settings.closedTabsOpenDelay.value", { milliseconds: delay }),
+                disabledReason: null
             };
         }
 

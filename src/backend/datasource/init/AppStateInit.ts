@@ -41,11 +41,13 @@ export const appStateInit: AppState = {
         "group-1": {
             id: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             title: "Work"
         },
         "group-2": {
             id: "group-2",
             environmentId: "env-1",
+            createdAt: 0,
             title: "Personal"
         }
     },
@@ -56,6 +58,7 @@ export const appStateInit: AppState = {
             description: "Popis sub group 1",
             groupId: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             collapsed: false,
             defaultCollapsed: false,
             type: "subgroup",
@@ -69,6 +72,7 @@ export const appStateInit: AppState = {
             subGroupId: "",
             groupId: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             url: "http://kokot.do.pici",
             type: "link",
             position: 0
@@ -79,6 +83,7 @@ export const appStateInit: AppState = {
             subGroupId: "subgroup-1",
             groupId: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             url: "http://kokot.do.pici",
             type: "link",
             position: 0
@@ -89,6 +94,7 @@ export const appStateInit: AppState = {
             subGroupId: "",
             groupId: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             url: "http://kokot.do.pici",
             type: "link",
             position: 2
@@ -99,6 +105,7 @@ export const appStateInit: AppState = {
             subGroupId: "",
             groupId: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             url: "http://kokot.do.pici",
             type: "link",
             position: 3
@@ -109,6 +116,7 @@ export const appStateInit: AppState = {
             subGroupId: "",
             groupId: "group-1",
             environmentId: "env-1",
+            createdAt: 0,
             url: "http://kokot.do.pici",
             type: "link",
             position: 4

@@ -41,12 +41,12 @@ export class FakeAccount {
     public snapshot(): SyncSnapshot {
         return {
             owner: { id: "owner", username: "kovo" },
-            profiles: this.ordered(this.profiles) as SyncSnapshot["profiles"],
-            environments: this.ordered(this.environments) as SyncSnapshot["environments"],
-            groups: this.ordered(this.groups) as SyncSnapshot["groups"],
-            subgroups: this.ordered(this.subgroups) as SyncSnapshot["subgroups"],
-            links: this.ordered(this.links) as SyncSnapshot["links"],
-            closedTabs: [...this.closedTabs.values()] as SyncSnapshot["closedTabs"],
+            profiles: this.ordered(this.profiles) as unknown as SyncSnapshot["profiles"],
+            environments: this.ordered(this.environments) as unknown as SyncSnapshot["environments"],
+            groups: this.ordered(this.groups) as unknown as SyncSnapshot["groups"],
+            subgroups: this.ordered(this.subgroups) as unknown as SyncSnapshot["subgroups"],
+            links: this.ordered(this.links) as unknown as SyncSnapshot["links"],
+            closedTabs: [...this.closedTabs.values()] as unknown as SyncSnapshot["closedTabs"],
             capturedAt: this.at
         };
     }

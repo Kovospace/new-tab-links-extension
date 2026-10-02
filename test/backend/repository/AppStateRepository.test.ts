@@ -911,7 +911,7 @@ describe("AppStateRepository.createLinkAt", () => {
         const state = await appState.createLinkAt(
             "https://new.test", "New", GROUP, undefined, 99);
 
-        expect(rootOf(state).at(-1)).toBe("https://new.test");
+        expect(rootOf(state).slice(-1)[0]).toBe("https://new.test");
     });
 
     it("makes it inside a subgroup when that is where it was dropped", async () => {

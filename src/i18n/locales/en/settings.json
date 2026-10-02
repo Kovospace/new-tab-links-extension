@@ -19,6 +19,11 @@
     "title": "Size",
     "explanation": "How big everything is drawn. This one is kept on this device only - a desktop and a laptop want different answers, and one should not decide for the other."
   },
+  "closedTabsOpenDelay": {
+    "title": "Recently closed tabs: opening delay",
+    "explanation": "How long the pointer has to rest on the recently closed tabs rail before it opens, so that passing over it on the way to the menu does not. Kept on this device only.",
+    "value": "{milliseconds} ms"
+  },
   "language": {
     "title": "Language",
     "explanation": "What this extension speaks. \"Follow the browser\" uses your browser's own language, and falls back to English where this extension has no translation. Kept on this device only.",

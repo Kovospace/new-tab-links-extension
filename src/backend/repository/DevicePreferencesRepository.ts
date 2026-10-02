@@ -53,17 +53,46 @@ export interface DevicePreferences {
      *  opinion about.
      */
     searchEngine: SearchEngineId;
+
+    /**
+     *  How long, in milliseconds, the pointer has to rest on the closed-tabs rail before it
+     *  widens. Per device for the reason the size is: it is a matter of the hand and the
+     *  pointing device, and a trackpad and a mouse want different answers.
+     */
+    closedTabsOpenDelay: number;
 }
 
 /** The size an interface nobody has resized is drawn at: the browser's own. */
 export const DEFAULT_SCALE = 1;
+
+/** How long the pointer rests on the closed-tabs rail before it opens, in milliseconds. */
+export const DEFAULT_CLOSED_TABS_OPEN_DELAY = 500;
+export const MIN_CLOSED_TABS_OPEN_DELAY = 0;
+export const MAX_CLOSED_TABS_OPEN_DELAY = 2000;
+export const CLOSED_TABS_OPEN_DELAY_STEP = 100;
+
+/**
+ *  The nearest delay this actually offers, clamped and snapped like the size and for the
+ *  same reason: the value can come from storage the slider never wrote.
+ *
+ *  @param value the delay asked for, in milliseconds
+ *  @return the delay that will be used
+ */
+export function normalizeClosedTabsOpenDelay(value: number): number {
+    if (!Number.isFinite(value)) {
+        return DEFAULT_CLOSED_TABS_OPEN_DELAY;
+    }
+    const snapped = Math.round(value / CLOSED_TABS_OPEN_DELAY_STEP) * CLOSED_TABS_OPEN_DELAY_STEP;
+    return Math.min(MAX_CLOSED_TABS_OPEN_DELAY, Math.max(MIN_CLOSED_TABS_OPEN_DELAY, snapped));
+}
 
 /** What a device nobody has answered these for prefers: whatever the browser is set to. */
 const DEFAULTS: DevicePreferences = {
     scale: DEFAULT_SCALE,
     language: AUTOMATIC_LANGUAGE,
     dateFormat: DEFAULT_DATE_FORMAT,
-    searchEngine: DEFAULT_SEARCH_ENGINE
+    searchEngine: DEFAULT_SEARCH_ENGINE,
+    closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -117,7 +146,9 @@ export class DevicePreferencesRepository {
             scale: normalizeScale(stored?.scale ?? DEFAULT_SCALE),
             language: normalizeLanguagePreference(stored?.language),
             dateFormat: normalizeDateFormat(stored?.dateFormat),
-            searchEngine: normalizeSearchEngine(stored?.searchEngine)
+            searchEngine: normalizeSearchEngine(stored?.searchEngine),
+            closedTabsOpenDelay: normalizeClosedTabsOpenDelay(
+                stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY)
         };
         this.preferences$.set(this.preferences);
     }
@@ -139,6 +170,29 @@ export class DevicePreferencesRepository {
         }
         this.preferences = { ...this.preferences, scale: wanted };
         this.LOG.debug("setScale", `${wanted}em`);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.preferences$.set(this.preferences);
+    }
+
+    /** How long the pointer rests on the closed-tabs rail before it opens, in milliseconds. */
+    public getClosedTabsOpenDelay(): number {
+        return this.preferences.closedTabsOpenDelay;
+    }
+
+    /**
+     *  Changes how long the closed-tabs rail waits before it opens, and remembers it.
+     *
+     *  Nothing to apply: the panel reads the delay each time the pointer arrives.
+     *
+     *  @param delay milliseconds; clamped and snapped to what is on offer
+     */
+    public async setClosedTabsOpenDelay(delay: number): Promise<void> {
+        const wanted = normalizeClosedTabsOpenDelay(delay);
+        if (wanted === this.preferences.closedTabsOpenDelay) {
+            return;
+        }
+        this.preferences = { ...this.preferences, closedTabsOpenDelay: wanted };
+        this.LOG.debug("setClosedTabsOpenDelay", `${wanted}ms`);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
         this.preferences$.set(this.preferences);
     }

@@ -6,6 +6,7 @@ import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
 import { ObservableValue } from '../../utils/observableValue';
+import { devicePreferencesRepository } from '../../backend/repository/DevicePreferencesRepository';
 import {CLASS_ACTION_DANGER} from "../../constants";
 
 /** Marks a closed tab whose address the profile already keeps. */
@@ -30,6 +31,12 @@ import {CLASS_ACTION_DANGER} from "../../constants";
  * keeps it open while the pointer is anywhere it could still be heading for the list, and it
  * cannot flap, because the edge it is compared against moves with the panel: closing puts the
  * edge to the right of the pointer, which is not a reason to open again.
+ *
+ * **Opening waits for the pointer to stay.** Closing is immediate, but the pointer has to rest
+ * in that place before the panel widens - half a second unless this device's settings say
+ * otherwise (`closedTabsOpenDelay`). The rail sits right under
+ * the settings button, and a pointer on its way there crossed it and pulled the panel open
+ * underneath - somebody heading for the list stops on it, somebody passing through does not.
  *
  * **The button takes precedence over all of that.** Pinned, the panel ignores the pointer and
  * stays open until it is unpinned, something outside it is clicked, or a row is opened - the
@@ -60,15 +67,28 @@ export class ClosedTabsPanel {
    */
   public readonly pinned$ = new ObservableValue<boolean>(false);
 
+  /** The pending open, while the pointer is resting on the rail but has not stayed long enough. */
+  private openTimer: ReturnType<typeof setTimeout> | null = null;
+
   /** The document listeners, kept so they can be taken off again. */
   private readonly pointerMoved = (event: MouseEvent) => this.followPointer(event);
+  private readonly pointerLeft = (event: MouseEvent) => this.followPointerOut(event);
   private readonly clicked = (event: MouseEvent) => this.clickedSomewhere(event);
+
+  /** How long the pointer has to rest on the rail, read each time it arrives. */
+  private readonly openDelay: () => number;
 
   /**
    * @param viewModel supplies the rows and acts on them; injectable for testing
+   * @param openDelay how long the pointer has to rest before the panel opens, in milliseconds;
+   *                  asked each time rather than once, so a changed setting needs no reload
    */
-  constructor(viewModel: ClosedTabsViewModel = new ClosedTabsViewModel()) {
+  constructor(
+      viewModel: ClosedTabsViewModel = new ClosedTabsViewModel(),
+      openDelay: () => number = () => devicePreferencesRepository.getClosedTabsOpenDelay()
+  ) {
     this.viewModel = viewModel;
+    this.openDelay = openDelay;
   }
 
   /**
@@ -86,6 +106,7 @@ export class ClosedTabsPanel {
     // On the document rather than on the panel: the rule is about where the pointer is on the
     // screen, including where the panel is not, which an element's own events cannot report.
     document.addEventListener("mousemove", this.pointerMoved);
+    document.addEventListener("mouseout", this.pointerLeft);
     document.addEventListener("click", this.clicked);
 
     await this.viewModel.initialize();
@@ -109,6 +130,7 @@ export class ClosedTabsPanel {
    * to move would look like the button had not worked.
    */
   public togglePinned(): void {
+    this.cancelPendingOpen();
     this.setPinned(!this.pinned);
     this.setOpen(this.pinned);
   }
@@ -124,6 +146,30 @@ export class ClosedTabsPanel {
    * settings button up in the corner, and reaching for those opened the panel underneath them.
    */
   private followPointer(event: MouseEvent): void {
+    this.followPointerAt(event.clientX, event.clientY);
+  }
+
+  /**
+   * Follows the pointer out of the page, which a mousemove never reports.
+   *
+   * In a maximised window the last pixel or two at the screen's edge can belong to the window
+   * frame rather than to the page. A pointer flung at that edge sends its last mousemove from
+   * somewhere left of the rail and its next position is already outside the page - so no
+   * event ever arrived over the rail, nothing in it so much as lit up, and it never opened.
+   * Leaving the page is reported, as a mouseout with nowhere to go, and where it left is read
+   * as the nearest point still inside: out through the right edge beside the rail is "on the
+   * rail", out through the top is "above it".
+   */
+  private followPointerOut(event: MouseEvent): void {
+    if (event.relatedTarget !== null) {
+      return;     // only into another element of this page, which a mousemove will report
+    }
+    const x = Math.min(Math.max(event.clientX, 0), window.innerWidth - 1);
+    const y = Math.min(Math.max(event.clientY, 0), window.innerHeight - 1);
+    this.followPointerAt(x, y);
+  }
+
+  private followPointerAt(clientX: number, clientY: number): void {
     if (this.pinned || !this.panelEl) {
       return;
     }
@@ -132,9 +178,32 @@ export class ClosedTabsPanel {
     // pointer that has just closed it is left of the narrower edge too. The top and bottom do
     // not move, so they need no such care.
     const panel = this.panelEl.getBoundingClientRect();
-    const besideIt = event.clientY >= panel.top && event.clientY <= panel.bottom;
+    const besideIt = clientY >= panel.top && clientY <= panel.bottom;
+    const wantsOpen = besideIt && clientX >= panel.left;
 
-    this.setOpen(besideIt && event.clientX >= panel.left);
+    if (!wantsOpen) {
+      this.cancelPendingOpen();
+      this.setOpen(false);
+    } else if (!this.isOpen() && this.openTimer === null) {
+      const delay = this.openDelay();
+      if (delay <= 0) {
+        this.setOpen(true);
+        return;
+      }
+      // Started once and left running while the pointer moves within the rail: a pointer
+      // stopping there sends no more events, so the timer is what has to finish the job.
+      this.openTimer = setTimeout(() => {
+        this.openTimer = null;
+        this.setOpen(true);
+      }, delay);
+    }
+  }
+
+  private cancelPendingOpen(): void {
+    if (this.openTimer !== null) {
+      clearTimeout(this.openTimer);
+      this.openTimer = null;
+    }
   }
 
   /**
@@ -191,7 +260,9 @@ export class ClosedTabsPanel {
   }
 
   public dispose(): void {
+    this.cancelPendingOpen();
     document.removeEventListener("mousemove", this.pointerMoved);
+    document.removeEventListener("mouseout", this.pointerLeft);
     document.removeEventListener("click", this.clicked);
     this.unsubscribe?.();
     this.unsubscribe = null;
@@ -266,6 +337,22 @@ export class ClosedTabsPanel {
 
     const row = document.createElement('div');
     row.classList.add('closed-tabs__row');
+    row.title = t('closedTabs.rowTooltip', { url: tab.url });
+
+    // The whole row reopens the tab, not only its text. Folded, the rail shows nothing but the
+    // favicons - the text is not drawn at all - so a row that only answered to its text was a
+    // column of icons that did nothing when clicked. The text stays a button, so a keyboard
+    // can still reach it; its click bubbles here. The "+" and "x" are their own business.
+    row.addEventListener('click', event => {
+      if ((event.target as HTMLElement | null)?.closest('.closed-tabs__row-actions')) {
+        return;
+      }
+      this.viewModel.reopen(tab.id);
+      // Opening one is the end of the errand. Deleting one or saving one is not, so those
+      // leave the panel where it is.
+      this.setPinned(false);
+      this.setOpen(false);
+    });
 
     // Draggable out of the panel and onto a group, a subgroup or a place between two links.
     // It carries its address and title rather than only an identifier, because what it makes
@@ -289,14 +376,6 @@ export class ClosedTabsPanel {
     const text = document.createElement('button');
     text.type = 'button';
     text.classList.add('closed-tabs__text');
-    text.title = t('closedTabs.rowTooltip', { url: tab.url });
-    text.addEventListener('click', () => {
-      this.viewModel.reopen(tab.id);
-      // Opening one is the end of the errand. Deleting one or saving one is not, so those
-      // leave the panel where it is.
-      this.setPinned(false);
-      this.setOpen(false);
-    });
 
     const title = document.createElement('span');
     title.classList.add('closed-tabs__row-title');

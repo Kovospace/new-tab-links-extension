@@ -7,8 +7,8 @@
  *  entity kind and no merge rules of its own. The price, paid knowingly: two profiles are two
  *  sets of preferences, and turning something on for work does not turn it on for home.
  *
- *  Every setting is a plain boolean with a default of "off", and is read through
- *  `settingsOf()` rather than straight off the profile. A profile stored before a setting
+ *  Every setting is a plain boolean, defaulting to "off" with one exception named below, and
+ *  is read through `settingsOf()` rather than straight off the profile. A profile stored before a setting
  *  existed says nothing about it, and so does an account whose backend does not know it yet;
  *  both have to read as the default rather than as undefined.
  */
@@ -17,9 +17,12 @@ export interface ProfileSettings {
     /**
      *  Whether links, groups and subgroups can be rearranged by dragging them.
      *
-     *  Off for now because the dragging itself does not exist yet - see TODOS.md. The setting
-     *  lands first deliberately: it is what the feature will be built behind, so that it can
-     *  be turned off by anyone it gets in the way of.
+     *  **On by default - the one setting that breaks the "off" rule.** It was added off while
+     *  the dragging did not exist yet, so off was the old behaviour. Now dragging is how the
+     *  page is meant to be used and off is the opt-out. Renaming it to a "disable" setting
+     *  would have kept the rule but renamed a backend column; flipping the default costs only
+     *  this: a profile that never said anything reads as on. One that was ever pulled from an
+     *  account has the account's value written out, and keeps it.
      */
     enableDragAndDrop: boolean;
 
@@ -35,7 +38,7 @@ export interface ProfileSettings {
 
 /** What a profile that has never been configured is set to. */
 export const DEFAULT_PROFILE_SETTINGS: ProfileSettings = {
-    enableDragAndDrop: false,
+    enableDragAndDrop: true,
     hideTips: false
 };
 

@@ -36,30 +36,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [small] The seeded data does not type-check
-- `npx tsc --noEmit` reports five errors in src/backend/datasource/init/AppStateInit.ts: the
-  groups, subgroups and links the first run is seeded with have no `createdAt`, which the
-  entities require
-- the build does not notice, because Vite transpiles rather than type-checks, and a seeded
-  record without it is written to storage as it stands
-- so the whole strict check is unusable until it is fixed - which is what it costs: nothing
-  else it would catch can be seen while these five are in the way
-
-### [high] Annoying behaviour when going to the settings
-- add some mouseover timeout (lets say 500 ms) to the last closed tabs bar because when user navigates its way to the
-  extension settins it sometimes gets triggered
-
-### [high] Changing size in settings does not change link's icons size
-- self-explanatory
-
-### [medium] Cursor icon over items always drag and drop
-- cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
-  then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
-
-### [small] Enable drag and drop by default
-- self-explanatory
-
-
 ## TO BE approved / analyzed
 
 ### [big] History panel
@@ -70,6 +46,54 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+### [small] Enable drag and drop by default
+- self-explanatory
+- DONE: DEFAULT_PROFILE_SETTINGS.enableDragAndDrop is true, and a snapshot that omits the field
+  maps to the default rather than to a literal false. The one setting that breaks "every
+  setting defaults to off" - recorded in ProfileSettings.ts and CLAUDE.md
+- what it reaches: every profile that never said anything, including new ones. A profile that
+  was ever pulled from an account has the account's value written out and keeps it - and every account row
+  made so far holds false unless its owner turned dragging on, because false is what the old
+  default pushed. Those users turn it on once in Settings. The backend has no default of its
+  own (a primitive boolean), so whatever the extension sends is what it stores
+- tests updated to the new default; the ones that pin it fail against the old one
+
+### [medium] Cursor icon over items always drag and drop
+- cursor icon over items in extesnion, for example links is misleading - if not placed right over link or other text,
+  then hand for grabbing is shown. But action over item is for example link open - rather not show that cursor
+- DONE: links and subgroup headings wore cursor: grab whenever drag and drop was on, so
+  everywhere on a link but its anchor's text said grab - yet a click there opens it, and a
+  click on a subgroup heading folds it. Both keep the pointer now; a group heading (a click
+  does nothing there) and a closed tab's row outside its text still say grab
+- a stylesheet contract test, failing against the old rules
+
+### [high] Changing size in settings does not change link's icons size
+- self-explanatory
+- DONE: a link's favicon was sized only by its img's width and height attributes, which are
+  pixels, so it stayed 32px whatever the root font size was. It is now 2rem in link.css; the
+  closed-tabs favicons (16px) and the bookmark popup's (32px) had the same rule and got the
+  same fix
+- pinned by a stylesheet contract test, since jsdom lays nothing out
+
+### [high] Annoying behaviour when going to the settings
+- add some mouseover timeout (lets say 500 ms) to the last closed tabs bar because when user navigates its way to the
+  extension settins it sometimes gets triggered
+- DONE: the pointer has to rest over the rail for 500 ms before the panel opens; closing is
+  still immediate. Moving within the rail does not restart the wait
+- two tests, both failing against the old immediate opening
+
+### [small] The seeded data does not type-check
+- `npx tsc --noEmit` reports five errors in src/backend/datasource/init/AppStateInit.ts: the
+  groups, subgroups and links the first run is seeded with have no `createdAt`, which the
+  entities require
+- the build does not notice, because Vite transpiles rather than type-checks, and a seeded
+  record without it is written to storage as it stands
+- so the whole strict check is unusable until it is fixed - which is what it costs: nothing
+  else it would catch can be seen while these five are in the way
+- DONE: the seeded records carry createdAt: 0, as the seeded workspace already did
+- with those out of the way tsc showed four more (a worker router typed against a name that
+  does not exist, BackgroundWorker.handle typed as returning the bare result, the group DTO
+  losing its order, two test files) - fixed in a second commit. `npx tsc --noEmit` is clean
 
 ### [medium] Implement Search bar
 - in <workspace-plane-head>, after the title and the workspace's buttons, centred in the room

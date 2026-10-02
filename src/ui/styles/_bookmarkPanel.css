@@ -53,8 +53,8 @@ body.popup > main {
 }
 
 .bookmark-panel__icon > img {
-    width: 32px;
-    height: 32px;
+    width: 2rem;
+    height: 2rem;
 }
 
 .bookmark-panel__fields {

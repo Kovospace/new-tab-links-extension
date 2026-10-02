@@ -229,17 +229,18 @@ describe("ProfileRepository settings", () => {
         await profiles.init();
     });
 
-    it("reads a profile that has never been configured as having everything off", () => {
-        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: false, hideTips: false });
+    it("reads a profile that has never been configured as having the defaults", () => {
+        // Dragging is the one setting that is on unless it is turned off.
+        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: true, hideTips: false });
     });
 
     it("persists a setting onto the profile record", async () => {
-        await profiles.updateSettings({ enableDragAndDrop: true });
+        await profiles.updateSettings({ enableDragAndDrop: false });
 
         expect(readFakeStorage<StoredRegistry>(PROFILE_REGISTRY_KEY)
             ?.profiles["default"].settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false });
-        expect(profiles.getSettings().enableDragAndDrop).toBe(true);
+            .toEqual({ enableDragAndDrop: false, hideTips: false });
+        expect(profiles.getSettings().enableDragAndDrop).toBe(false);
     });
 
     it("publishes the change, which is what schedules the push to the account", async () => {
@@ -247,7 +248,7 @@ describe("ProfileRepository settings", () => {
         profiles.profiles$.subscribe(() => published++);
         const before = published;
 
-        await profiles.updateSettings({ enableDragAndDrop: true });
+        await profiles.updateSettings({ enableDragAndDrop: false });
 
         expect(published).toBeGreaterThan(before);
     });

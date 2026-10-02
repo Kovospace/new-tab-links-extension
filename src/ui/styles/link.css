@@ -20,7 +20,15 @@ link-container > div {
 }
 
 link-container > div.cls-link-icon {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
 
+/* In rem, so the icon follows the size setting with everything else. The img's own width and
+   height attributes are pixels, and on their own they kept it at 32px whatever the size was. */
+link-container > div.cls-link-icon > img {
+  width: 2rem;
+  height: 2rem;
 }
 
 link-container > div.cls-link-text {

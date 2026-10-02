@@ -1,5 +1,5 @@
 import { Environment, Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
-import { settingsOf } from "../entity/ProfileSettings";
+import { DEFAULT_PROFILE_SETTINGS, settingsOf } from "../entity/ProfileSettings";
 import { ClosedTab } from "../entity/ClosedTabEntity";
 import { isTabGroupColor } from "../entity/TabGroupColors";
 import { SyncSnapshot } from "./SyncContracts";
@@ -66,11 +66,12 @@ export class SyncSnapshotMapper {
                 createdAt: this.toEpochMilliseconds(profile.createdAt),
                 // Settings ride on the profile record. A backend that does not store them
                 // yet says nothing, and settingsOf() reads that as the defaults rather than
-                // as an instruction to turn anything on.
+                // as an instruction to turn anything on or off.
                 settings: settingsOf({
                     settings: {
-                        enableDragAndDrop: profile.enableDragAndDrop ?? false,
-                        hideTips: profile.hideTips ?? false
+                        enableDragAndDrop: profile.enableDragAndDrop
+                            ?? DEFAULT_PROFILE_SETTINGS.enableDragAndDrop,
+                        hideTips: profile.hideTips ?? DEFAULT_PROFILE_SETTINGS.hideTips
                     }
                 })
             }));
