@@ -111,7 +111,7 @@ export class TipsBar {
 
     if (tips.tip.url) {
       this.tipEl.appendChild(this.button(
-        t('tips.tellMeMore'),
+        tips.tip.buttonLabel ?? t('tips.tellMeMore'),
         ['tips-bar__more'],
         t('tips.tellMeMoreTooltip'),
         () => this.viewModel.openMore()));

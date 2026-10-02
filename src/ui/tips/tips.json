@@ -117,6 +117,21 @@
     }
   },
   {
+    "id": "ctrl-d-saves-here",
+    "text": {
+      "en": "Want Ctrl+D to save the page into Tabilinks instead of Chrome's bookmarks? Chrome lets you assign it on its shortcuts page.",
+      "sk": "Chcete, aby Ctrl+D ukladalo stránku do Tabilinks namiesto záložiek Chromu? Chrome to dovoľuje nastaviť na svojej stránke skratiek."
+    },
+    "url": {
+      "en": "chrome://extensions/shortcuts",
+      "sk": "chrome://extensions/shortcuts"
+    },
+    "button": {
+      "en": "Set the shortcut",
+      "sk": "Nastaviť skratku"
+    }
+  },
+  {
     "id": "profiles",
     "text": {
       "en": "Profiles are separate worlds: work links in one, home links in another, and nothing in between.",

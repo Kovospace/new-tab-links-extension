@@ -10,6 +10,7 @@ import {
     DATE_FORMATS, DateFormatId, sampleOf
 } from "../i18n/dates";
 import { t } from "../i18n/i18n";
+import { openShortcutsPage, readBookmarkShortcut, SHORTCUTS_PAGE } from "../utils/extensionShortcuts";
 import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
 import {
     BackgroundImageRepository, backgroundImageRepository
@@ -105,8 +106,28 @@ export interface ImageSettingDTO extends SettingCommonDTO {
     tooltip: string;
 }
 
+/**
+ *  A keyboard shortcut: what it is set to, and a way to the page where it is changed.
+ *
+ *  Not editable here, because it cannot be: Chrome gives an extension no way to set its own
+ *  shortcut, only to read it - see `utils/extensionShortcuts.ts`.
+ */
+export interface ShortcutSettingDTO extends SettingCommonDTO {
+    kind: "shortcut";
+    /** Which shortcut this is. One so far. */
+    key: ShortcutSettingKey;
+    /** What it is bound to ("Alt+Shift+D"), or null when nothing is. */
+    shortcut: string | null;
+    /** The value as it is shown beside the name, already worded. */
+    display: string;
+}
+
 /** One setting, as the dialog draws it. */
-export type SettingDTO = ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO | ImageSettingDTO;
+export type SettingDTO =
+    ToggleSettingDTO | RangeSettingDTO | ChoiceSettingDTO | ImageSettingDTO | ShortcutSettingDTO;
+
+/** The settings that are a keyboard shortcut. */
+export type ShortcutSettingKey = "bookmarkShortcut";
 
 /** The settings that are a picture. */
 export type ImageSettingKey = "backgroundImage";
@@ -152,7 +173,8 @@ type SettingDefinition =
     | { kind: "toggle"; key: keyof ProfileSettings; wording: string }
     | { kind: "range"; key: RangeSettingKey; wording: string }
     | { kind: "choice"; key: ChoiceSettingKey; wording: string }
-    | { kind: "image"; key: ImageSettingKey; wording: string };
+    | { kind: "image"; key: ImageSettingKey; wording: string }
+    | { kind: "shortcut"; key: ShortcutSettingKey; wording: string };
 
 /** A category, and what is in it. */
 interface CategoryDefinition {
@@ -178,7 +200,8 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "toggle", key: "hideTips", wording: "hideTips" },
             { kind: "range", key: "uiScale", wording: "uiScale" },
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
-            { kind: "image", key: "backgroundImage", wording: "backgroundImage" }
+            { kind: "image", key: "backgroundImage", wording: "backgroundImage" },
+            { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" }
         ]
     },
     {
@@ -231,6 +254,10 @@ export class SettingsViewModel {
     private readonly devicePreferences: DevicePreferencesRepository;
     private readonly backgroundImages: BackgroundImageRepository;
     private readonly premium$: ObservableValue<boolean>;
+    private readonly shortcutReader: () => Promise<string | null>;
+
+    /** What saving a page is bound to, as last read; Chrome answers asynchronously. */
+    private bookmarkShortcut: string | null = null;
 
     /** Categories the user has folded away; the first one starts out of it. */
     private readonly collapsed: Set<string> = new Set(
@@ -245,13 +272,16 @@ export class SettingsViewModel {
      *  @param devicePreferences what this browser prefers, which the profile has no say in
      *  @param backgroundImages  the picture behind the page, kept on this device
      *  @param premium$          whether the account is premium, which the picture needs
+     *  @param shortcutReader    reads the bookmarking shortcut; injectable for testing
      */
     constructor(
         profiles: ProfileRepository = profileRepository,
         devicePreferences: DevicePreferencesRepository = devicePreferencesRepository,
         backgroundImages: BackgroundImageRepository = backgroundImageRepository,
-        premium$: ObservableValue<boolean> = accountStandingRepository.premium$
+        premium$: ObservableValue<boolean> = accountStandingRepository.premium$,
+        shortcutReader: () => Promise<string | null> = readBookmarkShortcut
     ) {
+        this.shortcutReader = shortcutReader;
         this.profiles = profiles;
         this.devicePreferences = devicePreferences;
         this.backgroundImages = backgroundImages;
@@ -261,6 +291,24 @@ export class SettingsViewModel {
     /** Loads the active profile's settings into the observable. */
     public refresh(): void {
         this.observables.settings.set(this.describe());
+    }
+
+    /**
+     *  Asks Chrome what the bookmarking shortcut is now, and redraws.
+     *
+     *  Separate from `refresh()` because Chrome answers asynchronously, and called again when
+     *  the page gets the focus back: the shortcut is changed on another tab, and somebody
+     *  returning from it expects to see what they just set.
+     */
+    public async refreshShortcut(): Promise<void> {
+        this.bookmarkShortcut = await this.shortcutReader();
+        this.refresh();
+    }
+
+    /** Opens the page where Chrome lets the user change the shortcut. */
+    public openShortcutSettings(): void {
+        this.LOG.debug("openShortcutSettings", SHORTCUTS_PAGE);
+        openShortcutsPage();
     }
 
     /**
@@ -405,6 +453,18 @@ export class SettingsViewModel {
                 explanation,
                 value: this.choiceValueOf(definition.key),
                 options: choiceOptionsOf(definition.key),
+                disabledReason: null
+            };
+        }
+
+        if (definition.kind === "shortcut") {
+            return {
+                kind: "shortcut",
+                key: definition.key,
+                title,
+                explanation,
+                shortcut: this.bookmarkShortcut,
+                display: this.bookmarkShortcut ?? t(`settings.${definition.wording}.notSet`),
                 disabledReason: null
             };
         }

@@ -207,6 +207,13 @@ feature needs no permission beyond `contextMenus`.
 - **Three ways in, and only one of them is code here.** The toolbar icon and the keyboard
   shortcut (`_execute_action`, suggested Alt+Shift+D) are opened by the browser itself. The
   right-click entries go through `chrome.action.openPopup()`.
+- **The shortcut cannot be set from here, only read.** Chrome has no `commands.update`, and the
+  suggested key applies to fresh installs only. The user can bind anything - Ctrl+D included,
+  which then saves into Tabilinks instead of Chrome's bookmarks - on
+  `chrome://extensions/shortcuts`. Settings → UI and behavior shows the current binding
+  (`chrome.commands.getAll`, re-read when the page regains focus) with a button to that page,
+  and so does a tip (`utils/extensionShortcuts.ts`). A chrome:// page opens only through
+  `chrome.tabs.create`, never as a link.
 - **A popup takes no argument**, so the worker leaves the page to bookmark in
   `chrome.storage.session` and the popup takes it (`utils/bookmarkRequest.ts`). Taken, not
   read, and stamped: a request a dismissed popup left behind is never answered later. A popup
@@ -370,6 +377,8 @@ space when there is little to show, and below the columns when there is a lot.
   strip on somebody's new tab page. Which language is read comes from `i18n`, not from the
   browser: a reader who chose English on a Slovak browser would otherwise have the whole
   interface in English and the tip at the bottom of it in Slovak.
+- An optional `button` on a tip, per language, renames that button for a tip whose link does
+  something rather than explains - the Ctrl+D tip opens `chrome://extensions/shortcuts`.
 - An optional `url` on a tip draws a "tell me more" button, and is **per language like the
   sentence is**: the tutorial it points at is a page on the website, and that page has a
   language of its own. It falls back to English when a language has no tutorial yet, because

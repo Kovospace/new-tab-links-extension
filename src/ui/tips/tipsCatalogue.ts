@@ -42,6 +42,13 @@ export interface Tip {
      *  with nothing in it - means the tip explains itself, and no button is offered.
      */
     url?: Record<string, string>;
+
+    /**
+     *  What the button says, by language code, when "tell me more" would be the wrong words -
+     *  a tip whose link does something (opens Chrome's shortcuts page) rather than explains.
+     *  Absent means "tell me more".
+     */
+    button?: Record<string, string>;
 }
 
 /** Every tip there is, in the order the file lists them. */
@@ -56,6 +63,16 @@ export const TIPS: ReadonlyArray<Tip> = tipsJson as Tip[];
  */
 export function textOf(tip: Tip, language: string = currentLanguage()): string {
     return tip.text[language] ?? tip.text[FALLBACK_LANGUAGE] ?? "";
+}
+
+/**
+ *  What a tip's button says, or null for the usual "tell me more".
+ *
+ *  @param tip      the tip to read
+ *  @param language the language wanted, as a base code
+ */
+export function buttonLabelOf(tip: Tip, language: string = currentLanguage()): string | null {
+    return tip.button?.[language] ?? tip.button?.[FALLBACK_LANGUAGE] ?? null;
 }
 
 /**

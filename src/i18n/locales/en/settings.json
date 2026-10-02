@@ -45,5 +45,11 @@
     "change": "Change picture…",
     "remove": "Remove",
     "failed": "That file could not be used as a background. Try another picture."
+  },
+  "bookmarkShortcut": {
+    "title": "Shortcut to save a page",
+    "explanation": "The keys that save the page you are on into Tabilinks. Chrome lets you change them only on its own shortcuts page - set Ctrl+D there and it saves here instead of into Chrome's bookmarks.",
+    "notSet": "Not set",
+    "change": "Change in Chrome…"
   }
 }
