@@ -297,6 +297,22 @@ export class ClosedTabsPanel {
 
     const row = document.createElement('div');
     row.classList.add('closed-tabs__row');
+    row.title = t('closedTabs.rowTooltip', { url: tab.url });
+
+    // The whole row reopens the tab, not only its text. Folded, the rail shows nothing but the
+    // favicons - the text is not drawn at all - so a row that only answered to its text was a
+    // column of icons that did nothing when clicked. The text stays a button, so a keyboard
+    // can still reach it; its click bubbles here. The "+" and "x" are their own business.
+    row.addEventListener('click', event => {
+      if ((event.target as HTMLElement | null)?.closest('.closed-tabs__row-actions')) {
+        return;
+      }
+      this.viewModel.reopen(tab.id);
+      // Opening one is the end of the errand. Deleting one or saving one is not, so those
+      // leave the panel where it is.
+      this.setPinned(false);
+      this.setOpen(false);
+    });
 
     // Draggable out of the panel and onto a group, a subgroup or a place between two links.
     // It carries its address and title rather than only an identifier, because what it makes
@@ -320,14 +336,6 @@ export class ClosedTabsPanel {
     const text = document.createElement('button');
     text.type = 'button';
     text.classList.add('closed-tabs__text');
-    text.title = t('closedTabs.rowTooltip', { url: tab.url });
-    text.addEventListener('click', () => {
-      this.viewModel.reopen(tab.id);
-      // Opening one is the end of the errand. Deleting one or saving one is not, so those
-      // leave the panel where it is.
-      this.setPinned(false);
-      this.setOpen(false);
-    });
 
     const title = document.createElement('span');
     title.classList.add('closed-tabs__row-title');

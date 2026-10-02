@@ -283,6 +283,9 @@ errand, while deleting or saving one is working through the list and leaves it a
   makes the panel fill as tabs are closed in other windows.
 - A row is marked as already kept by comparing addresses the way `linkTabGroupCatcher` does,
   and names the device that closed it only when that was not this one.
+- **The whole row reopens the tab**, not only its text. Folded, the rail draws nothing but the
+  favicons, so a row that answered only to its text was a column of icons that did nothing.
+  The text stays a button for the keyboard; the "+" and "x" are excluded.
 - Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
   a second way.
 - **Only synchronised with an account that keeps them.** A snapshot naming no `closedTabs`
@@ -446,8 +449,8 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   the panel afterwards and is marked as kept; it is a record of something that happened, and it
   happened whether or not the page has since been saved.
 - **The grab cursor goes only where a click does nothing else.** A link opens and a subgroup's
-  heading folds when clicked, so both keep the pointer although they can be dragged; a group's
-  heading and a closed tab's row outside its text are grabbed. A cursor that says "grab" over a
+  heading folds when clicked, so both keep the pointer although they can be dragged, and so does
+  a closed tab's row; only a group's heading is grabbed. A cursor that says "grab" over a
   link reads as "this does not open" (`test/ui/styles/dragCursor.test.ts`).
 - **Links, subgroups and groups can all be dragged.** A subgroup shares its sequence with the
   group's root-level links, so it can be dropped beside one of them; its own links travel with

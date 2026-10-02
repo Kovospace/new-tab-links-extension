@@ -205,6 +205,29 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(isOpen()).toBe(false);
     });
 
+    it("reopens the tab from its favicon, which is all the folded rail shows", () => {
+        // The bug: only the row's text reopened it, and folded the text is not drawn - so the
+        // rail was a column of icons that did nothing when clicked.
+        const reopen = vi.fn();
+        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
+            .chrome.tabs.create = reopen;
+
+        (document.querySelector('.closed-tabs__favicon') as HTMLElement).click();
+
+        expect(reopen).toHaveBeenCalledWith(expect.objectContaining({ url: "https://example.com/x" }));
+    });
+
+    it("does not reopen the tab when one of its own buttons is pressed", () => {
+        const reopen = vi.fn();
+        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
+            .chrome.tabs.create = reopen;
+
+        const buttons = document.querySelector('.closed-tabs__row')!.querySelectorAll('button');
+        (buttons[buttons.length - 1] as HTMLButtonElement).click();
+
+        expect(reopen).not.toHaveBeenCalled();
+    });
+
     it("puts the device on a line of its own, and only when it was another one", async () => {
         // Two facts on one line means the second is the one that gets ellipsised away, and in
         // a rail this narrow that is always the one that was added last.

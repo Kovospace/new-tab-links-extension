@@ -27,9 +27,10 @@ function selectorsWithGrab(): string[] {
 
 describe("drag cursors", () => {
 
-    it.each(["link-container", "link-subgroup-head"])("never puts grab on %s", element => {
+    it.each(["link-container", "link-subgroup-head", ".closed-tabs__row"])("never puts grab on %s", element => {
+        const pattern = element.replace(/\./g, "\\.");
         const offending = selectorsWithGrab().filter(selector =>
-            new RegExp(`(^|[\\s>+~,])${element}(?![\\w-])[^\\s>+~,]*\\s*$`).test(selector));
+            new RegExp(`(^|[\\s>+~,])${pattern}(?![\\w-])[^\\s>+~,]*\\s*$`).test(selector));
 
         expect(offending).toEqual([]);
     });

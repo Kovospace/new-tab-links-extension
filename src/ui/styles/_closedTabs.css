@@ -189,8 +189,8 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     height: 1rem;
 }
 
-/* The row's text is the button that reopens it: the whole line is the target,
-   which is what a list of links should behave like. */
+/* The row's text is a button so a keyboard can reach the row; a click on it
+   bubbles to the row, which is what reopens the tab. */
 .closed-tabs__text,
 html.dark .closed-tabs__text {
     flex: 1;
@@ -298,17 +298,18 @@ dialog.closed-tabs__dialog {
 }
 
 /*
-   A row can be dragged out of the panel and dropped into a group as a link.
-   The pointer says so, and the text stops being selectable while it can be -
-   a press on selectable text starts a selection and the drag never begins.
+   The whole row reopens its tab, so the whole row wears the pointer - the
+   favicon in the folded rail included. It can also be dragged out of the panel
+   and dropped into a group as a link, but the cursor promises what a click does.
+   The text stops being selectable while it can be dragged - a press on
+   selectable text starts a selection and the drag never begins.
 */
-.closed-tabs__row[draggable="true"] {
-    cursor: grab;
-    user-select: none;
+.closed-tabs__row {
+    cursor: pointer;
 }
 
-.closed-tabs__row[draggable="true"]:active {
-    cursor: grabbing;
+.closed-tabs__row[draggable="true"] {
+    user-select: none;
 }
 
 /* The panel keeps its width while a row is being dragged OUT of it: it is the
