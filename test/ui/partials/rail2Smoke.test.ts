@@ -4,7 +4,8 @@ import { ProfileRepository } from "../../../src/backend/repository/ProfileReposi
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
-import { ClosedTabsPanel, OPEN_DELAY_MS } from "../../../src/ui/partials/closedTabsPanel";
+import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
 

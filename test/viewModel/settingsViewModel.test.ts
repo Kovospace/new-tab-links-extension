@@ -168,6 +168,42 @@ describe("SettingsViewModel, the size setting", () => {
  *  here that really can go wrong is the answer to "did anything change", because that is what
  *  decides whether the page is torn down and rebuilt in front of the user.
  */
+describe("SettingsViewModel, the closed-tabs opening delay", () => {
+
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const delaySlider = () => {
+        const setting = settings.observables.settings.get().categories[0].settings
+            .find(one => one.kind === "range" && one.key === "closedTabsOpenDelay");
+        if (!setting || setting.kind !== "range") {
+            throw new Error("no closed-tabs delay on the first category");
+        }
+        return setting;
+    };
+
+    it("sits in UI and behavior, at half a second", () => {
+        expect(delaySlider().value).toBe(500);
+        expect(delaySlider().display).toBe("500 ms");
+    });
+
+    it("stores a delay the user drags to, on this device", async () => {
+        await settings.setRange("closedTabsOpenDelay", 1000);
+
+        expect(devicePreferences.getClosedTabsOpenDelay()).toBe(1000);
+        expect(delaySlider().display).toBe("1000 ms");
+    });
+});
+
 describe("SettingsViewModel, language and local customs", () => {
 
     let profiles: ProfileRepository;

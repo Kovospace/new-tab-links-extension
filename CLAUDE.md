@@ -258,9 +258,10 @@ half is not decoration: the rail is a grid column starting below the header, so 
 right" alone is also true of the application menu and the settings button in the corner, and
 reaching for those opened the panel underneath them.
 
-**Opening waits 500 ms; closing does not.** The pointer has to rest in that zone before the
-panel widens (`OPEN_DELAY_MS`), because the rail sits under the settings button and a pointer
-on its way there crossed it. The wait is started once and not restarted by movement within
+**Opening waits; closing does not.** The pointer has to rest in that zone before the panel
+widens, because the rail sits under the settings button and a pointer on its way there crossed
+it. How long is a device preference (`closedTabsOpenDelay`, 0-2000 ms, 500 by default, a slider
+in "UI and behavior"), read each time the pointer arrives so a change needs no reload. The wait is started once and not restarted by movement within
 the rail - a pointer that has stopped sends no more events, so the timer finishes the job.
 
 **The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is

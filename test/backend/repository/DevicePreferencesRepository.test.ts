@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-    applyScaleTo, DEFAULT_SCALE, DevicePreferencesRepository,
-    MAX_SCALE, MIN_SCALE, normalizeScale, SCALE_STEP
+    applyScaleTo, DEFAULT_CLOSED_TABS_OPEN_DELAY, DEFAULT_SCALE, DevicePreferencesRepository,
+    MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE, MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE,
+    normalizeClosedTabsOpenDelay, normalizeScale, SCALE_STEP
 } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { DEVICE_PREFERENCES_KEY } from "../../../src/backend/datasource/chromeStorage/storageKeys";
 import { readFakeStorage, seedFakeStorage } from "../../support/chromeStorageStub";
@@ -181,5 +182,47 @@ describe("DevicePreferencesRepository, the search engine", () => {
         await preferences.setSearchEngine("duckduckgo");
 
         expect(seen[seen.length - 1]).toBe("duckduckgo");
+    });
+});
+
+/**
+ *  How long the closed-tabs rail waits for the pointer before it opens. Clamped like the size,
+ *  because storage the slider never wrote can say anything.
+ */
+describe("DevicePreferencesRepository, the closed-tabs opening delay", () => {
+
+    it("waits half a second on a device nobody has set it on", async () => {
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+
+        expect(preferences.getClosedTabsOpenDelay()).toBe(DEFAULT_CLOSED_TABS_OPEN_DELAY);
+        expect(DEFAULT_CLOSED_TABS_OPEN_DELAY).toBe(500);
+    });
+
+    it("remembers a delay and reads it back in the next session", async () => {
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        await preferences.setClosedTabsOpenDelay(1200);
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getClosedTabsOpenDelay()).toBe(1200);
+    });
+
+    it("snaps to the step and clamps to the range", () => {
+        expect(normalizeClosedTabsOpenDelay(740)).toBe(700);
+        expect(normalizeClosedTabsOpenDelay(-50)).toBe(MIN_CLOSED_TABS_OPEN_DELAY);
+        expect(normalizeClosedTabsOpenDelay(99999)).toBe(MAX_CLOSED_TABS_OPEN_DELAY);
+        expect(normalizeClosedTabsOpenDelay(Number.NaN)).toBe(DEFAULT_CLOSED_TABS_OPEN_DELAY);
+    });
+
+    it("reads a stored value it does not understand as the default", async () => {
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { closedTabsOpenDelay: "soon" });
+
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+
+        expect(preferences.getClosedTabsOpenDelay()).toBe(DEFAULT_CLOSED_TABS_OPEN_DELAY);
     });
 });

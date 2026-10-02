@@ -6,6 +6,7 @@ import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
 import { ObservableValue } from '../../utils/observableValue';
+import { devicePreferencesRepository } from '../../backend/repository/DevicePreferencesRepository';
 import {CLASS_ACTION_DANGER} from "../../constants";
 
 /** Marks a closed tab whose address the profile already keeps. */
@@ -32,7 +33,8 @@ import {CLASS_ACTION_DANGER} from "../../constants";
  * edge to the right of the pointer, which is not a reason to open again.
  *
  * **Opening waits for the pointer to stay.** Closing is immediate, but the pointer has to rest
- * in that place for {@link OPEN_DELAY_MS} before the panel widens. The rail sits right under
+ * in that place before the panel widens - half a second unless this device's settings say
+ * otherwise (`closedTabsOpenDelay`). The rail sits right under
  * the settings button, and a pointer on its way there crossed it and pulled the panel open
  * underneath - somebody heading for the list stops on it, somebody passing through does not.
  *
@@ -45,9 +47,6 @@ import {CLASS_ACTION_DANGER} from "../../constants";
  * time - and the list is the profile's, so it is the same list on every device the profile is
  * signed in on, which is why a row says where it was closed when that was somewhere else.
  */
-/** How long the pointer has to stay over the rail before the panel opens. */
-export const OPEN_DELAY_MS = 500;
-
 export class ClosedTabsPanel {
 
   private readonly viewModel: ClosedTabsViewModel;
@@ -75,11 +74,20 @@ export class ClosedTabsPanel {
   private readonly pointerMoved = (event: MouseEvent) => this.followPointer(event);
   private readonly clicked = (event: MouseEvent) => this.clickedSomewhere(event);
 
+  /** How long the pointer has to rest on the rail, read each time it arrives. */
+  private readonly openDelay: () => number;
+
   /**
    * @param viewModel supplies the rows and acts on them; injectable for testing
+   * @param openDelay how long the pointer has to rest before the panel opens, in milliseconds;
+   *                  asked each time rather than once, so a changed setting needs no reload
    */
-  constructor(viewModel: ClosedTabsViewModel = new ClosedTabsViewModel()) {
+  constructor(
+      viewModel: ClosedTabsViewModel = new ClosedTabsViewModel(),
+      openDelay: () => number = () => devicePreferencesRepository.getClosedTabsOpenDelay()
+  ) {
     this.viewModel = viewModel;
+    this.openDelay = openDelay;
   }
 
   /**
@@ -151,12 +159,17 @@ export class ClosedTabsPanel {
       this.cancelPendingOpen();
       this.setOpen(false);
     } else if (!this.isOpen() && this.openTimer === null) {
+      const delay = this.openDelay();
+      if (delay <= 0) {
+        this.setOpen(true);
+        return;
+      }
       // Started once and left running while the pointer moves within the rail: a pointer
       // stopping there sends no more events, so the timer is what has to finish the job.
       this.openTimer = setTimeout(() => {
         this.openTimer = null;
         this.setOpen(true);
-      }, OPEN_DELAY_MS);
+      }, delay);
     }
   }
 

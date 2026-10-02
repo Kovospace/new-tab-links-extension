@@ -4,7 +4,8 @@ import { ProfileRepository } from "../../../src/backend/repository/ProfileReposi
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
-import { ClosedTabsPanel, OPEN_DELAY_MS } from "../../../src/ui/partials/closedTabsPanel";
+import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
 
@@ -93,6 +94,27 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(isOpen()).toBe(false);
 
         vi.advanceTimersByTime(1);
+        expect(isOpen()).toBe(true);
+    });
+
+    it("waits as long as this device's setting says, read when the pointer arrives", () => {
+        let delay = 1000;
+        panel.dispose();
+        document.body.innerHTML = '<main></main>';
+        panel = new ClosedTabsPanel(
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState), () => delay);
+        void panel.render(document.body);
+        edgeAt(960);
+
+        pass(970);
+        vi.advanceTimersByTime(OPEN_DELAY_MS);
+        expect(isOpen()).toBe(false);
+        vi.advanceTimersByTime(1000 - OPEN_DELAY_MS);
+        expect(isOpen()).toBe(true);
+
+        pass(400);
+        delay = 0;                                 // changed in the settings meanwhile
+        pass(970);
         expect(isOpen()).toBe(true);
     });
 

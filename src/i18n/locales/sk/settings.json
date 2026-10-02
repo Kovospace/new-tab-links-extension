@@ -19,6 +19,11 @@
     "title": "Veľkosť",
     "explanation": "Ako veľko sa všetko vykreslí. Toto nastavenie zostáva len na tomto zariadení — stolný počítač a notebook chcú inú odpoveď a jeden by nemal rozhodovať za druhý."
   },
+  "closedTabsOpenDelay": {
+    "title": "Nedávno zatvorené karty: oneskorenie otvorenia",
+    "explanation": "Ako dlho musí kurzor zostať na lište nedávno zatvorených kariet, kým sa otvorí - aby sa neotvárala, keď cez ňu prechádzate k menu. Zostáva len na tomto zariadení.",
+    "value": "{milliseconds} ms"
+  },
   "language": {
     "title": "Jazyk",
     "explanation": "Jazyk, ktorým s vami toto rozšírenie hovorí. „Podľa prehliadača“ použije jazyk prehliadača a tam, kde preklad chýba, angličtinu. Zostáva len na tomto zariadení.",
