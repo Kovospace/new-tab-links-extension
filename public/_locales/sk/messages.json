@@ -1,11 +1,15 @@
 {
   "extensionName": {
-    "message": "TabiLinks",
-    "description": "Záložky, história, správa kariet"
+    "message": "Tabilinks – odkazy v skupinách na novej karte",
+    "description": "Name of the extension, shown in the browser and as the Chrome Web Store title."
+  },
+  "extensionShortName": {
+    "message": "Tabilinks",
+    "description": "The bare product name, where the full name does not fit - the right-click menu entries among them."
   },
   "extensionDescription": {
-    "message": "Skupiny so záložkami, história zatvorených kariet a vyhľadávanie na novej karte",
-    "description": "Rozšírenie, ktoré využije prázdne miesto novej karty na Vaše obľúbené položky, záložky a históriu zatvorených kariet"
+    "message": "Vaše odkazy na každej novej karte: v skupinách a pracovných priestoroch, otvárané ako skupiny kariet, synchronizované.",
+    "description": "One-line description of the extension, shown in the browser and as the Chrome Web Store summary (132 characters at most)."
   },
   "actionTitle": {
     "message": "Uložiť túto stránku",

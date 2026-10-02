@@ -1,11 +1,15 @@
 {
   "extensionName": {
-    "message": "Workspace Links",
-    "description": "Name of the extension, shown in the browser and in the store."
+    "message": "Tabilinks – grouped links on every new tab",
+    "description": "Name of the extension, shown in the browser and as the Chrome Web Store title."
+  },
+  "extensionShortName": {
+    "message": "Tabilinks",
+    "description": "The bare product name, where the full name does not fit - the right-click menu entries among them."
   },
   "extensionDescription": {
-    "message": "Custom new tab workspace",
-    "description": "One-line description of the extension, shown in the browser and in the store."
+    "message": "Your links on every new tab: grouped into workspaces, opened as tab groups, synced across your computers.",
+    "description": "One-line description of the extension, shown in the browser and as the Chrome Web Store summary (132 characters at most)."
   },
   "actionTitle": {
     "message": "Bookmark this page",
