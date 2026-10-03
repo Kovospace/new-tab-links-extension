@@ -6,7 +6,10 @@ Note for agents:
 - after doing the task, move to done
 
 
-## Features that must be done before release
+## Features that must be done before first release
+
+### [medium] Add "I know" button to the single tip to not display it in the future
+- remember these settigns and sync them accross devices
 
 ### [medium] Usage statistics and ad slot - IN PROGRESS across four repos
 Branch `feature/usage-stats-and-ad-slot` in every repo.
@@ -35,6 +38,37 @@ Note: needs permission "chrome.session"
 
 
 ## TODO BUGFIX
+
+### [medium] Find all places where confirmation is not unified UI modal but browser JavaScript alert box
+- self explanatory, UI should be unified - i saw that browser alert box for example in deleting workspace action
+
+### [medium] Make some meaningfull examples of links and workspaces
+- when extension runs for the 1st time, now just some random test links appears
+- make at least 1 workspace, 3 groups and one of group should contains sub-group 
+- these links will be chosen in a maneer that they will not need to follow language variants
+  - group 1: Search 
+    - Google
+    - DuckDuckGo
+    - Brave search
+    - yandex
+    - Bing
+    - Subgroup: AI
+      - ChatGPT
+      - Claude
+      - Gemini
+      - Grok
+  - group 2: Socials
+    - facebook
+    - twitter
+    - linkedin
+    - tiktok
+    - myspace
+  - group 3: Music
+    - Youtube
+    - Youtube music
+    - spotify
+    - soundcloud
+    - bandcamp
 
 ## TO BE approved / analyzed
 
