@@ -81,11 +81,11 @@ workspace-plane-body {
 }
 
 workspace-plane-body > link-group {
-    margin: 0.5em;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
     padding: 0.5em;
-    border-radius: 0.5em;
+    border-radius: 1em;
     transition: background-color var(--time-transition-medium) ease-in-out;
+    border: 0.5em solid var(--color-document-background);
 }
 
 workspace-plane-body > link-group:first-child {
