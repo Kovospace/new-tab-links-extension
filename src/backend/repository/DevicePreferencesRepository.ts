@@ -66,9 +66,9 @@ export interface DevicePreferences {
 export const DEFAULT_SCALE = 1;
 
 /** How long the pointer rests on the closed-tabs rail before it opens, in milliseconds. */
-export const DEFAULT_CLOSED_TABS_OPEN_DELAY = 500;
+export const DEFAULT_CLOSED_TABS_OPEN_DELAY = 300;
 export const MIN_CLOSED_TABS_OPEN_DELAY = 0;
-export const MAX_CLOSED_TABS_OPEN_DELAY = 2000;
+export const MAX_CLOSED_TABS_OPEN_DELAY = 1500;
 export const CLOSED_TABS_OPEN_DELAY_STEP = 100;
 
 /**

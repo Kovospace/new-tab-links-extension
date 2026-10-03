@@ -275,7 +275,7 @@ reaching for those opened the panel underneath them.
 
 **Opening waits; closing does not.** The pointer has to rest in that zone before the panel
 widens, because the rail sits under the settings button and a pointer on its way there crossed
-it. How long is a device preference (`closedTabsOpenDelay`, 0-2000 ms, 500 by default, a slider
+it. How long is a device preference (`closedTabsOpenDelay`, 0-1500 ms, 300 by default, a slider
 in "UI and behavior"), read each time the pointer arrives so a change needs no reload.
 Leaving the page counts as a position too (a `mouseout` with no `relatedTarget`, clamped into
 the viewport): in a maximised window the screen's last pixels are the window frame, and a

@@ -41,9 +41,10 @@ button.search-bar__engine-button {
     display: flex;
     align-items: center;
     gap: 0.25em;
-    height: 2em;
+    height: 2.5em;
     padding: 0 0.5em;
-    border-radius: 1em;
+    border-radius: 1.25em;
+    border: 0.25em solid var(--color-document-background);
 }
 
 span.search-bar__engine-icon {
@@ -98,26 +99,27 @@ button.search-bar__engine-option {
 input.search-bar__input {
     flex: 1 1 auto;
     min-width: 0;
-    height: 2em;
+    height: 2.5em;
     padding: 0 0.75em;
     font: inherit;
     font-size: 1em;
-    border: none;
-    border-radius: 1em;
+    border-radius: 1.25em;
     outline: none;
     transition:
             box-shadow var(--time-transition-medium) ease-in-out,
             background-color var(--time-transition-medium) ease-in-out;
+    border: 0.25em solid var(--color-document-background);
 }
 
 /* ── Submit ─────────────────────────────────────────────────────────────── */
 
 button.search-bar__submit {
     flex: 0 0 auto;
-    width: 2em;
-    height: 2em;
+    width: 2.5em;
+    height: 2.5em;
     padding: 0.375em;
     border-radius: var(--radius-circular);
+    border: 0.25em solid var(--color-document-background);
 }
 
 button.search-bar__submit > svg {

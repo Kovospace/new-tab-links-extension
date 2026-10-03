@@ -191,9 +191,9 @@ describe("SettingsViewModel, the closed-tabs opening delay", () => {
         return setting;
     };
 
-    it("sits in UI and behavior, at half a second", () => {
-        expect(delaySlider().value).toBe(500);
-        expect(delaySlider().display).toBe("500 ms");
+    it("sits in UI and behavior, at 300 ms", () => {
+        expect(delaySlider().value).toBe(300);
+        expect(delaySlider().display).toBe("300 ms");
     });
 
     it("stores a delay the user drags to, on this device", async () => {

@@ -128,7 +128,13 @@ html.dark .closed-tabs__head-action {
     padding: 0.25em;
 }
 
+/* Stretched to the panel's width once it is open. The panel's align-items:
+   flex-start otherwise sizes the list to its content, and its content is
+   nowrap titles - so the rows took the width of the longest one, the title
+   never ellipsized and the row's buttons went past the edge of the screen.
+   Folded, the list keeps sizing to its content, which keeps each favicon whole. */
 .closed-tabs--open .closed-tabs__list {
+    align-self: stretch;
     overflow-y: auto;
 }
 
@@ -271,12 +277,20 @@ html.dark .closed-tabs__text:hover {
 .closed-tabs__row-action,
 html.dark .closed-tabs__row-action {
     margin: 0.125em;
-    opacity: 0;
 }
 
-.closed-tabs__row:hover .closed-tabs__row-action,
-.closed-tabs__row:focus-within .closed-tabs__row-action {
-    opacity: 1;
+/* Collapsed to nothing rather than made transparent, so a row that is not
+   under the pointer gives the title the buttons' room. Zero-sized rather than
+   display: none, so the keyboard can still reach them - focusing one is what
+   :focus-within opens them again for. The "already saved" mark is not a
+   button and keeps its place. */
+.closed-tabs__row:not(:hover):not(:focus-within) .closed-tabs__row-action {
+    width: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
 }
 
 .closed-tabs__kept {

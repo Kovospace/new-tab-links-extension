@@ -62,14 +62,25 @@ workspace-plane-head > div.cls-workspace-head-title {
 
 workspace-plane-head > div.cls-workspace-head-title > h1 {
     padding: 0 0.25em;
-    border-radius: 0.125em;
+    background-color: var(--color-document-background);
+    border-radius: 1em;
 }
 
 workspace-plane-head > div.cls-workspace-head-title > span {
     margin-top: 0.25em;
     font-size: 1.25em;
     padding: 0 0.5em;
-    border-radius: 0.175em;
+    background-color: var(--color-document-background);
+    border-radius: 7em;
+}
+
+workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,
+workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group
+{
+    border: 0.25em solid var(--color-document-background);
+    min-width: 2em;
+    margin-right: 0;
+    border-radius: 0.5em;
 }
 
 
@@ -81,11 +92,12 @@ workspace-plane-body {
 }
 
 workspace-plane-body > link-group {
+    margin: 0.25em;
     margin-bottom: 0.5em;
     padding: 0.5em;
-    border-radius: 1em;
+    border-radius: 0.75em;
     transition: background-color var(--time-transition-medium) ease-in-out;
-    border: 0.5em solid var(--color-document-background);
+    border: 0.25em solid var(--color-document-background);
 }
 
 workspace-plane-body > link-group:first-child {

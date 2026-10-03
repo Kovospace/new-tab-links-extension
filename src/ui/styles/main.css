@@ -36,7 +36,15 @@ html > body {
     overflow: hidden;
 }
 
-header { grid-area: header; }
+/* The closed-tabs panel's shadow, cast downwards only: the negative spread
+   pulls it in from the sides by as much as the offset pushes it down. Raised so
+   that main, which comes after it, does not paint over the shadow. */
+header {
+    grid-area: header;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0.375em 0.5em -0.375em rgba(0, 0, 0, 0.4);
+}
 main { grid-area: main; }
 footer { grid-area: footer; }
 

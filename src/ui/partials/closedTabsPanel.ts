@@ -33,7 +33,7 @@ import {CLASS_ACTION_DANGER} from "../../constants";
  * edge to the right of the pointer, which is not a reason to open again.
  *
  * **Opening waits for the pointer to stay.** Closing is immediate, but the pointer has to rest
- * in that place before the panel widens - half a second unless this device's settings say
+ * in that place before the panel widens - 300 ms unless this device's settings say
  * otherwise (`closedTabsOpenDelay`). The rail sits right under
  * the settings button, and a pointer on its way there crossed it and pulled the panel open
  * underneath - somebody heading for the list stops on it, somebody passing through does not.

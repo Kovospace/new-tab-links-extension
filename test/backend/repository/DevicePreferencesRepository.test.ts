@@ -191,12 +191,12 @@ describe("DevicePreferencesRepository, the search engine", () => {
  */
 describe("DevicePreferencesRepository, the closed-tabs opening delay", () => {
 
-    it("waits half a second on a device nobody has set it on", async () => {
+    it("waits 300 ms on a device nobody has set it on", async () => {
         const preferences = new DevicePreferencesRepository();
         await preferences.init();
 
         expect(preferences.getClosedTabsOpenDelay()).toBe(DEFAULT_CLOSED_TABS_OPEN_DELAY);
-        expect(DEFAULT_CLOSED_TABS_OPEN_DELAY).toBe(500);
+        expect(DEFAULT_CLOSED_TABS_OPEN_DELAY).toBe(300);
     });
 
     it("remembers a delay and reads it back in the next session", async () => {
