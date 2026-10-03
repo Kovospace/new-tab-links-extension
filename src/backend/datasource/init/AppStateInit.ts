@@ -46,8 +46,9 @@ interface ExampleLink {
  *  ever loaded the examples. Names are read in the user's language; addresses are sites that
  *  work wherever the reader is.
  *
- *  Laid out to show what the page does: two groups side by side, root-level links, and one
- *  subgroup sharing its group's sequence with them.
+ *  Laid out to show what the page does: three groups side by side, root-level links, and one
+ *  subgroup sharing its group's sequence with them. The sites are ones known by the same name
+ *  and at the same address in every language, so only the headings need translating.
  */
 export function buildExampleProfileData(): ProfileData {
     const now = Date.now();
@@ -81,33 +82,48 @@ export function buildExampleProfileData(): ProfileData {
         });
     };
 
-    const everyday = addGroup(t("firstRun.examples.everyday"), 0);
-    addLinks(everyday, [
-        { title: "Wikipedia", url: "https://www.wikipedia.org/" },
-        { title: "YouTube", url: "https://www.youtube.com/" },
-        { title: "Google Maps", url: "https://maps.google.com/" },
-        { title: "Google Translate", url: "https://translate.google.com/" }
-    ], 0);
+    const searchLinks: ExampleLink[] = [
+        { title: "Google", url: "https://www.google.com/" },
+        { title: "DuckDuckGo", url: "https://duckduckgo.com/" },
+        { title: "Brave Search", url: "https://search.brave.com/" },
+        { title: "Yandex", url: "https://yandex.com/" },
+        { title: "Bing", url: "https://www.bing.com/" }
+    ];
+    const search = addGroup(t("firstRun.examples.search"), 0);
+    addLinks(search, searchLinks, 0);
 
-    const work = addGroup(t("firstRun.examples.work"), 1);
-    addLinks(work, [
-        { title: "Gmail", url: "https://mail.google.com/" },
-        { title: "Google Calendar", url: "https://calendar.google.com/" },
-        { title: "Google Drive", url: "https://drive.google.com/" }
-    ], 0);
-
-    const developerId = uid();
-    data.subgroups[developerId] = {
-        id: developerId, title: t("firstRun.examples.developer"),
-        description: t("firstRun.examples.developerDescription"),
-        groupId: work, environmentId, type: "subgroup", position: 3,
+    // After the root-level links in the sequence they share with it.
+    const aiId = uid();
+    data.subgroups[aiId] = {
+        id: aiId, title: t("firstRun.examples.ai"),
+        description: t("firstRun.examples.aiDescription"),
+        groupId: search, environmentId, type: "subgroup", position: searchLinks.length,
         collapsed: false, defaultCollapsed: false, color: "blue", createdAt: now
     };
-    addLinks(work, [
-        { title: "GitHub", url: "https://github.com/" },
-        { title: "MDN Web Docs", url: "https://developer.mozilla.org/" },
-        { title: "Stack Overflow", url: "https://stackoverflow.com/" }
-    ], 0, developerId);
+    addLinks(search, [
+        { title: "ChatGPT", url: "https://chatgpt.com/" },
+        { title: "Claude", url: "https://claude.ai/" },
+        { title: "Gemini", url: "https://gemini.google.com/" },
+        { title: "Grok", url: "https://grok.com/" }
+    ], 0, aiId);
+
+    const socials = addGroup(t("firstRun.examples.socials"), 1);
+    addLinks(socials, [
+        { title: "Facebook", url: "https://www.facebook.com/" },
+        { title: "X (Twitter)", url: "https://x.com/" },
+        { title: "LinkedIn", url: "https://www.linkedin.com/" },
+        { title: "TikTok", url: "https://www.tiktok.com/" },
+        { title: "Myspace", url: "https://myspace.com/" }
+    ], 0);
+
+    const music = addGroup(t("firstRun.examples.music"), 2);
+    addLinks(music, [
+        { title: "YouTube", url: "https://www.youtube.com/" },
+        { title: "YouTube Music", url: "https://music.youtube.com/" },
+        { title: "Spotify", url: "https://open.spotify.com/" },
+        { title: "SoundCloud", url: "https://soundcloud.com/" },
+        { title: "Bandcamp", url: "https://bandcamp.com/" }
+    ], 0);
 
     return data;
 }

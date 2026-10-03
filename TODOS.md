@@ -39,6 +39,16 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
+## TO BE approved / analyzed
+
+### [big] History panel
+Note: chrome.history permission can be problematic when submitting to chrome store
+- containing 2 tabs:
+  - last closed tabs
+  - most visited links (not bookmarked yet)
+
+
+# DONE
 ### [medium] Make some meaningfull examples of links and workspaces
 - when extension runs for the 1st time, now just some random test links appears
 - make at least 1 workspace, 3 groups and one of group should contains sub-group 
@@ -66,17 +76,13 @@ Note: needs permission "chrome.session"
     - spotify
     - soundcloud
     - bandcamp
+- DONE: the "Load examples" set on the first-run screen is now exactly this - one "Examples"
+  workspace, Search (with the AI subgroup after its five links), Socials and Music. Only the
+  workspace, group and subgroup headings are translated; the sites keep their own names
+- note: nothing seeds links on a fresh install any more - it starts empty on the first-run
+  screen, and these are what its "Load examples" button loads
+- pinned by a test naming every group and link, failing against the old set
 
-## TO BE approved / analyzed
-
-### [big] History panel
-Note: chrome.history permission can be problematic when submitting to chrome store
-- containing 2 tabs:
-  - last closed tabs
-  - most visited links (not bookmarked yet)
-
-
-# DONE
 ### [medium] Find all places where confirmation is not unified UI modal but browser JavaScript alert box
 - self explanatory, UI should be unified - i saw that browser alert box for example in deleting workspace action
 - DONE: every confirm(), alert() and prompt() is gone. Deleting a workspace, a group or a
