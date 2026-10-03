@@ -25,6 +25,12 @@ dialog.settings-dialog {
     overflow-y: auto;
     padding: 0.5em 0.75em;
     gap: 0.25em;
+    scrollbar-width: thin;
+}
+
+/* The list's scrollbar in the theme's colours, as main's and the closed tabs' are. */
+html.dark .settings-dialog__list {
+    scrollbar-color: var(--color-button-background) transparent;
 }
 
 .settings-dialog__note {
