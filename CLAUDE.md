@@ -563,6 +563,13 @@ The view models still refuse invalid input, but only as backstops for callers th
 dialog: they log and return rather than telling the user, because the dialog is what tells the
 user now.
 
+**No `alert()`, `confirm()` or `prompt()`.** The browser draws those in its own style and
+titles them with the extension's address. `ui/partials/confirmations.ts` has the page's own:
+`showNotice` for telling, `confirmDestructiveAction` for a yes/no (a dangerous `OptionsMenu`
+item goes through it, named by the item's own title), `confirmByTypingPhrase` for the
+irreversible, and `InputDialog` for asking for a value. `test/ui/partials/optionsMenu.test.ts`
+fails if the menu reaches for `confirm()` again.
+
 ### Data Model (`AppStateEntity.ts`)
 
 ```

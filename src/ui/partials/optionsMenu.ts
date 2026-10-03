@@ -5,6 +5,7 @@ import { t } from "../../i18n/i18n";
 import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
 import { ICON, renderButton } from "../partials/wrappedHtmlElements"
 import { toggleOverlay } from "../partials/wrappedHtmlElements";
+import { confirmDestructiveAction } from "./confirmations";
 
 /**
  *  A divider between groups of actions. It carries no label and nothing happens when it is
@@ -175,16 +176,18 @@ export class OptionsMenu {
             optionElem.classList.add("active");
         }
 
-        optionElem.addEventListener('click', () => {
+        optionElem.addEventListener('click', async () => {
             this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
             this.LOG.debug("Metadata: " + this.metadata);
             toggleOverlay(false);
             if (option.dangerous) {
-                let message = t("common.areYouSure");
-                if (option.dangerConfirmation) {
-                    message += `\n\n${option.dangerConfirmation}`;
-                }
-                if (!confirm(message)) {
+                // The item's own wording heads the dialog and names the button that goes ahead,
+                // so "Delete workspace" is answered by a button saying the same, never "OK".
+                const confirmed = await confirmDestructiveAction(
+                    option.actionTitle,
+                    option.dangerConfirmation ?? t("common.areYouSure"),
+                    option.actionTitle);
+                if (!confirmed) {
                     return;
                 }
             }

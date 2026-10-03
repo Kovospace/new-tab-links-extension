@@ -1,7 +1,7 @@
 import { ClosedTabDTO, ClosedTabsViewModel } from '../../viewModel/closedTabsViewModel';
 import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
-import { confirmDestructiveAction } from './confirmations';
+import { confirmDestructiveAction, showNotice } from './confirmations';
 import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
@@ -446,10 +446,9 @@ export class ClosedTabsPanel {
 
     const viewModel = new BookmarkViewModel();
     if (!viewModel.canBookmark()) {
-      await confirmDestructiveAction(
+      await showNotice(
         t('closedTabs.nowhereToPut.title'),
-        t('closedTabs.nowhereToPut.message'),
-        'Close');
+        t('closedTabs.nowhereToPut.message'));
       return;
     }
 

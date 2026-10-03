@@ -29,7 +29,10 @@
     "title": "Rename profile",
     "name": "Profile name"
   },
-  "importNamePrompt": "Name for the imported profile?",
+  "importDialog": {
+    "title": "Import profile",
+    "name": "Profile name"
+  },
   "nameTooLong": {
     "title": "That name is too long",
     "message": "A profile name can be at most {max} characters, and that one is {length}. Your account cannot store it, and keeping it here would stop every other change reaching your other devices."

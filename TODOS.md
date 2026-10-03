@@ -39,9 +39,6 @@ Note: needs permission "chrome.session"
 
 ## TODO BUGFIX
 
-### [medium] Find all places where confirmation is not unified UI modal but browser JavaScript alert box
-- self explanatory, UI should be unified - i saw that browser alert box for example in deleting workspace action
-
 ### [medium] Make some meaningfull examples of links and workspaces
 - when extension runs for the 1st time, now just some random test links appears
 - make at least 1 workspace, 3 groups and one of group should contains sub-group 
@@ -80,6 +77,18 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+### [medium] Find all places where confirmation is not unified UI modal but browser JavaScript alert box
+- self explanatory, UI should be unified - i saw that browser alert box for example in deleting workspace action
+- DONE: every confirm(), alert() and prompt() is gone. Deleting a workspace, a group or a
+  subgroup is asked in the page's own dialog, headed and confirmed by the menu item's wording;
+  the account's notices, "no workspace to migrate into", and the first-run backstop use a new
+  one-button showNotice; the imported profile's name is asked through InputDialog, with the
+  same 120-character limit the create dialog has
+- three places were using a red "Close" + "Cancel" yes/no as a notice (name too long, nothing
+  to delete, nowhere to put a closed tab) - those are showNotice now too
+- the first-run backstop used to warn about a missing title and then create the workspace anyway
+- optionsMenu.test.ts, failing against the old confirm()
+
 ### [small] Enable drag and drop by default
 - self-explanatory
 - DONE: DEFAULT_PROFILE_SETTINGS.enableDragAndDrop is true, and a snapshot that omits the field

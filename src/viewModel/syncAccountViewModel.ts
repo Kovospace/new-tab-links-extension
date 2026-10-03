@@ -9,6 +9,7 @@ import { accountStandingRepository, AccountStandingRepository } from "../backend
 import { profileRepository, ProfileRepository, RegistryOwner } from "../backend/repository/ProfileRepository";
 import { ChoiceDialog } from "../ui/partials/choiceDialog";
 import { InputDialog } from "../ui/partials/inputDialog";
+import { showNotice } from "../ui/partials/confirmations";
 
 // utils
 import { Logger } from "../utils/logger";
@@ -112,10 +113,10 @@ export class SyncAccountViewModel {
      *  made, and the pull behind the push is about to take them off this device for good.
      *  Saying nothing left them to notice a workspace had gone missing on their own.
      *
-     *  **The wording speaks of what is about to happen, not what has.** `alert()` blocks, so
-     *  this is read before the pull it warns about has run - and on a push that was not
-     *  followed by one, the records are still there and stay until the next. A notice saying
-     *  they were already gone would be read while they were plainly still on the screen.
+     *  **The wording speaks of what is about to happen, not what has.** The notice is up
+     *  while the pull it warns about runs, or before it - and on a push that was not followed
+     *  by one, the records are still there and stay until the next. A notice saying they were
+     *  already gone could be read while they were plainly still on the screen.
      *
      *  No identifier and no reason code is shown. Neither means anything to the person
      *  reading, and the reasons the account can give are about its own bookkeeping - a parent
@@ -377,11 +378,10 @@ export class SyncAccountViewModel {
     }
 
     /**
-     *  Tells the user something went wrong. Deliberately the same blocking alert the rest of
-     *  this codebase uses (firstRunViewModel, the menu's danger confirmation) — there is no
-     *  notification component yet, and inventing one is not part of this work.
+     *  Tells the user something about their account, in the page's own modal rather than the
+     *  browser's alert box. Not awaited: nothing that reports waits on the user reading it.
      */
     private report(message: string): void {
-        alert(message);
+        void showNotice(t("sync.noticeTitle"), message);
     }
 }
