@@ -15,9 +15,9 @@ export interface BookmarkTargetDTO {
  *  this window is not part of the page that changes. It opens on the state as it stands,
  *  asks one question and closes.
  *
- *  The workspace is not one of the questions. Which workspace is open is per-device and is
- *  what the user is working in right now, so a page bookmarked from the keyboard lands there;
- *  the form only names it, so that the user can see where the link is going.
+ *  The workspace is asked only when there is a choice to make. The open one is the answer
+ *  given in advance - it is what the user is working in right now - so a profile with one
+ *  workspace is never asked, and one with several opens on the workspace already open.
  */
 export class BookmarkViewModel {
 
@@ -37,9 +37,26 @@ export class BookmarkViewModel {
         return this.appState.getCurrentEnvironment()?.name ?? null;
     }
 
-    /** The groups of the open workspace, in the order the workspace draws them. */
-    public getGroups(): BookmarkTargetDTO[] {
-        const workspaceId = this.appState.getCurrentEnvironmentId();
+    /** The open workspace, which the form starts on; null when the profile has none. */
+    public getCurrentWorkspaceId(): string | null {
+        return this.appState.getCurrentEnvironmentId();
+    }
+
+    /** Every workspace of the active profile, in the order the workspace switcher shows them. */
+    public getWorkspaces(): BookmarkTargetDTO[] {
+        return this.appState
+            .getEnvironments()
+            .map(workspace => ({ id: workspace.id, title: workspace.name }));
+    }
+
+    /**
+     *  The groups of a workspace, in the order the workspace draws them.
+     *
+     *  @param workspaceId which workspace; the open one when left out
+     */
+    public getGroups(
+        workspaceId: string | null = this.appState.getCurrentEnvironmentId()
+    ): BookmarkTargetDTO[] {
         if (!workspaceId) {
             return [];
         }
@@ -58,13 +75,13 @@ export class BookmarkViewModel {
     /**
      *  Whether there is anywhere to put a bookmark.
      *
-     *  A profile with no workspace, or a workspace with no group, has nowhere to keep a link
-     *  and nothing sensible to offer in the dropdown. The window says so rather than creating
+     *  A profile with no workspace, or whose workspaces hold no group, has nowhere to keep a
+     *  link and nothing sensible to offer in the dropdown. The window says so rather than creating
      *  a workspace behind the user's back - the first workspace is a decision, and it is made
      *  on the new tab page.
      */
     public canBookmark(): boolean {
-        return this.getGroups().length > 0;
+        return this.getWorkspaces().some(workspace => this.getGroups(workspace.id).length > 0);
     }
 
     /**

@@ -224,6 +224,12 @@ export class AppStateRepository {
     /**
      *  All workspaces of the loaded profile, in the order the workspace switcher shows them.
      */
+    getEnvironments(): Environment[] {
+        return Object
+            .values(this.state.environments)
+            .sort((a, b) => a.createdAt - b.createdAt);
+    }
+
     /**
      *  The subgroups of one group, in the order the group draws them.
      */
@@ -650,7 +656,11 @@ export class AppStateRepository {
                     id: id,
                     title: title,
                     url: url,
-                    environmentId: this.getCurrentEnvironmentId()!, // in that case environment must already exist
+                    // The group's workspace, not the open one: the bookmarking popup can put a
+                    // link into a group of another workspace, and a link naming the open one
+                    // would claim a workspace that does not hold its group.
+                    environmentId: this.state.groups[groupId]?.environmentId
+                        ?? this.getCurrentEnvironmentId()!,
                     groupId: groupId,
                     subGroupId: subGroupId,
                     type: "link",

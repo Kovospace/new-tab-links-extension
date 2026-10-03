@@ -20,8 +20,11 @@ const noSubgroupLabel = (): string => t('bookmark.noSubgroup');
  * it without any of this being involved.
  *
  * The layout is three columns, as TODOS.md asks for: the page's icon on the left, the labels
- * in the middle against the fields, and the fields on the right. The workspace is a label
- * without a field because it is not a choice here - see BookmarkViewModel.
+ * in the middle against the fields, and the fields on the right. The workspace is a dropdown
+ * only when the profile has more than one, starting on the open one; with one it is a label
+ * without a field, because a question with one answer is not a question - see
+ * BookmarkViewModel. Choosing another workspace refills the groups, and the groups refill the
+ * subgroups.
  */
 export class BookmarkForm {
 
@@ -30,10 +33,13 @@ export class BookmarkForm {
 
   private nameInput!: HTMLInputElement;
   private urlInput!: HTMLInputElement;
+  private workspaceSelect: HTMLSelectElement | null = null;
   private groupSelect!: HTMLSelectElement;
   private subgroupSelect!: HTMLSelectElement;
   private subgroupField!: HTMLElement;
+  private saveBtn!: HTMLButtonElement;
 
+  private workspaces: BookmarkTargetDTO[] = [];
   private groups: BookmarkTargetDTO[] = [];
   private subgroups: BookmarkTargetDTO[] = [];
 
@@ -62,7 +68,7 @@ export class BookmarkForm {
         resolve(saved);
       };
 
-      this.groups = this.viewModel.getGroups();
+      this.workspaces = this.viewModel.getWorkspaces();
 
       host.replaceChildren(this.build(settle));
 
@@ -100,16 +106,17 @@ export class BookmarkForm {
 
     this.appendRow(fields, t('bookmark.fields.name'), this.nameInput);
     this.appendRow(fields, t('bookmark.fields.url'), this.urlInput);
-    this.appendRow(fields, t('bookmark.fields.workspace'), this.buildWorkspaceLabel());
+    this.appendRow(fields, t('bookmark.fields.workspace'), this.buildWorkspaceField());
     this.appendRow(fields, t('bookmark.fields.group'), this.groupSelect);
     this.subgroupField =
       this.appendRow(fields, t('bookmark.fields.subgroup'), this.subgroupSelect);
 
-    fillOptions(this.groupSelect, this.groups.map(group => group.title));
     this.groupSelect.addEventListener('change', () => this.renderSubgroups());
-    this.renderSubgroups();
 
+    // The actions before the groups, because filling the groups is what decides whether
+    // there is anything to save into.
     fields.appendChild(this.buildActions(settle));
+    this.renderGroups();
     panel.appendChild(form);
 
     // Enter anywhere in the form saves, the way it does in the input dialog. The form is
@@ -147,12 +154,48 @@ export class BookmarkForm {
     return cell;
   }
 
-  /** The workspace the link is going into: stated, not chosen. */
-  private buildWorkspaceLabel(): HTMLElement {
-    const value = document.createElement('span');
-    value.classList.add('bookmark-panel__value');
-    value.textContent = this.viewModel.getWorkspaceName() ?? '';
-    return value;
+  /**
+   * The workspace the link is going into: a dropdown starting on the open workspace when the
+   * profile has several, and only stated when it has one.
+   */
+  private buildWorkspaceField(): HTMLElement {
+    if (this.workspaces.length <= 1) {
+      this.workspaceSelect = null;
+      const value = document.createElement('span');
+      value.classList.add('bookmark-panel__value');
+      value.textContent = this.viewModel.getWorkspaceName() ?? '';
+      return value;
+    }
+
+    const select = this.buildSelect('bookmark-workspace');
+    fillOptions(select, this.workspaces.map(workspace => workspace.title));
+    const current = this.workspaces.findIndex(
+      workspace => workspace.id === this.viewModel.getCurrentWorkspaceId());
+    select.value = String(Math.max(current, 0));
+    select.addEventListener('change', () => this.renderGroups());
+
+    this.workspaceSelect = select;
+    return select;
+  }
+
+  /** The workspace now chosen, or the open one when there was nothing to choose between. */
+  private chosenWorkspaceId(): string | null {
+    if (!this.workspaceSelect) {
+      return this.viewModel.getCurrentWorkspaceId();
+    }
+    return this.workspaces[Number(this.workspaceSelect.value)]?.id ?? null;
+  }
+
+  /**
+   * Fills the group dropdown for the workspace now chosen, starting on its first group, and
+   * the subgroups after it. A workspace without groups leaves nothing to save into, so the
+   * save button is disabled rather than allowed to do nothing.
+   */
+  private renderGroups(): void {
+    this.groups = this.viewModel.getGroups(this.chosenWorkspaceId());
+    fillOptions(this.groupSelect, this.groups.map(group => group.title));
+    this.saveBtn.disabled = this.groups.length === 0;
+    this.renderSubgroups();
   }
 
   private buildTextInput(id: string, value: string): HTMLInputElement {
@@ -210,13 +253,13 @@ export class BookmarkForm {
     cancelBtn.classList.add('danger');
     cancelBtn.addEventListener('click', () => settle(false));
 
-    const saveBtn = document.createElement('button');
-    saveBtn.type = 'submit';
-    saveBtn.textContent = t('common.save');
-    saveBtn.classList.add('add');
+    this.saveBtn = document.createElement('button');
+    this.saveBtn.type = 'submit';
+    this.saveBtn.textContent = t('common.save');
+    this.saveBtn.classList.add('add');
 
     actions.appendChild(cancelBtn);
-    actions.appendChild(saveBtn);
+    actions.appendChild(this.saveBtn);
     return actions;
   }
 

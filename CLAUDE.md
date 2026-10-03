@@ -235,8 +235,11 @@ feature needs no permission beyond `contextMenus`.
   neither shows the new link nor keeps it - its next save puts its own older copy back over
   the stored one. A write the repository made itself is deep-equal to what it holds and is
   ignored, which also stops a pull from being pushed straight back.
-- Which workspace the link goes into is not asked: it is the one open on this device. The
-  group is chosen, and the subgroup dropdown appears only when that group has subgroups.
+- The workspace is a dropdown only when the active profile has more than one, starting on
+  the one open on this device; with one it is only named. Choosing a workspace refills the
+  groups, and the subgroup dropdown appears only when the chosen group has subgroups. A link
+  takes its `environmentId` from its group in `createLink`, never from the open workspace,
+  or a link saved into another workspace would claim the wrong one.
 
 ### The strip at the bottom of the new tab page is not ours
 

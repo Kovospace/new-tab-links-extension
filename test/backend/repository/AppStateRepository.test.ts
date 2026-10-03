@@ -934,3 +934,31 @@ describe("AppStateRepository.createLinkAt", () => {
         expect(positions).toEqual([0, 1, 2, 3]);
     });
 });
+
+/**
+ *  A link names its workspace as well as its group. The bookmarking popup can now put a link
+ *  into a group of a workspace other than the open one, so the workspace has to come from the
+ *  group - a link naming the open workspace would claim one that does not hold its group.
+ */
+describe("AppStateRepository.createLink", () => {
+
+    it("files the link under its group's workspace, not the open one", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+
+        await profiles.upsertProfile({ id: OTHER, name: "Two workspaces", createdAt: 0 });
+        await appState.saveProfileData(OTHER, profileOf({
+            environments: [environment("env-open", "Open"), environment("env-other", "Other")],
+            groups: [group("grp-other", "Elsewhere", "env-other")],
+            activeEnvironmentId: "env-open"
+        }));
+        await appState.switchProfile(OTHER);
+
+        const state = await appState.createLink("https://example.com/", "Example", "grp-other");
+
+        const created = Object.values(state.links).find(one => one.title === "Example")!;
+        expect(created.environmentId).toBe("env-other");
+    });
+});
