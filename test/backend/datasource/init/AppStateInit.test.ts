@@ -35,6 +35,29 @@ describe("the example set", () => {
         expect(Object.values(data.links).some(link => link.subGroupId)).toBe(true);
     });
 
+    it("is search with an AI subgroup, socials and music, in that order", () => {
+        const data = buildExampleProfileData();
+        const groups = Object.values(data.groups).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        const titlesIn = (groupId: string, subGroupId = "") => Object.values(data.links)
+            .filter(link => link.groupId === groupId && link.subGroupId === subGroupId)
+            .sort((a, b) => a.position - b.position)
+            .map(link => link.title);
+
+        expect(groups.map(group => group.title)).toEqual(["Search", "Socials", "Music"]);
+        expect(titlesIn(groups[0].id))
+            .toEqual(["Google", "DuckDuckGo", "Brave Search", "Yandex", "Bing"]);
+
+        const ai = Object.values(data.subgroups)[0];
+        expect(ai.title).toBe("AI");
+        expect(ai.groupId).toBe(groups[0].id);
+        expect(titlesIn(groups[0].id, ai.id)).toEqual(["ChatGPT", "Claude", "Gemini", "Grok"]);
+
+        expect(titlesIn(groups[1].id))
+            .toEqual(["Facebook", "X (Twitter)", "LinkedIn", "TikTok", "Myspace"]);
+        expect(titlesIn(groups[2].id))
+            .toEqual(["YouTube", "YouTube Music", "Spotify", "SoundCloud", "Bandcamp"]);
+    });
+
     it("links only to real https sites", () => {
         for (const link of Object.values(buildExampleProfileData().links)) {
             expect(new URL(link.url).protocol).toBe("https:");

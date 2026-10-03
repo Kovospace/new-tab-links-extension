@@ -17,6 +17,8 @@ import {MAX_NAME_LENGTH, isStorableName} from "../backend/sync/SyncContracts";
 // utils
 import {ObservableValue} from "../utils/observableValue";
 import {t} from "../i18n/i18n";
+import {InputDialog} from "../ui/partials/inputDialog";
+import {showNotice} from "../ui/partials/confirmations";
 
 type WorkspaceObservables = {
     workspaces: ObservableValue<WorkspaceDTO[]>;
@@ -165,7 +167,16 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
         const data = await ProfileDataTransfer.importFromFile();
         if (!data) return;
 
-        const name = prompt(t("profiles.importNamePrompt"));
+        const answer = await new InputDialog(
+            t("profiles.importDialog.title"),
+            {
+                [t("profiles.importDialog.name")]:
+                    { type: "string", required: true, maxLength: MAX_NAME_LENGTH,
+                      key: "profileName" }
+            },
+            () => { /* the answer is taken from ask() */ })
+            .ask();
+        const name = answer?.profileName;
         if (!name) return;
 
         // Checked before the profile is created, so a refused name leaves nothing behind -
@@ -192,10 +203,12 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
      */
     private reportUnstorableName(name: string): void {
         const trimmed = name.trim();
-        alert(trimmed.length === 0
-            ? t("profiles.nameMissing")
-            : t("profiles.nameTooLong.message",
-                { max: MAX_NAME_LENGTH, length: trimmed.length }));
+        if (trimmed.length === 0) {
+            void showNotice(t("profiles.renameDialog.name"), t("profiles.nameMissing"));
+            return;
+        }
+        void showNotice(t("profiles.nameTooLong.title"),
+            t("profiles.nameTooLong.message", { max: MAX_NAME_LENGTH, length: trimmed.length }));
     }
 
     public exportCurrentProfile() {

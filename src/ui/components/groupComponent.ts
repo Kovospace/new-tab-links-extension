@@ -29,6 +29,7 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../../
 import {OptionsMenu} from "../partials/optionsMenu";
 import {InputDialog} from "../partials/inputDialog";
 import {SelectDialog} from "../partials/selectDialog";
+import { showNotice } from "../partials/confirmations";
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 import {
     makeContainerTarget, makeDraggable, makeReorderTarget, whatIsBeingDragged
@@ -254,7 +255,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         if (workspaces.length === 0) {
             // Worth saying: a menu item that does nothing when clicked reads as a broken one,
             // and the reason it did nothing is not visible anywhere on the screen.
-            alert(t("group.migrateDialog.nowhereToGo"));
+            await showNotice(t("group.migrateDialog.title"), t("group.migrateDialog.nowhereToGo"));
             return;
         }
         const chosenWorkspaceId: string | null = await new SelectDialog<string>(

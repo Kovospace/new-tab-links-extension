@@ -33,7 +33,10 @@
     "title": "Premenovať profil",
     "name": "Názov profilu"
   },
-  "importNamePrompt": "Názov pre importovaný profil?",
+  "importDialog": {
+    "title": "Importovať profil",
+    "name": "Názov profilu"
+  },
   "nameTooLong": {
     "title": "Ten názov je príliš dlhý",
     "message": "Názov profilu môže mať najviac {max} znakov, tento ich má {length}. Váš účet ho nedokáže uložiť a ponechať ho tu by zastavilo aj všetky ostatné zmeny na ceste do vašich ďalších zariadení."

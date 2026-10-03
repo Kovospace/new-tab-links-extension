@@ -225,7 +225,7 @@ describe("ChangeSetBuilder, profile settings", () => {
             baselineOf(),
             [{
                 id: PROFILE_ID, name: "Default", createdAt: 0,
-                settings: { enableDragAndDrop: false, hideTips: false }
+                settings: { enableDragAndDrop: false, hideTips: false, dismissedTips: [] }
             }],
             { [PROFILE_ID]: emptyProfile() });
 
@@ -235,7 +235,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("says nothing about a profile whose settings did not change", () => {
-        const settings = { enableDragAndDrop: true, hideTips: false };
+        const settings = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"] };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -266,7 +266,7 @@ describe("ChangeSetBuilder, profile settings", () => {
         // would turn the setting off, on every device the account reaches. Every setting has
         // to be asserted here, not just the first one: they are what a second one added
         // carelessly would silently stop carrying.
-        const settings = { enableDragAndDrop: true, hideTips: true };
+        const settings = { enableDragAndDrop: true, hideTips: true, dismissedTips: ["hide-tips"] };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -281,6 +281,24 @@ describe("ChangeSetBuilder, profile settings", () => {
         expect(profiles[0].name).toBe("Home");
         expect(profiles[0].enableDragAndDrop).toBe(true);
         expect(profiles[0].hideTips).toBe(true);
+        expect(profiles[0].dismissedTips).toEqual(["hide-tips"]);
+    });
+
+    it("pushes a profile that dismissed one more tip", () => {
+        const before = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"] };
+        const after = { ...before, dismissedTips: ["hide-tips", "disable-ads"] };
+
+        const operations = ChangeSetBuilder.build(
+            {
+                profiles: [{ id: PROFILE_ID, name: "Default", createdAt: 0, settings: before }],
+                dataByProfileId: { [PROFILE_ID]: emptyProfile() }
+            },
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0, settings: after }],
+            { [PROFILE_ID]: emptyProfile() });
+
+        const profiles = operations.filter(operation => operation.type === "profile");
+        expect(profiles).toHaveLength(1);
+        expect(profiles[0].dismissedTips).toEqual(["hide-tips", "disable-ads"]);
     });
 
     it("carries the settings of a profile the account has never seen", () => {
@@ -292,7 +310,7 @@ describe("ChangeSetBuilder, profile settings", () => {
                 { id: PROFILE_ID, name: "Default", createdAt: 0 },
                 {
                     id: created, name: "Fresh", createdAt: 0,
-                    settings: { enableDragAndDrop: true, hideTips: false }
+                    settings: { enableDragAndDrop: true, hideTips: false, dismissedTips: [] }
                 }
             ],
             { [PROFILE_ID]: emptyProfile(), [created]: emptyProfile() });

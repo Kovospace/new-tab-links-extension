@@ -42,6 +42,15 @@ export const MAX_URL_LENGTH = 2048;
 export const MAX_COLOR_LENGTH = 16;
 
 /**
+ *  How many tips a profile may hold dismissed, and how long a tip's identifier may be - both
+ *  `@Size` on the backend's push, so either broken fails the whole batch. The list is trimmed
+ *  to the first where it is written; the second is a rule for whoever writes `tips.json`, and
+ *  `test/viewModel/tipsViewModel.test.ts` enforces it.
+ */
+export const MAX_DISMISSED_TIPS = 100;
+export const MAX_TIP_ID_LENGTH = 64;
+
+/**
  *  Whether a name can be stored, both here and on the account.
  *
  *  Blank is refused because the backend refuses it (`MISSING_REQUIRED_VALUE`), and over-long
@@ -118,6 +127,15 @@ export interface SyncOperation {
      *  leaving it alone.
      */
     hideTips?: boolean;
+
+    /**
+     *  The tips this profile dismissed one at a time, by their identifier.
+     *
+     *  Carried on every profile upsert for the same reason again - and the backend reads an
+     *  absent list as an empty one, so leaving it out would bring every dismissed tip back.
+     *  At most `MAX_DISMISSED_TIPS`, each at most `MAX_TIP_ID_LENGTH` characters.
+     */
+    dismissedTips?: string[];
 
     /** Whether a subgroup is folded away right now. */
     collapsed?: boolean;
@@ -202,6 +220,8 @@ export interface SnapshotProfileDto {
     enableDragAndDrop?: boolean;
     /** Same again: absent only from a backend that does not store it yet, and read as off. */
     hideTips?: boolean;
+    /** Same again, and read as none dismissed. */
+    dismissedTips?: string[];
     createdAt: string;
     updatedAt: string;
 }
