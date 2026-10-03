@@ -194,6 +194,7 @@ export class ChangeSetBuilder {
             // wide, by whatever unrelated change caused the operation.
             enableDragAndDrop: settingsOf(profile).enableDragAndDrop,
             hideTips: settingsOf(profile).hideTips,
+            dismissedTips: settingsOf(profile).dismissedTips,
             position
         };
     }

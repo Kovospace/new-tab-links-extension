@@ -81,7 +81,8 @@ export class FakeAccount {
                     name: operation.name,
                     position: operation.position ?? 0,
                     enableDragAndDrop: operation.enableDragAndDrop ?? false,
-                    hideTips: operation.hideTips ?? false
+                    hideTips: operation.hideTips ?? false,
+                    dismissedTips: operation.dismissedTips ?? []
                 };
             case "environment":
                 return {

@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
 import { TipsViewModel } from "../../src/viewModel/tipsViewModel";
 import { buttonLabelOf, Tip, TIPS, textOf, urlOf } from "../../src/ui/tips/tipsCatalogue";
+import { MAX_DISMISSED_TIPS, MAX_TIP_ID_LENGTH } from "../../src/backend/sync/SyncContracts";
 
 /** Always picks the first tip, so a test can say which tip it is talking about. */
 const first = () => 0;
@@ -77,6 +78,73 @@ describe("TipsViewModel", () => {
 
         expect(other.observables.tips.get().visible).toBe(false);
     });
+    describe("one tip dismissed with \"I know\"", () => {
+
+        it("remembers that tip on the profile and moves on to the next", async () => {
+            await tips.dismissCurrent();
+
+            expect(profiles.getSettings().dismissedTips).toEqual([TIPS[0].id]);
+            expect(shown().visible).toBe(true);
+            expect(shown().tip?.id).toBe(TIPS[1].id);
+        });
+
+        it("is skipped in both directions while stepping", async () => {
+            // Dismiss the second tip, then walk past where it was.
+            tips.next();
+            await tips.dismissCurrent();
+            tips.previous();
+            expect(shown().tip?.id).toBe(TIPS[0].id);
+
+            tips.next();
+            expect(shown().tip?.id).toBe(TIPS[2].id);
+        });
+
+        it("is not shown first on a page that opens on it", async () => {
+            await profiles.updateSettings({ dismissedTips: [TIPS[0].id] });
+
+            const other = new TipsViewModel(profiles, first);
+            other.initialize();
+
+            expect(other.observables.tips.get().tip?.id).toBe(TIPS[1].id);
+        });
+
+        it("offers no arrows once only one tip is left", async () => {
+            await profiles.updateSettings({
+                dismissedTips: TIPS.slice(1).map(tip => tip.id)
+            });
+
+            expect(shown().tip?.id).toBe(TIPS[0].id);
+            expect(shown().tip?.navigable).toBe(false);
+        });
+
+        it("leaves nothing on screen once every tip is dismissed", async () => {
+            for (let i = 0; i < TIPS.length; i++) {
+                await tips.dismissCurrent();
+            }
+
+            expect(shown().visible).toBe(false);
+            expect(shown().tip).toBeNull();
+            expect(profiles.getSettings().hideTips).toBe(false);
+        });
+
+        it("forgets identifiers of tips that no longer exist when it writes", async () => {
+            await profiles.updateSettings({ dismissedTips: ["a-tip-since-removed"] });
+
+            await tips.dismissCurrent();
+
+            expect(profiles.getSettings().dismissedTips).toEqual([TIPS[0].id]);
+        });
+
+        it("never writes more than the account accepts", async () => {
+            // Only reachable with that many tips in the file, so the cap is checked on what
+            // dismissCurrent() hands the repository rather than by dismissing a hundred tips.
+            const update = vi.spyOn(profiles, "updateSettings");
+            await tips.dismissCurrent();
+
+            const written = update.mock.calls[0][0].dismissedTips!;
+            expect(written.length).toBeLessThanOrEqual(MAX_DISMISSED_TIPS);
+        });
+    });
 });
 
 describe("the tips file", () => {
@@ -93,6 +161,15 @@ describe("the tips file", () => {
         const ids = TIPS.map(tip => tip.id);
 
         expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it("names every tip short enough for the account, and has no more than it may dismiss", () => {
+        // A name is what "I know" pushes, and @Size is checked over the whole push: one name
+        // too long, or one too many, and every change in that batch is refused.
+        for (const tip of TIPS) {
+            expect(tip.id.length, `tip "${tip.id}"`).toBeLessThanOrEqual(MAX_TIP_ID_LENGTH);
+        }
+        expect(TIPS.length).toBeLessThanOrEqual(MAX_DISMISSED_TIPS);
     });
 
     it("falls back to English for a language it does not have", () => {
@@ -185,4 +262,5 @@ describe("a tip that does something", () => {
             }
         }
     });
+
 });

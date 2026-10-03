@@ -117,7 +117,10 @@ describe("synchronisation settles", () => {
         });
 
     it("has nothing to say the second time, with the profile's settings turned on", async () => {
-        await profiles.updateSettings({ enableDragAndDrop: true, hideTips: true });
+        await profiles.updateSettings({
+            enableDragAndDrop: true, hideTips: true,
+            dismissedTips: ["hide-tips", "disable-ads"]
+        });
 
         expect(await operationsOfTheSecondPass()).toEqual([]);
     });

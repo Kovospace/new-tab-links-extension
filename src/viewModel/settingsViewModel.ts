@@ -1,5 +1,5 @@
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
-import { ProfileSettings } from "../backend/entity/ProfileSettings";
+import { ProfileSettings, ToggleableSetting } from "../backend/entity/ProfileSettings";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
@@ -47,7 +47,7 @@ interface SettingCommonDTO {
 export interface ToggleSettingDTO extends SettingCommonDTO {
     kind: "toggle";
     /** Which setting this is; what `toggle` is called with. */
-    key: keyof ProfileSettings;
+    key: ToggleableSetting;
     enabled: boolean;
 }
 
@@ -170,7 +170,7 @@ export interface SettingsDTO {
  *  the moment the dialog is described.
  */
 type SettingDefinition =
-    | { kind: "toggle"; key: keyof ProfileSettings; wording: string }
+    | { kind: "toggle"; key: ToggleableSetting; wording: string }
     | { kind: "range"; key: RangeSettingKey; wording: string }
     | { kind: "choice"; key: ChoiceSettingKey; wording: string }
     | { kind: "image"; key: ImageSettingKey; wording: string }
@@ -317,7 +317,7 @@ export class SettingsViewModel {
      *  @param key     which setting
      *  @param enabled what to set it to
      */
-    public async toggle(key: keyof ProfileSettings, enabled: boolean): Promise<void> {
+    public async toggle(key: ToggleableSetting, enabled: boolean): Promise<void> {
         this.LOG.debug("toggle", `${key} -> ${enabled}`);
         await this.profiles.updateSettings({ [key]: enabled });
         this.refresh();

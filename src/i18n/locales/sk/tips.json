@@ -1,6 +1,8 @@
 {
   "tellMeMore": "Viac o tom",
   "tellMeMoreTooltip": "Prečítať si o tom viac",
+  "acknowledge": "Viem",
+  "acknowledgeTooltip": "Tento tip už nezobrazovať",
   "previous": "Predchádzajúci tip",
   "next": "Ďalší tip",
   "hide": "Skryť tipy",

@@ -117,6 +117,15 @@ export class TipsBar {
         () => this.viewModel.openMore()));
     }
 
+    // "I know" sits with "tell me more" rather than with the hover controls: it answers this
+    // tip, where they manage tips. Not confirmed - it takes one tip away, not all of them, and
+    // what it takes is something the reader just said they already know.
+    this.tipEl.appendChild(this.button(
+      t('tips.acknowledge'),
+      ['tips-bar__more', 'tips-bar__acknowledge'],
+      t('tips.acknowledgeTooltip'),
+      () => void this.viewModel.dismissCurrent()));
+
     // The controls, which the stylesheet keeps invisible until the bar is hovered. They are
     // built either way rather than on hover, so that the bar does not change width under the
     // pointer as it arrives.

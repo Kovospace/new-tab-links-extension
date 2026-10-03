@@ -96,7 +96,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
 
     it("takes the settings the account holds", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: true })).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [] });
     });
 
     it("reads a backend that does not store settings yet as having the defaults", () => {
@@ -104,12 +104,20 @@ describe("SyncSnapshotMapper, profile settings", () => {
         // whose settings are undefined compares differently from one whose settings are the
         // defaults, and the difference would be pushed straight back.
         expect(mappedProfile(accountWithProfile({})).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [] });
+    });
+
+    it("takes the dismissed tips exactly as the account holds them, order included", () => {
+        // Not filtered against the tips this build knows, and not sorted: anything a pull
+        // changes on the way in is a difference the next push reports again.
+        expect(mappedProfile(accountWithProfile(
+            { dismissedTips: ["no-such-tip", "hide-tips"] })).settings?.dismissedTips)
+            .toEqual(["no-such-tip", "hide-tips"]);
     });
 
     it("keeps an account that has them off, off", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: false })).settings)
-            .toEqual({ enableDragAndDrop: false, hideTips: false });
+            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [] });
     });
 });
 

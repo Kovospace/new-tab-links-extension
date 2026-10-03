@@ -8,9 +8,6 @@ Note for agents:
 
 ## Features that must be done before first release
 
-### [medium] Add "I know" button to the single tip to not display it in the future
-- remember these settigns and sync them accross devices
-
 ### [medium] Usage statistics and ad slot - IN PROGRESS across four repos
 Branch `feature/usage-stats-and-ad-slot` in every repo.
 - extension: DONE - the ad slot frames tabilinks.app/slot/workspace-footer.html and shows it only
@@ -49,6 +46,15 @@ Note: chrome.history permission can be problematic when submitting to chrome sto
 
 
 # DONE
+### [medium] Add "I know" button to the single tip to not display it in the future
+- remember these settigns and sync them accross devices
+- DONE: "I know" beside "Tell me more" on the tip; the tip goes and the next one shows. The
+  tip's id is stored in the profile's settings (dismissedTips) and synchronised like hideTips
+- across three repos, branch feature/dismiss-single-tip in each: migrations V15
+  (profile.dismissed_tips text[]), the backend (entity, DTOs, sync operation, snapshot), the
+  extension. Release order: migrations image 0.0.15, then the backend, then the extension
+- not yet: a way to bring dismissed tips back from Settings
+
 ### [medium] Make some meaningfull examples of links and workspaces
 - when extension runs for the 1st time, now just some random test links appears
 - make at least 1 workspace, 3 groups and one of group should contains sub-group 
