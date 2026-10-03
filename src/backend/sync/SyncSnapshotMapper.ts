@@ -71,7 +71,10 @@ export class SyncSnapshotMapper {
                     settings: {
                         enableDragAndDrop: profile.enableDragAndDrop
                             ?? DEFAULT_PROFILE_SETTINGS.enableDragAndDrop,
-                        hideTips: profile.hideTips ?? DEFAULT_PROFILE_SETTINGS.hideTips
+                        hideTips: profile.hideTips ?? DEFAULT_PROFILE_SETTINGS.hideTips,
+                        // As the account holds it, order included - see ProfileSettings.
+                        dismissedTips: profile.dismissedTips
+                            ?? DEFAULT_PROFILE_SETTINGS.dismissedTips
                     }
                 })
             }));

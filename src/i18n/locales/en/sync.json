@@ -47,5 +47,6 @@
   "signedOutNotice": {
     "text": "Signed out of {username}",
     "tooltip": "Sync is paused. Your links stay here and are sent when you log in again."
-  }
+  },
+  "noticeTitle": "Your account"
 }

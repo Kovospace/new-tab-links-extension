@@ -1,6 +1,8 @@
 {
   "tellMeMore": "Tell me more",
   "tellMeMoreTooltip": "Read more about this",
+  "acknowledge": "I know",
+  "acknowledgeTooltip": "Don't show this tip again",
   "previous": "Previous tip",
   "next": "Next tip",
   "hide": "Hide tips",

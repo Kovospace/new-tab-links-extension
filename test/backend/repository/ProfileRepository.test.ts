@@ -231,7 +231,7 @@ describe("ProfileRepository settings", () => {
 
     it("reads a profile that has never been configured as having the defaults", () => {
         // Dragging is the one setting that is on unless it is turned off.
-        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: true, hideTips: false });
+        expect(profiles.getSettings()).toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [] });
     });
 
     it("persists a setting onto the profile record", async () => {
@@ -239,7 +239,7 @@ describe("ProfileRepository settings", () => {
 
         expect(readFakeStorage<StoredRegistry>(PROFILE_REGISTRY_KEY)
             ?.profiles["default"].settings)
-            .toEqual({ enableDragAndDrop: false, hideTips: false });
+            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [] });
         expect(profiles.getSettings().enableDragAndDrop).toBe(false);
     });
 

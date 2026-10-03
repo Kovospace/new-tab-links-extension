@@ -157,8 +157,9 @@ html.dark .tips-bar__control:hover {
     color: var(--color-button-active-background);
 }
 
-/* "Tell me more" is the one control that is not a symbol, and the one that is
-   always visible: it is part of the tip rather than a way of managing tips. */
+/* "Tell me more" and "I know" are the controls that are not symbols, and the
+   ones that are always visible: they are part of the tip rather than a way of
+   managing tips. */
 .tips-bar__more,
 html.dark .tips-bar__more {
     min-width: 0;

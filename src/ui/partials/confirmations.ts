@@ -12,6 +12,25 @@ import { t } from '../../i18n/i18n';
  */
 
 /**
+ * Tells the user something, in the same modal every question here is asked in.
+ *
+ * This is what `alert()` was used for, and why it is not any more: the browser's box is drawn
+ * by the browser, in its own fonts and its own place, and titled with the extension's address -
+ * it reads as something other than this page talking.
+ *
+ * One button, not marked as dangerous, because nothing is being decided.
+ *
+ * @param title   heading, naming the situation
+ * @param message what the user needs to know, in full sentences
+ * @return resolves once the notice is dismissed, by its button or by Escape
+ */
+export async function showNotice(title: string, message: string): Promise<void> {
+  await new ChoiceDialog<'ok'>(title, message, [
+    { label: t('common.ok'), value: 'ok' }
+  ]).ask();
+}
+
+/**
  * Asks a yes/no question about something destructive.
  *
  * @param title   heading, naming what is about to happen

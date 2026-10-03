@@ -392,6 +392,11 @@ space when there is little to show, and below the columns when there is a lot.
   and Settings is the way back - which is what the confirmation says. It is named for hiding
   rather than for showing because a new setting defaults to off, and off has to mean the
   behaviour a profile had before the setting existed.
+- **"I know" dismisses one tip**, for good and on every device: its `id` goes into the
+  profile's `dismissedTips`, and the view model steps over it. A tip's `id` is therefore a
+  stored, synchronised identifier - never rename one, and keep it within `MAX_TIP_ID_LENGTH`.
+  The list is pruned (unknown ids, `MAX_DISMISSED_TIPS`) only where "I know" writes it; a pull
+  stores it exactly as the account holds it. There is no way back from Settings yet.
 - **While a link is being dragged the same bar is the trash.** Turning red under something
   that was already there is what says "this is dangerous now", and a colour cannot transition
   between two elements - so it is one bar with two faces, both built at render, and the
@@ -563,6 +568,13 @@ The view models still refuse invalid input, but only as backstops for callers th
 dialog: they log and return rather than telling the user, because the dialog is what tells the
 user now.
 
+**No `alert()`, `confirm()` or `prompt()`.** The browser draws those in its own style and
+titles them with the extension's address. `ui/partials/confirmations.ts` has the page's own:
+`showNotice` for telling, `confirmDestructiveAction` for a yes/no (a dangerous `OptionsMenu`
+item goes through it, named by the item's own title), `confirmByTypingPhrase` for the
+irreversible, and `InputDialog` for asking for a value. `test/ui/partials/optionsMenu.test.ts`
+fails if the menu reaches for `confirm()` again.
+
 ### Data Model (`AppStateEntity.ts`)
 
 ```
@@ -587,9 +599,10 @@ do, as opposed to what it holds. They live on the profile record rather than in 
 their own, which is what lets them synchronise with no new entity kind, no snapshot collection
 and no merge rules - a settings change is simply a difference in the profile upsert the change
 set already sends, and `profiles$` firing is what schedules it. The price, paid knowingly: two
-profiles are two sets of preferences. Every setting is a boolean defaulting to off and is read
-through `settingsOf()`, never straight off the profile: a profile stored before a setting
-existed says nothing about it, and so does an account whose backend does not know it yet, and
+profiles are two sets of preferences. Every setting is a boolean defaulting to off - except
+`dismissedTips`, a list defaulting to empty, which `ToggleableSetting` leaves out of the
+settings dialog - and is read through `settingsOf()`, never straight off the profile: a
+profile stored before a setting existed says nothing about it, and so does an account whose backend does not know it yet, and
 both have to read as the default rather than as `undefined` - the two compare differently, and
 the difference would be pushed.
 

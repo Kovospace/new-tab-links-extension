@@ -49,5 +49,6 @@
   "signedOutNotice": {
     "text": "Odhlásené z účtu {username}",
     "tooltip": "Synchronizácia je pozastavená. Odkazy zostávajú tu a odošlú sa po opätovnom prihlásení."
-  }
+  },
+  "noticeTitle": "Váš účet"
 }

@@ -7,8 +7,9 @@
  *  entity kind and no merge rules of its own. The price, paid knowingly: two profiles are two
  *  sets of preferences, and turning something on for work does not turn it on for home.
  *
- *  Every setting is a plain boolean, defaulting to "off" with one exception named below, and
- *  is read through `settingsOf()` rather than straight off the profile. A profile stored before a setting
+ *  Every setting is a plain boolean, defaulting to "off" with one exception named below -
+ *  except `dismissedTips`, a list that defaults to empty - and every one is read through
+ *  `settingsOf()` rather than straight off the profile. A profile stored before a setting
  *  existed says nothing about it, and so does an account whose backend does not know it yet;
  *  both have to read as the default rather than as undefined.
  */
@@ -34,12 +35,30 @@ export interface ProfileSettings {
      *  setting existed. Tips were visible, so "visible" is what false must mean.
      */
     hideTips: boolean;
+
+    /**
+     *  The tips dismissed one at a time ("I know"), by their `id` in `ui/tips/tips.json`.
+     *
+     *  Beside `hideTips` rather than instead of it: that one silences every tip, this one only
+     *  the tips somebody has already understood. A list and not a boolean, so it is the one
+     *  setting `ToggleableSetting` leaves out. Kept in the order the tips were dismissed and
+     *  sent to the account exactly as stored: anything a pull reorders or filters would be a
+     *  difference the next change set reports again. Bounded where it is written
+     *  (`TipsViewModel.dismissCurrent`), never where it is read.
+     */
+    dismissedTips: string[];
 }
+
+/** The settings that are on or off, which is every one but the list of dismissed tips. */
+export type ToggleableSetting = {
+    [KEY in keyof ProfileSettings]: ProfileSettings[KEY] extends boolean ? KEY : never
+}[keyof ProfileSettings];
 
 /** What a profile that has never been configured is set to. */
 export const DEFAULT_PROFILE_SETTINGS: ProfileSettings = {
     enableDragAndDrop: true,
-    hideTips: false
+    hideTips: false,
+    dismissedTips: []
 };
 
 /**

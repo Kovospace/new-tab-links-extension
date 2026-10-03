@@ -1,5 +1,5 @@
 import { ManagedProfileDTO, ProfileManagerViewModel } from '../../viewModel/profileManagerViewModel';
-import { confirmByTypingPhrase, confirmDestructiveAction } from './confirmations';
+import { confirmByTypingPhrase, confirmDestructiveAction, showNotice } from './confirmations';
 import { InputDialog } from './inputDialog';
 import { MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
@@ -205,10 +205,9 @@ export class ProfileManagerDialog {
     if (!name || name === profile.name) return;
 
     if (name.length > MAX_NAME_LENGTH) {
-      await confirmDestructiveAction(
+      await showNotice(
         t('profiles.nameTooLong.title'),
-        t('profiles.nameTooLong.message', { max: MAX_NAME_LENGTH, length: name.length }),
-        t('common.close'));
+        t('profiles.nameTooLong.message', { max: MAX_NAME_LENGTH, length: name.length }));
       return;
     }
 
@@ -240,10 +239,9 @@ export class ProfileManagerDialog {
     const deletable = this.viewModel.countDeletable();
 
     if (deletable === 0) {
-      await confirmDestructiveAction(
+      await showNotice(
         t('profiles.nothingToDelete.title'),
-        t('profiles.nothingToDelete.message'),
-        t('common.close'));
+        t('profiles.nothingToDelete.message'));
       return;
     }
 

@@ -1,5 +1,6 @@
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
-import { settingsOf } from "../backend/entity/ProfileSettings";
+import { ProfileSettings, settingsOf } from "../backend/entity/ProfileSettings";
+import { MAX_DISMISSED_TIPS } from "../backend/sync/SyncContracts";
 
 import { buttonLabelOf, randomTipIndex, textOf, TIPS, urlOf } from "../ui/tips/tipsCatalogue";
 import { Logger } from "../utils/logger";
@@ -20,7 +21,7 @@ export interface TipDTO {
     /** What the button says, when the tip names its own words for it; null means "tell me more". */
     buttonLabel: string | null;
 
-    /** Whether there is more than one tip, which is what makes the arrows worth drawing. */
+    /** Whether there is more than one tip left to show, which is what makes the arrows worth drawing. */
     navigable: boolean;
 }
 
@@ -43,6 +44,10 @@ export interface TipsDTO {
  *  would mean the same tip every morning until somebody clicked, which is the opposite of what
  *  a tip is for; and it would be a write to the profile - and so a push to the account - for
  *  pressing an arrow.
+ *
+ *  **A tip dismissed with "I know" is skipped, not removed.** The index still counts every
+ *  tip in the file; landing on a dismissed one moves on to the next that is not, in the
+ *  direction of travel. That keeps the arrows' order the file's order however many are gone.
  */
 export class TipsViewModel {
 
@@ -101,6 +106,31 @@ export class TipsViewModel {
         this.refresh();
     }
 
+    /**
+     *  Dismisses the tip on screen for good ("I know"), and moves on to the next one.
+     *
+     *  Stored on the profile, so it reaches every device. The list is bounded here, where it
+     *  is written - never where it is read, since a pull has to store what the account holds:
+     *  identifiers of tips this build no longer has are dropped, and past the account's limit
+     *  the oldest dismissal gives way.
+     */
+    public async dismissCurrent(): Promise<void> {
+        const tip = this.observables.tips.get().tip;
+        if (!tip) {
+            return;
+        }
+        this.LOG.debug("dismissCurrent", tip.id);
+
+        const known = new Set(TIPS.map(candidate => candidate.id));
+        const dismissedTips = [
+            ...this.currentSettings().dismissedTips.filter(id => known.has(id) && id !== tip.id),
+            tip.id
+        ].slice(-MAX_DISMISSED_TIPS);
+
+        await this.profiles.updateSettings({ dismissedTips });
+        this.refresh();
+    }
+
     /** Opens what the current tip has to say for itself, if it has anywhere to point. */
     public openMore(): void {
         const url = this.observables.tips.get().tip?.url;
@@ -114,8 +144,36 @@ export class TipsViewModel {
         if (TIPS.length === 0) {
             return;
         }
-        this.index = (this.index + by + TIPS.length) % TIPS.length;
+        this.index = this.wrap(this.index + by);
+        this.settleOnShowableTip(by);
         this.refresh();
+    }
+
+    /**
+     *  Moves the index off a dismissed tip, in the given direction, wrapping round.
+     *
+     *  @param direction 1 to look forwards, -1 backwards
+     *  @return whether a tip that is not dismissed was found; false when every one is
+     */
+    private settleOnShowableTip(direction: number): boolean {
+        const dismissed = new Set(this.currentSettings().dismissedTips);
+        for (let checked = 0; checked < TIPS.length; checked++) {
+            if (!dismissed.has(TIPS[this.index].id)) {
+                return true;
+            }
+            this.index = this.wrap(this.index + direction);
+        }
+        return false;
+    }
+
+    private wrap(index: number): number {
+        return (index % TIPS.length + TIPS.length) % TIPS.length;
+    }
+
+    private currentSettings(): ProfileSettings {
+        return settingsOf(
+            this.profiles.getProfiles().find(
+                profile => profile.id === this.profiles.getActiveProfileId()));
     }
 
     private refresh(): void {
@@ -124,16 +182,16 @@ export class TipsViewModel {
 
     private describe(): TipsDTO {
 
-        const hidden = settingsOf(
-            this.profiles.getProfiles().find(
-                profile => profile.id === this.profiles.getActiveProfileId())
-        ).hideTips;
+        const settings = this.currentSettings();
 
-        const tip = TIPS[this.index];
-
-        if (hidden || !tip) {
+        // Forwards, so that "I know" is followed by the tip after the one dismissed.
+        if (settings.hideTips || TIPS.length === 0 || !this.settleOnShowableTip(1)) {
             return { visible: false, tip: null };
         }
+
+        const tip = TIPS[this.index];
+        const dismissed = new Set(settings.dismissedTips);
+        const remaining = TIPS.filter(candidate => !dismissed.has(candidate.id)).length;
 
         return {
             visible: true,
@@ -142,7 +200,7 @@ export class TipsViewModel {
                 text: textOf(tip),
                 url: urlOf(tip),
                 buttonLabel: buttonLabelOf(tip),
-                navigable: TIPS.length > 1
+                navigable: remaining > 1
             }
         };
     }

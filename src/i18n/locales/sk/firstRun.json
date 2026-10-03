@@ -13,9 +13,10 @@
   "titleMandatory": "Názov je povinný",
   "examples": {
     "workspace": "Príklady",
-    "everyday": "Každý deň",
-    "work": "Práca",
-    "developer": "Vývoj",
-    "developerDescription": "Podskupina - zbalíte ju kliknutím na jej nadpis"
+    "search": "Vyhľadávanie",
+    "ai": "AI",
+    "aiDescription": "Podskupina - zbalíte ju kliknutím na jej nadpis",
+    "socials": "Sociálne siete",
+    "music": "Hudba"
   }
 }
