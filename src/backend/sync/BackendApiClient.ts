@@ -376,6 +376,13 @@ export class BackendApiClient {
             if (result.outcome === "offline") {
                 return result;
             }
+            if (result.limitRefusal?.limit === "DEVICES") {
+                // Premium ended and this installation is beyond the free plan's number of
+                // them: the account ends its session at the refresh, saying so with a 409.
+                this.LOG.warn("refreshTokenPair", "Session ended over the installations limit");
+                await this.sessions.clearRevoked(result.limitRefusal);
+                return result;
+            }
             if (SESSION_ENDING_REFRESH_STATUSES.has(result.status)) {
                 this.LOG.warn("refreshTokenPair", "Refresh token refused, session ended");
                 // Not the user's doing: revoked from the website, or - when premium ended - one

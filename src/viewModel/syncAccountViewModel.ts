@@ -152,12 +152,14 @@ export class SyncAccountViewModel {
             }
         });
         let revokedReplayed = false;
-        this.sessions.revoked$.subscribe(() => {
+        this.sessions.revoked$.subscribe(ended => {
             if (!revokedReplayed) {
-                revokedReplayed = true;     // the current count, not news
+                revokedReplayed = true;     // the current value, not news
                 return;
             }
-            void this.explainRevokedSession();
+            // Told why - beyond the installations limit - it is the refused sign-in's message,
+            // with the devices page the account named.
+            void (ended.refusal ? this.offerDeviceLimitWayOut(ended.refusal) : this.explainRevokedSession());
         });
     }
 

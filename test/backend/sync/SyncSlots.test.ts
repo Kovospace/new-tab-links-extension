@@ -103,14 +103,51 @@ describe("decideSyncScope", () => {
         expect(scope.workspaces["w-q"].state).toBe("LOCAL_ONLY_FREE_LIMIT");
     });
 
-    it("judges a deletion made here by whether the account's record holds a slot", () => {
-        // Deleted on this device: no local decision, so the account's slot says whether the
-        // deletion is sent. One without a slot is not deleted from the account.
-        const scope = decideSyncScope(accountWith("A", "B", "C"), localWith("A"), FREE);
+    it("sends a deletion made here wherever the account accepts one, slot or not", () => {
+        // Deleted on this device: no local decision. The account lets any of its profiles be
+        // deleted, and any workspace under a slot-holding profile - edits to slot-less ones
+        // are refused, deletions are not.
+        const account: AccountInventory = {
+            profiles: [
+                { id: "p", name: "Default", createdAt: 1, position: 0 },
+                { id: "q", name: "Second", createdAt: 2, position: 1 }
+            ],
+            workspaces: [
+                ...accountWith("A", "B", "C").workspaces,
+                { id: "w-q", profileId: "q", name: "Q", createdAt: 20, position: 0 }
+            ]
+        };
+        const scope = decideSyncScope(account, localWith("A"), FREE);
 
         expect(workspaceInScope(scope, "w-B")).toBe(true);
-        expect(workspaceInScope(scope, "w-C")).toBe(false);
-        expect(profileInScope(scope, "p")).toBe(true);
+        expect(workspaceInScope(scope, "w-C")).toBe(true);
+        expect(profileInScope(scope, "q")).toBe(true);
+        // Under a profile without a slot the account refuses it; it is not sent on its own.
+        expect(workspaceInScope(scope, "w-q")).toBe(false);
+        expect(workspaceInScope(scope, "never-on-the-account")).toBe(false);
+    });
+
+    it("breaks a tie in createdAt by identifier as lower-case text, as the account does", () => {
+        // Every row of one push shares its transaction's timestamp, so ties are the rule. The
+        // account's position is not part of the order: the two ends must agree on who is first.
+        const tied: AccountInventory = {
+            profiles: [{ id: "p", name: "Default", createdAt: 1, position: 0 }],
+            workspaces: [
+                { id: "C0000000-0000-7000-8000-000000000000", profileId: "p", name: "First listed", createdAt: 10, position: 0 },
+                { id: "b0000000-0000-7000-8000-000000000000", profileId: "p", name: "Second listed", createdAt: 10, position: 1 },
+                { id: "a0000000-0000-7000-8000-000000000000", profileId: "p", name: "Third listed", createdAt: 10, position: 2 }
+            ]
+        };
+        const local: LocalProfile[] = [{
+            meta: meta("p", "Default"),
+            data: profileOf({ environments: tied.workspaces.map(workspace => environment(workspace.id, workspace.name)) })
+        }];
+
+        const scope = decideSyncScope(tied, local, FREE);
+
+        expect(scope.workspaces["a0000000-0000-7000-8000-000000000000"].state).toBe("SYNCHRONISED");
+        expect(scope.workspaces["b0000000-0000-7000-8000-000000000000"].state).toBe("SYNCHRONISED");
+        expect(scope.workspaces["C0000000-0000-7000-8000-000000000000"].state).toBe("LOCAL_ONLY_FREE_LIMIT");
     });
 });
 

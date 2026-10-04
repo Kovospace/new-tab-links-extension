@@ -564,7 +564,8 @@ The owner's design is `new-tab-links-frontend/.claude/assignments/account-limits
   create an account); `FAIR_USE` links to `/fair-use`. The closed tabs history rolls - a list
   longer than the cap loses one entry per new one, never all at once.
 - **Slots decide what synchronises, on this side** (`decideSyncScope`): the account's first N by
-  its `createdAt` hold slots, what this device brings takes what is left; example data and a
+  its `createdAt`, ties broken by id as lower-case text (the backend's uuid order; every row of
+  one push shares a timestamp), hold slots, what this device brings takes what is left; example data and a
   workspace over a Fair Use cap never synchronise; never half a workspace. Before a push the
   account's lists (`GET /profiles`, `GET /environments`) are read; a 409 re-reads them and
   pushes once more without what lost - no loop.
@@ -580,6 +581,10 @@ The owner's design is `new-tab-links-frontend/.claude/assignments/account-limits
   go over a Fair Use cap keeps that workspace apart, local only (`CappedMerge.ts`, `heldApart$`).
 - **Example data** (`ExampleData.ts`): a fingerprint on each example workspace, cleared for good
   by the first save that changes it; never synchronised; removed at sign-in if untouched.
+- Deleting here is sent for anything the account accepts a deletion of: any of its profiles, and
+  any workspace under a slot-holding profile, slot or not (edits to slot-less ones are refused).
+- A refresh answered 409 `DEVICES` (premium ended, installation beyond the free number) ends the
+  session with the device-limit dialog and the body's `manageUrl` (`SessionRepository.revoked$`).
 - After each cycle the installation reports its inventory (names and counts only) when it changed.
 
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)

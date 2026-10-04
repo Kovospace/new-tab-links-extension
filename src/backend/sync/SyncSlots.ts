@@ -76,6 +76,12 @@ export interface SyncScope {
     slotProfileIds: Set<string>;
     /** The account's workspaces that hold a slot, whether this device has them or not. */
     slotWorkspaceIds: Set<string>;
+    /**
+     *  What the account lets this device delete: every profile it holds, and every workspace
+     *  under a slot-holding profile - slot or not. Edits inside the slot-less ones are refused,
+     *  deletions are not.
+     */
+    deletableIds: Set<string>;
 }
 
 /** The two answers the scope needs from the account's standing. */
@@ -125,10 +131,21 @@ export function inventoryFromSnapshot(snapshot: MappedSnapshot): AccountInventor
     };
 }
 
-/** First come, first served: oldest first, then the account's own order, then identifier. */
+/**
+ *  First come, first served: oldest first, then the identifier compared as lower-case text -
+ *  exactly the backend's order (Postgres sorts uuids that way). Ties are common: every row of
+ *  one push shares its transaction's timestamp. Position is deliberately not used; the account
+ *  does not, and the two ends must agree on who holds a slot.
+ */
 function bySlotOrder<ITEM extends AccountItem>(items: ITEM[]): ITEM[] {
-    return [...items].sort((one, other) =>
-        one.createdAt - other.createdAt || one.position - other.position || one.id.localeCompare(other.id));
+    return [...items].sort((one, other) => {
+        if (one.createdAt !== other.createdAt) {
+            return one.createdAt - other.createdAt;
+        }
+        const first = one.id.toLowerCase();
+        const second = other.id.toLowerCase();
+        return first < second ? -1 : first > second ? 1 : 0;
+    });
 }
 
 /** Which of the account's profiles and workspaces hold slots. */
@@ -163,7 +180,11 @@ export function decideSyncScope(account: AccountInventory, local: LocalProfile[]
     const accountProfileIds = new Set(account.profiles.map(profile => profile.id));
     const accountWorkspaceIds = new Set(account.workspaces.map(workspace => workspace.id));
 
-    const scope: SyncScope = { profiles: {}, workspaces: {}, slotProfileIds, slotWorkspaceIds };
+    const deletableIds = new Set([
+        ...account.profiles.map(profile => profile.id),
+        ...account.workspaces.filter(workspace => slotProfileIds.has(workspace.profileId)).map(workspace => workspace.id)
+    ]);
+    const scope: SyncScope = { profiles: {}, workspaces: {}, slotProfileIds, slotWorkspaceIds, deletableIds };
     let freeProfileSlots = Math.max(0, limits.profiles - account.profiles.length);
     const slotProfileNames = holders.profiles.map(profile => profile.name);
 
@@ -248,18 +269,19 @@ function inCreationOrder(local: LocalProfile[]): LocalProfile[] {
 }
 
 /**
- *  Whether a profile synchronises: decided so when this device holds it, otherwise whether
- *  it holds a slot on the account - which is what a deletion of it made here is judged by.
+ *  Whether a profile synchronises: decided so when this device holds it. When it does not -
+ *  the only way it can be in the baseline and not here is that the user deleted it - whether
+ *  the account lets that deletion through, slot or not.
  */
 export function profileInScope(scope: SyncScope, profileId: string): boolean {
     const decided = scope.profiles[profileId];
-    return decided ? decided.state === "SYNCHRONISED" : scope.slotProfileIds.has(profileId);
+    return decided ? decided.state === "SYNCHRONISED" : scope.deletableIds.has(profileId);
 }
 
 /** The same question for a workspace. */
 export function workspaceInScope(scope: SyncScope, workspaceId: string): boolean {
     const decided = scope.workspaces[workspaceId];
-    return decided ? decided.state === "SYNCHRONISED" : scope.slotWorkspaceIds.has(workspaceId);
+    return decided ? decided.state === "SYNCHRONISED" : scope.deletableIds.has(workspaceId);
 }
 
 function toEpochMilliseconds(instant: string): number {
