@@ -26,6 +26,7 @@
   ],
   "background": {
     "service_worker": "background.js",
+    "scripts": ["background.js"],
     "type": "module"
   },
   "action": {
@@ -45,5 +46,11 @@
       "description": "__MSG_bookmarkCommand__"
     }
   },
-  "default_locale": "en"
+  "default_locale": "en",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extension@tabilinks.app",
+      "strict_min_version": "139.0"
+    }
+  }
 }
