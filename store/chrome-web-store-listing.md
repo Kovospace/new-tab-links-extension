@@ -42,10 +42,11 @@ TABS, NOT JUST LINKS
 • Recently closed tabs in a slim panel on the right – reopen one with a click, or drag it into a group to keep it
 
 SAVE A PAGE IN TWO CLICKS
-• The toolbar button, Alt+Shift+D, or a right-click on a page or a link opens a small form: pick the group, done
+• Right-click a page or a link and pick a group or subgroup of your workspace straight from the menu – saved, no form to fill in
+• Or use the toolbar button or Alt+Shift+D for a small form where you can rename the link or choose another workspace first
 
 A NEW TAB THAT STAYS OUT OF THE WAY
-• A search bar using your browser's search engine or one you choose
+• A search bar that uses your browser's default search engine – or Google, DuckDuckGo or Bing if you choose one. What you type goes only to that search engine
 • Adjustable size, English and Slovak, dates in your local format
 • Short tips at the bottom, which you can switch off
 
@@ -58,7 +59,7 @@ FREE AND PREMIUM
 Tabilinks is free. The free version shows a small banner at the bottom of the new tab page. Premium removes the banner, raises the limits on workspaces, profiles and synced installations, and lets you set your own background picture. See https://tabilinks.app for details.
 
 PRIVACY
-Without an account nothing leaves your browser except an anonymous daily count of opened new tabs, which cannot be linked to you. With an account, your links and recently closed tabs are stored so they can be synced. No data is sold or used for advertising. Full policy: https://tabilinks.app/privacy
+Without an account, your links and settings never leave your browser, and nothing is sent to us except an anonymous daily count of opened new tabs, which cannot be linked to you. To show icons, the extension asks the linked websites for their favicons, and the banner at the bottom of the free version is loaded from tabilinks.app. With an account, your links and recently closed tabs are stored so they can be synced. No data is sold or used for advertising. Full policy: https://tabilinks.app/privacy
 ```
 
 ### Detailed description — Slovak
@@ -78,10 +79,11 @@ KARTY, NIE LEN ODKAZY
 • Nedávno zatvorené karty v úzkom paneli vpravo – jedným klikom ich znova otvoríte, alebo ich myšou presuňte do skupiny
 
 ULOŽTE STRÁNKU NA DVA KLIKY
-• Tlačidlo na lište, Alt+Shift+D alebo pravé tlačidlo myši na stránke či odkaze otvorí malý formulár: vyberiete skupinu a hotovo
+• Kliknite pravým tlačidlom na stránku alebo odkaz a vyberte skupinu či podskupinu pracovného priestoru priamo z menu – uložené, bez vypĺňania formulára
+• Alebo použite tlačidlo na lište či Alt+Shift+D: otvorí sa malý formulár, v ktorom môžete odkaz najprv premenovať alebo zvoliť iný pracovný priestor
 
 NOVÁ KARTA, KTORÁ NEZAVADZIA
-• Vyhľadávanie cez vyhľadávač prehliadača alebo ten, ktorý si zvolíte
+• Vyhľadávanie cez predvolený vyhľadávač prehliadača – alebo cez Google, DuckDuckGo či Bing, ak si niektorý zvolíte. Čo napíšete, ide len do tohto vyhľadávača
 • Nastaviteľná veľkosť, slovenčina a angličtina, dátumy v miestnom formáte
 • Krátke tipy v spodnej časti, ktoré môžete vypnúť
 
@@ -94,7 +96,7 @@ ZADARMO A PREMIUM
 Tabilinks je zadarmo. Bezplatná verzia zobrazuje v spodnej časti novej karty malý banner. Premium banner odstráni, zvýši limity pracovných priestorov, profilov a synchronizovaných inštalácií a umožní nastaviť vlastný obrázok na pozadí. Podrobnosti na https://tabilinks.app
 
 SÚKROMIE
-Bez účtu neopúšťa váš prehliadač nič okrem anonymného denného počtu otvorených nových kariet, ktorý sa s vami nedá spojiť. S účtom sa vaše odkazy a nedávno zatvorené karty ukladajú, aby sa dali synchronizovať. Žiadne dáta nepredávame ani nepoužívame na reklamu. Celé zásady: https://tabilinks.app/privacy
+Bez účtu vaše odkazy a nastavenia nikdy neopustia prehliadač a nám sa neposiela nič okrem anonymného denného počtu otvorených nových kariet, ktorý sa s vami nedá spojiť. Na zobrazenie ikon si rozšírenie pýta favicony od webov, na ktoré odkazy vedú, a banner v spodnej časti bezplatnej verzie sa načítava z tabilinks.app. S účtom sa vaše odkazy a nedávno zatvorené karty ukladajú, aby sa dali synchronizovať. Žiadne dáta nepredávame ani nepoužívame na reklamu. Celé zásady: https://tabilinks.app/privacy
 ```
 
 ### Graphics
@@ -109,7 +111,8 @@ Bez účtu neopúšťa váš prehliadač nič okrem anonymného denného počtu 
 Suggested screenshots, in this order (the first one is what most people see):
 1. A full workspace: three or four groups, one subgroup with a tab-group colour stripe — the example set from "Load examples" is a good start
 2. The recently closed tabs panel open beside the columns
-3. The bookmarking popup over a website
+3. The right-click submenu over a website: workspace name, groups, a group's subgroups
+   (the most distinctive feature; the bookmarking popup can be a sixth candidate if one is dropped)
 4. A subgroup opened as a coloured Chrome tab group
 5. The settings dialog
 
@@ -135,7 +138,7 @@ Tabilinks replaces the new tab page with the user's own links, organised into wo
 | `storage` | `Stores the user's workspaces, groups, links and settings locally in the browser, and the sign-in session when the user has an account.` |
 | `tabs` | `Reads the address and title of the current tab when the user saves it as a link, keeps the "recently closed tabs" panel (address and title of a tab when it closes), and moves a tab opened from a saved link into that link's tab group.` |
 | `tabGroups` | `Opens a subgroup of links as a Chrome tab group with its name and colour, finds that group again to add newly opened links to it, and repaints it when the user changes the colour.` |
-| `contextMenus` | `Adds "Bookmark this page with Tabilinks" and "Bookmark this link with Tabilinks" to the right-click menu, which open the extension's bookmarking popup.` |
+| `contextMenus` | `Adds "Bookmark this page with Tabilinks" and "Bookmark this link with Tabilinks" to the right-click menu. Each is a submenu listing the groups and subgroups of the user's open workspace; choosing one saves the page or the link there. The last entry opens the extension's bookmarking popup instead.` |
 | `favicon` | `Shows each saved link with its website icon, using Chrome's own favicon cache.` |
 | `search` | `The search bar on the new tab page can send the query to the browser's default search engine through chrome.search.` |
 | Host permission `<all_urls>` | `Saved links can point to any website. When Chrome has no cached icon for a link, the extension downloads that page's HTML and its icon file to display the icon next to the link. No page content is stored or sent anywhere; only the icon image is kept locally. The same access is used to reach the extension's own sync server (api.tabilinks.app).` |
