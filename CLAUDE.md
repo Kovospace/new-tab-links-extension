@@ -573,9 +573,10 @@ The owner's design is `new-tab-links-frontend/.claude/assignments/account-limits
   when the baseline says the account held it** (deleted elsewhere) or the server remapped it;
   anything else absent from the snapshot is local only and stays. Records *inside* a
   synchronised workspace are still replaced by the account's copy.
-- **Name matching only at first contact** - at sign-in, and in steady state for anything never
-  synchronised (`adoptNameMatches`), so renaming a local-only item to the account's name merges
-  it. That includes a brand-new workspace given an existing workspace's name. A merge that would
+- **Name matching only at first contact** - at sign-in, and in steady state only for what is
+  local only for lack of a slot or over a cap (`adoptNameMatches`), so renaming such an item to
+  the account's name merges it. Something new that fits a free slot syncs as a new item even
+  when it shares a name - it is never swallowed into the existing one. A merge that would
   go over a Fair Use cap keeps that workspace apart, local only (`CappedMerge.ts`, `heldApart$`).
 - **Example data** (`ExampleData.ts`): a fingerprint on each example workspace, cleared for good
   by the first save that changes it; never synchronised; removed at sign-in if untouched.

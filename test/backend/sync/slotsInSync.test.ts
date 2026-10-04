@@ -175,6 +175,27 @@ describe("synchronising within the slots", () => {
         expect(account.snapshot().groups.map(record => record.name)).toContain("Kept");
     });
 
+    it("keeps a new workspace with an existing name separate when it fits a free slot", async () => {
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [{ ...environment("a0000000-0000-7000-8000-00000000000a", "Work", 0), createdAt: 1 }],
+            groups: [group("a1000000-0000-7000-8000-00000000000a", "Theirs", "a0000000-0000-7000-8000-00000000000a")],
+            activeEnvironmentId: "a0000000-0000-7000-8000-00000000000a"
+        }));
+        const coordinating = coordinator();
+        await coordinating.synchronizeNow();
+
+        // Made while synchronising, named like the one already there: a new workspace, not
+        // first contact with the old one.
+        const state = await appState.addWorkspace("Work");
+        await appState.createGroup("Mine", state.activeEnvironmentId!);
+        await coordinating.synchronizeNow();
+
+        expect(localWorkspaceNames()).toEqual(["Work", "Work"]);
+        expect(accountWorkspaceNames()).toEqual(["Work", "Work"]);
+        const groupsByWorkspace = account.snapshot().groups.map(record => record.environmentId);
+        expect(new Set(groupsByWorkspace).size).toBe(2);
+    });
+
     it("never sends untouched example data, and sends it once the user changes it", async () => {
         await appState.replaceCurrentProfileData(markedAsExample(buildExampleProfileData()));
         const coordinating = coordinator();

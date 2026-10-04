@@ -690,8 +690,10 @@ export class SyncCoordinator {
      *  is merged into it now, as it would have been at sign-in.
      *
      *  Only items that have never been synchronised qualify - not on the account and not in
-     *  the baseline. A rename of something synchronised stays a rename. Only slot-holders are
-     *  merged into: nothing can be written into the rest.
+     *  the baseline - and of those only what is local only for lack of a slot or over a cap.
+     *  Something new that fits a free slot synchronises as a new item even when it shares a
+     *  name, rather than being swallowed into the existing one. A rename of something
+     *  synchronised stays a rename. Only slot-holders are merged into.
      *
      *  @param account  the account's lists
      *  @param baseline what this device last confirmed with the account
@@ -708,10 +710,15 @@ export class SyncCoordinator {
         const confirmedProfiles = new Set(baseline.profiles.map(profile => profile.id));
         const heldApart: string[] = [];
         let changed = false;
+        const localOnly = (decided: { state: string } | undefined): boolean =>
+            decided?.state === "LOCAL_ONLY_FREE_LIMIT" || decided?.state === "LOCAL_ONLY_FAIR_USE";
+        const scopeNow = async () => decideSyncScope(
+            account, this.localProfilesOf(await this.readEverythingLocally()), this.standing.rules());
 
         // Profiles first: a merged profile brings its workspaces along.
+        const profileScope = await scopeNow();
         for (const local of this.profiles.getProfiles()) {
-            if (onAccount.has(local.id) || confirmedProfiles.has(local.id)) {
+            if (onAccount.has(local.id) || confirmedProfiles.has(local.id) || !localOnly(profileScope.profiles[local.id])) {
                 continue;
             }
             const data = await this.readProfileData(local.id);
@@ -738,6 +745,7 @@ export class SyncCoordinator {
         }
 
         // Then workspaces, within each slot-holding profile.
+        const workspaceScope = await scopeNow();
         for (const holder of holders.profiles) {
             const data = await this.readProfileData(holder.id);
             if (!data) {
@@ -748,6 +756,7 @@ export class SyncCoordinator {
             const confirmedHere = confirmed(holder.id);
             const candidates = Object.values(data.environments).filter(workspace =>
                 !onAccount.has(workspace.id) && !confirmedHere.has(workspace.id) && !isExampleWorkspace(workspace)
+                && localOnly(workspaceScope.workspaces[workspace.id])
                 && slotWorkspaces.some(slot => slot.id !== workspace.id && asName(slot.name) === asName(workspace.name)));
             if (candidates.length === 0) {
                 continue;

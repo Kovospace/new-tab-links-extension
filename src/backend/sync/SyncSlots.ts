@@ -19,9 +19,9 @@ import { MappedSnapshot } from "./SyncSnapshotMapper";
  *    order it was created here.
  *
  *  **Some things never synchronise whatever the slots say**: untouched example data, and a
- *  workspace over a Fair Use cap - never half of one. A new item named like a slot-holder at
- *  its level is first contact by name (`SyncCoordinator.adoptNameMatches` merges it); one still
- *  here afterwards could not be merged without going over a cap, and stays local too.
+ *  workspace over a Fair Use cap - never half of one. A new item that fits a free slot takes it
+ *  as a new item, whatever it is called; only one left without a slot is matched by name to a
+ *  slot-holder (`SyncCoordinator.adoptNameMatches`), which is the rename advice the page gives.
  *
  *  Everything outside the slots stays on this device untouched and editable. Push sends only
  *  what is in scope, pull writes only over what is in scope - see `ScopedSync.ts`.
@@ -174,10 +174,6 @@ export function decideSyncScope(account: AccountInventory, local: LocalProfile[]
             profileState = { state: "EXAMPLE" };
         } else if (accountProfileIds.has(meta.id)) {
             profileState = slotProfileIds.has(meta.id) ? { state: "SYNCHRONISED" } : { state: noSlot };
-        } else if (holders.profiles.some(holder => asName(holder.name) === asName(meta.name))) {
-            // Named like a slot-holder but not merged into it: it is held apart for a reason
-            // the merge gave (`adoptNameMatches`), so it takes no slot of its own.
-            profileState = { state: noSlot };
         } else if (freeProfileSlots > 0) {
             freeProfileSlots -= 1;
             profileState = { state: "SYNCHRONISED" };
@@ -233,9 +229,6 @@ function decideWorkspaces(
             state = { state: "LOCAL_ONLY_FAIR_USE" };
         } else if (rules.accountWorkspaceIds.has(workspace.id)) {
             state = slotIds.has(workspace.id) ? { state: "SYNCHRONISED" } : { state: rules.noSlot };
-        } else if (rules.slotWorkspaces.some(holder => asName(holder.name) === asName(workspace.name))) {
-            // Named like a slot-holder and still apart: merging it would have gone over a cap.
-            state = { state: "LOCAL_ONLY_FAIR_USE" };
         } else if (freeSlots > 0) {
             freeSlots -= 1;
             state = { state: "SYNCHRONISED" };
