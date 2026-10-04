@@ -2,3 +2,22 @@ first-run {
     display: block;
     padding: 2em;
 }
+
+/* The spacing the template used to make out of <br> tags: a line under the
+   main heading, two under the subheading, one between a section's sentence
+   and its buttons, and one between sections. */
+first-run > h1 {
+    margin-bottom: 1.5em;
+}
+
+first-run > h2 {
+    margin-bottom: 3em;
+}
+
+.first-run__section + .first-run__section {
+    margin-top: 1.5em;
+}
+
+.first-run__section > h3 {
+    margin-bottom: 1.5em;
+}

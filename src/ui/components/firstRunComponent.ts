@@ -70,35 +70,25 @@ export class FirstRunComponent extends HTMLElement {
         this.attachButtonActions();
     }
 
+    /**
+     *  Draws the screen out of elements, never out of an HTML string.
+     *
+     *  It used to be a template assigned to innerHTML, with the signed-in username
+     *  interpolated into it unescaped - a name the account holder chose, inserted as markup on
+     *  an extension page. Every piece of text here goes in through textContent, so whatever it
+     *  contains is shown, not parsed.
+     */
     public render(): void {
-
-        const template: string = `
-            <h1>${t("firstRun.heading")}</h1>
-            <br>
-            <h2>${t("firstRun.subheading")}</h2>
-            <br><br>
-            <div>
-                <h3>${t("firstRun.createWorkspace")}</h3>
-                <br>
-                <button id="${ACT_FIRST_WORKSPACE}"> ${t("firstRun.createWorkspaceButton")}</button>
-            </div>
-            <br>
-            <div>
-                <h3>${t("firstRun.importPrompt")}</h3>
-                <br>
-                <button id="${ACT_IMPORT_LINKS}"> ${t("firstRun.importButton")}</button>
-            </div>
-            <br>
-            <div>
-                <h3>${t("firstRun.examplesPrompt")}</h3>
-                <br>
-                <button id="${ACT_LOAD_DEFAUTLS}"> ${t("firstRun.examplesButton")}</button>
-            </div>
-            <br>
-            ${this.renderAccountSection()}
-        `;
-
-        this.innerHTML = template;
+        this.replaceChildren(
+            heading("h1", t("firstRun.heading")),
+            heading("h2", t("firstRun.subheading")),
+            section(t("firstRun.createWorkspace"),
+                button(ACT_FIRST_WORKSPACE, t("firstRun.createWorkspaceButton"))),
+            section(t("firstRun.importPrompt"),
+                button(ACT_IMPORT_LINKS, t("firstRun.importButton"))),
+            section(t("firstRun.examplesPrompt"),
+                button(ACT_LOAD_DEFAUTLS, t("firstRun.examplesButton"))),
+            this.renderAccountSection());
     }
 
     /**
@@ -109,26 +99,17 @@ export class FirstRunComponent extends HTMLElement {
      *  empty install could not reach its own account, which is precisely the install that
      *  most needs to - the one with nothing in it yet.
      */
-    private renderAccountSection(): string {
+    private renderAccountSection(): HTMLElement {
 
         const account = this.ACCOUNT_VIEW_MODEL.observables.account.get();
 
         if (account.signedIn) {
-            return `
-                <div>
-                    <h3>${t("firstRun.signedInAs", { username: account.username ?? "" })}</h3>
-                </div>
-            `;
+            return section(t("firstRun.signedInAs", { username: account.username ?? "" }));
         }
 
-        return `
-            <div>
-                <h3>${t("firstRun.accountPrompt")}</h3>
-                <br>
-                <button id="${ACT_FIRST_RUN_CONNECT_CODE}"> &gt; ${t("sync.menu.enterSyncCode")}</button>
-                <button id="${ACT_FIRST_RUN_LOG_IN}"> &gt; ${t("sync.menu.logIn")}</button>
-            </div>
-        `;
+        return section(t("firstRun.accountPrompt"),
+            button(ACT_FIRST_RUN_CONNECT_CODE, `> ${t("sync.menu.enterSyncCode")}`),
+            button(ACT_FIRST_RUN_LOG_IN, `> ${t("sync.menu.logIn")}`));
     }
 
     private attachButtonActions() {
@@ -192,4 +173,27 @@ export class FirstRunComponent extends HTMLElement {
         }
     }
 
+}
+
+/** A heading holding plain text. */
+function heading(tag: "h1" | "h2" | "h3", text: string): HTMLElement {
+    const element = document.createElement(tag);
+    element.textContent = text;
+    return element;
+}
+
+/** A button with the identifier its action is found by, and a plain-text label. */
+function button(id: string, label: string): HTMLButtonElement {
+    const element = document.createElement("button");
+    element.id = id;
+    element.textContent = label;
+    return element;
+}
+
+/** One block of the screen: a sentence, and the buttons that answer it. */
+function section(prompt: string, ...buttons: HTMLButtonElement[]): HTMLElement {
+    const element = document.createElement("div");
+    element.classList.add("first-run__section");
+    element.append(heading("h3", prompt), ...buttons);
+    return element;
 }

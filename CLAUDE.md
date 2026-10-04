@@ -45,6 +45,16 @@ types for that reason.
 
 To load the extension in Chrome: open `chrome://extensions`, enable Developer Mode, click "Load unpacked", select the `/dist` folder.
 
+**One manifest serves Chrome and Firefox.** `background` carries both `service_worker` (Chrome)
+and `scripts` (Firefox, which has no extension service workers); each browser ignores the key it
+does not use, so neither is redundant. `browser_specific_settings.gecko` holds the Firefox add-on
+id - permanent once published - and `strict_min_version` 139, the first Firefox with both
+`tabs.group` and `tabGroups`. To check the build against Firefox's own rules:
+`npx web-ext lint --source-dir dist` (expected warnings: the Chrome-only `favicon` permission and
+the ignored `service_worker`). To load it: `about:debugging` → This Firefox → Load Temporary
+Add-on → `dist/manifest.json`. The backend has to allow `moz-extension://*` as an origin, which
+its defaults and the cluster's values do.
+
 ## Architecture
 
 This is a Chrome Manifest v3 extension that replaces the new tab page. It uses a clean **MVVM + layered architecture**:
