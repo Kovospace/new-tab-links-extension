@@ -217,6 +217,20 @@ feature needs no permission beyond `contextMenus`.
 - **Three ways in, and only one of them is code here.** The toolbar icon and the keyboard
   shortcut (`_execute_action`, suggested Alt+Shift+D) are opened by the browser itself. The
   right-click entries go through `chrome.action.openPopup()`.
+- **The right-click entries are submenus of the open workspace's groups**, and a group with
+  subgroups is a submenu of its own, its first entry being the group's root level. The
+  workspace's name heads the submenu as a disabled entry, so it says where the groups are
+  from. Choosing one
+  saves there and then from the worker (`saveInto`, through `AppStateRepository` and
+  `BookmarkViewModel.save`, so positions and the links limit are the popup's) and puts a tick
+  on the toolbar icon. The popup is the last entry ("Choose a place…") and the fallback for
+  any save that cannot happen - a full workspace, a group deleted since the menu was drawn -
+  because it can say why. With no group to offer, the entry is a single item opening the popup.
+  Chrome has no "menu is about to show" event, so the menu is rebuilt from storage whenever the
+  registry, a profile's data or the device preferences change - but only when the tree
+  (`bookmarkMenuTree.ts`, pure) differs from the one last drawn, kept in session storage, or
+  every collapsed subgroup would rebuild it. The target travels in the entry's identifier,
+  since that is all `onClicked` reports to a worker that may have restarted in between.
 - **The shortcut cannot be set from here, only read.** Chrome has no `commands.update`, and the
   suggested key applies to fresh installs only. The user can bind anything - Ctrl+D included,
   which then saves into Tabilinks instead of Chrome's bookmarks - on

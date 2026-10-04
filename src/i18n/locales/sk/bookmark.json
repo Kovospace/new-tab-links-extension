@@ -11,7 +11,9 @@
   "noSubgroup": "(žiadna)",
   "contextMenu": {
     "page": "Uložiť túto stránku do {extension}",
-    "link": "Uložiť tento odkaz do {extension}"
+    "link": "Uložiť tento odkaz do {extension}",
+    "groupItself": "Priamo do skupiny {group}",
+    "choose": "Vybrať miesto…"
   },
   "nothingToBookmark": {
     "title": "Nie je čo uložiť",
