@@ -12,6 +12,7 @@ Keep it current: a new module or a new concern adds a row here.
 | The data model — `AppState`, `Profile`, `ProfileData`, every entity | `backend/entity/AppStateEntity.ts` |
 | All state CRUD (immutable, spread-based) | `backend/repository/AppStateRepository.ts` — **1248 lines, read by range** |
 | Profiles, their registry, import/export | `backend/repository/ProfileRepository.ts`, `backend/repository/ProfileDataTransfer.ts` |
+| Fair use limits - the numbers, the growth checks, the refusal channel, the notice; the account's 409 `FAIR_USE_LIMIT_REACHED` | `backend/entity/FairUseLimits.ts`, `backend/repository/FairUseRefusals.ts`, `viewModel/fairUseNoticeViewModel.ts`; enforced in `AppStateRepository` (`roomForLinks`, `addWorkspace`), `ProfileRepository.createProfile`, `ClosedTabEntity.MAX_CLOSED_TABS`; 409 read in `BackendApiClient`, handled in `SyncCoordinator.push`/`pushThenPull` |
 | Per-browser preferences (not synced) | `backend/repository/DevicePreferencesRepository.ts` |
 | Recently closed tabs | `backend/repository/ClosedTabsRepository.ts`, `backend/worker/module/closedTabsRecorder.ts`, `ui/partials/closedTabsPanel.ts` |
 | `chrome.storage.local` keys | `backend/datasource/chromeStorage/storageKeys.ts` |

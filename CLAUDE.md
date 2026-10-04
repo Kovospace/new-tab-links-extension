@@ -295,7 +295,7 @@ errand, while deleting or saving one is working through the list and leaves it a
   The worker writes them, and a worker that had to read-modify-write the whole profile record
   would put back a copy that predates whatever the page saved a moment ago. A key the worker
   owns alone can lose a closed tab at worst; the other arrangement can lose a link.
-- **Capped at 50 per profile**, deduplicated by address - the same page closed twice is one
+- **Capped at 500 per profile** (the fair use limit, `FAIR_USE_LIMITS.CLOSED_TAB_HISTORY`; it was 50), deduplicated by address - the same page closed twice is one
   entry moved to the top. Both matter because every entry is pushed to the account: an
   uncapped list would be a browsing history in somebody else's database, growing for ever.
 - The page hears about the worker's writes through `chrome.storage.onChanged`, which is what
@@ -547,6 +547,25 @@ validation, `errors` for the account, `dates` for anything about time.
   compared as a string against what the worker stamped. Translating it would rename a device
   whenever its owner changed language and make "was this closed elsewhere" answer yes on the
   device it happened on.
+
+### Fair use limits (`entity/FairUseLimits.ts`)
+
+The website's Fair Use Policy caps premium's "unlimited": 500 links per workspace (every plan),
+50 workspaces, 50 profiles, 500 closed tabs. The numbers are written once, in `FAIR_USE_LIMITS`,
+named as the backend names them.
+
+- **Only growth is refused.** Every path that adds goes through a repository door that checks:
+  `AppStateRepository.roomForLinks` (create, drop a closed tab, move a link, subgroup or group in
+  from another workspace), `addWorkspace`, `ProfileRepository.createProfile`. Imports are judged
+  whole (`refusedUnderFairUse`). Data already over a limit is never trimmed or hidden. The
+  repositories publish the refusal on `fairUseRefusals`; `fairUseNoticeViewModel` is the only
+  thing that turns it into a notice. The bookmark popup has nobody listening and says it inline.
+- **The account refuses a whole push with 409 `FAIR_USE_LIMIT_REACHED`.** The coordinator then
+  does not pull - the pull would delete exactly what was refused - and does not resend the same
+  change set from debounced pushes. A push-then-pull (page opening, change notification) tries
+  once more. The account menu's status says the limit instead of "Synchronised"; a notice is
+  shown only when a local change was what got refused.
+- **The free plan's lower limits (2 workspaces, 1 profile) are not enforced here.**
 
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 

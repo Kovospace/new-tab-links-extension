@@ -7,6 +7,8 @@ import {Logger} from "../../utils/logger"
 import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
 import {chooseTabGroupColor, TabGroupColor} from "../entity/TabGroupColors";
 import deepEqual from "fast-deep-equal";
+import {canAddLinksToWorkspace, canAddWorkspace, linksInWorkspace} from "../entity/FairUseLimits";
+import {fairUseRefusals, FairUseRefusals} from "./FairUseRefusals";
 
 export class AppStateRepository {
 
@@ -33,6 +35,9 @@ export class AppStateRepository {
         { profileId: "", at: 0 });
 
     private datasource = new ChromeStorageWrapper()
+
+    /** Where a refusal under a fair use limit is published, for the page to tell the user. */
+    private readonly fairUse: FairUseRefusals = fairUseRefusals;
 
     /**
      * @param initialState  Fallback state when no persisted data exists for the profile.
@@ -252,6 +257,10 @@ export class AppStateRepository {
      *  Create new workspace
      */
     addWorkspace(title: string, description?: string): Promise<AppState> {
+        if (!canAddWorkspace(this.state)) {
+            this.fairUse.report("WORKSPACES");
+            return Promise.resolve(this.state);
+        }
         const id = uid();
         this.state = {
             ...this.state,
@@ -420,6 +429,11 @@ export class AppStateRepository {
             return Promise.resolve(this.state);
         }
         if (group.environmentId === targetEnvironmentId) {
+            return Promise.resolve(this.state);
+        }
+        const carried = Object.values(this.state.links)
+            .filter(link => link.groupId === id && link.environmentId !== targetEnvironmentId).length;
+        if (!this.roomForLinks(targetEnvironmentId, carried)) {
             return Promise.resolve(this.state);
         }
 
@@ -645,6 +659,12 @@ export class AppStateRepository {
             "createLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, title: ${title}, url: ${url}`);
 
+        const targetEnvironmentId = this.state.groups[groupId]?.environmentId
+            ?? this.getCurrentEnvironmentId()!;
+        if (!this.roomForLinks(targetEnvironmentId, 1)) {
+            return Promise.resolve(this.state);
+        }
+
         const id: string = uid();
         const nextPosition: number = this.getPositionForNewItem(groupId, subGroupId);
 
@@ -659,8 +679,7 @@ export class AppStateRepository {
                     // The group's workspace, not the open one: the bookmarking popup can put a
                     // link into a group of another workspace, and a link naming the open one
                     // would claim a workspace that does not hold its group.
-                    environmentId: this.state.groups[groupId]?.environmentId
-                        ?? this.getCurrentEnvironmentId()!,
+                    environmentId: targetEnvironmentId,
                     groupId: groupId,
                     subGroupId: subGroupId,
                     type: "link",
@@ -694,7 +713,13 @@ export class AppStateRepository {
         index: number
     ): Promise<AppState> {
 
+        const before = Object.keys(this.state.links).length;
         const created = await this.createLink(url, title, groupId, subGroupId);
+        if (Object.keys(created.links).length === before) {
+            // Refused (a full workspace): the search below would find an older link with the
+            // same address and move that one instead.
+            return created;
+        }
         const link = Object.values(created.links)
             .filter(candidate => candidate.groupId === groupId
                 && candidate.subGroupId === subGroupId
@@ -902,6 +927,11 @@ export class AppStateRepository {
             return Promise.resolve(this.state);
         }
 
+        if (link.environmentId !== group.environmentId
+            && !this.roomForLinks(group.environmentId, 1)) {
+            return Promise.resolve(this.state);
+        }
+
         const moved: Link = {
             ...link,
             groupId,
@@ -960,6 +990,13 @@ export class AppStateRepository {
         const group = this.state.groups[groupId];
         if (!subgroup || !group) {
             this.LOG.debug("moveSubgroupTo", `No such subgroup or group: ${subgroupId} -> ${groupId}`);
+            return Promise.resolve(this.state);
+        }
+
+        const carried = Object.values(this.state.links)
+            .filter(link => link.subGroupId === subgroupId
+                && link.environmentId !== group.environmentId).length;
+        if (!this.roomForLinks(group.environmentId, carried)) {
             return Promise.resolve(this.state);
         }
 
@@ -1130,6 +1167,28 @@ export class AppStateRepository {
             groups: { ...this.state.groups, ...updatedGroups }
         };
         return this.save();
+    }
+
+    /**
+     *  Whether a workspace can take `adding` more links under the fair use limit, publishing
+     *  the refusal when it cannot.
+     *
+     *  Every path that puts links into a workspace asks this - creating one, dropping a closed
+     *  tab, bookmarking, and moving a link, subgroup or group in from another workspace. A
+     *  move inside one workspace adds nothing and never asks. Nothing already there is
+     *  touched: a workspace over the limit keeps everything, it only stops growing.
+     *
+     *  @param workspaceId the workspace being added to
+     *  @param adding      how many links would arrive
+     */
+    private roomForLinks(workspaceId: string, adding: number): boolean {
+        if (adding === 0 || canAddLinksToWorkspace(this.state, workspaceId, adding)) {
+            return true;
+        }
+        this.LOG.warn("roomForLinks",
+            `Workspace ${workspaceId} holds ${linksInWorkspace(this.state, workspaceId)}; refusing ${adding} more`);
+        this.fairUse.report("LINKS_PER_WORKSPACE");
+        return false;
     }
 
     private getMaxOrderInEnvironment(environmentId: string): number {

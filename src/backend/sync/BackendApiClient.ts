@@ -10,6 +10,7 @@ import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { resolveDeviceName } from "./DeviceName";
 import { t } from "../../i18n/i18n";
+import { FairUseRefusal, fairUseRefusalOf, isFairUseLimit } from "../entity/FairUseLimits";
 
 /** Held by whichever page is trading the refresh token, so that no two pages spend it at once. */
 const TOKEN_REFRESH_LOCK = "tabilinks-token-refresh";
@@ -38,8 +39,11 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
  */
 export type ApiResult<PAYLOAD> =
     | { outcome: "success"; data: PAYLOAD }
-    | { outcome: "rejected"; status: number; message: string }
+    | { outcome: "rejected"; status: number; message: string; fairUse?: FairUseRefusal }
     | { outcome: "offline"; message: string };
+
+/** The code the backend's error body carries when a push would break a fair use limit. */
+export const FAIR_USE_LIMIT_REACHED = "FAIR_USE_LIMIT_REACHED";
 
 /**
  *  The signed-in account, as the backend's UserDto returns it.
@@ -96,6 +100,30 @@ interface ApiErrorResponseDto {
     error?: string;
     message?: string;
     validationErrors?: string[];
+    /** Machine-readable reason; `FAIR_USE_LIMIT_REACHED` is the one read here. */
+    code?: string;
+    /** With that code: which limit, as `FairUseLimit` names it. */
+    limit?: string;
+    /** With that code: the limit's number, as the server holds it. */
+    maximum?: number;
+}
+
+/**
+ *  Reads a fair use refusal out of an error body, or nothing.
+ *
+ *  The body's own `maximum` wins over this extension's number: the server is what refused,
+ *  and a limit raised there before an extension update is the one the user should be told.
+ *  A limit name this build does not know is not a fair use refusal it can describe, so it
+ *  falls back to the ordinary rejection rather than inventing a sentence.
+ */
+function fairUseRefusalIn(status: number, errorBody: ApiErrorResponseDto): FairUseRefusal | undefined {
+    if (status !== 409 || errorBody.code !== FAIR_USE_LIMIT_REACHED || !isFairUseLimit(errorBody.limit)) {
+        return undefined;
+    }
+    const known = fairUseRefusalOf(errorBody.limit);
+    return typeof errorBody.maximum === "number" && errorBody.maximum > 0
+        ? { ...known, maximum: errorBody.maximum }
+        : known;
 }
 
 /**
@@ -348,9 +376,11 @@ export class BackendApiClient {
         }
 
         if (!response.ok) {
-            const message = await this.readFailureMessage(response);
+            const { message, fairUse } = await this.readFailure(response);
             this.LOG.debug("send", `${response.status} from ${url}: ${message}`);
-            return { outcome: "rejected", status: response.status, message };
+            return fairUse
+                ? { outcome: "rejected", status: response.status, message, fairUse }
+                : { outcome: "rejected", status: response.status, message };
         }
 
         try {
@@ -370,20 +400,29 @@ export class BackendApiClient {
         return JSON.parse(rawBody) as PAYLOAD;
     }
 
-    /** Pulls a human readable explanation out of the backend's uniform error body. */
-    private async readFailureMessage(response: Response): Promise<string> {
+    /**
+     *  Pulls a human readable explanation out of the backend's uniform error body, and a fair
+     *  use refusal when that is what it is.
+     */
+    private async readFailure(
+        response: Response
+    ): Promise<{ message: string; fairUse?: FairUseRefusal }> {
         try {
             const rawBody = await response.text();
             if (!rawBody) {
-                return unexplainedFailureMessage();
+                return { message: unexplainedFailureMessage() };
             }
             const errorBody = JSON.parse(rawBody) as ApiErrorResponseDto;
+            const fairUse = fairUseRefusalIn(response.status, errorBody);
             if (errorBody.validationErrors && errorBody.validationErrors.length > 0) {
-                return errorBody.validationErrors.join("\n");
+                return { message: errorBody.validationErrors.join("\n"), fairUse };
             }
-            return errorBody.message ?? errorBody.error ?? unexplainedFailureMessage();
+            return {
+                message: errorBody.message ?? errorBody.error ?? unexplainedFailureMessage(),
+                fairUse
+            };
         } catch (unreadableBody) {
-            return unexplainedFailureMessage();
+            return { message: unexplainedFailureMessage() };
         }
     }
 }

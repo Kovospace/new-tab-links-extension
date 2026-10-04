@@ -4,6 +4,7 @@ import {
     ClosedTabsRepository, newestFirst, readClosedTabs, recordClosedTab, writeClosedTabs
 } from "../../../src/backend/repository/ClosedTabsRepository";
 import { MAX_CLOSED_TABS } from "../../../src/backend/entity/ClosedTabEntity";
+import { FAIR_USE_LIMITS } from "../../../src/backend/entity/FairUseLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../../src/backend/sync/SyncContracts";
 import { closedTabsKey } from "../../../src/backend/datasource/chromeStorage/storageKeys";
 import { flushStorageNotifications, readFakeStorage } from "../../support/chromeStorageStub";
@@ -63,12 +64,18 @@ describe("recordClosedTab", () => {
         expect(newestFirst(await readClosedTabs(PROFILE))).toHaveLength(2);
     });
 
-    it("drops the oldest once the list is full", async () => {
+    it("keeps the newest fair-use maximum, the oldest dropping off as a new one arrives", async () => {
         // Every entry is pushed to the account and travels to every device, so the list is
-        // capped rather than kept.
-        for (let i = 0; i <= MAX_CLOSED_TABS; i++) {
-            await recordClosedTab(PROFILE, closure(`https://example.com/${i}`, i));
-        }
+        // capped rather than kept - at the Fair Use Policy's number, which says exactly this.
+        // Filled directly rather than by recording each: five hundred recordings, each reading
+        // and comparing the whole list, is slower than the test runner waits.
+        expect(MAX_CLOSED_TABS).toBe(FAIR_USE_LIMITS.CLOSED_TAB_HISTORY);
+        await writeClosedTabs(PROFILE, Object.fromEntries(
+            Array.from({ length: MAX_CLOSED_TABS }, (_, i) => [`tab-${i}`, {
+                id: `tab-${i}`, ...closure(`https://example.com/${i}`, i)
+            }])));
+
+        await recordClosedTab(PROFILE, closure(`https://example.com/${MAX_CLOSED_TABS}`, MAX_CLOSED_TABS));
 
         const stored = newestFirst(await readClosedTabs(PROFILE));
         expect(stored).toHaveLength(MAX_CLOSED_TABS);

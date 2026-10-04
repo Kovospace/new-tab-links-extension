@@ -3,6 +3,7 @@ import {ProfileDataTransfer} from "../backend/repository/ProfileDataTransfer";
 import {buildExampleProfileData} from "../backend/datasource/init/AppStateInit";
 import { t } from "../i18n/i18n";
 import { showNotice } from "../ui/partials/confirmations";
+import { refusedUnderFairUse } from "./fairUseNoticeViewModel";
 
 export class FirstRunViewModel {
 
@@ -29,6 +30,7 @@ export class FirstRunViewModel {
     public async importProfile(): Promise<void> {
         const data = await ProfileDataTransfer.importFromFile();
         if (!data) return;
+        if (refusedUnderFairUse(data)) return;
         await this.REPOSITORY.replaceCurrentProfileData(data);
         window.location.reload();
     }

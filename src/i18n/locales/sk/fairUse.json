@@ -1,0 +1,9 @@
+{
+  "title": "Dosiahnutý limit férového používania",
+  "limits": {
+    "LINKS_PER_WORKSPACE": "Pracovný priestor môže obsahovať najviac {maximum} odkazov. Niektoré z tohto odstráňte alebo nový odkaz vložte do iného pracovného priestoru. Nič z toho, čo už máte, sa nezmenilo.",
+    "WORKSPACES": "Môžete mať najviac {maximum} pracovných priestorov. Pred pridaním ďalšieho jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+    "PROFILES": "Môžete mať najviac {maximum} profilov. Pred pridaním ďalšieho jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+    "CLOSED_TAB_HISTORY": "História zatvorených kariet uchováva najviac {maximum} najnovších kariet; staršie uvoľňujú miesto novším."
+  }
+}

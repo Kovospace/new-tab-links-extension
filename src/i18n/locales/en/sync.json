@@ -10,7 +10,8 @@
   "status": {
     "working": "Synchronising...",
     "offline": "Offline - changes will be sent later",
-    "idle": "Synchronised"
+    "idle": "Synchronised",
+    "fairUseLimit": "Not synchronised: {reason}"
   },
   "logInDialog": {
     "title": "Log in",

@@ -10,7 +10,8 @@
   "status": {
     "working": "Synchronizujem...",
     "offline": "Offline — zmeny sa odošlú neskôr",
-    "idle": "Synchronizované"
+    "idle": "Synchronizované",
+    "fairUseLimit": "Nesynchronizované: {reason}"
   },
   "logInDialog": {
     "title": "Prihlásenie",

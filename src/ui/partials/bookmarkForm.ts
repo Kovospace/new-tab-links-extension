@@ -2,6 +2,7 @@ import { BookmarkRequest } from '../../utils/bookmarkRequest';
 import { BookmarkTargetDTO, BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
 import { t } from '../../i18n/i18n';
+import { describeFairUseRefusal } from '../../viewModel/fairUseNoticeViewModel';
 
 /** Shown until the page's own icon arrives, and when none can be found. */
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
@@ -38,6 +39,9 @@ export class BookmarkForm {
   private subgroupSelect!: HTMLSelectElement;
   private subgroupField!: HTMLElement;
   private saveBtn!: HTMLButtonElement;
+
+  /** Why the last save was refused under a fair use limit; hidden until one is. */
+  private readonly refusalMessage: HTMLElement = buildRefusalMessage();
 
   private workspaces: BookmarkTargetDTO[] = [];
   private groups: BookmarkTargetDTO[] = [];
@@ -115,6 +119,7 @@ export class BookmarkForm {
 
     // The actions before the groups, because filling the groups is what decides whether
     // there is anything to save into.
+    fields.appendChild(this.refusalMessage);
     fields.appendChild(this.buildActions(settle));
     this.renderGroups();
     panel.appendChild(form);
@@ -303,14 +308,30 @@ export class BookmarkForm {
     // Index 0 of the subgroup dropdown is "none"; the subgroups start behind it.
     const subgroup = this.subgroups[Number(this.subgroupSelect.value) - 1];
 
-    await this.viewModel.save(
+    const refusal = await this.viewModel.save(
       url,
       this.nameInput.value.trim() || url,
       group.id,
       subgroup?.id);
 
+    if (refusal) {
+      // The form stays open: another workspace may still have room.
+      this.refusalMessage.textContent = describeFairUseRefusal(refusal);
+      this.refusalMessage.hidden = false;
+      return;
+    }
+
     settle(true);
   }
+}
+
+/** The line that says a save was refused, styled as the input dialog's field errors are. */
+function buildRefusalMessage(): HTMLElement {
+  const message = document.createElement('p');
+  message.classList.add('input-dialog__error');
+  message.setAttribute('role', 'alert');
+  message.hidden = true;
+  return message;
 }
 
 /** Replaces a dropdown's entries; each option carries the index of what it stands for. */

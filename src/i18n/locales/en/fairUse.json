@@ -1,0 +1,9 @@
+{
+  "title": "Fair use limit reached",
+  "limits": {
+    "LINKS_PER_WORKSPACE": "A workspace can hold at most {maximum} links. Remove some from this one, or put the new link into another workspace. Nothing you already have was changed.",
+    "WORKSPACES": "You can have at most {maximum} workspaces. Delete one before adding another. Nothing you already have was changed.",
+    "PROFILES": "You can have at most {maximum} profiles. Delete one before adding another. Nothing you already have was changed.",
+    "CLOSED_TAB_HISTORY": "The closed tabs history keeps at most the {maximum} most recent tabs; older ones make room for newer ones."
+  }
+}

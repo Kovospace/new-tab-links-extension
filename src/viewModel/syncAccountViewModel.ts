@@ -15,6 +15,8 @@ import { showNotice } from "../ui/partials/confirmations";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 import { t } from "../i18n/i18n";
+import { FairUseRefusal } from "../backend/entity/FairUseLimits";
+import { describeFairUseRefusal } from "./fairUseNoticeViewModel";
 
 /** What the application menu needs to know about the signed-in account. */
 export interface AccountDTO {
@@ -61,6 +63,8 @@ export class SyncAccountViewModel {
     private session: SyncSession | null = null;
     private activity: SyncActivity = "idle";
     private premium: boolean = false;
+    /** The fair use limit the account refused this device's changes over, while it stands. */
+    private fairUseRefusal: FairUseRefusal | null = null;
     private profilesOwner: RegistryOwner | null = null;
 
     private standing: AccountStandingRepository;
@@ -99,6 +103,10 @@ export class SyncAccountViewModel {
         });
         this.profiles.owner$.subscribe((owner: RegistryOwner | null) => {
             this.profilesOwner = owner;
+            this.publishAccount();
+        });
+        syncCoordinator.fairUseRefusal$.subscribe((refusal: FairUseRefusal | null) => {
+            this.fairUseRefusal = refusal;
             this.publishAccount();
         });
         syncCoordinator.rejections$.subscribe((notice: SyncRejectionNotice | null) => {
@@ -155,6 +163,13 @@ export class SyncAccountViewModel {
      *  are sent as soon as the connection returns.
      */
     private describeActivity(): string {
+        if (this.fairUseRefusal && this.activity !== "working") {
+            // Not "Synchronised", which it is not: the account refused this device's changes
+            // over a fair use limit, and they stay here until there is room for them.
+            return t("sync.status.fairUseLimit", {
+                reason: describeFairUseRefusal(this.fairUseRefusal)
+            });
+        }
         switch (this.activity) {
             case "working":
                 return t("sync.status.working");

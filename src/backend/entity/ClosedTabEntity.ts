@@ -1,3 +1,4 @@
+import { FAIR_USE_LIMITS } from "./FairUseLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../sync/SyncContracts";
 
 /**
@@ -36,14 +37,15 @@ export interface ClosedTab {
 }
 
 /**
- *  How many closed tabs one profile keeps.
+ *  How many closed tabs one profile keeps: the fair use limit on the history.
  *
- *  A cap rather than a full history, and a small one. Every entry is pushed to the account and
- *  travels to every other device, so an uncapped list would be a browsing history in somebody
- *  else's database growing without limit. Fifty is enough to answer "what was that thing I
- *  just closed" - which is the question this panel exists for - and no more than that.
+ *  A cap rather than a full history. Every entry is pushed to the account and travels to every
+ *  other device, so an uncapped list would be a browsing history in somebody else's database
+ *  growing without limit. It was fifty until the Fair Use Policy promised the newest five
+ *  hundred; the number now lives with the other limits, and the oldest entry still drops off
+ *  as a new one arrives (`recordClosedTab`).
  */
-export const MAX_CLOSED_TABS = 50;
+export const MAX_CLOSED_TABS: number = FAIR_USE_LIMITS.CLOSED_TAB_HISTORY;
 
 /**
  *  One closed tab cut down to what the account will accept.
