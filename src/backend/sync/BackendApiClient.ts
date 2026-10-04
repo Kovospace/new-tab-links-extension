@@ -1,17 +1,22 @@
 import {
-    AUTH_ENDPOINTS, DEVICE_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER, SYNC_ENDPOINTS,
-    USER_ENDPOINTS,
+    ACCOUNT_LIST_ENDPOINTS, AUTH_ENDPOINTS, DEVICE_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER,
+    SYNC_ENDPOINTS, USER_ENDPOINTS,
     buildApiUrl
 } from "./SyncConfiguration";
 import { installationIdentity } from "./InstallationIdentity";
-import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
+import {
+    AccountEnvironmentDto, AccountProfileDto, DeviceInventoryDto, PlanLimitsDto, SyncPushRequest,
+    SyncPushResult, SyncSnapshot
+} from "./SyncContracts";
 import { SessionRepository, sessionRepository, SyncSession, TokenPairDto } from "./SessionRepository";
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { resolveDeviceName } from "./DeviceName";
 import { t } from "../../i18n/i18n";
-import { fairUseRefusalOf, isFairUseLimit } from "../entity/FairUseLimits";
-import { freePlanRefusalOf, isFreePlanLimit, LimitRefusal } from "../entity/FreePlanLimits";
+import { isLimitName, LIMIT_KEYS, LimitRefusal } from "../entity/PlanLimits";
+import { planLimits$ } from "../repository/PremiumStanding";
+
+export type { PlanLimitsDto } from "./SyncContracts";
 
 /** Held by whichever page is trading the refresh token, so that no two pages spend it at once. */
 const TOKEN_REFRESH_LOCK = "tabilinks-token-refresh";
@@ -110,10 +115,12 @@ interface ApiErrorResponseDto {
     validationErrors?: string[];
     /** Machine-readable reason; `FAIR_USE_LIMIT_REACHED` and `FREE_PLAN_LIMIT_REACHED` are read here. */
     code?: string;
-    /** With either code: which limit, as `FairUseLimit` or `FreePlanLimit` names it. */
+    /** With either code: which limit, as `LimitName` names it. */
     limit?: string;
     /** With that code: the limit's number, as the server holds it. */
     maximum?: number;
+    /** With that code: the website's devices page, absolute, where the user audits and frees room. */
+    manageUrl?: string;
 }
 
 /**
@@ -125,20 +132,29 @@ interface ApiErrorResponseDto {
  *  to the ordinary rejection rather than inventing a sentence.
  */
 function limitRefusalIn(status: number, errorBody: ApiErrorResponseDto): LimitRefusal | undefined {
-    if (status !== 409) {
+    if (status !== 409 || !isLimitName(errorBody.limit)) {
         return undefined;
     }
-    let known: LimitRefusal;
-    if (errorBody.code === FAIR_USE_LIMIT_REACHED && isFairUseLimit(errorBody.limit)) {
-        known = fairUseRefusalOf(errorBody.limit);
-    } else if (errorBody.code === FREE_PLAN_LIMIT_REACHED && isFreePlanLimit(errorBody.limit)) {
-        known = freePlanRefusalOf(errorBody.limit);
+    let kind: LimitRefusal["kind"];
+    if (errorBody.code === FAIR_USE_LIMIT_REACHED) {
+        kind = "FAIR_USE";
+    } else if (errorBody.code === FREE_PLAN_LIMIT_REACHED) {
+        kind = "FREE_PLAN";
     } else {
         return undefined;
     }
-    return typeof errorBody.maximum === "number" && errorBody.maximum > 0
-        ? { ...known, maximum: errorBody.maximum }
-        : known;
+    const refusal: LimitRefusal = {
+        kind,
+        limit: errorBody.limit,
+        // The server's number wins: it is what refused. Without one, the limit in force here.
+        maximum: typeof errorBody.maximum === "number" && errorBody.maximum >= 0
+            ? errorBody.maximum
+            : planLimits$.get()[LIMIT_KEYS[errorBody.limit]]
+    };
+    if (typeof errorBody.manageUrl === "string" && /^https?:\/\//.test(errorBody.manageUrl)) {
+        refusal.manageUrl = errorBody.manageUrl;
+    }
+    return refusal;
 }
 
 /**
@@ -233,6 +249,26 @@ export class BackendApiClient {
     /** The signed-in account, which is where whether it is premium is read from. */
     public getMyAccount(): Promise<ApiResult<MyAccountDto>> {
         return this.sendAuthenticated<MyAccountDto>(USER_ENDPOINTS.me, "GET");
+    }
+
+    /** The account's standing and the limits in force for it. */
+    public getPlanLimits(): Promise<ApiResult<PlanLimitsDto>> {
+        return this.sendAuthenticated<PlanLimitsDto>(USER_ENDPOINTS.planLimits, "GET");
+    }
+
+    /** The account's profiles, without their content: who holds a slot is read off these. */
+    public listAccountProfiles(): Promise<ApiResult<AccountProfileDto[]>> {
+        return this.sendAuthenticated<AccountProfileDto[]>(ACCOUNT_LIST_ENDPOINTS.profiles, "GET");
+    }
+
+    /** The account's workspaces, without their content. */
+    public listAccountEnvironments(): Promise<ApiResult<AccountEnvironmentDto[]>> {
+        return this.sendAuthenticated<AccountEnvironmentDto[]>(ACCOUNT_LIST_ENDPOINTS.environments, "GET");
+    }
+
+    /** Replaces what the account knows this installation holds; names and counts only. */
+    public reportInventory(inventory: DeviceInventoryDto): Promise<ApiResult<void>> {
+        return this.sendAuthenticated<void>(DEVICE_ENDPOINTS.currentInventory, "PUT", inventory);
     }
 
     /** Lists the devices the account has been signed in from. */
@@ -342,7 +378,9 @@ export class BackendApiClient {
             }
             if (SESSION_ENDING_REFRESH_STATUSES.has(result.status)) {
                 this.LOG.warn("refreshTokenPair", "Refresh token refused, session ended");
-                await this.sessions.clear();
+                // Not the user's doing: revoked from the website, or - when premium ended - one
+                // of the installations past the free plan's limit. Said so (`revoked$`).
+                await this.sessions.clearRevoked();
                 return result;
             }
             this.LOG.warn("refreshTokenPair",

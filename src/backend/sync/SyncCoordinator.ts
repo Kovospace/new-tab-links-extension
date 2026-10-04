@@ -19,8 +19,18 @@ import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsReposit
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { ObservableValue } from "../../utils/observableValue";
-import { isFreePlanRefusal, LimitRefusal } from "../entity/FreePlanLimits";
+import { LimitRefusal } from "../entity/PlanLimits";
 import { fairUseRefusals, FairUseRefusals } from "../repository/FairUseRefusals";
+import { planLimits$, premiumStanding$ } from "../repository/PremiumStanding";
+import { isExampleProfile, isExampleWorkspace } from "../entity/ExampleData";
+import { accountStandingRepository } from "./AccountStandingRepository";
+import {
+    AccountInventory, asName, decideSyncScope, inventoryFromLists, inventoryFromSnapshot, LocalProfile,
+    profileInScope, SlotRules, slotHolders, SyncScope, workspaceInScope
+} from "./SyncSlots";
+import { baselineAfter, dataWithin, InScope, joinSlices, pulledProfileData, restrictToScope, workspaceSlice } from "./ScopedSync";
+import { mergeWithinCaps } from "./CappedMerge";
+import { InventoryReporter, PublishedSyncScope } from "./InventoryReporter";
 
 /** How long to wait after a local change before pushing, so a burst becomes one request. */
 const PUSH_DEBOUNCE = 800;
@@ -64,6 +74,42 @@ const FIRST_CONTACT: PushOccasion = "first-contact";
  *  the one before it, so two separate refusals describing the same record would be published
  *  once and the second would be silent.
  */
+/**
+ *  Local workspaces a merge by name kept apart, because joining them would have gone over a
+ *  Fair Use cap. `sequence` keeps two notices from being deep-equal, as above.
+ */
+export interface HeldApartNotice {
+    sequence: number;
+    names: string[];
+}
+
+/** A change set ready to send, and the scope it was decided in. */
+interface PreparedPush {
+    operations: SyncOperation[];
+    withheld: SyncOperation[];
+    /** This device's state within the scope: the baseline once the account confirms it. */
+    scopedCurrent: SyncBaseline;
+    inProfile: InScope;
+    inWorkspace: InScope;
+}
+
+/** What the coordinator needs from the account's standing. */
+export interface StandingSource {
+    /** The limits in force and whether the account is premium, as last known. */
+    rules(): SlotRules;
+    /** Takes the standing a snapshot carried. */
+    adopt(userId: string, premium: boolean, limits: unknown): Promise<void>;
+    /** Asks the account for its standing again, now. */
+    recheck(): Promise<void>;
+}
+
+/** The shared standing, as the repositories read it. */
+const SHARED_STANDING: StandingSource = {
+    rules: () => ({ limits: planLimits$.get(), premium: premiumStanding$.get() }),
+    adopt: (userId, premium, limits) => accountStandingRepository.adopt(userId, premium, limits),
+    recheck: () => accountStandingRepository.recheck()
+};
+
 export interface SyncRejectionNotice {
 
     /** Counts notices, so that no two are ever deep-equal. */
@@ -174,18 +220,53 @@ export class SyncCoordinator {
     /** Where a refusal the user should hear about at once is published; see push(). */
     private readonly fairUseNotices: FairUseRefusals = fairUseRefusals;
 
+    /**
+     *  What synchronises on this device and why the rest does not, after the last cycle that
+     *  could tell (`SyncSlots.ts`). Null until one has, and while signed out. The profiles menu,
+     *  the profile manager and the workspace head draw their unsynchronised marks from it.
+     */
+    public readonly scope$ = new ObservableValue<PublishedSyncScope | null>(null);
+
+    /** Local workspaces a merge by name kept apart over a Fair Use cap, for the page to say. */
+    public readonly heldApart$ = new ObservableValue<HeldApartNotice | null>(null);
+    private heldApartIssued: number = 0;
+    private heldApartAlreadyReported: string | null = null;
+
+    /** The account's profiles and workspaces as last read: what slots are decided against. */
+    private accountInventory: AccountInventory | null = null;
+
+    /**
+     *  Counts synchronisation runs, and which run last read the account's lists. Lists read in
+     *  the run that pushes are current; lists from an earlier run only tell whether there is
+     *  anything to push at all.
+     */
+    private cycle: number = 0;
+    private inventoryCycle: number = -1;
+
+    /**
+     *  Identifiers the server stored under another one since the last pull. The pull drops this
+     *  device's copy under the old identifier, which it would otherwise keep as local only.
+     */
+    private remappedIds = new Set<string>();
+
+    private readonly standing: StandingSource;
+    private readonly inventoryReporter: InventoryReporter;
+
     constructor(
         appState: AppStateRepository = appStateRepository,
         profiles: ProfileRepository = profileRepository,
         sessions: SessionRepository = sessionRepository,
         baselines: SyncBaselineRepository = syncBaselineRepository,
-        apiClient: BackendApiClient = backendApiClient
+        apiClient: BackendApiClient = backendApiClient,
+        standing: StandingSource = SHARED_STANDING
     ) {
         this.appState = appState;
         this.profiles = profiles;
         this.sessions = sessions;
         this.baselines = baselines;
         this.apiClient = apiClient;
+        this.standing = standing;
+        this.inventoryReporter = new InventoryReporter(apiClient);
         this.channel = new RefreshChannel(
             () => this.sessions.getSession()?.accessToken ?? null);
     }
@@ -253,6 +334,8 @@ export class SyncCoordinator {
             this.cancelTimers();
             this.channel.disconnect();
             this.clearLimitRefusal();
+            this.accountInventory = null;
+            this.scope$.set(null);
             // Everything stays: the profiles remain visible and remain the account's, and so
             // does its baseline. Whatever is done to them while signed out is the difference
             // the next sign-in of the same account pushes - deletions included, which a fresh
@@ -353,9 +436,20 @@ export class SyncCoordinator {
             return;
         }
 
-        const candidatesByName = this.groupRemoteProfilesByName(snapshot.profiles);
+        // Only what holds a slot is merged into or downloaded. The account's other profiles
+        // and workspaces stay where they are: not shown here, not written, not counted as
+        // deletions - this device simply never had them.
+        this.accountInventory = inventoryFromSnapshot(snapshot);
+        this.inventoryCycle = this.cycle;
+        const holders = slotHolders(this.accountInventory, this.standing.rules().limits);
+        const slotProfileIds = new Set(holders.profiles.map(profile => profile.id));
+        const slotWorkspaceIds = new Set(
+            [...holders.workspacesByProfile.values()].flat().map(workspace => workspace.id));
+        const slotProfiles = snapshot.profiles.filter(profile => slotProfileIds.has(profile.id));
+
+        const candidatesByName = this.groupRemoteProfilesByName(slotProfiles);
         const unpairedRemoteProfiles = new Map(
-            snapshot.profiles.map(profile => [profile.id, profile]));
+            slotProfiles.map(profile => [profile.id, profile]));
 
         // Identity settles what it can before any name is compared, and for every profile at
         // once rather than one at a time. A profile the account holds under the same
@@ -364,22 +458,29 @@ export class SyncCoordinator {
         // differently named profile could be claimed by name by whichever local profile was
         // considered first.
         const pairedByIdentity = this.pairProfilesByIdentity(unpairedRemoteProfiles);
+        // The account's own profile without a slot: this device's copy stays as it is.
+        const heldWithoutSlot = new Set(snapshot.profiles
+            .filter(profile => !slotProfileIds.has(profile.id))
+            .map(profile => profile.id));
 
         // A placeholder that stood in for this account's profiles is set aside, not merged: an
         // empty "Default" the account has no counterpart for would otherwise be pushed to it.
         const placeholders = await this.emptyPlaceholdersToReplace(snapshot);
+        const heldApart: string[] = [];
 
-        for (const local of this.profiles.getProfiles().filter(profile => !placeholders.has(profile.id))) {
+        for (const local of this.profiles.getProfiles()
+            .filter(profile => !placeholders.has(profile.id) && !heldWithoutSlot.has(profile.id))) {
             const remote = pairedByIdentity.get(local.id)
                 ?? this.takeRemoteCounterpart(candidatesByName, unpairedRemoteProfiles, local);
 
             if (!remote) {
-                continue;   // The account has never seen it; the push below creates it.
+                continue;   // The account has never seen it; the push below creates it if it fits.
             }
-            await this.mergeOneProfile(local, remote, snapshot);
+            heldApart.push(...await this.mergeOneProfile(local, remote, snapshot, slotWorkspaceIds));
         }
 
-        // Whatever is left is a profile this device has never had; take it as it stands.
+        // Whatever is left is a profile this device has never had; take it as it stands -
+        // its workspaces that hold a slot.
         // Every remote profile leaves this loop present locally, which is what makes the push
         // below incapable of reading the account's own profiles as deletions.
         for (const remote of unpairedRemoteProfiles.values()) {
@@ -400,8 +501,8 @@ export class SyncCoordinator {
                 // first-run screen and, before this was fixed, into a reload loop.
                 await this.withLocalWorkspaceChoice(
                     remote.id,
-                    snapshot.dataByProfileId[remote.id]
-                        ?? SyncSnapshotMapper.emptyProfileData()));
+                    dataWithin(snapshot.dataByProfileId[remote.id]
+                        ?? SyncSnapshotMapper.emptyProfileData(), id => slotWorkspaceIds.has(id))));
         }
 
         // Only now, with the account's profiles in place, so that the set is never empty.
@@ -410,20 +511,22 @@ export class SyncCoordinator {
             await this.appState.discardProfileData(placeholderId);
         }
 
-        // The baseline is what the account holds, not what this device now holds, so the push
-        // that follows carries exactly the local additions the merge kept.
-        await this.baselines.store(session.userId, {
+        // The baseline is what the account holds within the slots - not what this device now
+        // holds, so the push that follows carries exactly the local additions the merge kept,
+        // and not what it never received, so that can never be read as a deletion.
+        await this.baselines.store(session.userId, restrictToScope({
             profiles: snapshot.profiles,
             dataByProfileId: snapshot.dataByProfileId,
             closedTabsByProfileId: snapshot.closedTabsByProfileId,
             closedTabsSupported: snapshot.closedTabsSupported
-        });
+        }, id => slotProfileIds.has(id), id => slotWorkspaceIds.has(id)));
 
         // From here the visible profiles are this account's.
         await this.profiles.markAccountArrived();
         await this.profiles.claimFor({ accountId: session.userId, username: session.username });
 
         await this.reloadActiveProfile();
+        this.announceHeldApart(heldApart);
         await this.push(FIRST_CONTACT);
     }
 
@@ -513,25 +616,34 @@ export class SyncCoordinator {
         return null;
     }
 
-    /** Merges one local profile into its counterpart on the account. */
+    /**
+     *  Merges one local profile into its counterpart on the account - into the workspaces of
+     *  it that hold a slot, and only as far as the Fair Use caps allow (`mergeWithinCaps`).
+     *
+     *  @return the names of local workspaces kept apart because merging them would have gone
+     *          over a cap
+     */
     private async mergeOneProfile(
         local: ProfileMeta,
         remote: ProfileMeta,
-        snapshot: MappedSnapshot
-    ): Promise<void> {
+        snapshot: MappedSnapshot,
+        slotWorkspaceIds: ReadonlySet<string>
+    ): Promise<string[]> {
 
         const localData = await this.readProfileData(local.id);
-        const merged = ProfileMergeEngine.merge(
+        const merged = mergeWithinCaps(
             localData ?? SyncSnapshotMapper.emptyProfileData(),
-            snapshot.dataByProfileId[remote.id]);
+            dataWithin(snapshot.dataByProfileId[remote.id] ?? SyncSnapshotMapper.emptyProfileData(),
+                id => slotWorkspaceIds.has(id)),
+            this.standing.rules().limits);
 
         await this.profiles.upsertProfile(remote);
         await this.appState.saveProfileData(remote.id, merged.merged);
 
         // Closed tabs are joined rather than merged by the engine above: they are a log of
         // things that happened on two machines, and neither list is more right than the
-        // other. Both are kept, the newest fifty survive, and the same address closed on
-        // both devices is one entry - see mergeClosedTabs.
+        // other. Both are kept, and the same address closed on both devices is one entry -
+        // see mergeClosedTabs.
         //
         // An account that does not keep them has no half to contribute, and this device's own
         // list is carried over unchanged. It still has to be *carried*: the identifier below
@@ -543,22 +655,140 @@ export class SyncCoordinator {
             : await readClosedTabs(local.id));
 
         if (local.id !== remote.id) {
-            // The pair are the same profile under two names for it. The account's identifier
-            // wins, so this device drops its own and everything it stored under it - the data
-            // has just been written under the identifier that survives.
-            const wasActive = this.appState.getActiveProfileId() === local.id;
-
-            await this.profiles.removeProfile(local.id);
-            await this.appState.discardProfileData(local.id);
-            // Safe because the list has just been written under the identifier that survives,
-            // whether the account keeps closed tabs or not.
-            await writeClosedTabs(local.id, {});
-
-            if (wasActive) {
-                await this.profiles.setActiveProfile(remote.id);
-                await this.appState.switchProfile(remote.id);
-            }
+            await this.dropMergedProfile(local.id, remote.id);
         }
+        return merged.heldApart.map(workspace => workspace.name);
+    }
+
+    /**
+     *  Forgets a local profile that has just been merged into another under the identifier
+     *  that survives, moving the page onto the survivor if it was showing the one that goes.
+     *
+     *  @param mergedId   the profile merged away
+     *  @param survivorId the profile it was merged into
+     */
+    private async dropMergedProfile(mergedId: string, survivorId: string): Promise<void> {
+        // The pair are the same profile under two names for it. The surviving identifier
+        // wins, so this device drops its own and everything it stored under it - the data
+        // has just been written under the identifier that survives.
+        const wasActive = this.appState.getActiveProfileId() === mergedId;
+
+        await this.profiles.removeProfile(mergedId);
+        await this.appState.discardProfileData(mergedId);
+        // Safe because the list has just been written under the identifier that survives.
+        await writeClosedTabs(mergedId, {});
+
+        if (wasActive) {
+            await this.profiles.setActiveProfile(survivorId);
+            await this.appState.switchProfile(survivorId);
+        }
+    }
+
+    /**
+     *  First contact by name, for what is still at first contact on a device that is already
+     *  synchronising: a local-only profile or workspace renamed to the name of the account's
+     *  is merged into it now, as it would have been at sign-in.
+     *
+     *  Only items that have never been synchronised qualify - not on the account and not in
+     *  the baseline. A rename of something synchronised stays a rename. Only slot-holders are
+     *  merged into: nothing can be written into the rest.
+     *
+     *  @param account  the account's lists
+     *  @param baseline what this device last confirmed with the account
+     */
+    private async adoptNameMatches(account: AccountInventory, baseline: SyncBaseline): Promise<void> {
+        const { limits } = this.standing.rules();
+        const holders = slotHolders(account, limits);
+        const onAccount = new Set([
+            ...account.profiles.map(profile => profile.id),
+            ...account.workspaces.map(workspace => workspace.id)
+        ]);
+        const confirmed = (profileId: string): Set<string> =>
+            new Set(Object.keys(baseline.dataByProfileId[profileId]?.environments ?? {}));
+        const confirmedProfiles = new Set(baseline.profiles.map(profile => profile.id));
+        const heldApart: string[] = [];
+        let changed = false;
+
+        // Profiles first: a merged profile brings its workspaces along.
+        for (const local of this.profiles.getProfiles()) {
+            if (onAccount.has(local.id) || confirmedProfiles.has(local.id)) {
+                continue;
+            }
+            const data = await this.readProfileData(local.id);
+            if (isExampleProfile(local, data)) {
+                continue;
+            }
+            const counterpart = holders.profiles.find(holder => holder.id !== local.id
+                && asName(holder.name) === asName(local.name)
+                && this.profiles.getProfiles().some(profile => profile.id === holder.id));
+            if (!counterpart) {
+                continue;
+            }
+            this.LOG.log("adoptNameMatches", `Merging local profile ${local.name} into the account's`);
+            const merged = mergeWithinCaps(
+                data ?? SyncSnapshotMapper.emptyProfileData(),
+                await this.readProfileData(counterpart.id) ?? SyncSnapshotMapper.emptyProfileData(),
+                limits);
+            await this.appState.saveProfileData(counterpart.id, merged.merged);
+            await writeClosedTabs(counterpart.id, mergeClosedTabs(
+                await readClosedTabs(local.id), await readClosedTabs(counterpart.id)));
+            await this.dropMergedProfile(local.id, counterpart.id);
+            heldApart.push(...merged.heldApart.map(workspace => workspace.name));
+            changed = true;
+        }
+
+        // Then workspaces, within each slot-holding profile.
+        for (const holder of holders.profiles) {
+            const data = await this.readProfileData(holder.id);
+            if (!data) {
+                continue;
+            }
+            const slotWorkspaces = (holders.workspacesByProfile.get(holder.id) ?? [])
+                .filter(workspace => workspace.id in data.environments);
+            const confirmedHere = confirmed(holder.id);
+            const candidates = Object.values(data.environments).filter(workspace =>
+                !onAccount.has(workspace.id) && !confirmedHere.has(workspace.id) && !isExampleWorkspace(workspace)
+                && slotWorkspaces.some(slot => slot.id !== workspace.id && asName(slot.name) === asName(workspace.name)));
+            if (candidates.length === 0) {
+                continue;
+            }
+            const candidateIds = new Set(candidates.map(workspace => workspace.id));
+            // The open workspace goes in with the candidates, so that one merged away leaves the
+            // page on the workspace it was merged into.
+            const merged = mergeWithinCaps(
+                joinSlices(candidates.map(workspace => workspaceSlice(data, workspace.id)), data.activeEnvironmentId),
+                dataWithin(data, id => !candidateIds.has(id)),
+                limits);
+            if (merged.heldApart.length < candidates.length) {
+                this.LOG.log("adoptNameMatches", `Merged ${candidates.length - merged.heldApart.length} workspace(s) by name`);
+                await this.appState.saveProfileData(holder.id, merged.merged);
+                changed = true;
+            }
+            heldApart.push(...merged.heldApart.map(workspace => workspace.name));
+        }
+
+        if (changed) {
+            await this.reloadActiveProfile();
+        }
+        this.announceHeldApart(heldApart);
+    }
+
+    /**
+     *  Publishes the workspaces a merge kept apart over a Fair Use cap, once per distinct set.
+     *
+     *  @param names the workspaces' names; nothing is published when empty
+     */
+    private announceHeldApart(names: string[]): void {
+        if (names.length === 0) {
+            return;
+        }
+        const signature = [...names].sort().join("|");
+        if (signature === this.heldApartAlreadyReported) {
+            return;
+        }
+        this.heldApartAlreadyReported = signature;
+        this.heldApartIssued += 1;
+        this.heldApart$.set({ sequence: this.heldApartIssued, names });
     }
 
     // ------------------------------------------------------------- steady state
@@ -573,9 +803,11 @@ export class SyncCoordinator {
             // what it just refused. Pulling would delete it from this device - the one thing a
             // limit must never do. Stay as we are until a push is taken.
             this.LOG.warn("pushThenPull", "Account refused over a limit; not pulling");
+            await this.reportInventory();
             return;
         }
         await this.pull();
+        await this.reportInventory();
     }
 
     /**
@@ -613,18 +845,75 @@ export class SyncCoordinator {
             return;
         }
 
+        // Slots are decided against the account's lists. Lists read in this run are current.
+        // A copy from an earlier run is good enough to find out whether there is anything to
+        // say at all - most local changes are to something already synchronised - and a push
+        // that does say something reads them again first.
+        let account: AccountInventory | null = null;
+        if (this.accountInventory && this.inventoryCycle === this.cycle) {
+            account = this.accountInventory;
+        } else if (this.accountInventory) {
+            await this.adoptNameMatches(this.accountInventory, baseline);
+            const quick = await this.prepareChangeSet(this.accountInventory, baseline, occasion);
+            if (quick.operations.length === 0) {
+                this.nothingToPush();
+                await this.recoverFromWithheldDeletions(quick.withheld);
+                return;
+            }
+        }
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            account = account ?? await this.readAccountInventory();
+            if (!account) {
+                return;
+            }
+            await this.adoptNameMatches(account, baseline);
+            const prepared = await this.prepareChangeSet(account, baseline, occasion);
+
+            if (prepared.operations.length === 0) {
+                this.nothingToPush();
+                await this.recoverFromWithheldDeletions(prepared.withheld);
+                return;
+            }
+
+            const outcome = await this.send(session, baseline, prepared, afterLocalChange, attempt === 0);
+            if (outcome !== "retry") {
+                return;
+            }
+            // Another device took the last free slot at the same moment. The lists are read
+            // again and what lost is left out; a second refusal stands, so this cannot loop.
+            this.LOG.warn("push", "Refused over a limit; re-reading the account's lists once");
+            account = null;
+        }
+    }
+
+    /** Nothing to send means nothing refused stands any more. */
+    private nothingToPush(): void {
+        this.clearLimitRefusal();
+        this.activity$.set("idle");
+    }
+
+    /** A change set worked out against the slots, with what it was worked out from. */
+    private async prepareChangeSet(
+        account: AccountInventory,
+        baseline: SyncBaseline,
+        occasion: PushOccasion
+    ): Promise<PreparedPush> {
         const current = await this.readEverythingLocally();
+        const scope = decideSyncScope(account, this.localProfilesOf(current), this.standing.rules());
+        this.publishScope(scope);
+
+        const inProfile: InScope = id => profileInScope(scope, id);
+        const inWorkspace: InScope = id => workspaceInScope(scope, id);
+        const scopedCurrent = restrictToScope(current, inProfile, inWorkspace);
         const everything = ChangeSetBuilder.build(
-            baseline, current.profiles, current.dataByProfileId,
-            current.closedTabsByProfileId ?? {});
+            restrictToScope(baseline, inProfile, inWorkspace),
+            scopedCurrent.profiles, scopedCurrent.dataByProfileId,
+            scopedCurrent.closedTabsByProfileId ?? {});
 
         const withheld = occasion === FIRST_CONTACT
             ? everything.filter(operation => operation.op === "delete")
             : [];
-        const operations = withheld.length > 0
-            ? everything.filter(operation => operation.op !== "delete")
-            : everything;
-
         if (withheld.length > 0) {
             // A merge is supposed to leave this device holding everything the account holds,
             // so a deletion here means the merge dropped something and the difference is
@@ -633,19 +922,33 @@ export class SyncCoordinator {
             this.LOG.error("push",
                 `Withheld ${withheld.length} deletions computed at first contact`);
         }
+        return {
+            scopedCurrent, inProfile, inWorkspace, withheld,
+            operations: withheld.length > 0
+                ? everything.filter(operation => operation.op !== "delete")
+                : everything
+        };
+    }
 
-        if (operations.length === 0) {
-            // Nothing to send means nothing refused stands any more.
-            this.clearLimitRefusal();
-            this.activity$.set("idle");
-            await this.recoverFromWithheldDeletions(withheld);
-            return;
-        }
+    /**
+     *  Sends a prepared change set and deals with the answer.
+     *
+     *  @param mayRetry whether a refusal over a limit should be answered by one more attempt
+     *  @return "retry" when the account refused over a limit and one more attempt is due
+     */
+    private async send(
+        session: SyncSession,
+        baseline: SyncBaseline,
+        prepared: PreparedPush,
+        afterLocalChange: boolean,
+        mayRetry: boolean
+    ): Promise<"done" | "retry"> {
+        const { operations, withheld } = prepared;
 
         const changeSet = JSON.stringify(operations);
         if (changeSet === this.limitRefusedChangeSet) {
-            this.LOG.debug("push", "Same change set the account refused over a fair use limit; not resending");
-            return;
+            this.LOG.debug("push", "Same change set the account refused over a limit; not resending");
+            return "done";
         }
 
         this.LOG.debug("push", `Sending ${operations.length} operations`);
@@ -657,12 +960,18 @@ export class SyncCoordinator {
         });
 
         if (result.outcome === "rejected" && result.limitRefusal) {
+            if (mayRetry) {
+                // The lists this push was decided against are stale; so may the limits be.
+                this.accountInventory = null;
+                await this.standing.recheck();
+                return "retry";
+            }
             // Nothing in the batch was applied, and nothing is taken away here: the baseline
             // stays, local data stays, and pushThenPull will not pull over it.
             const standing = this.limitRefusal$.get();
             const alreadyStanding = standing !== null
                 && standing.limit === result.limitRefusal.limit
-                && isFreePlanRefusal(standing) === isFreePlanRefusal(result.limitRefusal);
+                && standing.kind === result.limitRefusal.kind;
             this.limitRefusedChangeSet = changeSet;
             this.limitRefusal$.set(result.limitRefusal);
             if (afterLocalChange && !alreadyStanding) {
@@ -671,34 +980,39 @@ export class SyncCoordinator {
                 this.fairUseNotices.reportRefusal(result.limitRefusal);
             }
             this.activity$.set("idle");
-            this.LOG.warn("push", `Refused over the ${isFreePlanRefusal(result.limitRefusal) ? "free plan" : "fair use"} limit ${result.limitRefusal.limit}`);
-            return;
+            this.LOG.warn("push", `Refused over the ${result.limitRefusal.kind} limit ${result.limitRefusal.limit}`);
+            return "done";
         }
 
         if (result.outcome !== "success") {
             this.activity$.set(result.outcome === "offline" ? "offline" : "idle");
             this.LOG.warn("push", `Not applied: ${result.message}`);
-            return;
+            return "done";
         }
 
-        // The account took this push, so no fair use refusal stands any more.
+        // The account took this push, so no limit's refusal stands any more.
         this.clearLimitRefusal();
+        // What was just created holds its slot now; the lists are read again before deciding.
+        this.accountInventory = null;
+        for (const remap of result.data.remaps) {
+            this.remappedIds.add(remap.clientId);
+        }
 
         if (result.data.rejected.length > 0) {
-            // Said before the pull below, because the pull is what destroys the evidence: it
-            // replaces the profile with what the account holds, which is everything except
-            // the records just refused. Leaving this to the log meant the user watched
-            // something they had just made disappear and was told nothing anywhere.
+            // Said before the pull below. A refused workspace or profile stays on this device
+            // as local only - the pull no longer deletes what the account does not hold unless
+            // the account once held it - but a refused record inside a synchronised workspace
+            // is still replaced by the account's copy of that workspace.
             this.announceRejections(result.data.rejected);
         }
 
         if (result.data.remaps.length > 0 || result.data.rejected.length > 0) {
             // The server stored something under an identifier of its own, or refused an
             // operation. Either way this device's picture is now wrong in a way a difference
-            // cannot express, so the following pull is left to correct it wholesale.
+            // cannot express, so the following pull is left to correct it.
             this.LOG.warn("push",
                 `${result.data.remaps.length} remapped, ${result.data.rejected.length} refused`);
-            return;
+            return "done";
         }
 
         // Nothing was refused, so whatever was announced last time is over and a refusal
@@ -709,11 +1023,13 @@ export class SyncCoordinator {
             // The baseline must not record a state the account is not in: the records those
             // deletions named are still on the server and are still missing here.
             await this.recoverFromWithheldDeletions(withheld);
-            return;
+            return "done";
         }
 
-        await this.baselines.store(session.userId, current);
+        await this.baselines.store(session.userId, baselineAfter(
+            baseline, prepared.scopedCurrent, prepared.inProfile, prepared.inWorkspace));
         this.activity$.set("idle");
+        return "done";
     }
 
     /** The account took a push, or there was nothing to push: no limit's refusal stands. */
@@ -777,15 +1093,18 @@ export class SyncCoordinator {
         await this.pull();
     }
 
-    /** Takes the account's state as authoritative and writes it over what is here. */
+    /**
+     *  Takes the account's state as authoritative for what holds a slot, and writes it over
+     *  that - and only that - here.
+     */
     private async pull(): Promise<void> {
 
         const session = this.sessions.getSession();
         if (!session) {
             return;
         }
-        // A pull replaces the visible profiles with the account's, so it needs them to be the
-        // account's already - merged and claimed. Pulling over another account's profiles would
+        // A pull writes over the visible profiles, so it needs them to be the account's
+        // already - merged and claimed. Pulling over another account's profiles would
         // overwrite them; pulling over profiles nobody has merged yet would discard them.
         if (this.profiles.getOwner()?.accountId !== session.userId) {
             this.LOG.warn("pull", "Visible profiles are not this account's yet; not pulling");
@@ -795,35 +1114,83 @@ export class SyncCoordinator {
         if (!snapshot) {
             return;
         }
+        const account = inventoryFromSnapshot(snapshot);
+        this.accountInventory = account;
+        this.inventoryCycle = this.cycle;
+        const previous = this.baselines.getFor(session.userId);
 
-        await this.applySnapshot(snapshot);
-        await this.baselines.store(session.userId, {
-            profiles: snapshot.profiles,
-            dataByProfileId: snapshot.dataByProfileId,
-            closedTabsByProfileId: snapshot.closedTabsByProfileId,
-            closedTabsSupported: snapshot.closedTabsSupported
-        });
+        // In scope for a pull: the account's slot-holders, unless this device holds one apart
+        // (over a Fair Use cap here). Everything else on this device stays exactly as it is.
+        const scope = decideSyncScope(
+            account, this.localProfilesOf(await this.readEverythingLocally()), this.standing.rules());
+        const inProfile: InScope = id => scope.slotProfileIds.has(id)
+            && (scope.profiles[id]?.state ?? "SYNCHRONISED") === "SYNCHRONISED";
+        const inWorkspace: InScope = id => scope.slotWorkspaceIds.has(id)
+            && (scope.workspaces[id]?.state ?? "SYNCHRONISED") === "SYNCHRONISED";
+
+        await this.applySnapshot(snapshot, previous, inProfile, inWorkspace);
+
+        const onAccount = new Set([
+            ...account.profiles.map(profile => profile.id),
+            ...account.workspaces.map(workspace => workspace.id)
+        ]);
+        await this.baselines.store(session.userId, baselineAfter(
+            previous,
+            restrictToScope({
+                profiles: snapshot.profiles,
+                dataByProfileId: snapshot.dataByProfileId,
+                closedTabsByProfileId: snapshot.closedTabsByProfileId,
+                closedTabsSupported: snapshot.closedTabsSupported
+            }, inProfile, inWorkspace),
+            inProfile, inWorkspace,
+            // Kept from before only while the account still has it; what was deleted there is
+            // gone here too (applySnapshot), and must not linger as a deletion to send.
+            id => onAccount.has(id)));
+        this.remappedIds.clear();
+        this.publishScope(decideSyncScope(
+            account, this.localProfilesOf(await this.readEverythingLocally()), this.standing.rules()));
         this.activity$.set("idle");
     }
 
     /**
-     *  Writes a snapshot over the local profiles.
+     *  Writes a snapshot over the local profiles that hold a slot.
      *
-     *  Safe only because push() has already run: anything this device had that the account
-     *  did not is in the snapshot by now.
+     *  Safe only because push() has already run: anything this device had in scope that the
+     *  account did not is in the snapshot by now. What is not in the snapshot and was never
+     *  confirmed by the account - refused, or without a slot - is local only, and stays.
+     *
+     *  @param snapshot    what the account holds
+     *  @param previous    what this device last confirmed with it; null on a device that never did
+     *  @param inProfile   whether a profile is written from the account
+     *  @param inWorkspace whether a workspace is written from the account
      */
-    private async applySnapshot(snapshot: MappedSnapshot): Promise<void> {
+    private async applySnapshot(
+        snapshot: MappedSnapshot,
+        previous: SyncBaseline | null,
+        inProfile: InScope,
+        inWorkspace: InScope
+    ): Promise<void> {
 
         this.applyingRemoteState = true;
         try {
             const knownRemotely = new Set(snapshot.profiles.map(profile => profile.id));
+            const confirmedProfiles = new Set(previous?.profiles.map(profile => profile.id) ?? []);
 
             for (const profile of snapshot.profiles) {
+                if (!inProfile(profile.id)) {
+                    // Without a slot: this device keeps the copy it has, if any, as its last
+                    // synchronised one, and is not handed one it never had.
+                    continue;
+                }
+                const local = await this.readProfileData(profile.id);
+                const heldBefore = new Set(Object.keys(
+                    previous?.dataByProfileId[profile.id]?.environments ?? {}));
+
                 await this.profiles.upsertProfile(profile);
                 await this.appState.saveProfileData(
                     profile.id,
-                    await this.withLocalWorkspaceChoice(
-                        profile.id, snapshot.dataByProfileId[profile.id]));
+                    await this.withLocalWorkspaceChoice(profile.id, pulledProfileData(
+                        local, snapshot.dataByProfileId[profile.id], inWorkspace, heldBefore, this.remappedIds)));
                 if (snapshot.closedTabsSupported) {
                     // As the account holds them, untouched. Anything trimmed on the way in -
                     // a cap, a duplicate address, a clock that reads wrong - is a difference
@@ -839,11 +1206,15 @@ export class SyncCoordinator {
             }
 
             for (const local of this.profiles.getProfiles()) {
-                if (!knownRemotely.has(local.id)) {
-                    // Deleted on another device. Absence from the snapshot is the deletion.
+                if (knownRemotely.has(local.id)) {
+                    continue;
+                }
+                if (confirmedProfiles.has(local.id) || this.remappedIds.has(local.id)) {
+                    // Deleted on another device - the account held it, and holds it no more.
                     await this.profiles.removeProfile(local.id);
                     await this.appState.discardProfileData(local.id);
                 }
+                // Anything else the account does not hold is local only, and stays.
             }
             await this.reloadActiveProfile();
         } finally {
@@ -889,7 +1260,10 @@ export class SyncCoordinator {
         }
         this.pushTimer = window.setTimeout(() => {
             this.pushTimer = null;
-            void this.enqueue(() => this.push("steady-state", true));
+            void this.enqueue(async () => {
+                await this.push("steady-state", true);
+                await this.reportInventory();
+            });
         }, PUSH_DEBOUNCE);
     }
 
@@ -925,7 +1299,10 @@ export class SyncCoordinator {
     private enqueue(work: () => Promise<void>): Promise<void> {
         this.inFlight = this.inFlight
             .catch(() => undefined)
-            .then(work)
+            .then(() => {
+                this.cycle += 1;
+                return work();
+            })
             .catch(failure => this.LOG.warn("enqueue", "Synchronisation failed", failure));
 
         return this.inFlight;
@@ -942,7 +1319,70 @@ export class SyncCoordinator {
             this.LOG.warn("fetchSnapshot", result.message);
             return null;
         }
+        const planLimits = result.data.planLimits;
+        const session = this.sessions.getSession();
+        if (planLimits && session) {
+            // Before anything is decided from this snapshot: the slots are counted under these.
+            await this.standing.adopt(session.userId, planLimits.premium === true, planLimits.limits);
+        }
         return SyncSnapshotMapper.toProfiles(result.data);
+    }
+
+    /**
+     *  The account's profiles and workspaces without their content, which is what slots are
+     *  decided against. Read from the list endpoints; a client without them (a test's) is
+     *  answered from the snapshot instead. Null when the account could not be reached.
+     */
+    private async readAccountInventory(): Promise<AccountInventory | null> {
+        if (typeof this.apiClient.listAccountProfiles !== "function") {
+            const snapshot = await this.fetchSnapshot();
+            this.accountInventory = snapshot ? inventoryFromSnapshot(snapshot) : null;
+            this.inventoryCycle = this.cycle;
+            return this.accountInventory;
+        }
+        this.activity$.set("working");
+        const [profiles, environments] = await Promise.all([
+            this.apiClient.listAccountProfiles(),
+            this.apiClient.listAccountEnvironments()
+        ]);
+        if (profiles.outcome !== "success" || environments.outcome !== "success") {
+            const offline = profiles.outcome === "offline" || environments.outcome === "offline";
+            this.activity$.set(offline ? "offline" : "idle");
+            this.LOG.warn("readAccountInventory", "The account's lists could not be read; not pushing");
+            return null;
+        }
+        this.accountInventory = inventoryFromLists(profiles.data, environments.data);
+        this.inventoryCycle = this.cycle;
+        return this.accountInventory;
+    }
+
+    /** This device's profiles as the slot rules take them, in registry order. */
+    private localProfilesOf(state: SyncBaseline): LocalProfile[] {
+        return state.profiles.map(meta => ({ meta, data: state.dataByProfileId[meta.id] ?? null }));
+    }
+
+    /** Publishes what synchronises, for the page to mark what does not. */
+    private publishScope(scope: SyncScope): void {
+        const session = this.sessions.getSession();
+        if (!session) {
+            return;
+        }
+        this.scope$.set({ accountId: session.userId, profiles: scope.profiles, workspaces: scope.workspaces });
+    }
+
+    /**
+     *  Tells the account what this installation holds, when that changed since it was last
+     *  told: names, counts and whether each synchronises - never an address or a group name.
+     */
+    private async reportInventory(): Promise<void> {
+        const scope = this.scope$.get();
+        const session = this.sessions.getSession();
+        if (!scope || !session || scope.accountId !== session.userId || !this.visibleProfilesBelongTo(session)) {
+            return;
+        }
+        await this.inventoryReporter.report(
+            session.userId, this.localProfilesOf(await this.readEverythingLocally()), scope,
+            this.accountInventory);
     }
 
     /** Everything this device holds, in the shape the difference is computed against. */
@@ -1054,8 +1494,9 @@ export class SyncCoordinator {
     /**
      *  The placeholder profiles to drop in favour of what the account holds.
      *
-     *  Only while the visible set is still awaiting its account, only when the account has
-     *  profiles to take their place, and only placeholders that are still empty - anything the
+     *  Only while the visible set is still awaiting its account - or for the first-run example
+     *  profile, emptied of its examples at sign-in - only when the account has profiles to take
+     *  their place, and only placeholders that are still empty - anything the
      *  user put in one while waiting was put there as this account, and is merged like any
      *  other local profile.
      *
@@ -1063,11 +1504,17 @@ export class SyncCoordinator {
      *  @return the identifiers of the placeholders to drop
      */
     private async emptyPlaceholdersToReplace(snapshot: MappedSnapshot): Promise<Set<string>> {
-        if (!this.profiles.isAwaitingAccount() || snapshot.profiles.length === 0) {
+        if (snapshot.profiles.length === 0) {
             return new Set();
         }
+        const awaiting = this.profiles.isAwaitingAccount();
         const empty = new Set<string>();
         for (const profile of this.profiles.getProfiles()) {
+            // The placeholder an account switch left, or the first-run example profile emptied
+            // of its examples at sign-in (`removeUntouchedExamples`).
+            if (!awaiting && profile.example !== true) {
+                continue;
+            }
             const data = await this.readProfileData(profile.id);
             if (!data || Object.keys(data.environments).length === 0) {
                 empty.add(profile.id);

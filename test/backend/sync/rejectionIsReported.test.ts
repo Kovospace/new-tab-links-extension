@@ -93,6 +93,9 @@ describe("a change the account refuses is reported to the user", () => {
      */
     function coordinator(): SyncCoordinator {
         const apiClient = {
+            // The lists a push decides slots against stay readable; only the snapshot - what
+            // a pull needs - is switched off by `accountReachable`.
+            ...account.listEndpoints(),
             fetchSnapshot: () => Promise.resolve(accountReachable
                 ? { outcome: "success", data: account.snapshot() } as ApiResult<SyncSnapshot>
                 : { outcome: "offline", message: "unreachable" } as ApiResult<SyncSnapshot>),
@@ -177,18 +180,21 @@ describe("a change the account refuses is reported to the user", () => {
             expect(told[0].records[0].type).toBe("environment");
         });
 
-    it("still loses the refused record, which is exactly why the user has to be told",
+    it("keeps the refused workspace on this device, local only, rather than pulling it away",
         async () => {
-            // Not the behaviour being changed, and pinned so that a later change to the pull
-            // has to notice it. The account is authoritative and never stored this workspace,
-            // so the pull behind the push is right to take it away. Doing that without saying
-            // anything is the defect.
+            // This used to pin the opposite: the pull behind the push replaced the profile with
+            // the account's copy and so deleted the workspace the account had just refused.
+            // Data is never deleted over something the account would not take - the pull now
+            // writes only over what the account holds or once held, and a workspace it never
+            // held is local only and stays.
             const coordinating = await deviceInStepWithItsAccount();
             const workspaceId = await makeAWorkspaceTheAccountWillRefuse();
 
             await coordinating.synchronizeNow();
 
             expect(appState.getWorkspaces().map(workspace => workspace.id))
+                .toContain(workspaceId);
+            expect(account.snapshot().environments.map(environment => environment.id))
                 .not.toContain(workspaceId);
         });
 

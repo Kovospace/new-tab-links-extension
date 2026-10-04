@@ -31,9 +31,9 @@ import { SyncBaselineRepository } from "../../../src/backend/sync/SyncBaselineRe
 import { SyncCoordinator } from "../../../src/backend/sync/SyncCoordinator";
 import { SyncOperation, SyncPushResult, SyncSnapshot } from "../../../src/backend/sync/SyncContracts";
 import { AccountStandingRepository } from "../../../src/backend/sync/AccountStandingRepository";
-import { LimitRefusal } from "../../../src/backend/entity/FreePlanLimits";
+import { LimitRefusal } from "../../../src/backend/entity/PlanLimits";
 import { fairUseRefusals } from "../../../src/backend/repository/FairUseRefusals";
-import { premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
+import { setStanding } from "../../support/standing";
 import { SyncAccountViewModel } from "../../../src/viewModel/syncAccountViewModel";
 import { FakeAccount } from "../../support/fakeAccount";
 import { seedFakeStorage } from "../../support/chromeStorageStub";
@@ -70,13 +70,13 @@ describe("BackendApiClient reading a free plan refusal", () => {
         return new BackendApiClient(sessions);
     }
 
-    it.each([["WORKSPACES", 2], ["PROFILES", 1]])("reads %s on a push", async (limit, maximum) => {
+    it.each([["WORKSPACES_PER_PROFILE", 2], ["PROFILES", 1]])("reads %s on a push", async (limit, maximum) => {
         answer = { status: 409, body: freePlanBody(limit, maximum) };
 
         const result = await (await client()).pushChanges({ originDeviceId: "d", operations: [] });
 
         expect(result).toMatchObject({
-            outcome: "rejected", status: 409, limitRefusal: { plan: "FREE", limit, maximum }
+            outcome: "rejected", status: 409, limitRefusal: { kind: "FREE_PLAN", limit, maximum }
         });
     });
 
@@ -85,13 +85,14 @@ describe("BackendApiClient reading a free plan refusal", () => {
         const api = await client();
 
         expect(await api.logInWithPassword("someone", "secret"))
-            .toMatchObject({ limitRefusal: { plan: "FREE", limit: "DEVICES", maximum: 5 } });
+            .toMatchObject({ limitRefusal: { kind: "FREE_PLAN", limit: "DEVICES", maximum: 5 } });
         expect(await api.redeemConnectCode("ABCD-1234"))
-            .toMatchObject({ limitRefusal: { plan: "FREE", limit: "DEVICES", maximum: 5 } });
+            .toMatchObject({ limitRefusal: { kind: "FREE_PLAN", limit: "DEVICES", maximum: 5 } });
     });
 
     it("leaves a free plan limit it does not know an ordinary rejection", async () => {
-        answer = { status: 409, body: freePlanBody("LINKS_PER_WORKSPACE", 10) };
+        // The name the backend used before limits were counted per profile.
+        answer = { status: 409, body: freePlanBody("WORKSPACES", 10) };
 
         const result = await (await client()).pushChanges({ originDeviceId: "d", operations: [] });
 
@@ -134,7 +135,7 @@ describe("SyncCoordinator when a free account refuses over a free plan limit", (
         await baselines.init();
         // Last known premium, so this device adds freely; the account has since lapsed to
         // free, and it is the account that refuses.
-        premiumStanding$.set(true);
+        setStanding(true);
 
         account = new FakeAccount();
         refusing = null;
@@ -149,11 +150,12 @@ describe("SyncCoordinator when a free account refuses over a free plan limit", (
 
     afterEach(() => {
         stopListening();
-        premiumStanding$.set(false);
+        setStanding(false);
     });
 
     function coordinator(): SyncCoordinator {
         const apiClient = {
+            ...account.listEndpoints(),
             fetchSnapshot: () => {
                 snapshotReads++;
                 return Promise.resolve({ outcome: "success", data: account.snapshot() } as ApiResult<SyncSnapshot>);
@@ -192,7 +194,7 @@ describe("SyncCoordinator when a free account refuses over a free plan limit", (
         const coordinating = await inStep();
         const state = await appState.addWorkspace("Third");
         const workspaceId = state.activeEnvironmentId!;
-        refusing = { plan: "FREE", limit: "WORKSPACES", maximum: 2 };
+        refusing = { kind: "FREE_PLAN", limit: "WORKSPACES_PER_PROFILE", maximum: 2 };
 
         await pushAfterLocalChange(coordinating);
         await pushAfterLocalChange(coordinating);
@@ -201,15 +203,17 @@ describe("SyncCoordinator when a free account refuses over a free plan limit", (
         expect(coordinating.limitRefusal$.get()).toEqual(refusing);
         expect(appState.getWorkspaces().map(workspace => workspace.id)).toContain(workspaceId);
         expect(snapshotReads).toBe(0);
-        // The two debounced pushes send it once; the push-then-pull offers it once more.
-        expect(pushes).toBe(2);
+        // The two debounced pushes send it once, and once more after re-reading the account's
+        // lists - a refusal is usually a race for the last slot; the push-then-pull offers it
+        // again, the same way. Never more.
+        expect(pushes).toBe(4);
         expect(notices).toEqual([{ ...refusing, sequence: expect.any(Number) }]);
     });
 
     it("PROFILES: keeps the refused profile, and resumes once the account takes the push", async () => {
         const coordinating = await inStep();
         const second = await profiles.createProfile("Second");
-        refusing = { plan: "FREE", limit: "PROFILES", maximum: 1 };
+        refusing = { kind: "FREE_PLAN", limit: "PROFILES", maximum: 1 };
 
         await coordinating.synchronizeNow();
         expect(coordinating.limitRefusal$.get()).toEqual(refusing);
@@ -234,7 +238,7 @@ describe("signing in past the free plan's installations", () => {
     let sessions: SessionRepository;
     const devicesRefusal = {
         outcome: "rejected", status: 409, message: "Too many devices",
-        limitRefusal: { plan: "FREE", limit: "DEVICES", maximum: 5 }
+        limitRefusal: { kind: "FREE_PLAN", limit: "DEVICES", maximum: 5 }
     } as ApiResult<TokenPairDto>;
 
     beforeEach(async () => {

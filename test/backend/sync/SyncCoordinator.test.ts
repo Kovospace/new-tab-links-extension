@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setStanding } from "../../support/standing";
 
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
@@ -78,6 +79,11 @@ function accountWithAProfileThisDeviceHasNeverHad(): SyncSnapshot {
 }
 
 describe("SyncCoordinator, first contact with an account", () => {
+
+    // These are about the merge, not the slots: premium, so that every profile and workspace
+    // here holds one. What the slots leave out is pinned in syncSlots.test.ts.
+    beforeEach(() => setStanding(true));
+    afterEach(() => setStanding(false));
 
     let appState: AppStateRepository;
     let profiles: ProfileRepository;

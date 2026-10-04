@@ -3,7 +3,7 @@ import {Logger} from "../../utils/logger";
 import { t } from "../../i18n/i18n";
 
 import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
-import { ICON, renderButton } from "../partials/wrappedHtmlElements"
+import { ICON, renderButton, renderUnsyncedMark } from "../partials/wrappedHtmlElements"
 import { toggleOverlay } from "../partials/wrappedHtmlElements";
 import { confirmDestructiveAction } from "./confirmations";
 
@@ -38,6 +38,11 @@ export type OptionsMenuAction = {
      *  circle says what it is set to, which no wording can do as quickly.
      */
     swatchColor?: string,
+    /**
+     *  Draws the crossed-out sync mark after the text, with this as its tooltip: for a
+     *  profile that does not synchronise, saying why.
+     */
+    notSynced?: string,
     noBorder?: boolean,
     dangerConfirmation?: string,
     separator?: false,
@@ -165,6 +170,9 @@ export class OptionsMenu {
             swatch.classList.add('options-menu__swatch');
             swatch.style.backgroundColor = option.swatchColor;
             optionElem.insertBefore(swatch, optionElem.firstChild);
+        }
+        if (option.notSynced) {
+            optionElem.appendChild(renderUnsyncedMark(option.notSynced));
         }
         if (option.dangerous) {
             optionElem.classList.add("danger");

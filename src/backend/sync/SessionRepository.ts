@@ -139,6 +139,22 @@ export class SessionRepository {
     }
 
     /**
+     *  Counts the sessions the account ended without the user asking, so the page can say why
+     *  it is signed out: revoked from the website, or - when premium has ended - one of the
+     *  installations beyond the free plan's limit. A counter, so no two are deep-equal.
+     */
+    readonly revoked$ = new ObservableValue<number>(0);
+
+    /** Forgets the tokens because the account refused them, and says so on `revoked$`. */
+    public async clearRevoked(): Promise<void> {
+        const wasSignedIn = this.session !== null;
+        await this.clear();
+        if (wasSignedIn) {
+            this.revoked$.set(this.revoked$.get() + 1);
+        }
+    }
+
+    /**
      *  Takes over a session another page stored: a refreshed pair, a sign-in, a sign-out.
      *
      *  A write this instance made itself arrives here as well and is deep-equal to what it

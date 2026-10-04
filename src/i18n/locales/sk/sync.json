@@ -51,5 +51,26 @@
     "text": "Odhlásené z účtu {username}",
     "tooltip": "Synchronizácia je pozastavená. Odkazy zostávajú tu a odošlú sa po opätovnom prihlásení."
   },
-  "noticeTitle": "Váš účet"
+  "noticeTitle": "Váš účet",
+  "unsynced": {
+    "profile": {
+      "LOCAL_ONLY_FREE_LIMIT": "Nesynchronizuje sa: bezplatný plán synchronizuje {maximum} profil a váš účet ho už má. Zostáva iba v tomto zariadení.",
+      "LOCAL_ONLY_FAIR_USE": "Nesynchronizuje sa: váš účet už synchronizuje toľko profilov, koľko zásady férového používania dovoľujú. Zostáva iba v tomto zariadení.",
+      "EXAMPLE": "Ukážkové údaje: nesynchronizujú sa, kým ich nezmeníte."
+    },
+    "workspace": {
+      "LOCAL_ONLY_FREE_LIMIT": "Tento pracovný priestor zostáva iba v tomto zariadení: bezplatný plán synchronizuje {maximum} pracovné priestory v profile a tento profil ich už vo vašom účte má.",
+      "LOCAL_ONLY_FAIR_USE": "Tento pracovný priestor zostáva iba v tomto zariadení: prekračuje limit férového používania alebo tento profil už synchronizuje toľko pracovných priestorov, koľko zásady férového používania dovoľujú.",
+      "EXAMPLE": "Ukážkový pracovný priestor: nesynchronizuje sa, kým ho nezmeníte, a ak ho necháte tak, po prihlásení sa odstráni."
+    },
+    "workspaceOfProfile": {
+      "LOCAL_ONLY_FREE_LIMIT": "Tento profil aj jeho pracovné priestory zostávajú iba v tomto zariadení: bezplatný plán synchronizuje {maximum} profil a váš účet ho už má.",
+      "LOCAL_ONLY_FAIR_USE": "Tento profil aj jeho pracovné priestory zostávajú iba v tomto zariadení: váš účet už synchronizuje toľko profilov, koľko zásady férového používania dovoľujú."
+    },
+    "renameAdvice": "Premenujte ho na {names} a pri ďalšej synchronizácii sa zlúči s tým vo vašom účte.",
+    "upgrade": "Prémiová verzia",
+    "upgradeTooltip": "Otvoriť váš účet na webe, kde sa kupuje prémiová verzia",
+    "audit": "Zariadenia",
+    "auditTooltip": "Otvoriť stránku zariadení na webe, kde vidno, čo každá inštalácia obsahuje a synchronizuje"
+  }
 }

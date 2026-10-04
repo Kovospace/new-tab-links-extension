@@ -90,6 +90,8 @@ export const CLASS_WORKSPACE_HEADER_RIGHT: string = "cls-workspace-header-right"
 export const CLASS_WORKSPACE_HEAD_TITLE: string = "cls-workspace-head-title";
 export const CLASS_WORKSPACE_HEAD_ACTIONS: string = "cls-workspace-head-actions";
 export const CLASS_SIGNED_OUT_NOTICE: string = "cls-signed-out-notice";
+/** Why the open workspace does not synchronise, in the workspace head. */
+export const CLASS_WORKSPACE_SYNC_NOTICE: string = "cls-workspace-sync-notice";
 
 // Group component
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";

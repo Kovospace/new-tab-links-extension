@@ -4,6 +4,8 @@ import {buildExampleProfileData} from "../backend/datasource/init/AppStateInit";
 import { t } from "../i18n/i18n";
 import { showNotice } from "../ui/partials/confirmations";
 import { refusedUnderFairUse } from "./fairUseNoticeViewModel";
+import { markedAsExample } from "../backend/entity/ExampleData";
+import { profileRepository } from "../backend/repository/ProfileRepository";
 
 export class FirstRunViewModel {
 
@@ -36,7 +38,10 @@ export class FirstRunViewModel {
     }
 
     public async loadDefaults(): Promise<void> {
-        await this.REPOSITORY.replaceCurrentProfileData(buildExampleProfileData());
+        // Flagged as example data: shown as such, never synchronised, and removed at sign-in
+        // unless the user makes it their own first (`ExampleData.ts`).
+        await this.REPOSITORY.replaceCurrentProfileData(markedAsExample(buildExampleProfileData()));
+        await profileRepository.markExample(this.REPOSITORY.getActiveProfileId());
         window.location.reload();
     }
 

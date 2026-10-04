@@ -12,14 +12,18 @@ Keep it current: a new module or a new concern adds a row here.
 | The data model — `AppState`, `Profile`, `ProfileData`, every entity | `backend/entity/AppStateEntity.ts` |
 | All state CRUD (immutable, spread-based) | `backend/repository/AppStateRepository.ts` — **1248 lines, read by range** |
 | Profiles, their registry, import/export | `backend/repository/ProfileRepository.ts`, `backend/repository/ProfileDataTransfer.ts` |
-| Fair use limits - the numbers, the growth checks, the refusal channel, the notice; the account's 409 `FAIR_USE_LIMIT_REACHED` | `backend/entity/FairUseLimits.ts`, `backend/repository/FairUseRefusals.ts`, `viewModel/fairUseNoticeViewModel.ts`; enforced in `AppStateRepository` (`roomForLinks`, `addWorkspace`), `ProfileRepository.createProfile`, `ClosedTabEntity.MAX_CLOSED_TABS`; 409 read in `BackendApiClient`, handled in `SyncCoordinator.push`/`pushThenPull` |
-| Free plan limits - 2 workspaces, 1 profile (enforced by plan: free caps when not premium, fair use when premium), 5 installations (the account's 409 on sign-in); the premium standing they read; the 409 `FREE_PLAN_LIMIT_REACHED` | `backend/entity/FreePlanLimits.ts`, `backend/repository/PremiumStanding.ts`; checked in `AppStateRepository.addWorkspace`, `ProfileRepository.createProfile`, imports via `viewModel/fairUseNoticeViewModel.ts`; 409 read in `BackendApiClient` (`limitRefusal`), handled in `SyncCoordinator` (`limitRefusal$`) and, for `DEVICES`, `SyncAccountViewModel.storeIssuedTokens` |
+| Limits - every number in one place (free / premium FUP, backend names), growth checks, refusal kinds; the account's effective limits (`GET /users/me/plan-limits`, snapshot `planLimits`) published as `planLimits$` | `backend/entity/PlanLimits.ts`, `backend/repository/PremiumStanding.ts` (`planLimits$`, `readStoredPlanLimits` for the worker), `backend/sync/AccountStandingRepository.ts`; enforced in `AppStateRepository` (`refused`, `roomForLinks`), `ProfileRepository.createProfile`, `recordClosedTab` (rolling cap); refusals published on `FairUseRefusals`, said by `viewModel/fairUseNoticeViewModel.ts`; 409 read in `BackendApiClient.limitRefusalIn` |
+| Slots - what synchronises (first N by the account's `createdAt`), push/pull confined to them, pull never erasing local-only data, merge within Fair Use caps, name matching at first contact | `backend/sync/SyncSlots.ts` (`decideSyncScope`), `backend/sync/ScopedSync.ts` (`restrictToScope`, `baselineAfter`, `pulledProfileData`), `backend/sync/CappedMerge.ts`; used in `SyncCoordinator` (`prepareChangeSet`, `send` - one retry on 409, `pull`/`applySnapshot`, `mergeWithAccount`, `adoptNameMatches`); published as `SyncCoordinator.scope$` |
+| Inventory report to the account (names and counts per profile/workspace, sync state) | `backend/sync/InventoryReporter.ts`, called from `SyncCoordinator.reportInventory` after each cycle |
+| Example data flag (fingerprint on the workspace, `example` on the profile), cleared on edit, removed at sign-in | `backend/entity/ExampleData.ts` (settled in `AppStateRepository.save`), `backend/sync/ExampleDataRemoval.ts` (called from `SyncAccountViewModel.storeIssuedTokens`), set in `viewModel/firstRunViewModel.ts` |
+| Unsynchronised marks: crossed sync icon on profiles, workspace notice in the head, rename advice | `viewModel/syncStateViewModel.ts`; `ui/partials/optionsMenu.ts` (`notSynced`), `ui/partials/profileManagerDialog.ts`, `ui/components/workspaceComponent.ts` (`workspaceSyncNotice`) |
+| Device limit and revoked sessions - the 409 `DEVICES` on sign-in (with `manageUrl`), a session the account ended (`SessionRepository.revoked$`) | `viewModel/syncAccountViewModel.ts` (`offerDeviceLimitWayOut`, `explainRevokedSession`) |
 | Per-browser preferences (not synced) | `backend/repository/DevicePreferencesRepository.ts` |
 | Recently closed tabs | `backend/repository/ClosedTabsRepository.ts`, `backend/worker/module/closedTabsRecorder.ts`, `ui/partials/closedTabsPanel.ts` |
 | `chrome.storage.local` keys | `backend/datasource/chromeStorage/storageKeys.ts` |
 | First-run state | `backend/datasource/init/AppStateInit.ts` |
 | Element, action and class names | `constants.ts` (not `main.ts`) |
-| **Sync** — the loop: debounce, push, pull, merge, retry | `backend/sync/SyncCoordinator.ts` — **912 lines, read by range** |
+| **Sync** — the loop: debounce, push, pull, merge, retry | `backend/sync/SyncCoordinator.ts` — **~1450 lines, read by range** |
 | Sync — the wire contract with the backend | `backend/sync/SyncContracts.ts` |
 | Sync — HTTP calls | `backend/sync/BackendApiClient.ts` |
 | Sync — environment values, every endpoint path, the device headers | `backend/sync/SyncConfiguration.ts` |
@@ -55,7 +59,7 @@ Keep it current: a new module or a new concern adds a row here.
 ## Files big enough to read by range
 
 `grep -n` for the function first, then `sed -n 'a,bp'` around it:
-`backend/repository/AppStateRepository.ts` (1248), `backend/sync/SyncCoordinator.ts` (912),
+`backend/repository/AppStateRepository.ts` (1248), `backend/sync/SyncCoordinator.ts` (~1450),
 `ui/components/workspaceComponent.ts` (542), `viewModel/settingsViewModel.ts` (408),
 `ui/partials/closedTabsPanel.ts` (405), `backend/sync/ProfileMergeEngine.ts` (398).
 

@@ -301,5 +301,87 @@ export interface SyncSnapshot {
     links: SnapshotLinkDto[];
     /** Absent from a backend that does not store closed tabs yet, and read as none. */
     closedTabs?: SnapshotClosedTabDto[];
+    /**
+     *  The account's standing and the limits in force for it, the same object
+     *  `GET /api/v1/users/me/plan-limits` returns. Absent from an older backend.
+     */
+    planLimits?: PlanLimitsDto;
     capturedAt: string;
+}
+
+// ------------------------------------------------------------------ the limits
+
+/**
+ *  The account's standing and its effective limits. `limits` is read through
+ *  `planLimitsFrom`, so a number missing from it keeps the compiled default.
+ */
+export interface PlanLimitsDto {
+    premium: boolean;
+    limits: {
+        profiles?: number;
+        workspacesPerProfile?: number;
+        groupsPerWorkspace?: number;
+        subgroupsPerGroup?: number;
+        linksPerWorkspace?: number;
+        closedTabs?: number;
+        devices?: number;
+    };
+}
+
+/** One of the account's profiles as `GET /api/v1/profiles` lists it; only what is read. */
+export interface AccountProfileDto {
+    id: string;
+    name: string;
+    position: number;
+    /** When the profile first reached the account: the order slots are taken in. */
+    createdAt: string;
+}
+
+/** One of the account's workspaces as `GET /api/v1/environments` lists it; only what is read. */
+export interface AccountEnvironmentDto {
+    id: string;
+    profileId: string;
+    name: string;
+    position: number;
+    /** When the workspace first reached the account: the order slots are taken in. */
+    createdAt: string;
+}
+
+// --------------------------------------------------------------- the inventory
+
+/**
+ *  Whether something on this installation synchronises, and if not, why not.
+ *
+ *  `SYNCHRONISED`: it holds a slot and is in step with the account. `LOCAL_ONLY_FREE_LIMIT`:
+ *  it found no free slot under the plan. `LOCAL_ONLY_FAIR_USE`: it is over a Fair Use cap, or
+ *  found no slot under premium's caps. `EXAMPLE`: untouched first-run example data.
+ */
+export type InventorySyncState =
+    | "SYNCHRONISED"
+    | "LOCAL_ONLY_FREE_LIMIT"
+    | "LOCAL_ONLY_FAIR_USE"
+    | "EXAMPLE";
+
+/** One workspace in the inventory: its name and counts, never a group name or an address. */
+export interface InventoryWorkspaceDto {
+    /** The account's identifier for it, or null while it is local only. */
+    accountId: string | null;
+    name: string;
+    syncState: InventorySyncState;
+    groupCount: number;
+    subgroupCount: number;
+    linkCount: number;
+}
+
+/** One profile in the inventory. */
+export interface InventoryProfileDto {
+    accountId: string | null;
+    name: string;
+    syncState: InventorySyncState;
+    workspaces: InventoryWorkspaceDto[];
+}
+
+/** What this installation holds, for the website's device page. */
+export interface DeviceInventoryDto {
+    profiles: InventoryProfileDto[];
 }

@@ -1,6 +1,7 @@
 import { AppStateRepository, appStateRepository } from "../backend/repository/AppStateRepository";
 import { Logger } from "../utils/logger";
-import { canAddLinksToWorkspace, fairUseRefusalOf, FairUseRefusal } from "../backend/entity/FairUseLimits";
+import { LimitRefusal, refusalOfMoreLinks } from "../backend/entity/PlanLimits";
+import { readStoredPlanLimits } from "../backend/repository/PremiumStanding";
 
 /** One place a bookmark can be put: a group, or a subgroup of one. */
 export interface BookmarkTargetDTO {
@@ -104,16 +105,21 @@ export class BookmarkViewModel {
         title: string,
         groupId: string,
         subGroupId?: string
-    ): Promise<FairUseRefusal | null> {
+    ): Promise<LimitRefusal | null> {
         this.LOG.debug("save", `${title} -> group ${groupId}, subgroup ${subGroupId ?? "-"}`);
 
         // Asked here rather than left to the repository, which would refuse too: the popup has
         // nobody listening for the repository's notices, and the form says it in place, where
         // another workspace can still be chosen.
+        // The limits as stored: the popup publishes no standing of its own. The links cap is a
+        // Fair Use one on every plan, so the standing does not change what is said.
         const state = this.appState.state$.get();
         const workspaceId = state.groups[groupId]?.environmentId;
-        if (workspaceId && !canAddLinksToWorkspace(state, workspaceId)) {
-            return fairUseRefusalOf("LINKS_PER_WORKSPACE");
+        const refusal = workspaceId
+            ? refusalOfMoreLinks(state, workspaceId, 1, await readStoredPlanLimits(), true)
+            : null;
+        if (refusal) {
+            return refusal;
         }
 
         await this.appState.createLink(url, title, groupId, subGroupId);

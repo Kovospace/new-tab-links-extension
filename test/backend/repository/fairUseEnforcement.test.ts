@@ -3,14 +3,14 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
-import { FAIR_USE_LIMITS } from "../../../src/backend/entity/FairUseLimits";
+import { PREMIUM_PLAN_LIMITS } from "../../../src/backend/entity/PlanLimits";
 import { fairUseRefusals } from "../../../src/backend/repository/FairUseRefusals";
-import { premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
+import { setStanding } from "../../support/standing";
 import { BookmarkViewModel } from "../../../src/viewModel/bookmarkViewModel";
 import { refusedUnderFairUse } from "../../../src/viewModel/fairUseNoticeViewModel";
 import { environment, group, link, profileOf, subgroup } from "../../support/profileDataFixtures";
 
-const LINKS = FAIR_USE_LIMITS.LINKS_PER_WORKSPACE;
+const LINKS = PREMIUM_PLAN_LIMITS.linksPerWorkspace;
 
 /** `count` links in one group (and optionally subgroup) of one workspace. */
 function links(count: number, workspaceId: string, groupId: string, subGroupId?: string) {
@@ -63,11 +63,11 @@ describe("fair use limits in the repositories", () => {
     });
 
     // The fair use limits cap premium; without it the free plan's lower ones would bind first.
-    beforeEach(() => premiumStanding$.set(true));
+    beforeEach(() => setStanding(true));
 
     afterEach(() => {
         stopListening();
-        premiumStanding$.set(false);
+        setStanding(false);
     });
 
     const linksIn = (workspaceId: string) => Object.values(appState.state$.get().links)
@@ -153,7 +153,7 @@ describe("fair use limits in the repositories", () => {
 
             const refusal = await bookmarks.save("https://example.com/new", "New", "g-full");
 
-            expect(refusal).toEqual({ limit: "LINKS_PER_WORKSPACE", maximum: LINKS });
+            expect(refusal).toEqual({ kind: "FAIR_USE", limit: "LINKS_PER_WORKSPACE", maximum: LINKS });
             expect(linksIn("full")).toBe(LINKS);
             // The popup has nobody listening; the form says it in place.
             expect(refused).toEqual([]);
@@ -164,29 +164,29 @@ describe("fair use limits in the repositories", () => {
     describe("workspaces", () => {
 
         it("refuses a workspace past the limit and keeps every existing one", async () => {
-            for (let index = 2; index < FAIR_USE_LIMITS.WORKSPACES; index++) {
+            for (let index = 2; index < PREMIUM_PLAN_LIMITS.workspacesPerProfile; index++) {
                 await appState.addWorkspace(`Workspace ${index}`);
             }
-            expect(appState.getWorkspaces()).toHaveLength(FAIR_USE_LIMITS.WORKSPACES);
+            expect(appState.getWorkspaces()).toHaveLength(PREMIUM_PLAN_LIMITS.workspacesPerProfile);
             expect(refused).toEqual([]);
 
             await appState.addWorkspace("One too many");
 
-            expect(appState.getWorkspaces()).toHaveLength(FAIR_USE_LIMITS.WORKSPACES);
-            expect(refused).toEqual(["WORKSPACES"]);
+            expect(appState.getWorkspaces()).toHaveLength(PREMIUM_PLAN_LIMITS.workspacesPerProfile);
+            expect(refused).toEqual(["WORKSPACES_PER_PROFILE"]);
         });
     });
 
     describe("profiles", () => {
 
         it("refuses a profile past the limit, whether created or imported", async () => {
-            while (profiles.getProfiles().length < FAIR_USE_LIMITS.PROFILES) {
+            while (profiles.getProfiles().length < PREMIUM_PLAN_LIMITS.profiles) {
                 expect(await profiles.createProfile(`Profile ${profiles.getProfiles().length}`))
                     .not.toBeNull();
             }
 
             expect(await profiles.createProfile("One too many")).toBeNull();
-            expect(profiles.getProfiles()).toHaveLength(FAIR_USE_LIMITS.PROFILES);
+            expect(profiles.getProfiles()).toHaveLength(PREMIUM_PLAN_LIMITS.profiles);
             expect(refused).toEqual(["PROFILES"]);
         });
     });

@@ -1,19 +1,33 @@
 {
   "title": "Fair use limit reached",
+  "openFairUse": "Read the Fair Use Policy",
   "limits": {
-    "LINKS_PER_WORKSPACE": "A workspace can hold at most {maximum} links. Remove some from this one, or put the new link into another workspace. Nothing you already have was changed.",
-    "WORKSPACES": "You can have at most {maximum} workspaces. Delete one before adding another. Nothing you already have was changed.",
+    "LINKS_PER_WORKSPACE": "A workspace can hold at most {maximum} links. Remove some from this one, or put the new link into another workspace. Nothing you already have was changed. If you need more, the Fair Use Policy says how to ask for a raise.",
+    "GROUPS_PER_WORKSPACE": "A workspace can hold at most {maximum} groups. Remove one from this workspace, or add the group to another one. Nothing you already have was changed. If you need more, the Fair Use Policy says how to ask for a raise.",
+    "SUBGROUPS_PER_GROUP": "A group can hold at most {maximum} subgroups. Remove one from this group, or add the subgroup to another one. Nothing you already have was changed. If you need more, the Fair Use Policy says how to ask for a raise.",
+    "WORKSPACES_PER_PROFILE": "A profile can hold at most {maximum} workspaces. Delete one before adding another. Nothing you already have was changed.",
     "PROFILES": "You can have at most {maximum} profiles. Delete one before adding another. Nothing you already have was changed.",
-    "CLOSED_TAB_HISTORY": "The closed tabs history keeps at most the {maximum} most recent tabs; older ones make room for newer ones."
+    "DEVICES": "This account already has {maximum} synchronised installations. Sign out of one on the website's devices page. Until then this browser stays signed out and keeps working with your links locally."
   },
   "freePlan": {
     "title": "Free plan limit reached",
     "upgrade": "Upgrade to premium",
     "openDevices": "Open the devices page",
+    "logIn": "Log in",
+    "register": "Create an account",
+    "signedOutOffer": "To have more, log in to an account with premium, or create one and upgrade.",
     "limits": {
-      "WORKSPACES": "The free plan includes {maximum} workspaces. Upgrade to premium to add more, or delete one before adding another. Nothing you already have was changed.",
+      "WORKSPACES_PER_PROFILE": "The free plan includes {maximum} workspaces per profile. Upgrade to premium to add more, or delete one before adding another. Nothing you already have was changed.",
       "PROFILES": "The free plan includes {maximum} profile. Upgrade to premium to add more, or delete one before adding another. Nothing you already have was changed.",
-      "DEVICES": "This account already has {maximum} synchronised installations on the free plan. Remove one on the website's devices page, or upgrade to premium. Until then this browser stays signed out and keeps working with your links locally."
+      "DEVICES": "This account already has {maximum} synchronised installations on the free plan. Sign out of one on the website's devices page, or upgrade to premium. Until then this browser stays signed out and keeps working with your links locally."
     }
+  },
+  "heldApart": {
+    "title": "Not merged: over a fair use limit",
+    "message": "These workspaces have the same name as workspaces on your account, but joining them would go over a fair use limit: {names}. They stay on this device only, unchanged. See what each installation holds on the website's devices page, or ask for a raise as the Fair Use Policy describes."
+  },
+  "revoked": {
+    "title": "Signed out",
+    "message": "This browser was signed out by your account. It keeps all your links here. If your premium ended, installations beyond the free plan's {maximum} are signed out - sign out of another one on the devices page, or upgrade, and then log in again."
   }
 }

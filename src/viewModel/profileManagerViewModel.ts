@@ -6,6 +6,7 @@ import { isStorableName } from "../backend/sync/SyncContracts";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 import { t } from "../i18n/i18n";
+import { syncStateViewModel } from "./syncStateViewModel";
 
 /** One row of the profile manager. */
 export interface ManagedProfileDTO {
@@ -21,6 +22,9 @@ export interface ManagedProfileDTO {
 
     /** True when the profile holds nothing at all, which is what a stray one looks like. */
     empty: boolean;
+
+    /** Why the profile does not synchronise, for the crossed-out mark; null when it does. */
+    notSyncedReason: string | null;
 }
 
 /**
@@ -197,6 +201,7 @@ export class ProfileManagerViewModel {
             name: profile.name,
             active: profile.id === activeProfileId,
             empty: workspaces === 0 && links === 0,
+            notSyncedReason: syncStateViewModel.profileReason(profile.id),
             contentsLabel: workspaces === 0 && links === 0
                 ? t("profiles.contents.empty")
                 : t("profiles.contents.summary", {

@@ -548,36 +548,38 @@ validation, `errors` for the account, `dates` for anything about time.
   whenever its owner changed language and make "was this closed elsewhere" answer yes on the
   device it happened on.
 
-### Fair use limits (`entity/FairUseLimits.ts`)
+### Limits and slots (`entity/PlanLimits.ts`, `sync/SyncSlots.ts`)
 
-The website's Fair Use Policy caps premium's "unlimited": 500 links per workspace (every plan),
-50 workspaces, 50 profiles, 500 closed tabs. The numbers are written once, in `FAIR_USE_LIMITS`,
-named as the backend names them.
+The owner's design is `new-tab-links-frontend/.claude/assignments/account-limits-handling.md`.
 
-- **Only growth is refused.** Every path that adds goes through a repository door that checks:
-  `AppStateRepository.roomForLinks` (create, drop a closed tab, move a link, subgroup or group in
-  from another workspace), `addWorkspace`, `ProfileRepository.createProfile`. Imports are judged
-  whole (`refusedUnderFairUse`). Data already over a limit is never trimmed or hidden. The
-  repositories publish the refusal on `fairUseRefusals`; `fairUseNoticeViewModel` is the only
-  thing that turns it into a notice. The bookmark popup has nobody listening and says it inline.
-- **The account refuses a whole push with 409 `FAIR_USE_LIMIT_REACHED`.** The coordinator then
-  does not pull - the pull would delete exactly what was refused - and does not resend the same
-  change set from debounced pushes. A push-then-pull (page opening, change notification) tries
-  once more. The account menu's status says the limit instead of "Synchronised"; a notice is
-  shown only when a local change was what got refused.
-- **The free plan's limits (`entity/FreePlanLimits.ts`): 2 workspaces, 1 profile, 5
-  synchronised installations.** Free means not premium: nobody signed in, or the last known
-  standing of the signed-in account is not premium. `AccountStandingRepository` publishes it
-  into `repository/PremiumStanding.ts`'s `premiumStanding$` (stored, never awaited from the
-  network); the repositories read that. Effective cap: free numbers when not premium, fair use
-  when premium (`refusalOfAnotherWorkspace`, `refusalOfAnotherProfile`, `limitViolationIn` for
-  imports). Links have no free limit. Same grow-only rule - a lapsed premium user keeps
-  everything. A free plan refusal's notice offers the upgrade (`openPremiumUpgradePage`).
-- **The account's 409 `FREE_PLAN_LIMIT_REACHED`** (`limit` `WORKSPACES` | `PROFILES` | `DEVICES`)
-  is read beside the fair use one (`ApiResult.limitRefusal`) and handled identically in sync
-  (`SyncCoordinator.limitRefusal$`). `DEVICES` is counted only by the account and arrives on a
-  password sign-in or a pairing code: nothing is stored, the extension stays signed out, and a
-  dialog offers the website's devices page or the upgrade (`SyncAccountViewModel.storeIssuedTokens`).
+- **One table of numbers** (`PlanLimits.ts`): free 1 profile, 2 workspaces per profile, 25
+  closed tabs, 5 installations; premium (Fair Use) 50 / 50 / 500 / 100; every plan 25 groups per
+  workspace, 25 subgroups per group, 500 links per workspace. Names are the backend's `limit`
+  values. **The compiled numbers are only the signed-out default** - the account sends its
+  effective limits (`GET /users/me/plan-limits`, `planLimits` on the snapshot), published as
+  `planLimits$`; the worker reads them from storage (`readStoredPlanLimits`).
+- **Only growth is refused, nothing is ever deleted, hidden or locked.** Every adding door checks
+  (`AppStateRepository.refused` / `roomForLinks`, `ProfileRepository.createProfile`, imports whole).
+  A refusal's `kind` decides the notice: `FREE_PLAN` offers the upgrade (or, signed out, log in /
+  create an account); `FAIR_USE` links to `/fair-use`. The closed tabs history rolls - a list
+  longer than the cap loses one entry per new one, never all at once.
+- **Slots decide what synchronises, on this side** (`decideSyncScope`): the account's first N by
+  its `createdAt` hold slots, what this device brings takes what is left; example data and a
+  workspace over a Fair Use cap never synchronise; never half a workspace. Before a push the
+  account's lists (`GET /profiles`, `GET /environments`) are read; a 409 re-reads them and
+  pushes once more without what lost - no loop.
+- **Push and pull are confined to the scope** (`ScopedSync.ts`). The baseline keeps out-of-scope
+  items at their last synchronised state. **The pull deletes a local profile or workspace only
+  when the baseline says the account held it** (deleted elsewhere) or the server remapped it;
+  anything else absent from the snapshot is local only and stays. Records *inside* a
+  synchronised workspace are still replaced by the account's copy.
+- **Name matching only at first contact** - at sign-in, and in steady state for anything never
+  synchronised (`adoptNameMatches`), so renaming a local-only item to the account's name merges
+  it. That includes a brand-new workspace given an existing workspace's name. A merge that would
+  go over a Fair Use cap keeps that workspace apart, local only (`CappedMerge.ts`, `heldApart$`).
+- **Example data** (`ExampleData.ts`): a fingerprint on each example workspace, cleared for good
+  by the first save that changes it; never synchronised; removed at sign-in if untouched.
+- After each cycle the installation reports its inventory (names and counts only) when it changed.
 
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 

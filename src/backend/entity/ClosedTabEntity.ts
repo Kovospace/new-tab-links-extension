@@ -1,4 +1,4 @@
-import { FAIR_USE_LIMITS } from "./FairUseLimits";
+import { PREMIUM_PLAN_LIMITS } from "./PlanLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../sync/SyncContracts";
 
 /**
@@ -37,15 +37,13 @@ export interface ClosedTab {
 }
 
 /**
- *  How many closed tabs one profile keeps: the fair use limit on the history.
+ *  The most closed tabs the panel ever draws: premium's compiled history length.
  *
- *  A cap rather than a full history. Every entry is pushed to the account and travels to every
- *  other device, so an uncapped list would be a browsing history in somebody else's database
- *  growing without limit. It was fifty until the Fair Use Policy promised the newest five
- *  hundred; the number now lives with the other limits, and the oldest entry still drops off
- *  as a new one arrives (`recordClosedTab`).
+ *  Not the cap a list is kept to - that is the plan's (`PlanLimits.closedTabs`: 25 free, 500
+ *  premium, or what the account says), applied where an entry is recorded (`recordClosedTab`).
+ *  This is only the bound on drawing, for a list pulled from an account that kept more.
  */
-export const MAX_CLOSED_TABS: number = FAIR_USE_LIMITS.CLOSED_TAB_HISTORY;
+export const MAX_CLOSED_TABS: number = PREMIUM_PLAN_LIMITS.closedTabs;
 
 /**
  *  One closed tab cut down to what the account will accept.

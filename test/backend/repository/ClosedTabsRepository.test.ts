@@ -4,7 +4,7 @@ import {
     ClosedTabsRepository, newestFirst, readClosedTabs, recordClosedTab, writeClosedTabs
 } from "../../../src/backend/repository/ClosedTabsRepository";
 import { MAX_CLOSED_TABS } from "../../../src/backend/entity/ClosedTabEntity";
-import { FAIR_USE_LIMITS } from "../../../src/backend/entity/FairUseLimits";
+import { FREE_PLAN_LIMITS, PREMIUM_PLAN_LIMITS } from "../../../src/backend/entity/PlanLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../../src/backend/sync/SyncContracts";
 import { closedTabsKey } from "../../../src/backend/datasource/chromeStorage/storageKeys";
 import { flushStorageNotifications, readFakeStorage } from "../../support/chromeStorageStub";
@@ -64,22 +64,46 @@ describe("recordClosedTab", () => {
         expect(newestFirst(await readClosedTabs(PROFILE))).toHaveLength(2);
     });
 
-    it("keeps the newest fair-use maximum, the oldest dropping off as a new one arrives", async () => {
-        // Every entry is pushed to the account and travels to every device, so the list is
-        // capped rather than kept - at the Fair Use Policy's number, which says exactly this.
-        // Filled directly rather than by recording each: five hundred recordings, each reading
-        // and comparing the whole list, is slower than the test runner waits.
-        expect(MAX_CLOSED_TABS).toBe(FAIR_USE_LIMITS.CLOSED_TAB_HISTORY);
+    /** Stores `count` closed tabs directly - recording each would read the list every time. */
+    async function fillWith(count: number): Promise<void> {
         await writeClosedTabs(PROFILE, Object.fromEntries(
-            Array.from({ length: MAX_CLOSED_TABS }, (_, i) => [`tab-${i}`, {
+            Array.from({ length: count }, (_, i) => [`tab-${i}`, {
                 id: `tab-${i}`, ...closure(`https://example.com/${i}`, i)
             }])));
+    }
 
-        await recordClosedTab(PROFILE, closure(`https://example.com/${MAX_CLOSED_TABS}`, MAX_CLOSED_TABS));
+    it("keeps the newest of the plan's maximum, the oldest dropping off as a new one arrives", async () => {
+        // Premium's history is the longest the panel draws.
+        expect(MAX_CLOSED_TABS).toBe(PREMIUM_PLAN_LIMITS.closedTabs);
+        await fillWith(PREMIUM_PLAN_LIMITS.closedTabs);
+
+        await recordClosedTab(PROFILE, closure("https://example.com/new", 100000), PREMIUM_PLAN_LIMITS.closedTabs);
 
         const stored = newestFirst(await readClosedTabs(PROFILE));
-        expect(stored).toHaveLength(MAX_CLOSED_TABS);
-        expect(stored[0].url).toBe(`https://example.com/${MAX_CLOSED_TABS}`);
+        expect(stored).toHaveLength(PREMIUM_PLAN_LIMITS.closedTabs);
+        expect(stored[0].url).toBe("https://example.com/new");
+        expect(stored.map(tab => tab.url)).not.toContain("https://example.com/0");
+    });
+
+    it("keeps the free plan's 25 when nobody is signed in", async () => {
+        await fillWith(FREE_PLAN_LIMITS.closedTabs);
+
+        await recordClosedTab(PROFILE, closure("https://example.com/new", 100000));
+
+        expect(await readClosedTabs(PROFILE)).toSatisfy(
+            (tabs: object) => Object.keys(tabs).length === FREE_PLAN_LIMITS.closedTabs);
+    });
+
+    it("rolls a history longer than the cap rather than cutting it down at once", async () => {
+        // Premium has just ended: five hundred kept, twenty-five allowed. The list loses its
+        // oldest entry as each new one arrives - never four hundred and seventy-five at once.
+        await fillWith(40);
+
+        await recordClosedTab(PROFILE, closure("https://example.com/new", 100000), FREE_PLAN_LIMITS.closedTabs);
+
+        const stored = newestFirst(await readClosedTabs(PROFILE));
+        expect(stored).toHaveLength(40);
+        expect(stored[0].url).toBe("https://example.com/new");
         expect(stored.map(tab => tab.url)).not.toContain("https://example.com/0");
     });
 

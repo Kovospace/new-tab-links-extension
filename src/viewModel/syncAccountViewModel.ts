@@ -2,7 +2,9 @@
 import { ApiResult, backendApiClient, BackendApiClient } from "../backend/sync/BackendApiClient";
 import { SessionRepository, sessionRepository, SyncSession, TokenPairDto } from "../backend/sync/SessionRepository";
 import { buildWebsiteUrl, WEBSITE_PATHS } from "../backend/sync/SyncConfiguration";
-import { SyncActivity, syncCoordinator, SyncRejectionNotice } from "../backend/sync/SyncCoordinator";
+import { HeldApartNotice, SyncActivity, syncCoordinator, SyncRejectionNotice } from "../backend/sync/SyncCoordinator";
+import { removeUntouchedExamples } from "../backend/sync/ExampleDataRemoval";
+import { appStateRepository } from "../backend/repository/AppStateRepository";
 import { DeviceNameReconciler, DeviceNameVerdict } from "../backend/sync/DeviceNameReconciler";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { accountStandingRepository, AccountStandingRepository } from "../backend/sync/AccountStandingRepository";
@@ -15,7 +17,7 @@ import { showNotice } from "../ui/partials/confirmations";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 import { t } from "../i18n/i18n";
-import { isFreePlanRefusal, LimitRefusal } from "../backend/entity/FreePlanLimits";
+import { FREE_PLAN_LIMITS, LimitRefusal } from "../backend/entity/PlanLimits";
 import { describeFairUseRefusal } from "./fairUseNoticeViewModel";
 
 /**
@@ -31,6 +33,23 @@ export function openPremiumUpgradePage(
 ): void {
     void standing.markStale();
     chrome.tabs.create({ url: buildWebsiteUrl(WEBSITE_PATHS.accountSettings) });
+}
+
+/** Opens the website's Fair Use Policy, which also says how to ask for a raise. */
+export function openFairUsePage(): void {
+    chrome.tabs.create({ url: buildWebsiteUrl(WEBSITE_PATHS.fairUse) });
+}
+
+/**
+ *  Asks whoever draws the log-in dialog to show it: a limit's notice on an installation nobody
+ *  is signed in to offers logging in to an account with premium. A counter, so every request
+ *  is news to `ObservableValue`.
+ */
+export const logInRequests$ = new ObservableValue<number>(0);
+
+/** Requests the log-in dialog; see `logInRequests$`. */
+export function requestLogIn(): void {
+    logInRequests$.set(logInRequests$.get() + 1);
 }
 
 /** What the application menu needs to know about the signed-in account. */
@@ -127,6 +146,19 @@ export class SyncAccountViewModel {
         syncCoordinator.rejections$.subscribe((notice: SyncRejectionNotice | null) => {
             this.reportRefusedChanges(notice);
         });
+        syncCoordinator.heldApart$.subscribe((notice: HeldApartNotice | null) => {
+            if (notice) {
+                void this.adviseOnHeldApart(notice);
+            }
+        });
+        let revokedReplayed = false;
+        this.sessions.revoked$.subscribe(() => {
+            if (!revokedReplayed) {
+                revokedReplayed = true;     // the current count, not news
+                return;
+            }
+            void this.explainRevokedSession();
+        });
     }
 
     /**
@@ -213,9 +245,14 @@ export class SyncAccountViewModel {
         openPremiumUpgradePage(this.standing);
     }
 
-    /** Opens the website's devices page, where an installation is removed from the account. */
-    public openDevicesPage(): void {
-        const url = buildWebsiteUrl(WEBSITE_PATHS.devices);
+    /**
+     *  Opens the website's devices page, where an installation is signed out and where what
+     *  each one holds can be audited.
+     *
+     *  @param manageUrl the address the account named for it, when it named one
+     */
+    public openDevicesPage(manageUrl?: string): void {
+        const url = manageUrl ?? buildWebsiteUrl(WEBSITE_PATHS.devices);
         this.LOG.debug("openDevicesPage", url);
         chrome.tabs.create({ url });
     }
@@ -289,17 +326,19 @@ export class SyncAccountViewModel {
         failureHeadline: string
     ): Promise<void> {
         if (result.outcome === "success") {
+            // Untouched example data goes before the account sees anything: it was only ever
+            // there to show what the page does, and is never synchronised (`ExampleData.ts`).
+            await removeUntouchedExamples(appStateRepository, this.profiles);
             const session = await this.sessions.storeTokenPair(result.data);
             this.LOG.log("storeIssuedTokens", `Signed in as ${session.username}`);
             await this.reconcileDeviceName();
             return;
         }
         this.LOG.warn("storeIssuedTokens", `${failureHeadline} ${result.message}`);
-        if (result.outcome === "rejected" && result.limitRefusal
-            && isFreePlanRefusal(result.limitRefusal) && result.limitRefusal.limit === "DEVICES") {
+        if (result.outcome === "rejected" && result.limitRefusal?.limit === "DEVICES") {
             // Nothing was stored, so this installation stays signed out and keeps working
             // locally. The account is what counts its installations; this one only says so.
-            void this.offerDeviceLimitWayOut(result.limitRefusal.maximum);
+            void this.offerDeviceLimitWayOut(result.limitRefusal);
             return;
         }
         this.report(t("sync.reportedFailure",
@@ -420,16 +459,40 @@ export class SyncAccountViewModel {
     }
 
     /**
-     *  Says that the account already has as many synchronised installations as the free plan
-     *  allows, and offers both ways on: removing one on the website's devices page, or
-     *  upgrading. Not awaited by the sign-in that was refused.
+     *  Says that the account already has as many synchronised installations as its plan allows,
+     *  and offers the ways on: signing out of one on the website's devices page - the address
+     *  the account named - or, on the free plan, upgrading. Not awaited by the sign-in that was
+     *  refused.
      *
-     *  @param maximum how many the free plan allows, as the account said
+     *  @param refusal the account's refusal, with its number and its devices page
      */
-    private async offerDeviceLimitWayOut(maximum: number): Promise<void> {
+    private async offerDeviceLimitWayOut(refusal: LimitRefusal): Promise<void> {
+        const freePlan = refusal.kind === "FREE_PLAN";
         const answer = await new ChoiceDialog<"devices" | "upgrade" | "ok">(
-            t("fairUse.freePlan.title"),
-            describeFairUseRefusal({ plan: "FREE", limit: "DEVICES", maximum }),
+            freePlan ? t("fairUse.freePlan.title") : t("fairUse.title"),
+            describeFairUseRefusal(refusal),
+            [
+                { label: t("fairUse.freePlan.openDevices"), value: "devices" },
+                ...(freePlan ? [{ label: t("fairUse.freePlan.upgrade"), value: "upgrade" as const }] : []),
+                { label: t("common.ok"), value: "ok" }
+            ]
+        ).ask();
+        if (answer === "devices") {
+            this.openDevicesPage(refusal.manageUrl);
+        } else if (answer === "upgrade") {
+            this.openAccountSettingsPage();
+        }
+    }
+
+    /**
+     *  Says why this browser is signed out when the account ended the session: revoked from
+     *  the website, or - when premium ended - one of the installations beyond the free plan's
+     *  limit. Worded like a refused sign-in, with the same two ways on.
+     */
+    private async explainRevokedSession(): Promise<void> {
+        const answer = await new ChoiceDialog<"devices" | "upgrade" | "ok">(
+            t("fairUse.revoked.title"),
+            t("fairUse.revoked.message", { maximum: FREE_PLAN_LIMITS.devices }),
             [
                 { label: t("fairUse.freePlan.openDevices"), value: "devices" },
                 { label: t("fairUse.freePlan.upgrade"), value: "upgrade" },
@@ -440,6 +503,27 @@ export class SyncAccountViewModel {
             this.openDevicesPage();
         } else if (answer === "upgrade") {
             this.openAccountSettingsPage();
+        }
+    }
+
+    /**
+     *  Says that a merge by name stopped short of a Fair Use cap, and where to go from there:
+     *  the devices page to audit, or the policy to ask for a raise.
+     */
+    private async adviseOnHeldApart(notice: HeldApartNotice): Promise<void> {
+        const answer = await new ChoiceDialog<"devices" | "policy" | "ok">(
+            t("fairUse.heldApart.title"),
+            t("fairUse.heldApart.message", { names: notice.names.join(", ") }),
+            [
+                { label: t("fairUse.freePlan.openDevices"), value: "devices" },
+                { label: t("fairUse.openFairUse"), value: "policy" },
+                { label: t("common.ok"), value: "ok" }
+            ]
+        ).ask();
+        if (answer === "devices") {
+            this.openDevicesPage();
+        } else if (answer === "policy") {
+            openFairUsePage();
         }
     }
 

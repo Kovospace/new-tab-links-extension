@@ -1,4 +1,7 @@
-import { SyncOperation, SyncSnapshot } from "../../src/backend/sync/SyncContracts";
+import {
+    AccountEnvironmentDto, AccountProfileDto, SyncOperation, SyncSnapshot
+} from "../../src/backend/sync/SyncContracts";
+import { ApiResult } from "../../src/backend/sync/BackendApiClient";
 
 /**
  *  An account that applies what it is pushed and serves it back.
@@ -24,6 +27,14 @@ export class FakeAccount {
     private readonly closedTabs = new Map<string, Record<string, unknown>>();
 
     private readonly at = "2026-01-01T00:00:00Z";
+
+    /**
+     *  When each record first reached the account. Stamped once, on the first upsert, and kept
+     *  through later ones - which is what slots are ordered by (`SyncSlots.ts`).
+     */
+    private readonly firstSeen = new Map<string, string>();
+    private clock = Date.parse("2026-01-01T00:00:00Z");
+
 
     /** Applies a pushed batch, in the order it was sent. */
     public apply(operations: SyncOperation[]): void {
@@ -51,6 +62,21 @@ export class FakeAccount {
         };
     }
 
+    /**
+     *  The two list endpoints a push reads to decide slots, served from what is stored -
+     *  spread into a fake API client beside `fetchSnapshot` and `pushChanges`.
+     */
+    public listEndpoints() {
+        return {
+            listAccountProfiles: () => Promise.resolve({
+                outcome: "success", data: this.ordered(this.profiles)
+            } as unknown as ApiResult<AccountProfileDto[]>),
+            listAccountEnvironments: () => Promise.resolve({
+                outcome: "success", data: this.ordered(this.environments)
+            } as unknown as ApiResult<AccountEnvironmentDto[]>)
+        };
+    }
+
     private storeFor(kind: SyncOperation["type"]): Map<string, Record<string, unknown>> {
         switch (kind) {
             case "profile": return this.profiles;
@@ -72,7 +98,11 @@ export class FakeAccount {
      *  the extension's own mapping would hide.
      */
     private record(operation: SyncOperation): Record<string, unknown> {
-        const common = { id: operation.id, createdAt: this.at, updatedAt: this.at };
+        if (!this.firstSeen.has(operation.id)) {
+            this.clock += 1000;
+            this.firstSeen.set(operation.id, new Date(this.clock).toISOString());
+        }
+        const common = { id: operation.id, createdAt: this.firstSeen.get(operation.id), updatedAt: this.at };
 
         switch (operation.type) {
             case "profile":

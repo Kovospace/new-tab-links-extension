@@ -7,9 +7,9 @@ import { DEFAULT_PROFILE_ID } from "../datasource/init/AppStateInit";
 import { uid } from "./AppStateRepositoryUtils";
 import { isStorableName } from "../sync/SyncContracts";
 import { Logger } from "../../utils/logger";
-import { refusalOfAnotherProfile } from "../entity/FreePlanLimits";
+import { refusalOfAnotherProfile } from "../entity/PlanLimits";
 import { fairUseRefusals } from "./FairUseRefusals";
-import { premiumStanding$ } from "./PremiumStanding";
+import { planLimits$, premiumStanding$ } from "./PremiumStanding";
 import { hiddenProfileRegistryKey, PROFILE_REGISTRY_KEY } from "../datasource/chromeStorage/storageKeys";
 
 /** The account a set of profiles belongs to. */
@@ -272,7 +272,7 @@ export class ProfileRepository {
             return null;
         }
         const refusal = refusalOfAnotherProfile(
-            Object.keys(this.registry.profiles).length, premiumStanding$.get());
+            Object.keys(this.registry.profiles).length, planLimits$.get(), premiumStanding$.get());
         if (refusal) {
             // The free plan's limit or the fair use one, which an import meets here too.
             // Profiles already over it stay; only another one is refused.
@@ -319,9 +319,11 @@ export class ProfileRepository {
         }
         if (existing.name === name) return;
 
+        // A renamed profile is the user's own: the example flag goes for good.
+        const { example: _example, ...owned } = existing;
         this.registry = {
             ...this.registry,
-            profiles: { ...this.registry.profiles, [id]: { ...existing, name } }
+            profiles: { ...this.registry.profiles, [id]: { ...owned, name } }
         };
         await this.saveRegistry();
         this.profiles$.set(Object.values(this.registry.profiles));
@@ -367,9 +369,31 @@ export class ProfileRepository {
             return;
         }
 
+        // Configured, so the user's own: the example flag goes for good.
+        const { example: _example, ...owned } = existing;
         this.registry = {
             ...this.registry,
-            profiles: { ...this.registry.profiles, [id]: { ...existing, settings } }
+            profiles: { ...this.registry.profiles, [id]: { ...owned, settings } }
+        };
+        await this.saveRegistry();
+        this.profiles$.set(Object.values(this.registry.profiles));
+    }
+
+    /**
+     * Marks a profile as the first-run example, because the start screen has just loaded the
+     * examples into it. Only the seeded profile qualifies - one the user created and named is
+     * theirs whatever they load into it - and only while it holds nothing else.
+     *
+     * @param id the profile the examples were loaded into
+     */
+    public async markExample(id: string): Promise<void> {
+        const existing = this.registry.profiles[id];
+        if (!existing || existing.example === true || Object.keys(this.registry.profiles).length !== 1) {
+            return;
+        }
+        this.registry = {
+            ...this.registry,
+            profiles: { ...this.registry.profiles, [id]: { ...existing, example: true } }
         };
         await this.saveRegistry();
         this.profiles$.set(Object.values(this.registry.profiles));

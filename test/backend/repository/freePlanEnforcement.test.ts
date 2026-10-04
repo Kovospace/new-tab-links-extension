@@ -3,10 +3,11 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
-import { FAIR_USE_LIMITS } from "../../../src/backend/entity/FairUseLimits";
-import { LimitRefusal } from "../../../src/backend/entity/FreePlanLimits";
+import { PREMIUM_PLAN_LIMITS } from "../../../src/backend/entity/PlanLimits";
+import { LimitRefusal } from "../../../src/backend/entity/PlanLimits";
 import { fairUseRefusals } from "../../../src/backend/repository/FairUseRefusals";
-import { premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
+import { setStanding } from "../../support/standing";
+import { planLimits$, premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
 import {
     accountStandingRepository
 } from "../../../src/backend/sync/AccountStandingRepository";
@@ -27,7 +28,7 @@ describe("free plan limits in the repositories", () => {
     let stopListening: () => void;
 
     beforeEach(async () => {
-        premiumStanding$.set(false);
+        setStanding(false);
         profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();
@@ -48,13 +49,14 @@ describe("free plan limits in the repositories", () => {
 
     afterEach(() => {
         stopListening();
-        premiumStanding$.set(false);
+        setStanding(false);
     });
 
     const workspaceCount = () => appState.getWorkspaces().length;
 
     it("reads the standing the account standing repository publishes", () => {
         expect(accountStandingRepository.premium$).toBe(premiumStanding$);
+        expect(accountStandingRepository.limits$).toBe(planLimits$);
     });
 
     describe("workspaces", () => {
@@ -64,11 +66,11 @@ describe("free plan limits in the repositories", () => {
             await appState.addWorkspace("Three");
 
             expect(workspaceCount()).toBe(2);
-            expect(refused).toEqual([{ plan: "FREE", limit: "WORKSPACES", maximum: 2, sequence: expect.any(Number) }]);
+            expect(refused).toEqual([{ kind: "FREE_PLAN", limit: "WORKSPACES_PER_PROFILE", maximum: 2, sequence: expect.any(Number) }]);
         });
 
         it("premium: takes a third and more", async () => {
-            premiumStanding$.set(true);
+            setStanding(true);
 
             await appState.addWorkspace("Two");
             await appState.addWorkspace("Three");
@@ -79,15 +81,15 @@ describe("free plan limits in the repositories", () => {
         });
 
         it("downgrade: keeps every workspace editable, refuses only another, takes one once back under", async () => {
-            premiumStanding$.set(true);
+            setStanding(true);
             await appState.addWorkspace("Two");
             await appState.addWorkspace("Three");
             await appState.addWorkspace("Four");
-            premiumStanding$.set(false);
+            setStanding(false);
 
             await appState.addWorkspace("Five");
             expect(workspaceCount()).toBe(4);
-            expect(refused.map(refusal => refusal.limit)).toEqual(["WORKSPACES"]);
+            expect(refused.map(refusal => refusal.limit)).toEqual(["WORKSPACES_PER_PROFILE"]);
 
             const fourth = appState.getWorkspaces().find(workspace => workspace.name === "Four")!;
             await appState.renameWorkspace(fourth.id, "Renamed");
@@ -112,12 +114,12 @@ describe("free plan limits in the repositories", () => {
             expect(refusedAnotherProfile(profiles.getProfiles().length)).toBe(true);
 
             expect(profiles.getProfiles()).toHaveLength(1);
-            expect(refused.map(refusal => [("plan" in refusal) ? refusal.plan : null, refusal.limit]))
-                .toEqual([["FREE", "PROFILES"], ["FREE", "PROFILES"]]);
+            expect(refused.map(refusal => [refusal.kind, refusal.limit]))
+                .toEqual([["FREE_PLAN", "PROFILES"], ["FREE_PLAN", "PROFILES"]]);
         });
 
         it("premium: takes a second profile", async () => {
-            premiumStanding$.set(true);
+            setStanding(true);
 
             expect(await profiles.createProfile("Second")).not.toBeNull();
             expect(refusedAnotherProfile(profiles.getProfiles().length)).toBe(false);
@@ -125,9 +127,9 @@ describe("free plan limits in the repositories", () => {
         });
 
         it("downgrade: keeps every profile, refuses only another", async () => {
-            premiumStanding$.set(true);
+            setStanding(true);
             const second = await profiles.createProfile("Second");
-            premiumStanding$.set(false);
+            setStanding(false);
 
             expect(await profiles.createProfile("Third")).toBeNull();
             await profiles.renameProfile(second!.id, "Renamed");
@@ -144,7 +146,7 @@ describe("free plan limits in the repositories", () => {
             await appState.replaceCurrentProfileData(profileOf({
                 environments: [environment("w1", "One", 0)],
                 groups: [group("g1", "Group", "w1")],
-                links: Array.from({ length: FAIR_USE_LIMITS.LINKS_PER_WORKSPACE - 1 }, (_, index) =>
+                links: Array.from({ length: PREMIUM_PLAN_LIMITS.linksPerWorkspace - 1 }, (_, index) =>
                     link(`l${index}`, `L${index}`, `https://example.com/${index}`, "g1", "w1", { position: index })),
                 activeEnvironmentId: "w1"
             }));
@@ -152,9 +154,9 @@ describe("free plan limits in the repositories", () => {
             await appState.createLink("https://example.com/last", "Last", "g1");
             await appState.createLink("https://example.com/over", "Over", "g1");
 
-            expect(Object.keys(appState.state$.get().links)).toHaveLength(FAIR_USE_LIMITS.LINKS_PER_WORKSPACE);
+            expect(Object.keys(appState.state$.get().links)).toHaveLength(PREMIUM_PLAN_LIMITS.linksPerWorkspace);
             expect(refused.map(refusal => refusal.limit)).toEqual(["LINKS_PER_WORKSPACE"]);
-            expect("plan" in refused[0]).toBe(false);
+            expect(refused[0].kind).toBe("FAIR_USE");
         });
     });
 
@@ -166,12 +168,12 @@ describe("free plan limits in the repositories", () => {
 
         it("free: refuses a file with more workspaces than the free plan allows", () => {
             expect(refusedUnderFairUse(threeWorkspaces)).toBe(true);
-            expect(refused.map(refusal => refusal.limit)).toEqual(["WORKSPACES"]);
-            expect("plan" in refused[0]).toBe(true);
+            expect(refused.map(refusal => refusal.limit)).toEqual(["WORKSPACES_PER_PROFILE"]);
+            expect(refused[0].kind).toBe("FREE_PLAN");
         });
 
         it("premium: lets the same file through", () => {
-            premiumStanding$.set(true);
+            setStanding(true);
             expect(refusedUnderFairUse(threeWorkspaces)).toBe(false);
             expect(refused).toEqual([]);
         });

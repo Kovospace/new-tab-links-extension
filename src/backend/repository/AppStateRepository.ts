@@ -7,10 +7,13 @@ import {Logger} from "../../utils/logger"
 import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
 import {chooseTabGroupColor, TabGroupColor} from "../entity/TabGroupColors";
 import deepEqual from "fast-deep-equal";
-import {canAddLinksToWorkspace, linksInWorkspace} from "../entity/FairUseLimits";
-import {refusalOfAnotherWorkspace} from "../entity/FreePlanLimits";
+import {
+    LimitRefusal, linksInWorkspace, PlanLimits, refusalOfAnotherWorkspace, refusalOfMoreGroups,
+    refusalOfMoreLinks, refusalOfMoreSubgroups
+} from "../entity/PlanLimits";
 import {fairUseRefusals, FairUseRefusals} from "./FairUseRefusals";
-import {premiumStanding$} from "./PremiumStanding";
+import {planLimits$, premiumStanding$} from "./PremiumStanding";
+import {withExampleFlagsSettled} from "../entity/ExampleData";
 
 export class AppStateRepository {
 
@@ -46,6 +49,9 @@ export class AppStateRepository {
      *  the moment of each addition and never waited for (`PremiumStanding.ts`).
      */
     private readonly isPremium: () => boolean = () => premiumStanding$.get();
+
+    /** The limits in force, read at the moment of each addition (`PremiumStanding.ts`). */
+    private readonly limits: () => PlanLimits = () => planLimits$.get();
 
     /**
      * @param initialState  Fallback state when no persisted data exists for the profile.
@@ -151,6 +157,7 @@ export class AppStateRepository {
     }
 
     private async save(): Promise<AppState> {
+        this.state = withExampleFlagsSettled(this.state);
         await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
         this.state$.set(this.state);
         this.announcePersisted();
@@ -159,6 +166,7 @@ export class AppStateRepository {
 
     /** Persists state to storage without firing state$ — use when the UI updates itself directly. */
     private async saveQuiet(): Promise<void> {
+        this.state = withExampleFlagsSettled(this.state);
         await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
         this.announcePersisted();
     }
@@ -267,9 +275,7 @@ export class AppStateRepository {
     addWorkspace(title: string, description?: string): Promise<AppState> {
         // The free plan's two workspaces when not premium, the fair use fifty when premium.
         // Only another one is refused: workspaces already past either stay, all editable.
-        const refusal = refusalOfAnotherWorkspace(this.state, this.isPremium());
-        if (refusal) {
-            this.fairUse.reportRefusal(refusal);
+        if (this.refused(refusalOfAnotherWorkspace(this.state, this.limits(), this.isPremium()))) {
             return Promise.resolve(this.state);
         }
         const id = uid();
@@ -359,6 +365,10 @@ export class AppStateRepository {
             // in that case it is not possible for environment to not exists
             environmentId = this.getCurrentEnvironmentId()!;
         }
+        if (this.refused(refusalOfMoreGroups(
+            this.state, environmentId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         this.state = {
             ...this.state,
             groups: {
@@ -444,6 +454,10 @@ export class AppStateRepository {
         }
         const carried = Object.values(this.state.links)
             .filter(link => link.groupId === id && link.environmentId !== targetEnvironmentId).length;
+        if (this.refused(refusalOfMoreGroups(
+            this.state, targetEnvironmentId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         if (!this.roomForLinks(targetEnvironmentId, carried)) {
             return Promise.resolve(this.state);
         }
@@ -506,6 +520,10 @@ export class AppStateRepository {
         title: string,
         description?: string
     ): Promise<AppState> {
+        if (this.refused(refusalOfMoreSubgroups(
+            this.state, groupId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         const id = uid();
         this.state = {
             ...this.state,
@@ -1007,6 +1025,10 @@ export class AppStateRepository {
         const carried = Object.values(this.state.links)
             .filter(link => link.subGroupId === subgroupId
                 && link.environmentId !== group.environmentId).length;
+        if (subgroup.groupId !== groupId && this.refused(refusalOfMoreSubgroups(
+            this.state, groupId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         if (!this.roomForLinks(group.environmentId, carried)) {
             return Promise.resolve(this.state);
         }
@@ -1193,13 +1215,28 @@ export class AppStateRepository {
      *  @param adding      how many links would arrive
      */
     private roomForLinks(workspaceId: string, adding: number): boolean {
-        if (adding === 0 || canAddLinksToWorkspace(this.state, workspaceId, adding)) {
+        const refusal = refusalOfMoreLinks(
+            this.state, workspaceId, adding, this.limits(), this.isPremium());
+        if (!refusal) {
             return true;
         }
         this.LOG.warn("roomForLinks",
             `Workspace ${workspaceId} holds ${linksInWorkspace(this.state, workspaceId)}; refusing ${adding} more`);
-        this.fairUse.report("LINKS_PER_WORKSPACE");
+        this.fairUse.reportRefusal(refusal);
         return false;
+    }
+
+    /**
+     *  Publishes a refusal when there is one, so the page can say it.
+     *
+     *  @param refusal what a growth check answered; null means the addition may go ahead
+     *  @return true when the addition was refused and must not happen
+     */
+    private refused(refusal: LimitRefusal | null): boolean {
+        if (refusal) {
+            this.fairUse.reportRefusal(refusal);
+        }
+        return refusal !== null;
     }
 
     private getMaxOrderInEnvironment(environmentId: string): number {

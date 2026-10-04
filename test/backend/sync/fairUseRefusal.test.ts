@@ -9,9 +9,9 @@ import { SESSION_KEY, SessionRepository } from "../../../src/backend/sync/Sessio
 import { SyncBaselineRepository } from "../../../src/backend/sync/SyncBaselineRepository";
 import { SyncCoordinator } from "../../../src/backend/sync/SyncCoordinator";
 import { SyncOperation, SyncPushResult, SyncSnapshot } from "../../../src/backend/sync/SyncContracts";
-import { LimitRefusal } from "../../../src/backend/entity/FreePlanLimits";
+import { LimitRefusal } from "../../../src/backend/entity/PlanLimits";
 import { fairUseRefusals } from "../../../src/backend/repository/FairUseRefusals";
-import { premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
+import { setStanding } from "../../support/standing";
 import { FakeAccount } from "../../support/fakeAccount";
 import { seedFakeStorage } from "../../support/chromeStorageStub";
 
@@ -57,21 +57,22 @@ describe("BackendApiClient reading a fair use refusal", () => {
 
         expect(result).toMatchObject({
             outcome: "rejected", status: 409,
-            limitRefusal: { limit: "LINKS_PER_WORKSPACE", maximum: 750 }
+            limitRefusal: { kind: "FAIR_USE", limit: "LINKS_PER_WORKSPACE", maximum: 750 }
         });
     });
 
     it("falls back to this extension's number when the body has none", async () => {
         answer = { status: 409, body: { ...fairUseBody("PROFILES", 0), maximum: undefined } };
 
-        expect(await push()).toMatchObject({ limitRefusal: { limit: "PROFILES", maximum: 50 } });
+        // The limit in force here: nobody's standing is set in this test, so the free plan's.
+        expect(await push()).toMatchObject({ limitRefusal: { kind: "FAIR_USE", limit: "PROFILES", maximum: 1 } });
     });
 
     it("leaves any other 409, and a limit it does not know, an ordinary rejection", async () => {
         answer = { status: 409, body: { status: 409, error: "Conflict", message: "Taken" } };
         expect((await push() as { limitRefusal?: unknown }).limitRefusal).toBeUndefined();
 
-        answer = { status: 409, body: fairUseBody("DEVICES", 5) };
+        answer = { status: 409, body: fairUseBody("WORKSPACES", 5) };
         expect((await push() as { limitRefusal?: unknown }).limitRefusal).toBeUndefined();
     });
 });
@@ -129,15 +130,16 @@ describe("SyncCoordinator when the account refuses over a fair use limit", () =>
     });
 
     // The fair use limits cap premium; without it the free plan's lower ones would bind first.
-    beforeEach(() => premiumStanding$.set(true));
+    beforeEach(() => setStanding(true));
 
     afterEach(() => {
         stopListening();
-        premiumStanding$.set(false);
+        setStanding(false);
     });
 
     function coordinator(): SyncCoordinator {
         const apiClient = {
+            ...account.listEndpoints(),
             fetchSnapshot: () => {
                 snapshotReads++;
                 return Promise.resolve({ outcome: "success", data: account.snapshot() } as ApiResult<SyncSnapshot>);
@@ -175,7 +177,7 @@ describe("SyncCoordinator when the account refuses over a fair use limit", () =>
 
     async function addWorkspaceTheAccountRefuses(): Promise<string> {
         const state = await appState.addWorkspace("Over the limit", undefined);
-        refusing = { limit: "WORKSPACES", maximum: 50 };
+        refusing = { kind: "FAIR_USE", limit: "WORKSPACES_PER_PROFILE", maximum: 50 };
         return state.activeEnvironmentId!;
     }
 
@@ -185,7 +187,8 @@ describe("SyncCoordinator when the account refuses over a fair use limit", () =>
 
         await coordinating.synchronizeNow();
 
-        expect(coordinating.limitRefusal$.get()).toEqual({ limit: "WORKSPACES", maximum: 50 });
+        expect(coordinating.limitRefusal$.get())
+            .toEqual({ kind: "FAIR_USE", limit: "WORKSPACES_PER_PROFILE", maximum: 50 });
         expect(appState.getWorkspaces().map(workspace => workspace.id)).toContain(workspaceId);
         expect(snapshotReads).toBe(0);
     });
@@ -198,8 +201,10 @@ describe("SyncCoordinator when the account refuses over a fair use limit", () =>
         await pushAfterLocalChange(coordinating);
         await pushAfterLocalChange(coordinating);
 
-        expect(pushes).toBe(1);
-        expect(notices).toEqual(["WORKSPACES"]);
+        // Once, and once more after re-reading the account's lists - a race for the last slot
+        // is what a refusal usually is - and then never again.
+        expect(pushes).toBe(2);
+        expect(notices).toEqual(["WORKSPACES_PER_PROFILE"]);
     });
 
     it("tries again once what would be sent has changed", async () => {
@@ -210,9 +215,9 @@ describe("SyncCoordinator when the account refuses over a fair use limit", () =>
         await appState.renameWorkspace(workspaceId, "Renamed", undefined);
         await pushAfterLocalChange(coordinating);
 
-        expect(pushes).toBe(2);
+        expect(pushes).toBe(4);
         // Still the same limit standing: told once, not again.
-        expect(notices).toEqual(["WORKSPACES"]);
+        expect(notices).toEqual(["WORKSPACES_PER_PROFILE"]);
     });
 
     it("says nothing in a notice when a page opening finds the refusal, only in the status", async () => {
@@ -222,7 +227,7 @@ describe("SyncCoordinator when the account refuses over a fair use limit", () =>
         await coordinating.synchronizeNow();
 
         expect(notices).toEqual([]);
-        expect(coordinating.limitRefusal$.get()?.limit).toBe("WORKSPACES");
+        expect(coordinating.limitRefusal$.get()?.limit).toBe("WORKSPACES_PER_PROFILE");
     });
 
     it("resumes, and pulls again, once the account takes the push", async () => {
