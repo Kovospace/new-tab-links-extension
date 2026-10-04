@@ -92,8 +92,9 @@ workspace-plane-body {
 }
 
 workspace-plane-body > link-group {
-    margin: 0.25em;
     margin-bottom: 0.5em;
+    margin-left: 0.25em;
+    margin-right:0.25em;
     padding: 0.5em;
     border-radius: 0.75em;
     transition: background-color var(--time-transition-medium) ease-in-out;

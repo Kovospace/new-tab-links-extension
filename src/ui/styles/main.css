@@ -46,6 +46,7 @@ header {
     grid-area: header;
     position: relative;
     box-shadow: 0 0.375em 0.5em -0.375em rgba(0, 0, 0, 0.4);
+    border-bottom: 0.25em solid var(--color-document-background);
 }
 main { grid-area: main; }
 footer { grid-area: footer; }
