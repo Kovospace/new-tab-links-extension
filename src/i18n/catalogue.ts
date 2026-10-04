@@ -6,6 +6,7 @@ import enCommon from "./locales/en/common.json";
 import enDates from "./locales/en/dates.json";
 import enDialogs from "./locales/en/dialogs.json";
 import enErrors from "./locales/en/errors.json";
+import enFairUse from "./locales/en/fairUse.json";
 import enFirstRun from "./locales/en/firstRun.json";
 import enGroup from "./locales/en/group.json";
 import enHeader from "./locales/en/header.json";
@@ -24,6 +25,7 @@ import skCommon from "./locales/sk/common.json";
 import skDates from "./locales/sk/dates.json";
 import skDialogs from "./locales/sk/dialogs.json";
 import skErrors from "./locales/sk/errors.json";
+import skFairUse from "./locales/sk/fairUse.json";
 import skFirstRun from "./locales/sk/firstRun.json";
 import skGroup from "./locales/sk/group.json";
 import skHeader from "./locales/sk/header.json";
@@ -64,6 +66,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         dates: enDates,
         dialogs: enDialogs,
         errors: enErrors,
+        fairUse: enFairUse,
         firstRun: enFirstRun,
         group: enGroup,
         header: enHeader,
@@ -84,6 +87,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         dates: skDates,
         dialogs: skDialogs,
         errors: skErrors,
+        fairUse: skFairUse,
         firstRun: skFirstRun,
         group: skGroup,
         header: skHeader,

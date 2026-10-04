@@ -32,6 +32,12 @@ export interface ProfileMeta {
      * and for one that has never been configured; read it through `settingsOf()`.
      */
     settings?: ProfileSettings;
+
+    /**
+     * True while this profile is still the first-run example: loaded from the start screen
+     * and untouched. Never synchronised; see `ExampleData.ts`. Absent means it is the user's.
+     */
+    example?: boolean;
 }
 
 /**
@@ -58,6 +64,13 @@ export interface Environment {
     description?: string;
     createdAt: number;
     order?: number;
+
+    /**
+     * Present while this workspace is still a 1:1 copy of the first-run example: the
+     * fingerprint of the template it was loaded as. Cleared for good by the first save that
+     * changes what it holds, and never synchronised - see `ExampleData.ts`.
+     */
+    example?: string;
 }
 
 export interface Group {

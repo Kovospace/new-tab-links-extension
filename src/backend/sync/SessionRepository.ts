@@ -2,6 +2,7 @@ import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageW
 import { ObservableValue } from "../../utils/observableValue";
 import { Logger } from "../../utils/logger";
 import deepEqual from "fast-deep-equal";
+import { LimitRefusal } from "../entity/PlanLimits";
 
 export const SESSION_KEY = "sync_session";
 
@@ -55,6 +56,12 @@ export interface SyncSession {
  *  spent is a page whose next refresh is refused - and a refused refresh ends the session for
  *  every page. So each instance adopts what the others write.
  */
+/** A session the account ended, and why, when it said. */
+export interface SessionEnded {
+    sequence: number;
+    refusal?: LimitRefusal;
+}
+
 export class SessionRepository {
 
     private LOG: Logger = new Logger("SessionRepository");
@@ -136,6 +143,27 @@ export class SessionRepository {
         this.session = null;
         await this.datasource.save<SyncSession | null>(SESSION_KEY, null);
         this.session$.set(null);
+    }
+
+    /**
+     *  Counts the sessions the account ended without the user asking, so the page can say why
+     *  it is signed out: revoked from the website, or - when premium has ended - one of the
+     *  installations beyond the free plan's limit. `sequence` keeps no two deep-equal;
+     *  `refusal` is the account's 409 when it said why (limit `DEVICES`, with `manageUrl`).
+     */
+    readonly revoked$ = new ObservableValue<SessionEnded>({ sequence: 0 });
+
+    /**
+     *  Forgets the tokens because the account refused them, and says so on `revoked$`.
+     *
+     *  @param refusal the account's reason, when its answer carried one
+     */
+    public async clearRevoked(refusal?: LimitRefusal): Promise<void> {
+        const wasSignedIn = this.session !== null;
+        await this.clear();
+        if (wasSignedIn) {
+            this.revoked$.set({ sequence: this.revoked$.get().sequence + 1, refusal });
+        }
     }
 
     /**

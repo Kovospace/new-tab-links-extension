@@ -295,7 +295,7 @@ errand, while deleting or saving one is working through the list and leaves it a
   The worker writes them, and a worker that had to read-modify-write the whole profile record
   would put back a copy that predates whatever the page saved a moment ago. A key the worker
   owns alone can lose a closed tab at worst; the other arrangement can lose a link.
-- **Capped at 50 per profile**, deduplicated by address - the same page closed twice is one
+- **Capped at 500 per profile** (the fair use limit, `FAIR_USE_LIMITS.CLOSED_TAB_HISTORY`; it was 50), deduplicated by address - the same page closed twice is one
   entry moved to the top. Both matter because every entry is pushed to the account: an
   uncapped list would be a browsing history in somebody else's database, growing for ever.
 - The page hears about the worker's writes through `chrome.storage.onChanged`, which is what
@@ -547,6 +547,45 @@ validation, `errors` for the account, `dates` for anything about time.
   compared as a string against what the worker stamped. Translating it would rename a device
   whenever its owner changed language and make "was this closed elsewhere" answer yes on the
   device it happened on.
+
+### Limits and slots (`entity/PlanLimits.ts`, `sync/SyncSlots.ts`)
+
+The owner's design is `new-tab-links-frontend/.claude/assignments/account-limits-handling.md`.
+
+- **One table of numbers** (`PlanLimits.ts`): free 1 profile, 2 workspaces per profile, 25
+  closed tabs, 5 installations; premium (Fair Use) 50 / 50 / 500 / 100; every plan 25 groups per
+  workspace, 25 subgroups per group, 500 links per workspace. Names are the backend's `limit`
+  values. **The compiled numbers are only the signed-out default** - the account sends its
+  effective limits (`GET /users/me/plan-limits`, `planLimits` on the snapshot), published as
+  `planLimits$`; the worker reads them from storage (`readStoredPlanLimits`).
+- **Only growth is refused, nothing is ever deleted, hidden or locked.** Every adding door checks
+  (`AppStateRepository.refused` / `roomForLinks`, `ProfileRepository.createProfile`, imports whole).
+  A refusal's `kind` decides the notice: `FREE_PLAN` offers the upgrade (or, signed out, log in /
+  create an account); `FAIR_USE` links to `/fair-use`. The closed tabs history rolls - a list
+  longer than the cap loses one entry per new one, never all at once.
+- **Slots decide what synchronises, on this side** (`decideSyncScope`): the account's first N by
+  its `createdAt`, ties broken by id as lower-case text (the backend's uuid order; every row of
+  one push shares a timestamp), hold slots, what this device brings takes what is left; example data and a
+  workspace over a Fair Use cap never synchronise; never half a workspace. Before a push the
+  account's lists (`GET /profiles`, `GET /environments`) are read; a 409 re-reads them and
+  pushes once more without what lost - no loop.
+- **Push and pull are confined to the scope** (`ScopedSync.ts`). The baseline keeps out-of-scope
+  items at their last synchronised state. **The pull deletes a local profile or workspace only
+  when the baseline says the account held it** (deleted elsewhere) or the server remapped it;
+  anything else absent from the snapshot is local only and stays. Records *inside* a
+  synchronised workspace are still replaced by the account's copy.
+- **Name matching only at first contact** - at sign-in, and in steady state only for what is
+  local only for lack of a slot or over a cap (`adoptNameMatches`), so renaming such an item to
+  the account's name merges it. Something new that fits a free slot syncs as a new item even
+  when it shares a name - it is never swallowed into the existing one. A merge that would
+  go over a Fair Use cap keeps that workspace apart, local only (`CappedMerge.ts`, `heldApart$`).
+- **Example data** (`ExampleData.ts`): a fingerprint on each example workspace, cleared for good
+  by the first save that changes it; never synchronised; removed at sign-in if untouched.
+- Deleting here is sent for anything the account accepts a deletion of: any of its profiles, and
+  any workspace under a slot-holding profile, slot or not (edits to slot-less ones are refused).
+- A refresh answered 409 `DEVICES` (premium ended, installation beyond the free number) ends the
+  session with the device-limit dialog and the body's `manageUrl` (`SessionRepository.revoked$`).
+- After each cycle the installation reports its inventory (names and counts only) when it changed.
 
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 

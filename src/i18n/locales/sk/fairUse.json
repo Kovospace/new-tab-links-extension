@@ -1,0 +1,33 @@
+{
+  "title": "Dosiahnutý limit férového používania",
+  "openFairUse": "Prečítať zásady férového používania",
+  "limits": {
+    "LINKS_PER_WORKSPACE": "Pracovný priestor môže obsahovať najviac {maximum} odkazov. Niektoré z tohto odstráňte alebo nový odkaz vložte do iného pracovného priestoru. Nič z toho, čo už máte, sa nezmenilo. Ak potrebujete viac, zásady férového používania popisujú, ako požiadať o navýšenie.",
+    "GROUPS_PER_WORKSPACE": "Pracovný priestor môže obsahovať najviac {maximum} skupín. Jednu z neho odstráňte alebo skupinu pridajte do iného pracovného priestoru. Nič z toho, čo už máte, sa nezmenilo. Ak potrebujete viac, zásady férového používania popisujú, ako požiadať o navýšenie.",
+    "SUBGROUPS_PER_GROUP": "Skupina môže obsahovať najviac {maximum} podskupín. Jednu z nej odstráňte alebo podskupinu pridajte do inej skupiny. Nič z toho, čo už máte, sa nezmenilo. Ak potrebujete viac, zásady férového používania popisujú, ako požiadať o navýšenie.",
+    "WORKSPACES_PER_PROFILE": "Profil môže obsahovať najviac {maximum} pracovných priestorov. Pred pridaním ďalšieho jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+    "PROFILES": "Môžete mať najviac {maximum} profilov. Pred pridaním ďalšieho jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+    "DEVICES": "Tento účet už má {maximum} synchronizovaných inštalácií. Z jednej sa odhláste na stránke zariadení na webe. Dovtedy zostane tento prehliadač odhlásený a s vašimi odkazmi pracuje lokálne."
+  },
+  "freePlan": {
+    "title": "Dosiahnutý limit bezplatného plánu",
+    "upgrade": "Prejsť na prémiovú verziu",
+    "openDevices": "Otvoriť stránku zariadení",
+    "logIn": "Prihlásiť sa",
+    "register": "Vytvoriť účet",
+    "signedOutOffer": "Ak chcete viac, prihláste sa do účtu s prémiovou verziou alebo si účet vytvorte a prejdite na prémiovú verziu.",
+    "limits": {
+      "WORKSPACES_PER_PROFILE": "Počet pracovných priestorov v profile je na bezplatnom pláne obmedzený na {maximum}. Ak chcete pridať ďalší, prejdite na prémiovú verziu alebo jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+      "PROFILES": "Počet profilov je na bezplatnom pláne obmedzený na {maximum}. Ak chcete pridať ďalší, prejdite na prémiovú verziu alebo jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+      "DEVICES": "Počet synchronizovaných inštalácií je na bezplatnom pláne obmedzený na {maximum} a tento účet ho už dosiahol. Z jednej sa odhláste na stránke zariadení na webe alebo prejdite na prémiovú verziu. Dovtedy zostane tento prehliadač odhlásený a s vašimi odkazmi pracuje lokálne."
+    }
+  },
+  "heldApart": {
+    "title": "Nezlúčené: nad limitom férového používania",
+    "message": "Tieto pracovné priestory sa volajú rovnako ako pracovné priestory vo vašom účte, ale ich spojenie by prekročilo limit férového používania: {names}. Zostávajú nezmenené iba v tomto zariadení. Čo obsahuje každá inštalácia, uvidíte na stránke zariadení na webe, alebo požiadajte o navýšenie podľa zásad férového používania."
+  },
+  "revoked": {
+    "title": "Odhlásené",
+    "message": "Váš účet tento prehliadač odhlásil. Všetky vaše odkazy tu zostávajú. Ak vám skončila prémiová verzia, inštalácie nad {maximum} bezplatného plánu sa odhlásia - odhláste sa z inej na stránke zariadení alebo prejdite na prémiovú verziu a potom sa prihláste znova."
+  }
+}

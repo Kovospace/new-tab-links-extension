@@ -1,15 +1,22 @@
 import {
-    AUTH_ENDPOINTS, DEVICE_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER, SYNC_ENDPOINTS,
-    USER_ENDPOINTS,
+    ACCOUNT_LIST_ENDPOINTS, AUTH_ENDPOINTS, DEVICE_ENDPOINTS, DEVICE_NAME_HEADER, INSTALLATION_ID_HEADER,
+    SYNC_ENDPOINTS, USER_ENDPOINTS,
     buildApiUrl
 } from "./SyncConfiguration";
 import { installationIdentity } from "./InstallationIdentity";
-import { SyncPushRequest, SyncPushResult, SyncSnapshot } from "./SyncContracts";
+import {
+    AccountEnvironmentDto, AccountProfileDto, DeviceInventoryDto, PlanLimitsDto, SyncPushRequest,
+    SyncPushResult, SyncSnapshot
+} from "./SyncContracts";
 import { SessionRepository, sessionRepository, SyncSession, TokenPairDto } from "./SessionRepository";
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { resolveDeviceName } from "./DeviceName";
 import { t } from "../../i18n/i18n";
+import { isLimitName, LIMIT_KEYS, LimitRefusal } from "../entity/PlanLimits";
+import { planLimits$ } from "../repository/PremiumStanding";
+
+export type { PlanLimitsDto } from "./SyncContracts";
 
 /** Held by whichever page is trading the refresh token, so that no two pages spend it at once. */
 const TOKEN_REFRESH_LOCK = "tabilinks-token-refresh";
@@ -38,8 +45,18 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
  */
 export type ApiResult<PAYLOAD> =
     | { outcome: "success"; data: PAYLOAD }
-    | { outcome: "rejected"; status: number; message: string }
+    | { outcome: "rejected"; status: number; message: string; limitRefusal?: LimitRefusal }
     | { outcome: "offline"; message: string };
+
+/** The code the backend's error body carries when a push would break a fair use limit. */
+export const FAIR_USE_LIMIT_REACHED = "FAIR_USE_LIMIT_REACHED";
+
+/**
+ *  The code the backend's error body carries when a free account would go past a free plan
+ *  limit: a push adding a third workspace or a second profile, or a sign-in that would be the
+ *  sixth synchronised installation.
+ */
+export const FREE_PLAN_LIMIT_REACHED = "FREE_PLAN_LIMIT_REACHED";
 
 /**
  *  The signed-in account, as the backend's UserDto returns it.
@@ -96,6 +113,48 @@ interface ApiErrorResponseDto {
     error?: string;
     message?: string;
     validationErrors?: string[];
+    /** Machine-readable reason; `FAIR_USE_LIMIT_REACHED` and `FREE_PLAN_LIMIT_REACHED` are read here. */
+    code?: string;
+    /** With either code: which limit, as `LimitName` names it. */
+    limit?: string;
+    /** With that code: the limit's number, as the server holds it. */
+    maximum?: number;
+    /** With that code: the website's devices page, absolute, where the user audits and frees room. */
+    manageUrl?: string;
+}
+
+/**
+ *  Reads a limit's refusal - fair use or the free plan's - out of an error body, or nothing.
+ *
+ *  The body's own `maximum` wins over this extension's number: the server is what refused,
+ *  and a limit raised there before an extension update is the one the user should be told.
+ *  A limit name this build does not know is not a refusal it can describe, so it falls back
+ *  to the ordinary rejection rather than inventing a sentence.
+ */
+function limitRefusalIn(status: number, errorBody: ApiErrorResponseDto): LimitRefusal | undefined {
+    if (status !== 409 || !isLimitName(errorBody.limit)) {
+        return undefined;
+    }
+    let kind: LimitRefusal["kind"];
+    if (errorBody.code === FAIR_USE_LIMIT_REACHED) {
+        kind = "FAIR_USE";
+    } else if (errorBody.code === FREE_PLAN_LIMIT_REACHED) {
+        kind = "FREE_PLAN";
+    } else {
+        return undefined;
+    }
+    const refusal: LimitRefusal = {
+        kind,
+        limit: errorBody.limit,
+        // The server's number wins: it is what refused. Without one, the limit in force here.
+        maximum: typeof errorBody.maximum === "number" && errorBody.maximum >= 0
+            ? errorBody.maximum
+            : planLimits$.get()[LIMIT_KEYS[errorBody.limit]]
+    };
+    if (typeof errorBody.manageUrl === "string" && /^https?:\/\//.test(errorBody.manageUrl)) {
+        refusal.manageUrl = errorBody.manageUrl;
+    }
+    return refusal;
 }
 
 /**
@@ -190,6 +249,26 @@ export class BackendApiClient {
     /** The signed-in account, which is where whether it is premium is read from. */
     public getMyAccount(): Promise<ApiResult<MyAccountDto>> {
         return this.sendAuthenticated<MyAccountDto>(USER_ENDPOINTS.me, "GET");
+    }
+
+    /** The account's standing and the limits in force for it. */
+    public getPlanLimits(): Promise<ApiResult<PlanLimitsDto>> {
+        return this.sendAuthenticated<PlanLimitsDto>(USER_ENDPOINTS.planLimits, "GET");
+    }
+
+    /** The account's profiles, without their content: who holds a slot is read off these. */
+    public listAccountProfiles(): Promise<ApiResult<AccountProfileDto[]>> {
+        return this.sendAuthenticated<AccountProfileDto[]>(ACCOUNT_LIST_ENDPOINTS.profiles, "GET");
+    }
+
+    /** The account's workspaces, without their content. */
+    public listAccountEnvironments(): Promise<ApiResult<AccountEnvironmentDto[]>> {
+        return this.sendAuthenticated<AccountEnvironmentDto[]>(ACCOUNT_LIST_ENDPOINTS.environments, "GET");
+    }
+
+    /** Replaces what the account knows this installation holds; names and counts only. */
+    public reportInventory(inventory: DeviceInventoryDto): Promise<ApiResult<void>> {
+        return this.sendAuthenticated<void>(DEVICE_ENDPOINTS.currentInventory, "PUT", inventory);
     }
 
     /** Lists the devices the account has been signed in from. */
@@ -297,9 +376,18 @@ export class BackendApiClient {
             if (result.outcome === "offline") {
                 return result;
             }
+            if (result.limitRefusal?.limit === "DEVICES") {
+                // Premium ended and this installation is beyond the free plan's number of
+                // them: the account ends its session at the refresh, saying so with a 409.
+                this.LOG.warn("refreshTokenPair", "Session ended over the installations limit");
+                await this.sessions.clearRevoked(result.limitRefusal);
+                return result;
+            }
             if (SESSION_ENDING_REFRESH_STATUSES.has(result.status)) {
                 this.LOG.warn("refreshTokenPair", "Refresh token refused, session ended");
-                await this.sessions.clear();
+                // Not the user's doing: revoked from the website, or - when premium ended - one
+                // of the installations past the free plan's limit. Said so (`revoked$`).
+                await this.sessions.clearRevoked();
                 return result;
             }
             this.LOG.warn("refreshTokenPair",
@@ -348,9 +436,11 @@ export class BackendApiClient {
         }
 
         if (!response.ok) {
-            const message = await this.readFailureMessage(response);
+            const { message, limitRefusal } = await this.readFailure(response);
             this.LOG.debug("send", `${response.status} from ${url}: ${message}`);
-            return { outcome: "rejected", status: response.status, message };
+            return limitRefusal
+                ? { outcome: "rejected", status: response.status, message, limitRefusal }
+                : { outcome: "rejected", status: response.status, message };
         }
 
         try {
@@ -370,20 +460,29 @@ export class BackendApiClient {
         return JSON.parse(rawBody) as PAYLOAD;
     }
 
-    /** Pulls a human readable explanation out of the backend's uniform error body. */
-    private async readFailureMessage(response: Response): Promise<string> {
+    /**
+     *  Pulls a human readable explanation out of the backend's uniform error body, and a
+     *  limit's refusal when that is what it is.
+     */
+    private async readFailure(
+        response: Response
+    ): Promise<{ message: string; limitRefusal?: LimitRefusal }> {
         try {
             const rawBody = await response.text();
             if (!rawBody) {
-                return unexplainedFailureMessage();
+                return { message: unexplainedFailureMessage() };
             }
             const errorBody = JSON.parse(rawBody) as ApiErrorResponseDto;
+            const limitRefusal = limitRefusalIn(response.status, errorBody);
             if (errorBody.validationErrors && errorBody.validationErrors.length > 0) {
-                return errorBody.validationErrors.join("\n");
+                return { message: errorBody.validationErrors.join("\n"), limitRefusal };
             }
-            return errorBody.message ?? errorBody.error ?? unexplainedFailureMessage();
+            return {
+                message: errorBody.message ?? errorBody.error ?? unexplainedFailureMessage(),
+                limitRefusal
+            };
         } catch (unreadableBody) {
-            return unexplainedFailureMessage();
+            return { message: unexplainedFailureMessage() };
         }
     }
 }

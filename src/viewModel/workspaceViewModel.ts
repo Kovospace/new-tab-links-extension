@@ -19,6 +19,7 @@ import {ObservableValue} from "../utils/observableValue";
 import {t} from "../i18n/i18n";
 import {InputDialog} from "../ui/partials/inputDialog";
 import {showNotice} from "../ui/partials/confirmations";
+import {refusedAnotherProfile, refusedUnderFairUse} from "./fairUseNoticeViewModel";
 
 type WorkspaceObservables = {
     workspaces: ObservableValue<WorkspaceDTO[]>;
@@ -166,6 +167,9 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
     public async importProfile() {
         const data = await ProfileDataTransfer.importFromFile();
         if (!data) return;
+        if (refusedUnderFairUse(data)) return;
+        // Said before the name is asked for, rather than after it was typed in vain.
+        if (refusedAnotherProfile(profileRepository.getProfiles().length)) return;
 
         const answer = await new InputDialog(
             t("profiles.importDialog.title"),

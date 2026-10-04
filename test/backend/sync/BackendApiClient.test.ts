@@ -20,6 +20,8 @@ let generation: number;
 let refreshCalls: number;
 let refreshOutage: number | null;
 let accessExpired: boolean;
+/** A body the refresh endpoint answers 409 with, as the account does past the installations limit. */
+let refreshRefusal: unknown | null = null;
 
 const accessToken = (n: number) => `access-${n}`;
 const refreshToken = (n: number) => `refresh-${n}`;
@@ -32,6 +34,9 @@ async function fakeBackend(url: string, init: RequestInit): Promise<Response> {
 
     if (url.endsWith("/api/v1/auth/refresh")) {
         refreshCalls++;
+        if (refreshRefusal !== null) {
+            return json(409, refreshRefusal);
+        }
         if (refreshOutage !== null) {
             return new Response("", { status: refreshOutage });
         }
@@ -114,6 +119,28 @@ describe("BackendApiClient token refresh", () => {
         expect(result.outcome).toBe("rejected");
         expect(sessions.getSession()).toBeNull();
         expect(readFakeStorage(SESSION_KEY)).toBeNull();
+    });
+
+    it("ends the session when the refresh is refused over the installations limit, saying why", async () => {
+        // Premium ended, and this installation is beyond the free plan's five: the account
+        // ends its session at the next refresh with a 409 naming the limit and its devices page.
+        const { sessions, client } = await openPage();
+        accessExpired = true;
+        refreshRefusal = {
+            status: 409, message: "Too many installations", code: "FREE_PLAN_LIMIT_REACHED",
+            limit: "DEVICES", maximum: 5, manageUrl: "https://tabilinks.app/devices"
+        };
+        try {
+            const result = await client.getMyAccount();
+
+            expect(result.outcome).toBe("rejected");
+            expect(sessions.getSession()).toBeNull();
+            expect(sessions.revoked$.get().refusal).toEqual({
+                kind: "FREE_PLAN", limit: "DEVICES", maximum: 5, manageUrl: "https://tabilinks.app/devices"
+            });
+        } finally {
+            refreshRefusal = null;
+        }
     });
 
     /**

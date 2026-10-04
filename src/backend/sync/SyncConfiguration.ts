@@ -52,12 +52,30 @@ export const AUTH_ENDPOINTS = {
 export const DEVICE_ENDPOINTS = {
     list: "/api/v1/users/me/devices",
     rename: (deviceId: string): string => `/api/v1/users/me/devices/${deviceId}`,
-    takeOver: (deviceId: string): string => `/api/v1/users/me/devices/${deviceId}/take-over`
+    takeOver: (deviceId: string): string => `/api/v1/users/me/devices/${deviceId}/take-over`,
+
+    /**
+     *  What this installation holds - names and counts, synchronised or not - for the website's
+     *  device detail page. The installation is the one the session and `X-Installation-Id` name.
+     */
+    currentInventory: "/api/v1/users/me/devices/current/inventory"
 } as const;
 
 /** The signed-in account itself. */
 export const USER_ENDPOINTS = {
-    me: "/api/v1/users/me"
+    me: "/api/v1/users/me",
+
+    /** The account's standing and the limits in force for it; see `PlanLimits.ts`. */
+    planLimits: "/api/v1/users/me/plan-limits"
+} as const;
+
+/**
+ *  The account's profiles and workspaces without their content, which is what a push reads to
+ *  work out who holds a slot (`SyncSlots.ts`).
+ */
+export const ACCOUNT_LIST_ENDPOINTS = {
+    profiles: "/api/v1/profiles",
+    environments: "/api/v1/environments"
 } as const;
 
 /** Synchronisation endpoints of the backend. */
@@ -80,6 +98,15 @@ export const WEBSITE_PATHS = {
 
     /** Account settings, which is where upgrading to premium is offered. */
     accountSettings: "/account",
+
+    /**
+     *  The account's synchronised installations, where one is removed - the way past the free
+     *  plan's limit on them short of upgrading. The website's route `devices`.
+     */
+    devices: "/devices",
+
+    /** The Fair Use Policy, which also says how to ask for a limit to be raised. */
+    fairUse: "/fair-use",
 
     /**
      *  The page shown in the new tab page's ad slot. A page on the website rather than markup

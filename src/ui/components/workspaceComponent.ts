@@ -8,7 +8,7 @@ import {
     ACT_ADD_WORKSPACE,
     CLASS_WORKSPACE_HEAD_TITLE,
     CLASS_WORKSPACE_HEAD_ACTIONS,
-    CLASS_SIGNED_OUT_NOTICE,
+    CLASS_SIGNED_OUT_NOTICE, CLASS_WORKSPACE_SYNC_NOTICE,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
     ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
 } from "../../constants"
@@ -17,7 +17,8 @@ import {
 import { WorkspaceDTO, GroupDTO, ProfileDTO } from "../../viewModel/abstract/dtos";
 import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
-import { AccountDTO, SyncAccountViewModel } from "../../viewModel/syncAccountViewModel";
+import { AccountDTO, logInRequests$, SyncAccountViewModel } from "../../viewModel/syncAccountViewModel";
+import { syncStateViewModel } from "../../viewModel/syncStateViewModel";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent";
@@ -56,6 +57,13 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      *  from the account state rather than rebuilt with it.
      */
     private signedOutNotice: HTMLElement = this.buildSignedOutNotice();
+
+    /**
+     *  Why the open workspace does not synchronise - example data, no free slot, over a Fair
+     *  Use cap - where the signed-out notice sits, with buttons to the website's account page
+     *  (upgrade) and devices page (audit). One element for the page's lifetime, like that one.
+     */
+    private workspaceSyncNotice: HTMLElement = this.buildWorkspaceSyncNotice();
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
@@ -221,8 +229,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             {}
         );
 
-        this.VIEW_MODEL.observables.profiles
-            .subscribe((profiles: ProfileDTO[]) => {
+        let latestProfiles: ProfileDTO[] = [];
+        const renderProfilesMenu = (profiles: ProfileDTO[]) => {
+                latestProfiles = profiles;
                 const active = profiles.find(p => p.active);
                 profilesMenu.updateButtonContent(t("header.profileButton",
                     { name: active?.name ?? t("header.noProfile") }));
@@ -230,6 +239,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                     ...profiles.map(p => ({
                         actionTitle: p.name,
                         active: p.active,
+                        // The crossed-out sync mark, with why, on a profile that does not
+                        // synchronise.
+                        notSynced: syncStateViewModel.profileReason(p.id) ?? undefined,
                         onClick: () => this.VIEW_MODEL.switchProfile(p.id)
                     })),
                     {
@@ -255,7 +267,22 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                         onClick: () => void new ProfileManagerDialog().show()
                     }
                 ]);
-            });
+            };
+        this.VIEW_MODEL.observables.profiles.subscribe(renderProfilesMenu);
+        // What synchronises is decided after each synchronisation, not when the list changes.
+        syncStateViewModel.initialize();
+        syncStateViewModel.changes$.subscribe(() => {
+            renderProfilesMenu(latestProfiles);
+            this.updateWorkspaceSyncNotice();
+        });
+        // A limit's notice on an installation nobody is signed in to offers logging in.
+        let logInReplayed = false;
+        logInRequests$.subscribe(() => {
+            if (logInReplayed) {
+                this.logInDialog.show();
+            }
+            logInReplayed = true;
+        });
 
         // application / user account menu - rebuilt reactively from the sync session
         const accountMenu = new OptionsMenu(
@@ -294,6 +321,33 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             () => this.logInDialog.show()
         ));
         return noticeElem;
+    }
+
+    /** The workspace sync notice's element: its text, and the two ways on. */
+    private buildWorkspaceSyncNotice(): HTMLElement {
+        const noticeElem: HTMLElement = renderContainer([CLASS_WORKSPACE_SYNC_NOTICE]);
+        noticeElem.hidden = true;
+        noticeElem.appendChild(renderTextContainer("span", ""));
+        noticeElem.appendChild(renderButton(
+            t("sync.unsynced.upgrade"), "", [], t("sync.unsynced.upgradeTooltip"),
+            () => this.accountViewModel.openAccountSettingsPage()));
+        noticeElem.appendChild(renderButton(
+            t("sync.unsynced.audit"), "", [], t("sync.unsynced.auditTooltip"),
+            () => this.accountViewModel.openDevicesPage()));
+        return noticeElem;
+    }
+
+    /** Shows why the open workspace does not synchronise, or hides the notice when it does. */
+    private updateWorkspaceSyncNotice(): void {
+        const notice = this.id ? syncStateViewModel.workspaceNotice(this.id) : null;
+        this.workspaceSyncNotice.hidden = notice === null;
+        const textElem = this.workspaceSyncNotice.querySelector("span");
+        if (textElem) {
+            textElem.textContent = notice?.text ?? "";
+        }
+        this.workspaceSyncNotice.querySelectorAll("button").forEach(button => {
+            button.hidden = !notice?.offerWaysOn;
+        });
     }
 
     /**
@@ -479,8 +533,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             titleSectionElem,
             actionsSectionElem,
             this.searchBar.element(),
-            this.signedOutNotice
+            this.signedOutNotice,
+            this.workspaceSyncNotice
         );
+        this.updateWorkspaceSyncNotice();
 
         // reattach listeners because child elements of workspace heading was replaced
         this.listenerChangeWorkspaceName();

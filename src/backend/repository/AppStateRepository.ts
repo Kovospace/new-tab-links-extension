@@ -7,6 +7,13 @@ import {Logger} from "../../utils/logger"
 import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
 import {chooseTabGroupColor, TabGroupColor} from "../entity/TabGroupColors";
 import deepEqual from "fast-deep-equal";
+import {
+    LimitRefusal, linksInWorkspace, PlanLimits, refusalOfAnotherWorkspace, refusalOfMoreGroups,
+    refusalOfMoreLinks, refusalOfMoreSubgroups
+} from "../entity/PlanLimits";
+import {fairUseRefusals, FairUseRefusals} from "./FairUseRefusals";
+import {planLimits$, premiumStanding$} from "./PremiumStanding";
+import {withExampleFlagsSettled} from "../entity/ExampleData";
 
 export class AppStateRepository {
 
@@ -33,6 +40,18 @@ export class AppStateRepository {
         { profileId: "", at: 0 });
 
     private datasource = new ChromeStorageWrapper()
+
+    /** Where a refusal under a limit is published, for the page to tell the user. */
+    private readonly fairUse: FairUseRefusals = fairUseRefusals;
+
+    /**
+     *  Whether the free plan's limits are lifted: the last known premium standing, read at
+     *  the moment of each addition and never waited for (`PremiumStanding.ts`).
+     */
+    private readonly isPremium: () => boolean = () => premiumStanding$.get();
+
+    /** The limits in force, read at the moment of each addition (`PremiumStanding.ts`). */
+    private readonly limits: () => PlanLimits = () => planLimits$.get();
 
     /**
      * @param initialState  Fallback state when no persisted data exists for the profile.
@@ -138,6 +157,7 @@ export class AppStateRepository {
     }
 
     private async save(): Promise<AppState> {
+        this.state = withExampleFlagsSettled(this.state);
         await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
         this.state$.set(this.state);
         this.announcePersisted();
@@ -146,6 +166,7 @@ export class AppStateRepository {
 
     /** Persists state to storage without firing state$ — use when the UI updates itself directly. */
     private async saveQuiet(): Promise<void> {
+        this.state = withExampleFlagsSettled(this.state);
         await this.datasource.save(APP_STATE_PREFIX + this.state.activeProfileId, this.state);
         this.announcePersisted();
     }
@@ -252,6 +273,11 @@ export class AppStateRepository {
      *  Create new workspace
      */
     addWorkspace(title: string, description?: string): Promise<AppState> {
+        // The free plan's two workspaces when not premium, the fair use fifty when premium.
+        // Only another one is refused: workspaces already past either stay, all editable.
+        if (this.refused(refusalOfAnotherWorkspace(this.state, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         const id = uid();
         this.state = {
             ...this.state,
@@ -339,6 +365,10 @@ export class AppStateRepository {
             // in that case it is not possible for environment to not exists
             environmentId = this.getCurrentEnvironmentId()!;
         }
+        if (this.refused(refusalOfMoreGroups(
+            this.state, environmentId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         this.state = {
             ...this.state,
             groups: {
@@ -422,6 +452,15 @@ export class AppStateRepository {
         if (group.environmentId === targetEnvironmentId) {
             return Promise.resolve(this.state);
         }
+        const carried = Object.values(this.state.links)
+            .filter(link => link.groupId === id && link.environmentId !== targetEnvironmentId).length;
+        if (this.refused(refusalOfMoreGroups(
+            this.state, targetEnvironmentId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
+        if (!this.roomForLinks(targetEnvironmentId, carried)) {
+            return Promise.resolve(this.state);
+        }
 
         const sourceEnvironmentId = group.environmentId;
         const vacatedOrder = group.order ?? 0;
@@ -481,6 +520,10 @@ export class AppStateRepository {
         title: string,
         description?: string
     ): Promise<AppState> {
+        if (this.refused(refusalOfMoreSubgroups(
+            this.state, groupId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
         const id = uid();
         this.state = {
             ...this.state,
@@ -645,6 +688,12 @@ export class AppStateRepository {
             "createLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, title: ${title}, url: ${url}`);
 
+        const targetEnvironmentId = this.state.groups[groupId]?.environmentId
+            ?? this.getCurrentEnvironmentId()!;
+        if (!this.roomForLinks(targetEnvironmentId, 1)) {
+            return Promise.resolve(this.state);
+        }
+
         const id: string = uid();
         const nextPosition: number = this.getPositionForNewItem(groupId, subGroupId);
 
@@ -659,8 +708,7 @@ export class AppStateRepository {
                     // The group's workspace, not the open one: the bookmarking popup can put a
                     // link into a group of another workspace, and a link naming the open one
                     // would claim a workspace that does not hold its group.
-                    environmentId: this.state.groups[groupId]?.environmentId
-                        ?? this.getCurrentEnvironmentId()!,
+                    environmentId: targetEnvironmentId,
                     groupId: groupId,
                     subGroupId: subGroupId,
                     type: "link",
@@ -694,7 +742,13 @@ export class AppStateRepository {
         index: number
     ): Promise<AppState> {
 
+        const before = Object.keys(this.state.links).length;
         const created = await this.createLink(url, title, groupId, subGroupId);
+        if (Object.keys(created.links).length === before) {
+            // Refused (a full workspace): the search below would find an older link with the
+            // same address and move that one instead.
+            return created;
+        }
         const link = Object.values(created.links)
             .filter(candidate => candidate.groupId === groupId
                 && candidate.subGroupId === subGroupId
@@ -902,6 +956,11 @@ export class AppStateRepository {
             return Promise.resolve(this.state);
         }
 
+        if (link.environmentId !== group.environmentId
+            && !this.roomForLinks(group.environmentId, 1)) {
+            return Promise.resolve(this.state);
+        }
+
         const moved: Link = {
             ...link,
             groupId,
@@ -960,6 +1019,17 @@ export class AppStateRepository {
         const group = this.state.groups[groupId];
         if (!subgroup || !group) {
             this.LOG.debug("moveSubgroupTo", `No such subgroup or group: ${subgroupId} -> ${groupId}`);
+            return Promise.resolve(this.state);
+        }
+
+        const carried = Object.values(this.state.links)
+            .filter(link => link.subGroupId === subgroupId
+                && link.environmentId !== group.environmentId).length;
+        if (subgroup.groupId !== groupId && this.refused(refusalOfMoreSubgroups(
+            this.state, groupId, 1, this.limits(), this.isPremium()))) {
+            return Promise.resolve(this.state);
+        }
+        if (!this.roomForLinks(group.environmentId, carried)) {
             return Promise.resolve(this.state);
         }
 
@@ -1130,6 +1200,43 @@ export class AppStateRepository {
             groups: { ...this.state.groups, ...updatedGroups }
         };
         return this.save();
+    }
+
+    /**
+     *  Whether a workspace can take `adding` more links under the fair use limit, publishing
+     *  the refusal when it cannot.
+     *
+     *  Every path that puts links into a workspace asks this - creating one, dropping a closed
+     *  tab, bookmarking, and moving a link, subgroup or group in from another workspace. A
+     *  move inside one workspace adds nothing and never asks. Nothing already there is
+     *  touched: a workspace over the limit keeps everything, it only stops growing.
+     *
+     *  @param workspaceId the workspace being added to
+     *  @param adding      how many links would arrive
+     */
+    private roomForLinks(workspaceId: string, adding: number): boolean {
+        const refusal = refusalOfMoreLinks(
+            this.state, workspaceId, adding, this.limits(), this.isPremium());
+        if (!refusal) {
+            return true;
+        }
+        this.LOG.warn("roomForLinks",
+            `Workspace ${workspaceId} holds ${linksInWorkspace(this.state, workspaceId)}; refusing ${adding} more`);
+        this.fairUse.reportRefusal(refusal);
+        return false;
+    }
+
+    /**
+     *  Publishes a refusal when there is one, so the page can say it.
+     *
+     *  @param refusal what a growth check answered; null means the addition may go ahead
+     *  @return true when the addition was refused and must not happen
+     */
+    private refused(refusal: LimitRefusal | null): boolean {
+        if (refusal) {
+            this.fairUse.reportRefusal(refusal);
+        }
+        return refusal !== null;
     }
 
     private getMaxOrderInEnvironment(environmentId: string): number {

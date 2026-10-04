@@ -10,7 +10,8 @@
   "status": {
     "working": "Synchronising...",
     "offline": "Offline - changes will be sent later",
-    "idle": "Synchronised"
+    "idle": "Synchronised",
+    "fairUseLimit": "Not synchronised: {reason}"
   },
   "logInDialog": {
     "title": "Log in",
@@ -48,5 +49,26 @@
     "text": "Signed out of {username}",
     "tooltip": "Sync is paused. Your links stay here and are sent when you log in again."
   },
-  "noticeTitle": "Your account"
+  "noticeTitle": "Your account",
+  "unsynced": {
+    "profile": {
+      "LOCAL_ONLY_FREE_LIMIT": "Not synchronised: the free plan synchronises {maximum} profile, and your account already has it. It stays on this device only.",
+      "LOCAL_ONLY_FAIR_USE": "Not synchronised: your account already synchronises as many profiles as the Fair Use Policy allows. It stays on this device only.",
+      "EXAMPLE": "Example data: not synchronised until you change it."
+    },
+    "workspace": {
+      "LOCAL_ONLY_FREE_LIMIT": "This workspace stays on this device only: the free plan synchronises {maximum} workspaces per profile, and this profile already has them on your account.",
+      "LOCAL_ONLY_FAIR_USE": "This workspace stays on this device only: it is over a fair use limit, or this profile already synchronises as many workspaces as the Fair Use Policy allows.",
+      "EXAMPLE": "Example workspace: not synchronised until you change it, and removed when you log in if you leave it as it is."
+    },
+    "workspaceOfProfile": {
+      "LOCAL_ONLY_FREE_LIMIT": "This profile and its workspaces stay on this device only: the free plan synchronises {maximum} profile, and your account already has it.",
+      "LOCAL_ONLY_FAIR_USE": "This profile and its workspaces stay on this device only: your account already synchronises as many profiles as the Fair Use Policy allows."
+    },
+    "renameAdvice": "Rename it to {names} and it merges with that one on your account at the next synchronisation.",
+    "upgrade": "Upgrade",
+    "upgradeTooltip": "Open your account on the website, where premium is bought",
+    "audit": "Devices",
+    "auditTooltip": "Open the devices page on the website, which shows what each installation holds and synchronises"
+  }
 }

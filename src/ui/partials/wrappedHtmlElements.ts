@@ -19,9 +19,25 @@ export const ICON = {
     IMPORT: "⇩",   // import (down/in)
     HISTORY: "↺",   // recently closed / bring back
     CHECKED: "✓",  // ticked / confirmed / already done
+    SYNC: "⟳",     // synchronisation; struck through by CSS where something does not sync
     TRASH: "🗑"     // destroy for good - the one pictorial icon here, because the
                    // trash bar has to be recognised from across the page mid-drag
 } as const;
+
+/**
+ *  The crossed-out sync mark beside a profile that does not synchronise: the sync glyph,
+ *  struck through by its stylesheet, saying why in its tooltip.
+ *
+ *  @param reason why it does not synchronise, already worded
+ */
+export const renderUnsyncedMark = (reason: string): HTMLElement => {
+    const mark = document.createElement("span");
+    mark.classList.add("cls-unsynced-mark");
+    mark.textContent = ICON.SYNC;
+    mark.title = reason;
+    mark.setAttribute("aria-label", reason);
+    return mark;
+};
 
 /**
  *  Toggles black and blur overlay over whole page when opening context menu over some component

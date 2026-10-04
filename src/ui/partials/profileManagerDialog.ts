@@ -2,7 +2,7 @@ import { ManagedProfileDTO, ProfileManagerViewModel } from '../../viewModel/prof
 import { confirmByTypingPhrase, confirmDestructiveAction, showNotice } from './confirmations';
 import { InputDialog } from './inputDialog';
 import { MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
-import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { ICON, renderUnsyncedMark, toggleOverlay } from './wrappedHtmlElements';
 import { t } from '../../i18n/i18n';
 
 /** What has to be typed before every other profile is deleted at once. */
@@ -144,6 +144,11 @@ export class ProfileManagerDialog {
     contents.classList.add('profile-manager__contents');
     if (profile.empty) contents.classList.add('profile-manager__contents--empty');
     contents.textContent = profile.contentsLabel;
+
+    if (profile.notSyncedReason) {
+      // The crossed-out sync mark, as in the profiles menu, with why in its tooltip.
+      name.appendChild(renderUnsyncedMark(profile.notSyncedReason));
+    }
 
     text.appendChild(name);
     text.appendChild(contents);

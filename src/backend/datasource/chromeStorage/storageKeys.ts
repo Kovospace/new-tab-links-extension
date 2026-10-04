@@ -89,3 +89,9 @@ export const ACCOUNT_STANDING_KEY = "account_standing";
  *  Per device and never synchronised - see `BackgroundImageRepository`.
  */
 export const BACKGROUND_IMAGE_KEY = "background_image";
+
+/**
+ * What this installation last reported to the account about what it holds - the account and a
+ * signature of the report - so an unchanged inventory is not sent again. See InventoryReporter.
+ */
+export const INVENTORY_REPORTED_KEY = "sync_inventory_reported";

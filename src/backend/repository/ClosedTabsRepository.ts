@@ -1,7 +1,7 @@
 import deepEqual from "fast-deep-equal";
 
 import {
-    ClosedTab, isStorableClosedTabUrl, MAX_CLOSED_TABS, storableClosedTab
+    ClosedTab, isStorableClosedTabUrl, storableClosedTab
 } from "../entity/ClosedTabEntity";
 import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageWrapper";
 import { closedTabsKey } from "../datasource/chromeStorage/storageKeys";
@@ -9,6 +9,7 @@ import { normalizeUrl } from "../worker/module/linkTabGroupCatcher";
 import { uid } from "./AppStateRepositoryUtils";
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
+import { readStoredPlanLimits } from "./PremiumStanding";
 
 /**
  *  The recently closed tabs of one profile.
@@ -30,17 +31,24 @@ const storage = new ChromeStorageWrapper();
 /**
  *  Records a closed tab, and prunes the list back to its cap.
  *
+ *  **The cap is the plan's** - 25 free, 500 premium, or what the account last said - read from
+ *  storage, because the service worker that calls this holds no state between wakes. A list
+ *  already longer than the cap (premium has just ended) is not cut down to it at once: it
+ *  rolls, losing its oldest entry as each new one arrives, the way any history does.
+ *
  *  **The same address closed twice is one entry, moved to the top.** A list that repeated
  *  itself would answer "what did I just close" with the same page four times, and would spend
  *  the account's fifty rows on ten pages.
  *
  *  @param profileId which profile's list to add to
  *  @param tab       the tab, without its identifier - one is minted here
+ *  @param cap       how many to keep; the plan's, read from storage, when not given
  *  @return the entry as it was stored, or null when there was nothing to store
  */
 export async function recordClosedTab(
     profileId: string,
-    tab: Omit<ClosedTab, "id">
+    tab: Omit<ClosedTab, "id">,
+    cap?: number
 ): Promise<ClosedTab | null> {
 
     if (!profileId || !isStorableClosedTabUrl(tab.url)) {
@@ -55,9 +63,10 @@ export async function recordClosedTab(
     const kept = Object.values(stored)
         .filter(existing => !sameAddress(existing.url, entry.url));
 
+    const plansCap = cap ?? (await readStoredPlanLimits()).closedTabs;
     const pruned = [entry, ...kept]
         .sort((one, other) => other.closedAt - one.closedAt)
-        .slice(0, MAX_CLOSED_TABS);
+        .slice(0, Math.max(plansCap, kept.length));
 
     await writeClosedTabs(profileId, byId(pruned));
     LOG.debug("recordClosedTab", `${entry.url} (${pruned.length} kept)`);

@@ -1,3 +1,4 @@
+import { PREMIUM_PLAN_LIMITS } from "./PlanLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../sync/SyncContracts";
 
 /**
@@ -36,14 +37,13 @@ export interface ClosedTab {
 }
 
 /**
- *  How many closed tabs one profile keeps.
+ *  The most closed tabs the panel ever draws: premium's compiled history length.
  *
- *  A cap rather than a full history, and a small one. Every entry is pushed to the account and
- *  travels to every other device, so an uncapped list would be a browsing history in somebody
- *  else's database growing without limit. Fifty is enough to answer "what was that thing I
- *  just closed" - which is the question this panel exists for - and no more than that.
+ *  Not the cap a list is kept to - that is the plan's (`PlanLimits.closedTabs`: 25 free, 500
+ *  premium, or what the account says), applied where an entry is recorded (`recordClosedTab`).
+ *  This is only the bound on drawing, for a list pulled from an account that kept more.
  */
-export const MAX_CLOSED_TABS = 50;
+export const MAX_CLOSED_TABS: number = PREMIUM_PLAN_LIMITS.closedTabs;
 
 /**
  *  One closed tab cut down to what the account will accept.

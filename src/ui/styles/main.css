@@ -377,3 +377,13 @@ html.dark .editable:hover {
 html.dark .editable:focus {
     box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
 }
+/* The crossed-out sync mark beside a profile that does not synchronise - in the profiles menu
+   and in the profile manager. The glyph is the sync arrow; the strike is what says "not". */
+.cls-unsynced-mark {
+    display: inline-block;
+    margin-left: 0.5em;
+    text-decoration: line-through;
+    text-decoration-thickness: 0.125em;
+    opacity: 0.75;
+    cursor: help;
+}
