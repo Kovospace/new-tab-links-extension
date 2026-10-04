@@ -11,7 +11,9 @@
   "noSubgroup": "(none)",
   "contextMenu": {
     "page": "Bookmark this page with {extension}",
-    "link": "Bookmark this link with {extension}"
+    "link": "Bookmark this link with {extension}",
+    "groupItself": "Directly into {group}",
+    "choose": "Choose a place…"
   },
   "nothingToBookmark": {
     "title": "Nothing to bookmark",
