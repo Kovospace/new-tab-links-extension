@@ -4,10 +4,12 @@ import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageW
 import { ACCOUNT_STANDING_KEY } from "../datasource/chromeStorage/storageKeys";
 import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
+import { premiumStanding$ } from "../repository/PremiumStanding";
 
 /**
  *  Whether the signed-in account is premium - which is what decides whether the new tab page
- *  shows an advertisement, and whether the menu offers an upgrade.
+ *  shows an advertisement, whether the menu offers an upgrade, and whether the free plan's
+ *  limits on workspaces and profiles apply (`FreePlanLimits.ts`).
  *
  *  **The server decides, this only remembers.** `/api/v1/users/me` judges it from the account's
  *  entitlement at the moment it answers; nothing here works it out from dates or prices.
@@ -46,8 +48,13 @@ export class AccountStandingRepository {
     private LOG: Logger = new Logger("AccountStandingRepository");
     private datasource = new ChromeStorageWrapper();
 
-    /** Whether the signed-in account is premium; false when nobody is signed in. */
-    public readonly premium$ = new ObservableValue<boolean>(false);
+    /**
+     *  Whether the signed-in account is premium; false when nobody is signed in.
+     *
+     *  The singleton's is `premiumStanding$`, which the repositories read to decide whether
+     *  the free plan's limits apply; a test's instance gets one of its own.
+     */
+    public readonly premium$: ObservableValue<boolean>;
 
     private stored: AccountStanding | null = null;
     private inFlight: Promise<void> | null = null;
@@ -56,13 +63,17 @@ export class AccountStandingRepository {
      *  @param account  where the account is read from; the API client in normal use
      *  @param sessions who is signed in; the singleton in normal use
      *  @param now      the clock, so a test can move it
+     *  @param premium$ where the standing is published; a fresh value unless given one
      */
     constructor(
         private readonly account: AccountSource = backendApiClient,
         private readonly sessions: Pick<SessionRepository, "session$" | "getSession">
             = sessionRepository,
-        private readonly now: () => number = () => Date.now()
-    ) {}
+        private readonly now: () => number = () => Date.now(),
+        premium$: ObservableValue<boolean> = new ObservableValue<boolean>(false)
+    ) {
+        this.premium$ = premium$;
+    }
 
     /**
      *  Publishes what was last known, then keeps it current with the session.
@@ -143,4 +154,5 @@ export class AccountStandingRepository {
     }
 }
 
-export const accountStandingRepository = new AccountStandingRepository();
+export const accountStandingRepository = new AccountStandingRepository(
+    backendApiClient, sessionRepository, () => Date.now(), premiumStanding$);

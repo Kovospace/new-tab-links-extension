@@ -565,7 +565,19 @@ named as the backend names them.
   change set from debounced pushes. A push-then-pull (page opening, change notification) tries
   once more. The account menu's status says the limit instead of "Synchronised"; a notice is
   shown only when a local change was what got refused.
-- **The free plan's lower limits (2 workspaces, 1 profile) are not enforced here.**
+- **The free plan's limits (`entity/FreePlanLimits.ts`): 2 workspaces, 1 profile, 5
+  synchronised installations.** Free means not premium: nobody signed in, or the last known
+  standing of the signed-in account is not premium. `AccountStandingRepository` publishes it
+  into `repository/PremiumStanding.ts`'s `premiumStanding$` (stored, never awaited from the
+  network); the repositories read that. Effective cap: free numbers when not premium, fair use
+  when premium (`refusalOfAnotherWorkspace`, `refusalOfAnotherProfile`, `limitViolationIn` for
+  imports). Links have no free limit. Same grow-only rule - a lapsed premium user keeps
+  everything. A free plan refusal's notice offers the upgrade (`openPremiumUpgradePage`).
+- **The account's 409 `FREE_PLAN_LIMIT_REACHED`** (`limit` `WORKSPACES` | `PROFILES` | `DEVICES`)
+  is read beside the fair use one (`ApiResult.limitRefusal`) and handled identically in sync
+  (`SyncCoordinator.limitRefusal$`). `DEVICES` is counted only by the account and arrives on a
+  password sign-in or a pairing code: nothing is stored, the extension stays signed out, and a
+  dialog offers the website's devices page or the upgrade (`SyncAccountViewModel.storeIssuedTokens`).
 
 ### Dialog constraints (`ui/partials/fieldValidation.ts`)
 

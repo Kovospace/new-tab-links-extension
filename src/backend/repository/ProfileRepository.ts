@@ -7,8 +7,9 @@ import { DEFAULT_PROFILE_ID } from "../datasource/init/AppStateInit";
 import { uid } from "./AppStateRepositoryUtils";
 import { isStorableName } from "../sync/SyncContracts";
 import { Logger } from "../../utils/logger";
-import { canAddProfile } from "../entity/FairUseLimits";
+import { refusalOfAnotherProfile } from "../entity/FreePlanLimits";
 import { fairUseRefusals } from "./FairUseRefusals";
+import { premiumStanding$ } from "./PremiumStanding";
 import { hiddenProfileRegistryKey, PROFILE_REGISTRY_KEY } from "../datasource/chromeStorage/storageKeys";
 
 /** The account a set of profiles belongs to. */
@@ -261,18 +262,21 @@ export class ProfileRepository {
      * from syncing until someone found it. It is easier to never let it in.
      *
      * @param name the name to give the profile; surrounding whitespace is dropped
-     * @return the profile, or null when the name was not storable or the fair use limit on
-     *         profiles is reached
+     * @return the profile, or null when the name was not storable or the limit on profiles is
+     *         reached - the free plan's one profile when not premium, the fair use limit when
+     *         premium
      */
     public async createProfile(name: string): Promise<ProfileMeta | null> {
         if (!isStorableName(name)) {
             this.LOG.debug("createProfile", `Refusing unstorable profile name of length ${name.trim().length}`);
             return null;
         }
-        if (!canAddProfile(Object.keys(this.registry.profiles).length)) {
-            // The fair use limit, which an import meets here too. Profiles already over it
-            // stay; only another one is refused.
-            fairUseRefusals.report("PROFILES");
+        const refusal = refusalOfAnotherProfile(
+            Object.keys(this.registry.profiles).length, premiumStanding$.get());
+        if (refusal) {
+            // The free plan's limit or the fair use one, which an import meets here too.
+            // Profiles already over it stay; only another one is refused.
+            fairUseRefusals.reportRefusal(refusal);
             return null;
         }
 

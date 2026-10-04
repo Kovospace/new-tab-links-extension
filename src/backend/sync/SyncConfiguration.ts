@@ -82,6 +82,12 @@ export const WEBSITE_PATHS = {
     accountSettings: "/account",
 
     /**
+     *  The account's synchronised installations, where one is removed - the way past the free
+     *  plan's limit on them short of upgrading. The website's route `devices`.
+     */
+    devices: "/devices",
+
+    /**
      *  The page shown in the new tab page's ad slot. A page on the website rather than markup
      *  in the extension, so what is advertised - our own promotion, later an ad network - can
      *  change without an extension release, and no remote code ever runs in the extension.

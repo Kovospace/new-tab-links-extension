@@ -19,7 +19,7 @@ import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsReposit
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { ObservableValue } from "../../utils/observableValue";
-import { FairUseRefusal } from "../entity/FairUseLimits";
+import { isFreePlanRefusal, LimitRefusal } from "../entity/FreePlanLimits";
 import { fairUseRefusals, FairUseRefusals } from "../repository/FairUseRefusals";
 
 /** How long to wait after a local change before pushing, so a burst becomes one request. */
@@ -147,17 +147,19 @@ export class SyncCoordinator {
     private rejectionAlreadyReported: string | null = null;
 
     /**
-     *  The fair use limit the account last refused this device's changes over, or null.
+     *  The limit the account last refused this device's changes over, or null: a fair use
+     *  limit, or - on a free account - the free plan's.
      *
      *  Set while it stands: the account refused the whole push (HTTP 409,
-     *  `FAIR_USE_LIMIT_REACHED`) and nothing in it was applied. Cleared by the next push the
+     *  `FAIR_USE_LIMIT_REACHED` or `FREE_PLAN_LIMIT_REACHED`, handled alike) and nothing in it
+     *  was applied. Cleared by the next push the
      *  account takes, and by signing out. The account menu says it in place of "Synchronised",
      *  in the words a local refusal uses.
      */
-    public readonly fairUseRefusal$ = new ObservableValue<FairUseRefusal | null>(null);
+    public readonly limitRefusal$ = new ObservableValue<LimitRefusal | null>(null);
 
     /**
-     *  The change set the account refused over a fair use limit, so it is not sent again.
+     *  The change set the account refused over a limit, so it is not sent again.
      *
      *  Sending the same operations again cannot succeed - the account has not changed, and
      *  neither has what was offered - so a push computing exactly this is skipped without a
@@ -167,7 +169,7 @@ export class SyncCoordinator {
      *  account may have made room meanwhile. Neither repeats on its own, so a refusal can
      *  never become a retry loop.
      */
-    private fairUseRefusedChangeSet: string | null = null;
+    private limitRefusedChangeSet: string | null = null;
 
     /** Where a refusal the user should hear about at once is published; see push(). */
     private readonly fairUseNotices: FairUseRefusals = fairUseRefusals;
@@ -250,7 +252,7 @@ export class SyncCoordinator {
             this.LOG.log("onSessionChanged", "Signed out; synchronisation stopped");
             this.cancelTimers();
             this.channel.disconnect();
-            this.clearFairUseRefusal();
+            this.clearLimitRefusal();
             // Everything stays: the profiles remain visible and remain the account's, and so
             // does its baseline. Whatever is done to them while signed out is the difference
             // the next sign-in of the same account pushes - deletions included, which a fresh
@@ -563,14 +565,14 @@ export class SyncCoordinator {
 
     private async pushThenPull(): Promise<void> {
         // Whatever caused this may have made room on the account, so a change set refused
-        // over a fair use limit is offered once more.
-        this.fairUseRefusedChangeSet = null;
+        // over a limit is offered once more.
+        this.limitRefusedChangeSet = null;
         await this.push();
-        if (this.fairUseRefusal$.get()) {
+        if (this.limitRefusal$.get()) {
             // A pull replaces local data with the account's, and the account holds none of
             // what it just refused. Pulling would delete it from this device - the one thing a
-            // fair use limit must never do. Stay as we are until a push is taken.
-            this.LOG.warn("pushThenPull", "Account refused over a fair use limit; not pulling");
+            // limit must never do. Stay as we are until a push is taken.
+            this.LOG.warn("pushThenPull", "Account refused over a limit; not pulling");
             return;
         }
         await this.pull();
@@ -634,14 +636,14 @@ export class SyncCoordinator {
 
         if (operations.length === 0) {
             // Nothing to send means nothing refused stands any more.
-            this.clearFairUseRefusal();
+            this.clearLimitRefusal();
             this.activity$.set("idle");
             await this.recoverFromWithheldDeletions(withheld);
             return;
         }
 
         const changeSet = JSON.stringify(operations);
-        if (changeSet === this.fairUseRefusedChangeSet) {
+        if (changeSet === this.limitRefusedChangeSet) {
             this.LOG.debug("push", "Same change set the account refused over a fair use limit; not resending");
             return;
         }
@@ -654,19 +656,22 @@ export class SyncCoordinator {
             operations
         });
 
-        if (result.outcome === "rejected" && result.fairUse) {
+        if (result.outcome === "rejected" && result.limitRefusal) {
             // Nothing in the batch was applied, and nothing is taken away here: the baseline
             // stays, local data stays, and pushThenPull will not pull over it.
-            const alreadyStanding = this.fairUseRefusal$.get()?.limit === result.fairUse.limit;
-            this.fairUseRefusedChangeSet = changeSet;
-            this.fairUseRefusal$.set(result.fairUse);
+            const standing = this.limitRefusal$.get();
+            const alreadyStanding = standing !== null
+                && standing.limit === result.limitRefusal.limit
+                && isFreePlanRefusal(standing) === isFreePlanRefusal(result.limitRefusal);
+            this.limitRefusedChangeSet = changeSet;
+            this.limitRefusal$.set(result.limitRefusal);
             if (afterLocalChange && !alreadyStanding) {
                 // Only for what the user just did: a page opening and finding the refusal
                 // still standing says so in the menu, not in a notice on every new tab.
-                this.fairUseNotices.report(result.fairUse.limit, result.fairUse.maximum);
+                this.fairUseNotices.reportRefusal(result.limitRefusal);
             }
             this.activity$.set("idle");
-            this.LOG.warn("push", `Refused over the fair use limit ${result.fairUse.limit}`);
+            this.LOG.warn("push", `Refused over the ${isFreePlanRefusal(result.limitRefusal) ? "free plan" : "fair use"} limit ${result.limitRefusal.limit}`);
             return;
         }
 
@@ -677,7 +682,7 @@ export class SyncCoordinator {
         }
 
         // The account took this push, so no fair use refusal stands any more.
-        this.clearFairUseRefusal();
+        this.clearLimitRefusal();
 
         if (result.data.rejected.length > 0) {
             // Said before the pull below, because the pull is what destroys the evidence: it
@@ -711,10 +716,10 @@ export class SyncCoordinator {
         this.activity$.set("idle");
     }
 
-    /** The account took a push, or there was nothing to push: no fair use refusal stands. */
-    private clearFairUseRefusal(): void {
-        this.fairUseRefusedChangeSet = null;
-        this.fairUseRefusal$.set(null);
+    /** The account took a push, or there was nothing to push: no limit's refusal stands. */
+    private clearLimitRefusal(): void {
+        this.limitRefusedChangeSet = null;
+        this.limitRefusal$.set(null);
     }
 
     /**

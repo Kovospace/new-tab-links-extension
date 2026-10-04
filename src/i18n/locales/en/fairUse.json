@@ -5,5 +5,15 @@
     "WORKSPACES": "You can have at most {maximum} workspaces. Delete one before adding another. Nothing you already have was changed.",
     "PROFILES": "You can have at most {maximum} profiles. Delete one before adding another. Nothing you already have was changed.",
     "CLOSED_TAB_HISTORY": "The closed tabs history keeps at most the {maximum} most recent tabs; older ones make room for newer ones."
+  },
+  "freePlan": {
+    "title": "Free plan limit reached",
+    "upgrade": "Upgrade to premium",
+    "openDevices": "Open the devices page",
+    "limits": {
+      "WORKSPACES": "The free plan includes {maximum} workspaces. Upgrade to premium to add more, or delete one before adding another. Nothing you already have was changed.",
+      "PROFILES": "The free plan includes {maximum} profile. Upgrade to premium to add more, or delete one before adding another. Nothing you already have was changed.",
+      "DEVICES": "This account already has {maximum} synchronised installations on the free plan. Remove one on the website's devices page, or upgrade to premium. Until then this browser stays signed out and keeps working with your links locally."
+    }
   }
 }

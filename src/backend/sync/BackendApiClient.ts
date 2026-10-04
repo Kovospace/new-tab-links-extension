@@ -10,7 +10,8 @@ import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { resolveDeviceName } from "./DeviceName";
 import { t } from "../../i18n/i18n";
-import { FairUseRefusal, fairUseRefusalOf, isFairUseLimit } from "../entity/FairUseLimits";
+import { fairUseRefusalOf, isFairUseLimit } from "../entity/FairUseLimits";
+import { freePlanRefusalOf, isFreePlanLimit, LimitRefusal } from "../entity/FreePlanLimits";
 
 /** Held by whichever page is trading the refresh token, so that no two pages spend it at once. */
 const TOKEN_REFRESH_LOCK = "tabilinks-token-refresh";
@@ -39,11 +40,18 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
  */
 export type ApiResult<PAYLOAD> =
     | { outcome: "success"; data: PAYLOAD }
-    | { outcome: "rejected"; status: number; message: string; fairUse?: FairUseRefusal }
+    | { outcome: "rejected"; status: number; message: string; limitRefusal?: LimitRefusal }
     | { outcome: "offline"; message: string };
 
 /** The code the backend's error body carries when a push would break a fair use limit. */
 export const FAIR_USE_LIMIT_REACHED = "FAIR_USE_LIMIT_REACHED";
+
+/**
+ *  The code the backend's error body carries when a free account would go past a free plan
+ *  limit: a push adding a third workspace or a second profile, or a sign-in that would be the
+ *  sixth synchronised installation.
+ */
+export const FREE_PLAN_LIMIT_REACHED = "FREE_PLAN_LIMIT_REACHED";
 
 /**
  *  The signed-in account, as the backend's UserDto returns it.
@@ -100,27 +108,34 @@ interface ApiErrorResponseDto {
     error?: string;
     message?: string;
     validationErrors?: string[];
-    /** Machine-readable reason; `FAIR_USE_LIMIT_REACHED` is the one read here. */
+    /** Machine-readable reason; `FAIR_USE_LIMIT_REACHED` and `FREE_PLAN_LIMIT_REACHED` are read here. */
     code?: string;
-    /** With that code: which limit, as `FairUseLimit` names it. */
+    /** With either code: which limit, as `FairUseLimit` or `FreePlanLimit` names it. */
     limit?: string;
     /** With that code: the limit's number, as the server holds it. */
     maximum?: number;
 }
 
 /**
- *  Reads a fair use refusal out of an error body, or nothing.
+ *  Reads a limit's refusal - fair use or the free plan's - out of an error body, or nothing.
  *
  *  The body's own `maximum` wins over this extension's number: the server is what refused,
  *  and a limit raised there before an extension update is the one the user should be told.
- *  A limit name this build does not know is not a fair use refusal it can describe, so it
- *  falls back to the ordinary rejection rather than inventing a sentence.
+ *  A limit name this build does not know is not a refusal it can describe, so it falls back
+ *  to the ordinary rejection rather than inventing a sentence.
  */
-function fairUseRefusalIn(status: number, errorBody: ApiErrorResponseDto): FairUseRefusal | undefined {
-    if (status !== 409 || errorBody.code !== FAIR_USE_LIMIT_REACHED || !isFairUseLimit(errorBody.limit)) {
+function limitRefusalIn(status: number, errorBody: ApiErrorResponseDto): LimitRefusal | undefined {
+    if (status !== 409) {
         return undefined;
     }
-    const known = fairUseRefusalOf(errorBody.limit);
+    let known: LimitRefusal;
+    if (errorBody.code === FAIR_USE_LIMIT_REACHED && isFairUseLimit(errorBody.limit)) {
+        known = fairUseRefusalOf(errorBody.limit);
+    } else if (errorBody.code === FREE_PLAN_LIMIT_REACHED && isFreePlanLimit(errorBody.limit)) {
+        known = freePlanRefusalOf(errorBody.limit);
+    } else {
+        return undefined;
+    }
     return typeof errorBody.maximum === "number" && errorBody.maximum > 0
         ? { ...known, maximum: errorBody.maximum }
         : known;
@@ -376,10 +391,10 @@ export class BackendApiClient {
         }
 
         if (!response.ok) {
-            const { message, fairUse } = await this.readFailure(response);
+            const { message, limitRefusal } = await this.readFailure(response);
             this.LOG.debug("send", `${response.status} from ${url}: ${message}`);
-            return fairUse
-                ? { outcome: "rejected", status: response.status, message, fairUse }
+            return limitRefusal
+                ? { outcome: "rejected", status: response.status, message, limitRefusal }
                 : { outcome: "rejected", status: response.status, message };
         }
 
@@ -401,25 +416,25 @@ export class BackendApiClient {
     }
 
     /**
-     *  Pulls a human readable explanation out of the backend's uniform error body, and a fair
-     *  use refusal when that is what it is.
+     *  Pulls a human readable explanation out of the backend's uniform error body, and a
+     *  limit's refusal when that is what it is.
      */
     private async readFailure(
         response: Response
-    ): Promise<{ message: string; fairUse?: FairUseRefusal }> {
+    ): Promise<{ message: string; limitRefusal?: LimitRefusal }> {
         try {
             const rawBody = await response.text();
             if (!rawBody) {
                 return { message: unexplainedFailureMessage() };
             }
             const errorBody = JSON.parse(rawBody) as ApiErrorResponseDto;
-            const fairUse = fairUseRefusalIn(response.status, errorBody);
+            const limitRefusal = limitRefusalIn(response.status, errorBody);
             if (errorBody.validationErrors && errorBody.validationErrors.length > 0) {
-                return { message: errorBody.validationErrors.join("\n"), fairUse };
+                return { message: errorBody.validationErrors.join("\n"), limitRefusal };
             }
             return {
                 message: errorBody.message ?? errorBody.error ?? unexplainedFailureMessage(),
-                fairUse
+                limitRefusal
             };
         } catch (unreadableBody) {
             return { message: unexplainedFailureMessage() };

@@ -12,6 +12,7 @@ import { WorkspaceDTO } from "./viewModel/abstract/dtos"
 
 import { WorkspaceViewModel } from "./viewModel/workspaceViewModel"
 import { startFairUseNotices } from "./viewModel/fairUseNoticeViewModel"
+import { openPremiumUpgradePage } from "./viewModel/syncAccountViewModel"
 
 import {FirstRunComponent} from "./ui/components/firstRunComponent";
 import {WorkspaceComponent} from "./ui/components/workspaceComponent";
@@ -95,9 +96,9 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // initialize "app data" object and repository, WAIT FOR IT !!!
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
-    // A fair use limit stopping an addition - here or, through synchronisation, on the
+    // A fair use or free plan limit stopping an addition - here or, through synchronisation, on the
     // account - is said in a notice; the repositories only refuse and publish.
-    startFairUseNotices();
+    startFairUseNotices(() => openPremiumUpgradePage());
 
     // Synchronisation watches the repositories above, so it starts after them. It is not
     // awaited to completion: a signed-in device pushes and pulls in the background while the

@@ -9,8 +9,8 @@ import { ProfileData } from "./AppStateEntity";
  *  read off the wire indexes this table without translation.
  *
  *  **They cap premium's "unlimited"; they are not the free plan's limits.** The links limit
- *  applies on every plan. The free plan's own lower numbers on workspaces and profiles are
- *  stated on the website and are not enforced in the extension at all.
+ *  applies on every plan. The free plan's own lower numbers on workspaces and profiles are in
+ *  `FreePlanLimits.ts`, which also decides which of the two binds for the current plan.
  *
  *  **Only growth is refused.** Data already over a limit - made before the limit existed, or
  *  imported - is never deleted or hidden; it simply cannot grow until it is back under.

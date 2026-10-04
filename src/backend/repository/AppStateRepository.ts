@@ -7,8 +7,10 @@ import {Logger} from "../../utils/logger"
 import {APP_STATE_PREFIX} from "../datasource/chromeStorage/storageKeys";
 import {chooseTabGroupColor, TabGroupColor} from "../entity/TabGroupColors";
 import deepEqual from "fast-deep-equal";
-import {canAddLinksToWorkspace, canAddWorkspace, linksInWorkspace} from "../entity/FairUseLimits";
+import {canAddLinksToWorkspace, linksInWorkspace} from "../entity/FairUseLimits";
+import {refusalOfAnotherWorkspace} from "../entity/FreePlanLimits";
 import {fairUseRefusals, FairUseRefusals} from "./FairUseRefusals";
+import {premiumStanding$} from "./PremiumStanding";
 
 export class AppStateRepository {
 
@@ -36,8 +38,14 @@ export class AppStateRepository {
 
     private datasource = new ChromeStorageWrapper()
 
-    /** Where a refusal under a fair use limit is published, for the page to tell the user. */
+    /** Where a refusal under a limit is published, for the page to tell the user. */
     private readonly fairUse: FairUseRefusals = fairUseRefusals;
+
+    /**
+     *  Whether the free plan's limits are lifted: the last known premium standing, read at
+     *  the moment of each addition and never waited for (`PremiumStanding.ts`).
+     */
+    private readonly isPremium: () => boolean = () => premiumStanding$.get();
 
     /**
      * @param initialState  Fallback state when no persisted data exists for the profile.
@@ -257,8 +265,11 @@ export class AppStateRepository {
      *  Create new workspace
      */
     addWorkspace(title: string, description?: string): Promise<AppState> {
-        if (!canAddWorkspace(this.state)) {
-            this.fairUse.report("WORKSPACES");
+        // The free plan's two workspaces when not premium, the fair use fifty when premium.
+        // Only another one is refused: workspaces already past either stay, all editable.
+        const refusal = refusalOfAnotherWorkspace(this.state, this.isPremium());
+        if (refusal) {
+            this.fairUse.reportRefusal(refusal);
             return Promise.resolve(this.state);
         }
         const id = uid();

@@ -3,8 +3,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
-import { FAIR_USE_LIMITS, FairUseLimit } from "../../../src/backend/entity/FairUseLimits";
+import { FAIR_USE_LIMITS } from "../../../src/backend/entity/FairUseLimits";
 import { fairUseRefusals } from "../../../src/backend/repository/FairUseRefusals";
+import { premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
 import { BookmarkViewModel } from "../../../src/viewModel/bookmarkViewModel";
 import { refusedUnderFairUse } from "../../../src/viewModel/fairUseNoticeViewModel";
 import { environment, group, link, profileOf, subgroup } from "../../support/profileDataFixtures";
@@ -31,7 +32,7 @@ describe("fair use limits in the repositories", () => {
 
     let profiles: ProfileRepository;
     let appState: AppStateRepository;
-    let refused: FairUseLimit[];
+    let refused: string[];
     let stopListening: () => void;
 
     beforeEach(async () => {
@@ -61,7 +62,13 @@ describe("fair use limits in the repositories", () => {
         refused.length = 0;
     });
 
-    afterEach(() => stopListening());
+    // The fair use limits cap premium; without it the free plan's lower ones would bind first.
+    beforeEach(() => premiumStanding$.set(true));
+
+    afterEach(() => {
+        stopListening();
+        premiumStanding$.set(false);
+    });
 
     const linksIn = (workspaceId: string) => Object.values(appState.state$.get().links)
         .filter(candidate => candidate.environmentId === workspaceId).length;

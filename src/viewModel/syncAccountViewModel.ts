@@ -15,8 +15,23 @@ import { showNotice } from "../ui/partials/confirmations";
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
 import { t } from "../i18n/i18n";
-import { FairUseRefusal } from "../backend/entity/FairUseLimits";
+import { isFreePlanRefusal, LimitRefusal } from "../backend/entity/FreePlanLimits";
 import { describeFairUseRefusal } from "./fairUseNoticeViewModel";
+
+/**
+ *  Opens the website's account settings in a new tab: where premium is bought, and the one
+ *  upgrade offer every part of the extension sends the user to - the menu, and a free plan
+ *  limit's notice.
+ *
+ *  @param standing told that the answer it holds is stale, since whoever goes to upgrade comes
+ *                  back to a new tab expecting the advertisement and the limits to be gone
+ */
+export function openPremiumUpgradePage(
+    standing: Pick<AccountStandingRepository, "markStale"> = accountStandingRepository
+): void {
+    void standing.markStale();
+    chrome.tabs.create({ url: buildWebsiteUrl(WEBSITE_PATHS.accountSettings) });
+}
 
 /** What the application menu needs to know about the signed-in account. */
 export interface AccountDTO {
@@ -63,8 +78,8 @@ export class SyncAccountViewModel {
     private session: SyncSession | null = null;
     private activity: SyncActivity = "idle";
     private premium: boolean = false;
-    /** The fair use limit the account refused this device's changes over, while it stands. */
-    private fairUseRefusal: FairUseRefusal | null = null;
+    /** The limit the account refused this device's changes over, while it stands. */
+    private fairUseRefusal: LimitRefusal | null = null;
     private profilesOwner: RegistryOwner | null = null;
 
     private standing: AccountStandingRepository;
@@ -105,7 +120,7 @@ export class SyncAccountViewModel {
             this.profilesOwner = owner;
             this.publishAccount();
         });
-        syncCoordinator.fairUseRefusal$.subscribe((refusal: FairUseRefusal | null) => {
+        syncCoordinator.limitRefusal$.subscribe((refusal: LimitRefusal | null) => {
             this.fairUseRefusal = refusal;
             this.publishAccount();
         });
@@ -194,9 +209,14 @@ export class SyncAccountViewModel {
     public openAccountSettingsPage(): void {
         // Whoever goes to upgrade comes back to a new tab expecting the advertisement to be
         // gone, so that tab asks the account instead of trusting what it last heard.
-        void this.standing.markStale();
-        const url = buildWebsiteUrl(WEBSITE_PATHS.accountSettings);
-        this.LOG.debug("openAccountSettingsPage", url);
+        this.LOG.debug("openAccountSettingsPage", WEBSITE_PATHS.accountSettings);
+        openPremiumUpgradePage(this.standing);
+    }
+
+    /** Opens the website's devices page, where an installation is removed from the account. */
+    public openDevicesPage(): void {
+        const url = buildWebsiteUrl(WEBSITE_PATHS.devices);
+        this.LOG.debug("openDevicesPage", url);
         chrome.tabs.create({ url });
     }
 
@@ -275,6 +295,13 @@ export class SyncAccountViewModel {
             return;
         }
         this.LOG.warn("storeIssuedTokens", `${failureHeadline} ${result.message}`);
+        if (result.outcome === "rejected" && result.limitRefusal
+            && isFreePlanRefusal(result.limitRefusal) && result.limitRefusal.limit === "DEVICES") {
+            // Nothing was stored, so this installation stays signed out and keeps working
+            // locally. The account is what counts its installations; this one only says so.
+            void this.offerDeviceLimitWayOut(result.limitRefusal.maximum);
+            return;
+        }
         this.report(t("sync.reportedFailure",
             { headline: failureHeadline, message: result.message }));
     }
@@ -389,6 +416,30 @@ export class SyncAccountViewModel {
         }
         if (!await this.deviceNames.renameThisDevice(chosen)) {
             this.report(t("sync.deviceNotRenamed"));
+        }
+    }
+
+    /**
+     *  Says that the account already has as many synchronised installations as the free plan
+     *  allows, and offers both ways on: removing one on the website's devices page, or
+     *  upgrading. Not awaited by the sign-in that was refused.
+     *
+     *  @param maximum how many the free plan allows, as the account said
+     */
+    private async offerDeviceLimitWayOut(maximum: number): Promise<void> {
+        const answer = await new ChoiceDialog<"devices" | "upgrade" | "ok">(
+            t("fairUse.freePlan.title"),
+            describeFairUseRefusal({ plan: "FREE", limit: "DEVICES", maximum }),
+            [
+                { label: t("fairUse.freePlan.openDevices"), value: "devices" },
+                { label: t("fairUse.freePlan.upgrade"), value: "upgrade" },
+                { label: t("common.ok"), value: "ok" }
+            ]
+        ).ask();
+        if (answer === "devices") {
+            this.openDevicesPage();
+        } else if (answer === "upgrade") {
+            this.openAccountSettingsPage();
         }
     }
 

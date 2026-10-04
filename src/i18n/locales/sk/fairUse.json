@@ -5,5 +5,15 @@
     "WORKSPACES": "Môžete mať najviac {maximum} pracovných priestorov. Pred pridaním ďalšieho jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
     "PROFILES": "Môžete mať najviac {maximum} profilov. Pred pridaním ďalšieho jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
     "CLOSED_TAB_HISTORY": "História zatvorených kariet uchováva najviac {maximum} najnovších kariet; staršie uvoľňujú miesto novším."
+  },
+  "freePlan": {
+    "title": "Dosiahnutý limit bezplatného plánu",
+    "upgrade": "Prejsť na prémiovú verziu",
+    "openDevices": "Otvoriť stránku zariadení",
+    "limits": {
+      "WORKSPACES": "Počet pracovných priestorov je na bezplatnom pláne obmedzený na {maximum}. Ak chcete pridať ďalší, prejdite na prémiovú verziu alebo jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+      "PROFILES": "Počet profilov je na bezplatnom pláne obmedzený na {maximum}. Ak chcete pridať ďalší, prejdite na prémiovú verziu alebo jeden odstráňte. Nič z toho, čo už máte, sa nezmenilo.",
+      "DEVICES": "Počet synchronizovaných inštalácií je na bezplatnom pláne obmedzený na {maximum} a tento účet ho už dosiahol. Jednu odstráňte na stránke zariadení na webe alebo prejdite na prémiovú verziu. Dovtedy zostane tento prehliadač odhlásený a s vašimi odkazmi pracuje lokálne."
+    }
   }
 }

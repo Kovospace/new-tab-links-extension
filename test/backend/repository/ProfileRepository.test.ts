@@ -1,9 +1,15 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { readFakeStorage, seedFakeStorage } from "../../support/chromeStorageStub";
 import { MAX_NAME_LENGTH } from "../../../src/backend/sync/SyncContracts";
 import { ProfileSettings } from "../../../src/backend/entity/ProfileSettings";
+import { premiumStanding$ } from "../../../src/backend/repository/PremiumStanding";
+
+// These tests create several profiles to look at names and ordering, which the free plan's
+// one-profile limit would refuse; that limit has its own tests (freePlanLimits.test.ts).
+beforeAll(() => premiumStanding$.set(true));
+afterAll(() => premiumStanding$.set(false));
 
 const PROFILE_REGISTRY_KEY = "profile_registry";
 
