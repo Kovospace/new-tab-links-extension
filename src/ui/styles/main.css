@@ -147,6 +147,7 @@ main {
    one, which has none.
 */
 .page-watermark {
+    display: none;
     grid-area: main;
     align-self: end;
     justify-self: end;

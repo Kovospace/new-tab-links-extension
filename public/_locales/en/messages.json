@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "Tabilinks – grouped links on every new tab",
+    "message": "Tabilinks: grouped links & history on new tab",
     "description": "Name of the extension, shown in the browser and as the Chrome Web Store title."
   },
   "extensionShortName": {
@@ -8,7 +8,7 @@
     "description": "The bare product name, where the full name does not fit - the right-click menu entries among them."
   },
   "extensionDescription": {
-    "message": "Your links on every new tab: grouped into workspaces, opened as tab groups, synced across your computers.",
+    "message": "Your links on every new tab: sorted into groups created inside workspaces, synced across all your devices.",
     "description": "One-line description of the extension, shown in the browser and as the Chrome Web Store summary (132 characters at most)."
   },
   "actionTitle": {

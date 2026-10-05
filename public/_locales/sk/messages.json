@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "Tabilinks – odkazy v skupinách na novej karte",
+    "message": "Tabilinks: linky v skupinách na novej karte",
     "description": "Name of the extension, shown in the browser and as the Chrome Web Store title."
   },
   "extensionShortName": {
@@ -8,7 +8,7 @@
     "description": "The bare product name, where the full name does not fit - the right-click menu entries among them."
   },
   "extensionDescription": {
-    "message": "Vaše odkazy na každej novej karte: v skupinách a pracovných priestoroch, otvárané ako skupiny kariet, synchronizované.",
+    "message": "Vaše záložky a história na každej novej karte: v skupinách a pracovných priestoroch, synchronizované naprieč Vašimi zariadeniami.",
     "description": "One-line description of the extension, shown in the browser and as the Chrome Web Store summary (132 characters at most)."
   },
   "actionTitle": {

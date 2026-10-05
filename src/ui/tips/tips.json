@@ -90,8 +90,8 @@
   {
     "id": "use-drag-and-drop",
     "text": {
-      "en": "Turn on \"Enable drag & drop\" in Settings → \"UI and behavior\" and move links, subgroups and groups with the mouse.",
-      "sk": "Zapnite „Zapnúť ťahanie myšou“ v Nastaveniach → „Vzhľad a správanie“ a presúvajte odkazy, podskupiny aj skupiny myšou."
+      "en": "Drag links, subgroups and groups to move them — drop a link on this bar to delete it.",
+      "sk": "Odkazy, podskupiny aj skupiny presuniete ťahaním myšou — odkaz zmažete pustením na tento pruh."
     },
     "url": {
       "en": "/tips/use-drag-and-drop",
@@ -112,8 +112,12 @@
   {
     "id": "bookmark-shortcut",
     "text": {
-      "en": "Right-click any page and choose \"Bookmark this page\" to keep it here without leaving the site.",
-      "sk": "Kliknite pravým tlačidlom na ktorúkoľvek stránku a zvoľte „Bookmark this page“ — uložíte ju bez opustenia webu."
+      "en": "Right-click any page and choose \"Bookmark this page with Tabilinks\" to save it straight into one of your groups without leaving the site.",
+      "sk": "Kliknite pravým tlačidlom na ktorúkoľvek stránku a zvoľte „Uložiť túto stránku do Tabilinks“ — uložíte ju rovno do niektorej skupiny bez opustenia webu."
+    },
+    "url": {
+      "en": "/tips/saving-from-webpage",
+      "sk": "/sk/tips/saving-from-webpage"
     }
   },
   {
@@ -136,6 +140,10 @@
     "text": {
       "en": "Profiles are separate worlds: work links in one, home links in another, and nothing in between.",
       "sk": "Profily sú oddelené svety: pracovné odkazy v jednom, domáce v druhom, a nič medzi tým."
+    },
+    "url": {
+      "en": "/tips/discover-profiles",
+      "sk": "/sk/tips/discover-profiles"
     }
   },
   {
@@ -143,6 +151,10 @@
     "text": {
       "en": "A profile can hold several workspaces. Switch between them from the buttons at the top left.",
       "sk": "Profil môže mať viacero pracovných plôch. Prepínate ich tlačidlami vľavo hore."
+    },
+    "url": {
+      "en": "/tips/discover-workspaces",
+      "sk": "/sk/tips/discover-workspaces"
     }
   },
   {
@@ -150,6 +162,17 @@
     "text": {
       "en": "Signed in, your links follow you: everything here is on every device you sign in on.",
       "sk": "Po prihlásení vás odkazy sledujú: všetko odtiaľto máte na každom prihlásenom zariadení."
+    }
+  },
+  {
+    "id": "discover-history",
+    "text": {
+      "en": "Move the mouse to the right edge of the page and the recently closed tabs unroll — click \"+\" or drag one out to keep it as a link.",
+      "sk": "Posuňte myš k pravému okraju stránky a rozbalia sa naposledy zatvorené karty — tlačidlom „+“ alebo ťahaním ich uložíte ako odkaz."
+    },
+    "url": {
+      "en": "/tips/discover-history",
+      "sk": "/sk/tips/discover-history"
     }
   }
 ]

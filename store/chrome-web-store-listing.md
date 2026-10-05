@@ -15,8 +15,8 @@ entries read "Bookmark this page with Tabilinks".
 
 | Key | Limit | en | sk |
 |---|---|---|---|
-| `extensionName` | 75 chars (about 45 are visible) | `Tabilinks – grouped links on every new tab` | `Tabilinks – odkazy v skupinách na novej karte` |
-| `extensionDescription` | 132 chars | `Your links on every new tab: grouped into workspaces, opened as tab groups, synced across your computers.` | `Vaše odkazy na každej novej karte: v skupinách a pracovných priestoroch, otvárané ako skupiny kariet, synchronizované.` |
+| `extensionName` | 75 chars (about 45 are visible) | `Tabilinks: grouped links & history on new tab` | `Tabilinks: linky v skupinách na novej karte` |
+| `extensionDescription` | 132 chars | `Your links on every new tab: sorted into groups created inside workspaces, synced across all your devices.` | `Vaše záložky a história na každej novej karte: v skupinách a pracovných priestoroch, synchronizované naprieč Vašimi zariadeniami.` |
 
 ---
 
@@ -28,13 +28,26 @@ entries read "Bookmark this page with Tabilinks".
 ### Detailed description — English
 
 ```
-Tabilinks replaces Chrome's empty new tab page with the links you actually use, arranged the way you work.
+A new tab that finally does something useful.
+
+Tabilinks replaces the empty new tab page with the links you actually open and use – arranged into workspaces and groups of your own, alongside the history of the tabs you closed.
+
+WHY TABILINKS
+• Saves time – no typing addresses, no digging through bookmark folders. Open a new tab and your link is one click away. A whole subgroup opens with one click too, even straight into a tab group
+• Saves space – your links live on the new tab, so you can switch the bookmarks bar off and give that height back to the page
+• One account, every browser – your links follow you not only between computers but between browsers: save a link in Chrome and have it in Brave, Edge and others too
+• Easy to use – links, subgroups and whole groups are moved with drag and drop
+• Organised the way you think – profiles for your roles such as work and home, workspaces for the topics within them, tab groups for the pages you open
+• Independent – no big-tech account needed, and it works fully without any account at all. Made by an independent developer; your data is never sold or used for advertising
+
+WHAT IT DOES
 
 ORGANISED THE WAY YOU THINK
-• Workspaces for separate parts of your life – work, home, a side project – each with its own columns of groups
-• Groups and collapsible subgroups, with descriptions where a name is not enough
-• Drag and drop links, subgroups and whole groups to rearrange them
-• Several profiles, each with its own workspaces and settings
+• Profiles for the roles you play – one for work, one for home – each with its own workspaces and settings. Switch roles with one click instead of signing in to another account; export, import and manage profiles from the same menu
+• Workspaces for the topics within a role – at home "Garage", "Band" and "Development", at work "Testing", "Production" and "Customer 1" – each with its own columns of groups
+• Groups and subgroups inside a workspace, with a description where a name is not enough – in a "Garage": parts sellers, veteran clubs, forums, and a subgroup for each vehicle
+• Roll a subgroup up with a click on its title: only the number of hidden links stays, and it stays that way on all your devices
+• Drag and drop links, subgroups and whole groups to rearrange them, or drop a link into the trash
 
 TABS, NOT JUST LINKS
 • Open a whole subgroup at once as a Chrome tab group, in the colour you chose for it
@@ -65,13 +78,26 @@ Without an account, your links and settings never leave your browser, and nothin
 ### Detailed description — Slovak
 
 ```
-Tabilinks nahradí prázdnu novú kartu Chromu odkazmi, ktoré naozaj používate, usporiadanými tak, ako pracujete.
+Nová karta, ktorá konečne k niečomu je.
+
+Tabilinks nahradí prázdnu novú kartu odkazmi, ktoré naozaj otvárate a používate – usporiadanými do pracovných priestorov a skupín podľa vás, spolu s históriou zatvorených kariet.
+
+PREČO TABILINKS
+• Šetrí čas – žiadne písanie adries ani hľadanie v priečinkoch záložiek. Otvoríte novú kartu a odkaz máte na jeden klik. Jedným klikom otvoríte aj celú podskupinu, dokonca rovno do skupiny kariet
+• Šetrí miesto – odkazy máte na novej karte, takže lištu so záložkami môžete pokojne vypnúť a stránke vrátiť jej výšku
+• Jeden účet pre všetky prehliadače – odkazy vás sledujú nielen medzi počítačmi, ale aj medzi prehliadačmi: uložíte odkaz v Chrome a máte ho aj v Brave, Edge a ďalších
+• Jednoduché ovládanie – odkazy, podskupiny aj celé skupiny presúvate myšou
+• Usporiadané podľa vás – profily pre vaše role ako práca a domov, pracovné priestory pre témy v rámci nich, skupiny kariet pre stránky, ktoré otvárate
+• Nezávislé – nepotrebujete účet u žiadnej veľkej technologickej firmy a funguje úplne aj bez akéhokoľvek účtu. Vytvára ho nezávislý vývojár; vaše dáta nikdy nepredávame ani nepoužívame na reklamu
+
+ČO TO VIE
 
 USPORIADANÉ PODĽA VÁS
-• Pracovné priestory pre rôzne časti života – práca, domov, vedľajší projekt – každý s vlastnými stĺpcami skupín
-• Skupiny a zbaliteľné podskupiny, s popisom tam, kde názov nestačí
-• Odkazy, podskupiny aj celé skupiny presúvate myšou
-• Viac profilov, každý s vlastnými pracovnými priestormi a nastaveniami
+• Profily pre role, ktoré v živote máte – jeden pre prácu, jeden pre domov – každý s vlastnými pracovnými priestormi a nastaveniami. Rolu prepnete jedným klikom namiesto prihlasovania do iného účtu; v tom istom menu profily aj exportujete, importujete a spravujete
+• Pracovné priestory pre témy v rámci roly – doma „Garáž“, „Hudba“ a „Vývoj“, v práci „Testovanie“, „Produkcia“ a „Zákazník 1“ – každý s vlastnými stĺpcami skupín
+• Skupiny a podskupiny v pracovnom priestore, s popisom tam, kde názov nestačí – v „Garáži“: predajcovia dielov, veteránske kluby, fóra a podskupina pre každé vozidlo
+• Podskupinu zbalíte kliknutím na jej názov: zostane len počet skrytých odkazov a zostane zbalená na všetkých vašich zariadeniach
+• Odkazy, podskupiny aj celé skupiny presúvate myšou, a odkaz môžete pustiť rovno do koša
 
 KARTY, NIE LEN ODKAZY
 • Otvorte celú podskupinu naraz ako skupinu kariet Chromu vo farbe, ktorú ste jej vybrali
@@ -104,9 +130,9 @@ Bez účtu vaše odkazy a nastavenia nikdy neopustia prehliadač a nám sa nepos
 | Asset | Size | Status |
 |---|---|---|
 | Store icon | 128×128 PNG | have it: `public/icons/icon-128.png` |
-| Screenshots | 1280×800 (or 640×400), 1–5 | **to make** |
-| Small promo tile | 440×280 | **to make** |
-| Marquee promo tile | 1400×560 | optional |
+| Screenshots | 1280×800 (or 640×400), 1–5 | have three: `store/materials/screenshots/1-3.png` (24-bit, no alpha) |
+| Small promo tile | 440×280 | have it: `store/materials/promo/small-promo-tile.png` (source: `small-promo-tile.html`) |
+| Marquee promo tile | 1400×560 | optional - skipped for the first release; only used if Google features the extension |
 
 Suggested screenshots, in this order (the first one is what most people see):
 1. A full workspace: three or four groups, one subgroup with a tab-group colour stripe — the example set from "Load examples" is a good start
@@ -116,7 +142,7 @@ Suggested screenshots, in this order (the first one is what most people see):
 4. A subgroup opened as a coloured Chrome tab group
 5. The settings dialog
 
-Small promo tile: the logo and one line — "Your links on every new tab".
+Small promo tile: the logo, the website's wordmark and "Your bookmarks, grouped, on every new tab".
 
 ### Links
 - Official URL / homepage: `https://tabilinks.app`
