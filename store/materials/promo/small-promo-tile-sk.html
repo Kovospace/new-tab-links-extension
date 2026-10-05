@@ -1,0 +1,72 @@
+<!doctype html>
+<!--
+  Source of small-promo-tile-sk.png (Slovak listing) (440x280). Re-render with:
+  google-chrome --headless --hide-scrollbars --window-size=440,280 \
+    --screenshot=small-promo-tile-sk-raw.png small-promo-tile-sk.html
+  then strip the alpha channel (the store wants 24-bit PNG).
+
+  The wordmark is the website's .page-header__title
+  (new-tab-links-frontend/src/app/shared/layout/page-header/page-header.scss),
+  with its colours from design-tokens.scss.
+-->
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --color-text: #fff;
+    --color-accent: #004fff;
+    --font-family: Arial, Helvetica, sans-serif;
+  }
+  html, body { margin: 0; width: 440px; height: 280px; overflow: hidden; }
+  body {
+    font-family: var(--font-family);
+    color: var(--color-text);
+    background: radial-gradient(ellipse at 50% 55%, #1b2a44 0%, #0a0d14 75%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 0 0 30px;
+    box-sizing: border-box;
+  }
+  .logo { width: 132px; height: 132px; flex: none; }
+  .text { display: flex; flex-direction: column; gap: 18px; }
+
+  /* .page-header__title, as on tabilinks.app */
+  .title {
+    font-weight: bold;
+    font-size: 48px;
+    position: relative;
+    align-self: flex-start;
+  }
+  .title em {
+    font-style: normal;
+    color: var(--color-text);
+    background-color: var(--color-accent);
+    padding: 0 0.125em;
+    border-top-left-radius: 0.25em;
+    border-top-right-radius: 0.25em;
+    margin-right: 0.0625em;
+  }
+  .title::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 0.125em;
+    background-color: var(--color-accent);
+  }
+
+  .tagline { font-size: 24px; line-height: 1.25; color: #c7d2e3; }
+</style>
+</head>
+<body>
+  <img class="logo" src="../../../public/icons/logo-512.png" alt="">
+  <div class="text">
+    <div class="title"><em>Tabi</em>links</div>
+    <div class="tagline">Vaše záložky,<br>v skupinách,<br>na každej novej karte</div>
+  </div>
+</body>
+</html>

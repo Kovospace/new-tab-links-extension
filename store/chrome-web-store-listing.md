@@ -131,7 +131,7 @@ Bez účtu vaše odkazy a nastavenia nikdy neopustia prehliadač a nám sa nepos
 |---|---|---|
 | Store icon | 128×128 PNG | have it: `public/icons/icon-128.png` |
 | Screenshots | 1280×800 (or 640×400), 1–5 | have three: `store/materials/screenshots/1-3.png` (24-bit, no alpha) |
-| Small promo tile | 440×280 | have it: `store/materials/promo/small-promo-tile.png` (source: `small-promo-tile.html`) |
+| Small promo tile | 440×280 | have it: `store/materials/promo/small-promo-tile.png`, Slovak `small-promo-tile-sk.png` (sources: the `.html` beside them) |
 | Marquee promo tile | 1400×560 | optional - skipped for the first release; only used if Google features the extension |
 
 Suggested screenshots, in this order (the first one is what most people see):
