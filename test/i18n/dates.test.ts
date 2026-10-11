@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-    DEFAULT_DATE_FORMAT, describeAge, formatDate, normalizeDateFormat, sampleOf, setDateFormat
+    DEFAULT_DATE_FORMAT, describeAge, describeMoment, formatDate, normalizeDateFormat, sampleOf,
+    setDateFormat
 } from "../../src/i18n/dates";
 import { setLanguage } from "../../src/i18n/i18n";
 import { AUTOMATIC_LANGUAGE } from "../../src/i18n/languages";
@@ -113,5 +114,53 @@ describe("writing a date", () => {
         setDateFormat("isoDashes");
         expect(sampleOf("monthDayYearSlashes")).toBe("03/25/2026");
         expect(formatDate(day)).toBe("2026-09-03");
+    });
+});
+
+/**
+ *  The closed tabs panel says how long ago and, in brackets, when exactly - the time alone for
+ *  today, the date with it for anything earlier. Built from local dates, so that "today" means
+ *  the same thing whatever time zone the tests run in.
+ */
+describe("describeMoment", () => {
+
+    it("gives only the time for something that happened today", () => {
+        const now = new Date(2026, 8, 3, 16, 10).getTime();
+        const when = new Date(2026, 8, 3, 14, 5).getTime();
+
+        expect(describeMoment(when, now)).toBe("2 hours ago (14:05)");
+    });
+
+    it("gives the date as well for yesterday, even when it was only an hour ago", () => {
+        setDateFormat("isoDashes");
+        const now = new Date(2026, 8, 3, 0, 50).getTime();
+        const when = new Date(2026, 8, 2, 23, 50).getTime();
+
+        expect(describeMoment(when, now)).toBe("an hour ago (2026-09-02 23:50)");
+    });
+
+    it("writes the year for anything older", () => {
+        setDateFormat("dayMonthYearDots");
+        const now = new Date(2026, 8, 3, 9, 0).getTime();
+        const when = new Date(2026, 7, 20, 18, 30).getTime();
+
+        expect(describeMoment(when, now)).toBe("13 days ago (20. 8. 2026 18:30)");
+    });
+
+    it("writes the clock the way the region does", () => {
+        browserSetTo("en-US");
+        setLanguage(AUTOMATIC_LANGUAGE);
+        const now = new Date(2026, 8, 3, 16, 10).getTime();
+        const when = new Date(2026, 8, 3, 14, 5).getTime();
+
+        expect(describeMoment(when, now)).toMatch(/^2 hours ago \(2:05\sPM\)$/);
+    });
+
+    it("speaks the language the page speaks", () => {
+        setLanguage("sk");
+        const now = new Date(2026, 8, 3, 16, 10).getTime();
+        const when = new Date(2026, 8, 3, 14, 5).getTime();
+
+        expect(describeMoment(when, now)).toBe("pred 2 hodinami (14:05)");
     });
 });
