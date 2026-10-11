@@ -4,6 +4,8 @@ import { ProfileRepository } from "../../../src/backend/repository/ProfileReposi
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
+import { HistoryViewModel } from "../../../src/viewModel/historyViewModel";
+import { VisitsRepository } from "../../../src/backend/repository/VisitsRepository";
 import { CardPreference, ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
 import { OpenTabsViewModel, TabsSource } from "../../../src/viewModel/openTabsViewModel";
 import { SidePanelCard } from "../../../src/backend/repository/DevicePreferencesRepository";
@@ -60,7 +62,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
             environments: [environment("e", "W")], groups: [group("g", "R", "e")], activeEnvironmentId: "e"
         }));
         await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
-        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles));
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
+            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles));
         await panel.render(document.body);
         await flushStorageNotifications();
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -115,7 +118,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
         panel.dispose();
         document.body.innerHTML = '<main></main>';
         panel = new ClosedTabsPanel(
-            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles), () => delay);
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles), () => delay,
+            undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles));
         void panel.render(document.body);
         edgeAt(960);
 
@@ -368,10 +372,11 @@ describe("ClosedTabsPanel, cards", () => {
     let remembered: SidePanelCard;
     let activated: number[];
     let closed: number[];
+    let profiles: ProfileRepository;
 
     beforeEach(async () => {
         document.body.innerHTML = '<main></main>';
-        const profiles = new ProfileRepository();
+        profiles = new ProfileRepository();
         await profiles.init();
         const appState = new AppStateRepository();
         await appState.init(appStateInit, profiles.getActiveProfileId());
@@ -396,7 +401,8 @@ describe("ClosedTabsPanel, cards", () => {
 
         panel = new ClosedTabsPanel(
             new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
-            () => 0, new OpenTabsViewModel(appState, tabs), preference);
+            () => 0, new OpenTabsViewModel(appState, tabs), preference,
+            new HistoryViewModel(new VisitsRepository(), appState, profiles));
         await panel.render(document.body);
         await flushStorageNotifications();
     });
@@ -432,6 +438,18 @@ describe("ClosedTabsPanel, cards", () => {
         openRow().click();
 
         expect(activated).toEqual([41]);
+    });
+
+    it("offers the history as a third card, saying it is off until it is turned on", async () => {
+        cardButton(2).click();
+
+        expect(aside().dataset.card).toBe("history");
+        expect(remembered).toBe("history");
+        expect(document.querySelector('.closed-tabs__title')!.textContent).toBe("History");
+        expect(aside().classList.contains("closed-tabs--history-off")).toBe(true);
+
+        await profiles.updateSettings({ recordBrowsingHistory: true });
+        expect(aside().classList.contains("closed-tabs--history-off")).toBe(false);
     });
 
     it("closes the tab, and only closes it, from the row's x", () => {

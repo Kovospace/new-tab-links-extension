@@ -7,6 +7,7 @@ import {UsageStatsWorker} from "./module/usageStatsWorker";
 import {registerLinkTabGroupCatcher} from "./module/linkTabGroupCatcher";
 import {registerBookmarkContextMenu} from "./module/bookmarkCurrentPage";
 import {registerClosedTabsRecorder} from "./module/closedTabsRecorder";
+import {registerHistoryRecorder} from "./module/historyRecorder";
 
 type ModuleConstructor = new () => BackgroundWorker<any, any>;
 
@@ -63,3 +64,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 registerLinkTabGroupCatcher();
 registerBookmarkContextMenu();
 registerClosedTabsRecorder();
+registerHistoryRecorder();

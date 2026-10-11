@@ -1,6 +1,7 @@
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { ProfileSettings, ToggleableSetting } from "../backend/entity/ProfileSettings";
 import { writeClosedTabs } from "../backend/repository/ClosedTabsRepository";
+import { writeVisits } from "../backend/repository/VisitsRepository";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
@@ -231,7 +232,8 @@ const CATEGORIES: CategoryDefinition[] = [
         key: PRIVACY_CATEGORY,
         wording: "privacy",
         settings: [
-            { kind: "toggle", key: "recordClosedTabs", wording: "recordClosedTabs", confirmOff: true }
+            { kind: "toggle", key: "recordClosedTabs", wording: "recordClosedTabs", confirmOff: true },
+            { kind: "toggle", key: "recordBrowsingHistory", wording: "recordBrowsingHistory", confirmOff: true }
         ]
     },
     {
@@ -342,6 +344,10 @@ export class SettingsViewModel {
             // Deleted before the setting moves, so the push the setting change causes carries
             // the deletions with it. The user was asked first - see `confirmOff`.
             await writeClosedTabs(this.profiles.getActiveProfileId(), {});
+        }
+        if (key === "recordBrowsingHistory" && !enabled) {
+            // The same for the browsing history.
+            await writeVisits(this.profiles.getActiveProfileId(), {});
         }
         await this.profiles.updateSettings({ [key]: enabled });
         this.refresh();

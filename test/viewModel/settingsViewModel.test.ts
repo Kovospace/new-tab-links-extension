@@ -4,6 +4,7 @@ import { ProfileRepository } from "../../src/backend/repository/ProfileRepositor
 import { DEFAULT_PROFILE_SETTINGS } from "../../src/backend/entity/ProfileSettings";
 import { SettingsViewModel } from "../../src/viewModel/settingsViewModel";
 import { readClosedTabs, recordClosedTab } from "../../src/backend/repository/ClosedTabsRepository";
+import { readVisits, recordVisit } from "../../src/backend/repository/VisitsRepository";
 import {
     DevicePreferencesRepository, MAX_SCALE, MIN_SCALE, SCALE_STEP
 } from "../../src/backend/repository/DevicePreferencesRepository";
@@ -98,6 +99,28 @@ describe("SettingsViewModel", () => {
         await settings.toggle("hideTips", false);
 
         expect(Object.keys(await readClosedTabs(profileId))).toHaveLength(1);
+    });
+
+    it("puts recording browsing history under Privacy, off, asking before it is turned off", () => {
+        const privacy = shown().categories.find(category => category.key === "privacy");
+        const setting = privacy?.settings.find(candidate => candidate.key === "recordBrowsingHistory");
+
+        expect(setting?.kind).toBe("toggle");
+        if (setting?.kind === "toggle") {
+            expect(setting.enabled).toBe(false);
+            expect(setting.confirmOff).not.toBeNull();
+        }
+    });
+
+    it("deletes the profile's browsing history when recording it is turned off", async () => {
+        const profileId = profiles.getActiveProfileId();
+        await settings.toggle("recordBrowsingHistory", true);
+        await recordVisit(profileId, { url: "https://example.com/", title: "", visitedAt: Date.now() }, 50);
+
+        await settings.toggle("recordBrowsingHistory", false);
+
+        expect(await readVisits(profileId)).toEqual({});
+        expect(profiles.getSettings().recordBrowsingHistory).toBe(false);
     });
 
     it("folds a category away and back", () => {

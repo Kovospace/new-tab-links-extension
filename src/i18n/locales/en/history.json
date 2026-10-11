@@ -1,0 +1,24 @@
+{
+  "card": "History",
+  "cardTooltip": "Pages you visited",
+  "title": "History",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "empty": "Nothing visited yet. Pages you visit will appear here.",
+  "rowTooltip": "{url}\nOpen again",
+  "visitedOn": "Visited on {device}",
+  "alreadySaved": "Already saved in this profile",
+  "saveAsLink": "Save as a link",
+  "forgetOne": "Forget this one",
+  "clear": "Clear",
+  "forgetAll": "Forget the whole history",
+  "forgetAllConfirmation": {
+    "title": "Forget the whole history?",
+    "message": "The history is emptied on this profile, on every device you are signed in on. Anything you have already saved as a link stays.",
+    "confirm": "Forget it"
+  },
+  "off": {
+    "message": "Browsing history is turned off for this profile. Turn it on in Settings → Privacy to keep a list of the pages you visit here.",
+    "openSettings": "Open Privacy settings"
+  }
+}

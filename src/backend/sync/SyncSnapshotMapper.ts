@@ -1,6 +1,7 @@
 import { Environment, Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
 import { DEFAULT_PROFILE_SETTINGS, settingsOf } from "../entity/ProfileSettings";
 import { ClosedTab } from "../entity/ClosedTabEntity";
+import { Visit } from "../entity/VisitEntity";
 import { isTabGroupColor } from "../entity/TabGroupColors";
 import { SyncSnapshot } from "./SyncContracts";
 
@@ -30,6 +31,12 @@ export interface MappedSnapshot {
      *  its own list on every pull.
      */
     closedTabsSupported: boolean;
+
+    /** Each profile's browsing history, keyed as closed tabs are and stored apart as they are. */
+    visitsByProfileId: Record<string, Record<string, Visit>>;
+
+    /** Whether this account stores browsing history at all - absent is not empty, as above. */
+    visitsSupported: boolean;
 }
 
 /**
@@ -76,7 +83,9 @@ export class SyncSnapshotMapper {
                         dismissedTips: profile.dismissedTips
                             ?? DEFAULT_PROFILE_SETTINGS.dismissedTips,
                         recordClosedTabs: profile.recordClosedTabs
-                            ?? DEFAULT_PROFILE_SETTINGS.recordClosedTabs
+                            ?? DEFAULT_PROFILE_SETTINGS.recordClosedTabs,
+                        recordBrowsingHistory: profile.recordBrowsingHistory
+                            ?? DEFAULT_PROFILE_SETTINGS.recordBrowsingHistory
                     }
                 })
             }));
@@ -194,13 +203,37 @@ export class SyncSnapshotMapper {
             } satisfies ClosedTab;
         }
 
+        // Visits, by the same rules. Stored exactly as the account holds them: nothing is
+        // capped, deduplicated or filtered on the way in, or every pull would leave a
+        // difference for the next push to report.
+        const visitsByProfileId: Record<string, Record<string, Visit>> = {};
+        for (const profile of profiles) {
+            visitsByProfileId[profile.id] = {};
+        }
+
+        for (const visit of snapshot.visits ?? []) {
+            if (!knownProfiles.has(visit.profileId)) {
+                continue;
+            }
+            visitsByProfileId[visit.profileId][visit.id] = {
+                id: visit.id,
+                url: visit.url,
+                title: visit.title ?? "",
+                faviconUrl: visit.faviconUrl ?? undefined,
+                visitedAt: this.toEpochMilliseconds(visit.visitedAt),
+                deviceName: visit.deviceName ?? undefined
+            } satisfies Visit;
+        }
+
         return {
             profiles,
             dataByProfileId,
             closedTabsByProfileId,
             // Present but empty is an account with no closed tabs; absent is an account that
             // does not keep them. The two must not be confused - see closedTabsSupported.
-            closedTabsSupported: snapshot.closedTabs !== undefined
+            closedTabsSupported: snapshot.closedTabs !== undefined,
+            visitsByProfileId,
+            visitsSupported: snapshot.visits !== undefined
         };
     }
 

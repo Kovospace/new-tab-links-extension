@@ -75,6 +75,7 @@ export function restrictToScope(state: SyncBaseline, inProfile: InScope, inWorks
     const profiles = state.profiles.filter(profile => inProfile(profile.id));
     const dataByProfileId: Record<string, ProfileData> = {};
     const closedTabsByProfileId: SyncBaseline["closedTabsByProfileId"] = {};
+    const visitsByProfileId: SyncBaseline["visitsByProfileId"] = {};
     for (const profile of profiles) {
         const data = state.dataByProfileId[profile.id];
         if (data) {
@@ -83,8 +84,11 @@ export function restrictToScope(state: SyncBaseline, inProfile: InScope, inWorks
         if (state.closedTabsByProfileId?.[profile.id]) {
             closedTabsByProfileId[profile.id] = state.closedTabsByProfileId[profile.id];
         }
+        if (state.visitsByProfileId?.[profile.id]) {
+            visitsByProfileId[profile.id] = state.visitsByProfileId[profile.id];
+        }
     }
-    return { ...state, profiles, dataByProfileId, closedTabsByProfileId };
+    return { ...state, profiles, dataByProfileId, closedTabsByProfileId, visitsByProfileId };
 }
 
 /**
@@ -113,6 +117,7 @@ export function baselineAfter(
     ];
     const dataByProfileId: Record<string, ProfileData> = {};
     const closedTabsByProfileId: NonNullable<SyncBaseline["closedTabsByProfileId"]> = {};
+    const visitsByProfileId: NonNullable<SyncBaseline["visitsByProfileId"]> = {};
 
     for (const profile of profiles) {
         const before = previous.dataByProfileId[profile.id];
@@ -124,18 +129,23 @@ export function baselineAfter(
                 : (now ?? kept ?? SyncSnapshotMapper.emptyProfileData());
             closedTabsByProfileId[profile.id] = confirmed.closedTabsByProfileId?.[profile.id]
                 ?? previous.closedTabsByProfileId?.[profile.id] ?? {};
+            visitsByProfileId[profile.id] = confirmed.visitsByProfileId?.[profile.id]
+                ?? previous.visitsByProfileId?.[profile.id] ?? {};
         } else {
             if (before) {
                 dataByProfileId[profile.id] = dataWithin(before, exists);
             }
             closedTabsByProfileId[profile.id] = previous.closedTabsByProfileId?.[profile.id] ?? {};
+            visitsByProfileId[profile.id] = previous.visitsByProfileId?.[profile.id] ?? {};
         }
     }
     return {
         profiles,
         dataByProfileId,
         closedTabsByProfileId,
-        closedTabsSupported: confirmed.closedTabsSupported ?? previous.closedTabsSupported
+        closedTabsSupported: confirmed.closedTabsSupported ?? previous.closedTabsSupported,
+        visitsByProfileId,
+        visitsSupported: confirmed.visitsSupported ?? previous.visitsSupported
     };
 }
 

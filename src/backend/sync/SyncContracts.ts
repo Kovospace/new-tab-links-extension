@@ -68,7 +68,7 @@ export function isStorableName(name: string): boolean {
 
 /** What kind of record an operation is about. */
 export type SyncEntityKind =
-    "profile" | "environment" | "group" | "subgroup" | "link" | "closedTab";
+    "profile" | "environment" | "group" | "subgroup" | "link" | "closedTab" | "visit";
 
 /** What an operation does to the record it names. */
 export type SyncOperationKind = "upsert" | "delete";
@@ -145,6 +145,12 @@ export interface SyncOperation {
      */
     recordClosedTabs?: boolean;
 
+    /**
+     *  Whether this profile records browsing history. Carried on every profile upsert; the
+     *  backend reads an absent value as "leave it as it is" (off for a new profile).
+     */
+    recordBrowsingHistory?: boolean;
+
     /** Whether a subgroup is folded away right now. */
     collapsed?: boolean;
     /** Whether a subgroup starts folded away. */
@@ -179,7 +185,10 @@ export interface SyncOperation {
      */
     closedAt?: string;
 
-    /** Which device closed a tab, when that device has a name. */
+    /** When a page was visited, as an ISO instant, for the reason `closedAt` is one. */
+    visitedAt?: string;
+
+    /** Which device closed a tab or visited a page, when that device has a name. */
     deviceName?: string | null;
 
     /** Zero based position among the record's siblings. */
@@ -232,6 +241,8 @@ export interface SnapshotProfileDto {
     dismissedTips?: string[];
     /** Same again, and read as on - which is what a profile did before the setting existed. */
     recordClosedTabs?: boolean;
+    /** Same again, and read as off. */
+    recordBrowsingHistory?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -296,6 +307,17 @@ export interface SnapshotClosedTabDto {
     deviceName: string | null;
 }
 
+export interface SnapshotVisitDto {
+    id: string;
+    profileId: string;
+    url: string;
+    title: string;
+    faviconUrl: string | null;
+    /** ISO instant, as the device that visited the page reported it. */
+    visitedAt: string;
+    deviceName: string | null;
+}
+
 /**
  *  Everything one account owns, as flat collections keyed by identifier.
  *
@@ -311,6 +333,12 @@ export interface SyncSnapshot {
     links: SnapshotLinkDto[];
     /** Absent from a backend that does not store closed tabs yet, and read as none. */
     closedTabs?: SnapshotClosedTabDto[];
+    /**
+     *  Absent from a backend that does not store browsing history yet. The difference between
+     *  absent and empty is what tells this extension whether a `visit` operation may be sent
+     *  at all - one the server has no vocabulary for fails the whole push.
+     */
+    visits?: SnapshotVisitDto[];
     /**
      *  The account's standing and the limits in force for it, the same object
      *  `GET /api/v1/users/me/plan-limits` returns. Absent from an older backend.
@@ -334,6 +362,7 @@ export interface PlanLimitsDto {
         subgroupsPerGroup?: number;
         linksPerWorkspace?: number;
         closedTabs?: number;
+        browsingHistory?: number;
         devices?: number;
     };
 }

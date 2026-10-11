@@ -25,6 +25,14 @@ export class FakeAccount {
     private readonly subgroups = new Map<string, Record<string, unknown>>();
     private readonly links = new Map<string, Record<string, unknown>>();
     private readonly closedTabs = new Map<string, Record<string, unknown>>();
+    private readonly visits = new Map<string, Record<string, unknown>>();
+
+    /**
+     *  @param keepsVisits false for an account on a backend that has never heard of browsing
+     *         history: its snapshot names no `visits` collection, and a push naming the kind
+     *         fails as a whole, the way the real one fails to deserialise it
+     */
+    constructor(private readonly keepsVisits: boolean = true) {}
 
     private readonly at = "2026-01-01T00:00:00Z";
 
@@ -38,6 +46,9 @@ export class FakeAccount {
 
     /** Applies a pushed batch, in the order it was sent. */
     public apply(operations: SyncOperation[]): void {
+        if (!this.keepsVisits && operations.some(operation => operation.type === "visit")) {
+            throw new Error("Unknown sync entity kind: visit");
+        }
         for (const operation of operations) {
             const store = this.storeFor(operation.type);
             if (operation.op === "delete") {
@@ -58,6 +69,9 @@ export class FakeAccount {
             subgroups: this.ordered(this.subgroups) as unknown as SyncSnapshot["subgroups"],
             links: this.ordered(this.links) as unknown as SyncSnapshot["links"],
             closedTabs: [...this.closedTabs.values()] as unknown as SyncSnapshot["closedTabs"],
+            ...(this.keepsVisits
+                ? { visits: [...this.visits.values()] as unknown as SyncSnapshot["visits"] }
+                : {}),
             capturedAt: this.at
         };
     }
@@ -85,6 +99,7 @@ export class FakeAccount {
             case "subgroup": return this.subgroups;
             case "link": return this.links;
             case "closedTab": return this.closedTabs;
+            case "visit": return this.visits;
         }
     }
 
@@ -117,7 +132,10 @@ export class FakeAccount {
                     // defaults to on, and an extension too old to send it must not stop
                     // recording on every device.
                     recordClosedTabs: operation.recordClosedTabs
-                        ?? this.profiles.get(operation.id)?.recordClosedTabs ?? true
+                        ?? this.profiles.get(operation.id)?.recordClosedTabs ?? true,
+                    // Absent keeps what is stored too; a new profile starts off.
+                    recordBrowsingHistory: operation.recordBrowsingHistory
+                        ?? this.profiles.get(operation.id)?.recordBrowsingHistory ?? false
                 };
             case "environment":
                 return {
@@ -165,6 +183,16 @@ export class FakeAccount {
                     title: operation.title ?? "",
                     faviconUrl: operation.faviconUrl ?? null,
                     closedAt: operation.closedAt,
+                    deviceName: operation.deviceName ?? null
+                };
+            case "visit":
+                return {
+                    ...common,
+                    profileId: operation.profileId,
+                    url: operation.url,
+                    title: operation.title ?? "",
+                    faviconUrl: operation.faviconUrl ?? null,
+                    visitedAt: operation.visitedAt,
                     deviceName: operation.deviceName ?? null
                 };
         }

@@ -288,7 +288,7 @@ page. Widening narrows the link columns instead of covering them - a floating pa
 cannot drag a link underneath, and one anchored to the top of the window covers the header's
 own buttons.
 
-**It has two cards, one shown at a time**: the tabs open in this browser
+**It has three cards, one shown at a time**: the browsing history (see below), the tabs open in this browser
 (`viewModel/openTabsViewModel.ts`) and the recently closed ones, chosen with a switcher under
 the head and remembered per device (`sidePanelCard`, closed by default). Which list, notice and
 Clear button show is the stylesheet's, keyed off `data-card` on the panel, so the folded rail
@@ -380,6 +380,30 @@ errand, while deleting or saving one is working through the list and leaves it a
   may still push a tab recorded before it heard; the pull stores it as the account holds it,
   and `SyncCoordinator.emptyClosedTabsNotRecorded` deletes it as a write before the next
   change set, so the deletion is pushed and the two settle (`syncSettles.test.ts`).
+
+### Browsing history (`repository/VisitsRepository.ts`, `worker/module/historyRecorder.ts`)
+
+The third card of the side panel (`ui/partials/historyCard.ts`): the pages visited, grouped by
+day. **Built on the closed tabs' rules throughout** - a log under a key of its own
+(`visits_<profileId>`) that the worker writes and the page reads, a rolling cap from the plan
+(`browsingHistory`: 50 free, 1000 premium), stored exactly as the account holds it, joined at
+first contact (`mergeVisits`), sent only to an account whose snapshot names a `visits`
+collection (`visitsSupported` - the same whole-batch hazard), and emptied as a write before a
+push when the profile does not record it (`emptyHistoryNotRecorded`).
+
+- **Off by default** (`recordBrowsingHistory`, Settings → Privacy) - unlike closed tabs, this is
+  new behaviour, and nothing about where somebody has been leaves the browser until they ask.
+  Off, nothing is recorded, not even locally; the card shows a centred notice with a way to
+  Settings → Privacy; turning it off asks first and deletes the history here and on the account.
+- **One entry per page per local day.** The same address again that day moves the entry (same
+  id, so the account gets an update, not a row more); tomorrow it is a new one. Reloads and
+  in-page navigation would otherwise spend the free plan's fifty in minutes.
+- **Recorded once a page has finished loading** (`status === "complete"`) and refreshed by later
+  reports from that tab - the title arriving, a favicon, an in-page address change. A visit
+  refreshed within a minute with nothing changed is not written again. Writes are queued: a
+  burst of navigations reaches the worker at once.
+- **No `history` permission.** Chrome's own history is never read; nothing from before
+  recording was turned on is collected, and incognito is not seen.
 
 ### Usage statistics and the ad slot (`backend/stats/`, `ui/partials/adsBar.ts`)
 

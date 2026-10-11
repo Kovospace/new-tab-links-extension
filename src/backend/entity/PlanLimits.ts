@@ -18,7 +18,8 @@ import { Group, ProfileData } from "./AppStateEntity";
  *  until it is back under, and over a slot limit it stays local only (`SyncSlots.ts`).
  *
  *  The closed tabs history is not a slot and is never refused: it keeps its newest entries
- *  and the oldest drop off as new ones arrive (`recordClosedTab`).
+ *  and the oldest drop off as new ones arrive (`recordClosedTab`). The browsing history rolls
+ *  the same way (`recordVisit`).
  */
 export interface PlanLimits {
     profiles: number;
@@ -27,6 +28,8 @@ export interface PlanLimits {
     subgroupsPerGroup: number;
     linksPerWorkspace: number;
     closedTabs: number;
+    /** How many visited pages the browsing history keeps. */
+    browsingHistory: number;
     devices: number;
 }
 
@@ -38,6 +41,7 @@ export const FREE_PLAN_LIMITS: Readonly<PlanLimits> = Object.freeze({
     subgroupsPerGroup: 25,
     linksPerWorkspace: 500,
     closedTabs: 25,
+    browsingHistory: 50,
     devices: 5
 });
 
@@ -49,6 +53,7 @@ export const PREMIUM_PLAN_LIMITS: Readonly<PlanLimits> = Object.freeze({
     subgroupsPerGroup: 25,
     linksPerWorkspace: 500,
     closedTabs: 500,
+    browsingHistory: 1000,
     devices: 100
 });
 

@@ -57,6 +57,17 @@ export function closedTabsKey(profileId: string): string {
 }
 
 /**
+ *  One profile's browsing history, apart from its data for the reason closed tabs are: the
+ *  worker writes it while the page may be saving.
+ */
+export const VISITS_PREFIX = "visits_";
+
+/** The key one profile's browsing history is stored under. */
+export function visitsKey(profileId: string): string {
+    return VISITS_PREFIX + profileId;
+}
+
+/**
  *  The name the user gave this installation, read by the worker when it records a closed tab
  *  so the row can say which device it happened on. Written by `InstallationIdentity`.
  */

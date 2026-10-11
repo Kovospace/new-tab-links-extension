@@ -165,13 +165,15 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
 }
 
 /*
-   Two cards, one shown at a time - see closedTabsPanel.ts. Each card owns a
-   list, and the closed tabs card also the Clear button and the "recording is
-   off" notice; whichever card is not chosen has all of its parts hidden, so the
-   folded rail shows the favicons of the chosen card alone.
+   Three cards, one shown at a time - see closedTabsPanel.ts. Each card owns a
+   list, and the two logs also a Clear button and a "recording is off" notice;
+   whichever card is not chosen has all of its parts hidden, so the folded rail
+   shows the favicons of the chosen card alone. The notices are hidden by
+   default and shown by their own rules below.
 */
-.closed-tabs[data-card="open"] :is(.closed-tabs__list--closed, .closed-tabs__off, .closed-tabs__clear),
-.closed-tabs[data-card="closed"] .closed-tabs__list--open {
+.closed-tabs:not([data-card="open"]) .closed-tabs__list--open,
+.closed-tabs:not([data-card="closed"]) :is(.closed-tabs__list--closed, .closed-tabs__clear),
+.closed-tabs:not([data-card="history"]) :is(.closed-tabs__list--history, .closed-tabs__clear--history) {
     display: none;
 }
 
@@ -241,11 +243,13 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     display: none;
 }
 
-.closed-tabs--off :is(.closed-tabs__list--closed, .closed-tabs__clear) {
+.closed-tabs--off :is(.closed-tabs__list--closed, .closed-tabs__clear),
+.closed-tabs--history-off :is(.closed-tabs__list--history, .closed-tabs__clear--history) {
     display: none;
 }
 
-.closed-tabs--off.closed-tabs--open[data-card="closed"] .closed-tabs__off {
+.closed-tabs--off.closed-tabs--open[data-card="closed"] .closed-tabs__off:not(.closed-tabs__off--history),
+.closed-tabs--history-off.closed-tabs--open[data-card="history"] .closed-tabs__off--history {
     flex: 1;
     align-self: stretch;
     display: flex;
