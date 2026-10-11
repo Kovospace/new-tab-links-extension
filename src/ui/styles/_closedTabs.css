@@ -164,6 +164,65 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-button-background-hover);
 }
 
+/*
+   Two cards, one shown at a time - see closedTabsPanel.ts. Each card owns a
+   list, and the closed tabs card also the Clear button and the "recording is
+   off" notice; whichever card is not chosen has all of its parts hidden, so the
+   folded rail shows the favicons of the chosen card alone.
+*/
+.closed-tabs[data-card="open"] :is(.closed-tabs__list--closed, .closed-tabs__off, .closed-tabs__clear),
+.closed-tabs[data-card="closed"] .closed-tabs__list--open {
+    display: none;
+}
+
+/* The switcher only makes sense at full width, like the head's own buttons. */
+.closed-tabs__cards {
+    display: none;
+}
+
+.closed-tabs--open .closed-tabs__cards {
+    display: flex;
+    gap: 0.375em;
+    align-self: stretch;
+    padding: 0.375em 0.75em;
+    border-bottom: 0.0625em solid var(--color-component-framing);
+}
+
+.closed-tabs__card {
+    flex: 1;
+    margin: 0;
+    font-size: 0.85em;
+    padding: 0.375em 0.5em;
+}
+
+.closed-tabs__card[aria-pressed="true"] {
+    background-color: var(--color-button-active-background);
+    color: var(--color-button-text-hover);
+}
+
+.closed-tabs__card[aria-pressed="true"]:hover {
+    background-color: var(--color-button-active-background-hover);
+}
+
+/* A window's name above its tabs, drawn only when there is more than one. */
+.closed-tabs__window {
+    display: none;
+    margin: 0.75em 0.5em 0.25em;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+}
+
+.closed-tabs__window:first-child {
+    margin-top: 0.25em;
+}
+
+.closed-tabs--open .closed-tabs__window {
+    display: block;
+}
+
 .closed-tabs__empty {
     margin: 0;
     padding: 1em 0.75em;
@@ -182,11 +241,11 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     display: none;
 }
 
-.closed-tabs--off :is(.closed-tabs__list, .closed-tabs__clear) {
+.closed-tabs--off :is(.closed-tabs__list--closed, .closed-tabs__clear) {
     display: none;
 }
 
-.closed-tabs--off.closed-tabs--open .closed-tabs__off {
+.closed-tabs--off.closed-tabs--open[data-card="closed"] .closed-tabs__off {
     flex: 1;
     align-self: stretch;
     display: flex;
@@ -366,11 +425,11 @@ dialog.closed-tabs__dialog {
    source of that drag, and one that narrowed under the cursor would take the
    rest of the row out from under the thing being carried.
 
-   Only for a closed tab, which is why the kind is asked for and not merely
+   Only for a tab from the panel, which is why the kind is asked for and not merely
    whether a drag is in flight. `dnd-active` is on the root for every drag, so
    keyed on that alone this unfolded the panel whenever a link, a subgroup or a
    group was dragged anywhere on the page - and it does not even fold again on
    the way, because no mousemove is delivered while a drag is in flight. */
-html.dnd-active[data-dnd-kind="closedTab"] .closed-tabs {
+html.dnd-active[data-dnd-kind="panelTab"] .closed-tabs {
     width: var(--closed-tabs-open);
 }

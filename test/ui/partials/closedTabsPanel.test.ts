@@ -4,7 +4,9 @@ import { ProfileRepository } from "../../../src/backend/repository/ProfileReposi
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
-import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { CardPreference, ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { OpenTabsViewModel, TabsSource } from "../../../src/viewModel/openTabsViewModel";
+import { SidePanelCard } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
@@ -353,5 +355,90 @@ describe("ClosedTabsPanel, opening and closing", () => {
 
         expect(panel.isPinned()).toBe(true);
         expect(isOpen()).toBe(true);
+    });
+});
+
+/**
+ *  The panel holds two cards, one shown at a time: the tabs open in this browser, and the
+ *  recently closed ones. Which one is shown is remembered per device; what each card's rows do
+ *  is the card's own.
+ */
+describe("ClosedTabsPanel, cards", () => {
+    let panel: ClosedTabsPanel;
+    let remembered: SidePanelCard;
+    let activated: number[];
+    let closed: number[];
+
+    beforeEach(async () => {
+        document.body.innerHTML = '<main></main>';
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await recordClosedTab(profiles.getActiveProfileId(),
+            { url: "https://example.com/closed", title: "Closed one", closedAt: Date.now() });
+
+        activated = [];
+        closed = [];
+        const tabs: TabsSource = {
+            query: async () => [{ id: 41, windowId: 1, index: 0,
+                url: "https://example.com/open", title: "Open one" } as chrome.tabs.Tab],
+            currentWindowId: async () => 1,
+            activate: async tab => { activated.push(tab.id); },
+            close: async id => { closed.push(id); },
+            onChanged: () => () => undefined
+        };
+        remembered = "closed";
+        const preference: CardPreference = {
+            get: () => remembered,
+            set: async card => { remembered = card; }
+        };
+
+        panel = new ClosedTabsPanel(
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
+            () => 0, new OpenTabsViewModel(appState, tabs), preference);
+        await panel.render(document.body);
+        await flushStorageNotifications();
+    });
+
+    afterEach(() => panel.dispose());
+
+    const aside = () => document.querySelector('.closed-tabs') as HTMLElement;
+    const cardButton = (index: number) =>
+        document.querySelectorAll('.closed-tabs__card')[index] as HTMLButtonElement;
+    const openRow = () =>
+        document.querySelector('.closed-tabs__list--open .closed-tabs__row') as HTMLElement;
+
+    it("opens on the card this device chose last, and remembers a new choice", () => {
+        expect(aside().dataset.card).toBe("closed");
+        expect(document.querySelector('.closed-tabs__title')!.textContent).toBe("Recently closed");
+
+        cardButton(0).click();
+
+        expect(aside().dataset.card).toBe("open");
+        expect(document.querySelector('.closed-tabs__title')!.textContent).toBe("Open tabs");
+        expect(cardButton(0).getAttribute('aria-pressed')).toBe("true");
+        expect(cardButton(1).getAttribute('aria-pressed')).toBe("false");
+        expect(remembered).toBe("open");
+    });
+
+    it("draws the open tabs in their own list, apart from the closed ones", () => {
+        expect(openRow().textContent).toContain("Open one");
+        expect(document.querySelector('.closed-tabs__list--closed')!.textContent)
+            .toContain("Closed one");
+    });
+
+    it("switches to an open tab when its row is clicked", () => {
+        openRow().click();
+
+        expect(activated).toEqual([41]);
+    });
+
+    it("closes the tab, and only closes it, from the row's x", () => {
+        const buttons = openRow().querySelectorAll('.closed-tabs__row-action');
+        (buttons[buttons.length - 1] as HTMLButtonElement).click();
+
+        expect(closed).toEqual([41]);
+        expect(activated).toEqual([]);
     });
 });

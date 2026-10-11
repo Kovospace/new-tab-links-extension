@@ -11,6 +11,7 @@ import enFirstRun from "./locales/en/firstRun.json";
 import enGroup from "./locales/en/group.json";
 import enHeader from "./locales/en/header.json";
 import enLink from "./locales/en/link.json";
+import enOpenTabs from "./locales/en/openTabs.json";
 import enProfiles from "./locales/en/profiles.json";
 import enSearch from "./locales/en/search.json";
 import enSettings from "./locales/en/settings.json";
@@ -30,6 +31,7 @@ import skFirstRun from "./locales/sk/firstRun.json";
 import skGroup from "./locales/sk/group.json";
 import skHeader from "./locales/sk/header.json";
 import skLink from "./locales/sk/link.json";
+import skOpenTabs from "./locales/sk/openTabs.json";
 import skProfiles from "./locales/sk/profiles.json";
 import skSearch from "./locales/sk/search.json";
 import skSettings from "./locales/sk/settings.json";
@@ -71,6 +73,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         group: enGroup,
         header: enHeader,
         link: enLink,
+        openTabs: enOpenTabs,
         profiles: enProfiles,
         search: enSearch,
         settings: enSettings,
@@ -92,6 +95,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         group: skGroup,
         header: skHeader,
         link: skLink,
+        openTabs: skOpenTabs,
         profiles: skProfiles,
         search: skSearch,
         settings: skSettings,

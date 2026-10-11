@@ -226,3 +226,31 @@ describe("DevicePreferencesRepository, the closed-tabs opening delay", () => {
         expect(preferences.getClosedTabsOpenDelay()).toBe(DEFAULT_CLOSED_TABS_OPEN_DELAY);
     });
 });
+
+describe("DevicePreferencesRepository, the side panel's card", () => {
+
+    it("starts on the closed tabs, which is what the panel showed before it had two cards", async () => {
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+
+        expect(preferences.getSidePanelCard()).toBe("closed");
+    });
+
+    it("remembers the card chosen, for the next page to open on", async () => {
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        await preferences.setSidePanelCard("open");
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getSidePanelCard()).toBe("open");
+    });
+
+    it("reads a card this version does not know as the closed tabs", async () => {
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { sidePanelCard: "history" });
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+
+        expect(preferences.getSidePanelCard()).toBe("closed");
+    });
+});

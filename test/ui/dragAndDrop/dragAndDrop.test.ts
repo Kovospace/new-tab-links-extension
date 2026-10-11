@@ -290,7 +290,7 @@ describe("dragAndDrop", () => {
             const link = document.createElement("div");
             makeDraggable(link, { kind: "link", id: "a-link" });
             const row = document.createElement("div");
-            makeDraggable(row, { kind: "closedTab", id: "a-tab", url: "https://x/", title: "X" });
+            makeDraggable(row, { kind: "panelTab", id: "a-tab", url: "https://x/", title: "X" });
 
             link.dispatchEvent(dragEvent("dragstart"));
             expect(document.documentElement.dataset.dndKind).toBe("link");
@@ -298,7 +298,7 @@ describe("dragAndDrop", () => {
             expect(document.documentElement.dataset.dndKind).toBeUndefined();
 
             row.dispatchEvent(dragEvent("dragstart"));
-            expect(document.documentElement.dataset.dndKind).toBe("closedTab");
+            expect(document.documentElement.dataset.dndKind).toBe("panelTab");
             row.dispatchEvent(dragEvent("dragend"));
             expect(document.documentElement.dataset.dndKind).toBeUndefined();
         });
@@ -330,14 +330,14 @@ describe("dragAndDrop", () => {
             await profiles.updateSettings({ enableDragAndDrop: true });
             const row = document.createElement("div");
             makeDraggable(row, {
-                kind: "closedTab", id: "tab-1",
+                kind: "panelTab", id: "tab-1",
                 url: "https://example.com/page", title: "A page"
             });
 
             row.dispatchEvent(dragEvent("dragstart"));
 
             expect(whatIsBeingDragged()).toEqual({
-                kind: "closedTab", id: "tab-1",
+                kind: "panelTab", id: "tab-1",
                 url: "https://example.com/page", title: "A page"
             });
         });
@@ -347,13 +347,13 @@ describe("dragAndDrop", () => {
             const row = document.createElement("div");
             row.id = "tab-1";
             makeDraggable(row, {
-                kind: "closedTab", id: "tab-1", url: "https://example.com/", title: "A page"
+                kind: "panelTab", id: "tab-1", url: "https://example.com/", title: "A page"
             });
 
             const target = document.createElement("div");
             target.id = "a-group";
             const took: string[] = [];
-            makeContainerTarget(target, ["link", "closedTab"], id => took.push(id));
+            makeContainerTarget(target, ["link", "panelTab"], id => took.push(id));
 
             row.dispatchEvent(dragEvent("dragstart"));
             target.dispatchEvent(dragEvent("drop"));
@@ -366,7 +366,7 @@ describe("dragAndDrop", () => {
             const row = document.createElement("div");
             row.id = "tab-1";
             makeDraggable(row, {
-                kind: "closedTab", id: "tab-1", url: "https://example.com/", title: "A page"
+                kind: "panelTab", id: "tab-1", url: "https://example.com/", title: "A page"
             });
 
             const target = document.createElement("div");
@@ -498,7 +498,7 @@ describe("dragAndDrop", () => {
             async () => {
                 await profiles.updateSettings({ enableDragAndDrop: true });
                 const row = wideRow();
-                makeDraggable(row, { kind: "closedTab", id: "a", url: "u", title: "t" });
+                makeDraggable(row, { kind: "panelTab", id: "a", url: "u", title: "t" });
 
                 row.dispatchEvent(dragEvent("dragstart", { clientX: 300, clientY: 120 }));
 

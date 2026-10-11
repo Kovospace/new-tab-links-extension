@@ -24,7 +24,7 @@ import { Logger } from "../../utils/logger";
 const LOG = new Logger("DragAndDrop");
 
 /** What is being carried. */
-export type DragKind = "link" | "subgroup" | "group" | "closedTab";
+export type DragKind = "link" | "subgroup" | "group" | "panelTab";
 
 /** What a target will take: one kind, or any of several. */
 export type Accepts = DragKind | DragKind[];
@@ -33,13 +33,14 @@ export type Accepts = DragKind | DragKind[];
  *  The thing under the cursor, while there is one.
  *
  *  A link, a subgroup and a group are named by identifier and looked up where they land: they
- *  exist, and the drop is a move. A closed tab is not a link anywhere yet - dropping one makes
- *  one - so it carries what a link would need to be made of, and the target that receives it
- *  never has to reach into the panel it came from.
+ *  exist, and the drop is a move. A tab from the side panel - closed, or open in this browser -
+ *  is not a link anywhere yet - dropping one makes one - so it carries what a link would need
+ *  to be made of, and the target that receives it never has to reach into the panel it came
+ *  from.
  */
 export type Dragged =
     | { kind: "link" | "subgroup" | "group"; id: string }
-    | { kind: "closedTab"; id: string; url: string; title: string };
+    | { kind: "panelTab"; id: string; url: string; title: string };
 
 /** Where a drop would put it, relative to the element under the cursor. */
 export type DropSide = "before" | "after";

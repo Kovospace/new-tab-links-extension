@@ -77,7 +77,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         // the head is where somebody aims when they mean "this group", and a target that is
         // the thing being aimed at can say so: it highlights, and it cannot be broken by
         // anything inside it that stops an event on its way out.
-        makeContainerTarget(headerElem, ["link", "subgroup", "closedTab"],
+        makeContainerTarget(headerElem, ["link", "subgroup", "panelTab"],
             draggedId => this.takeDropped(draggedId));
         parentElem.appendChild(footerElem);
 
@@ -174,7 +174,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             const index = this.VIEW_MODEL.indexAmongGroups() + (side === "after" ? 1 : 0);
             this.VIEW_MODEL.acceptGroup(draggedId, index);
         });
-        makeContainerTarget(this, ["link", "subgroup", "closedTab"],
+        makeContainerTarget(this, ["link", "subgroup", "panelTab"],
             draggedId => this.takeDropped(draggedId));
     }
 
@@ -190,7 +190,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             this.VIEW_MODEL.takeSubgroup(draggedId);
             return;
         }
-        if (carrying?.kind === "closedTab") {
+        if (carrying?.kind === "panelTab") {
             this.VIEW_MODEL.takeClosedTab(carrying.url, carrying.title);
             return;
         }

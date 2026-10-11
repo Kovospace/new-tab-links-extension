@@ -1,0 +1,12 @@
+{
+  "card": "Open",
+  "title": "Open tabs",
+  "cardTooltip": "Tabs open in this browser",
+  "thisWindow": "This window",
+  "window": "Window {number}",
+  "empty": "No pages open in this browser.",
+  "rowTooltip": "{url}\nSwitch to this tab",
+  "alreadySaved": "Already saved in this profile",
+  "saveAsLink": "Save as a link",
+  "closeTab": "Close this tab"
+}

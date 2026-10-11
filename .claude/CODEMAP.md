@@ -20,6 +20,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Device limit and revoked sessions - the 409 `DEVICES` on sign-in (with `manageUrl`), a session the account ended (`SessionRepository.revoked$`) | `viewModel/syncAccountViewModel.ts` (`offerDeviceLimitWayOut`, `explainRevokedSession`) |
 | Per-browser preferences (not synced) | `backend/repository/DevicePreferencesRepository.ts` |
 | Recently closed tabs | `backend/repository/ClosedTabsRepository.ts`, `backend/worker/module/closedTabsRecorder.ts`, `ui/partials/closedTabsPanel.ts` |
+| Open tabs of this browser - the side panel's second card (local only) | `viewModel/openTabsViewModel.ts`, drawn by `ui/partials/closedTabsPanel.ts`; the chosen card is `sidePanelCard` in `DevicePreferencesRepository` |
 | `chrome.storage.local` keys | `backend/datasource/chromeStorage/storageKeys.ts` |
 | First-run state | `backend/datasource/init/AppStateInit.ts` |
 | Element, action and class names | `constants.ts` (not `main.ts`) |

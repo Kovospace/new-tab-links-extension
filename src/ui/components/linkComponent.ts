@@ -133,7 +133,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
      */
     private listenerDragAndDrop() {
         makeDraggable(this, { kind: "link", id: this.DTO.id });
-        makeReorderTarget(this, ["link", "subgroup", "closedTab"], (side, draggedId) => {
+        makeReorderTarget(this, ["link", "subgroup", "panelTab"], (side, draggedId) => {
             const index = this.VIEW_MODEL.indexInScope() + (side === "after" ? 1 : 0);
             const carrying = whatIsBeingDragged();
 
@@ -144,7 +144,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 return;
             }
             // A closed tab is not a link anywhere yet; dropping one makes it one, here.
-            if (carrying?.kind === "closedTab") {
+            if (carrying?.kind === "panelTab") {
                 this.VIEW_MODEL.acceptClosedTab(carrying.url, carrying.title, index);
                 return;
             }

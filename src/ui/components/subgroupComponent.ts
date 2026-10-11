@@ -65,7 +65,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         // around its links - belongs in it, at the end. Dropped on one of its links it lands
         // beside that one instead, which that link's own target handles and stops before it
         // reaches here.
-        makeContainerTarget(this, ["link", "closedTab"], draggedId => this.takeDropped(draggedId));
+        makeContainerTarget(this, ["link", "panelTab"], draggedId => this.takeDropped(draggedId));
 
         // The subgroup itself can be carried, and another one dropped beside it. Both are
         // places in the group's own sequence, which counts its root-level links too.
@@ -84,7 +84,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
      */
     private takeDropped(draggedId: string): void {
         const carrying = whatIsBeingDragged();
-        if (carrying?.kind === "closedTab") {
+        if (carrying?.kind === "panelTab") {
             this.VIEW_MODEL.takeClosedTab(carrying.url, carrying.title);
             return;
         }
@@ -104,7 +104,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         // subgroup", so the head takes the drop itself rather than leaving it to bubble out
         // to the subgroup. It also gets the highlight, which is the part that says where the
         // link is about to go.
-        makeContainerTarget(headElem, ["link", "closedTab"],
+        makeContainerTarget(headElem, ["link", "panelTab"],
             draggedId => this.takeDropped(draggedId));
 
         const bodyElem: HTMLElement = document.createElement(ELEM_SUBGROUP_BODY);
