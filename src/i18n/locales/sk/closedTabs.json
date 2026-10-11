@@ -18,5 +18,9 @@
     "title": "Zabudnúť všetky zavreté karty?",
     "message": "Zoznam sa vyprázdni v tomto profile, na každom zariadení, kde ste prihlásení. Samotných kariet sa to netýka a čokoľvek, čo ste už uložili ako odkaz, zostáva.",
     "confirm": "Zabudnúť ich"
+  },
+  "off": {
+    "message": "Zaznamenávanie zatvorených kariet je pre tento profil vypnuté. Zapnúť ho môžete v Nastaveniach → Súkromie.",
+    "openSettings": "Otvoriť nastavenia súkromia"
   }
 }

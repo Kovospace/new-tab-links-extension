@@ -363,6 +363,13 @@ errand, while deleting or saving one is working through the list and leaves it a
 - Nothing schedules a push when a tab closes. Closed tabs ride along with the next
   synchronisation something else causes - which on a new tab page is immediate anyway - so
   closing tabs does not make every other signed-in device re-fetch the account.
+- **Recording is a profile setting, `recordClosedTabs`, on by default** (Settings → Privacy).
+  Off, the worker records nothing and empties its mirror of open tabs - read from storage on
+  every event - and the panel stays, showing a centred notice with a way to Settings → Privacy.
+  Turning it off asks first and deletes the list (`SettingsViewModel.toggle`). Another device
+  may still push a tab recorded before it heard; the pull stores it as the account holds it,
+  and `SyncCoordinator.emptyClosedTabsNotRecorded` deletes it as a write before the next
+  change set, so the deletion is pushed and the two settle (`syncSettles.test.ts`).
 
 ### Usage statistics and the ad slot (`backend/stats/`, `ui/partials/adsBar.ts`)
 
@@ -672,13 +679,16 @@ profile stored before a setting existed says nothing about it, and so does an ac
 both have to read as the default rather than as `undefined` - the two compare differently, and
 the difference would be pushed.
 
-**`enableDragAndDrop` is the one exception: it defaults to on.** It was added off, while the
-dragging did not exist; now dragging is how the page is used and off is the opt-out. Renaming
+**`enableDragAndDrop` and `recordClosedTabs` are the exceptions: they default to on.**
+`enableDragAndDrop` was added off, while the dragging did not exist; now dragging is how the page is used and off is the opt-out. Renaming
 it to a "disable" setting would have kept the rule at the price of a backend column. What the
 flip costs: a profile that never said anything reads as on, while one ever pulled from an
 account has the account's value written out and keeps it. A snapshot that omits the field is
-mapped to `DEFAULT_PROFILE_SETTINGS`, never to a literal `false`. A new setting still defaults
-to off.
+mapped to `DEFAULT_PROFILE_SETTINGS`, never to a literal `false`. `recordClosedTabs` defaults
+to on for the same reason - recording is what every profile did before it existed - and the
+backend reads an absent value as "keep what is stored" (on for a new profile) rather than as
+`false`, unlike every other flag there, so an extension too old to send it cannot stop
+recording. A new setting still defaults to off.
 
 The backend mirrors this exactly, profiles included. **A new field on an entity has to be
 threaded through five places** or it is silently lost: the entity here, `SyncContracts`

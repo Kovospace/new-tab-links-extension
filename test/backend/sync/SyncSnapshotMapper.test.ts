@@ -96,7 +96,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
 
     it("takes the settings the account holds", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: true })).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [] });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true });
     });
 
     it("reads a backend that does not store settings yet as having the defaults", () => {
@@ -104,7 +104,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
         // whose settings are undefined compares differently from one whose settings are the
         // defaults, and the difference would be pushed straight back.
         expect(mappedProfile(accountWithProfile({})).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [] });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true });
     });
 
     it("takes the dismissed tips exactly as the account holds them, order included", () => {
@@ -115,9 +115,17 @@ describe("SyncSnapshotMapper, profile settings", () => {
             .toEqual(["no-such-tip", "hide-tips"]);
     });
 
+    it("keeps closed tabs unrecorded when the account says so, and reads silence as recording", () => {
+        // On by default, unlike the rest: recording is what every profile did before the
+        // setting existed, so a backend that does not know it yet must not turn it off.
+        expect(mappedProfile(accountWithProfile({ recordClosedTabs: false })).settings
+            ?.recordClosedTabs).toBe(false);
+        expect(mappedProfile(accountWithProfile({})).settings?.recordClosedTabs).toBe(true);
+    });
+
     it("keeps an account that has them off, off", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: false })).settings)
-            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [] });
+            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true });
     });
 });
 

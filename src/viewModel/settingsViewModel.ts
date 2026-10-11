@@ -1,5 +1,6 @@
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { ProfileSettings, ToggleableSetting } from "../backend/entity/ProfileSettings";
+import { writeClosedTabs } from "../backend/repository/ClosedTabsRepository";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
@@ -49,6 +50,12 @@ export interface ToggleSettingDTO extends SettingCommonDTO {
     /** Which setting this is; what `toggle` is called with. */
     key: ToggleableSetting;
     enabled: boolean;
+    /**
+     *  What to ask before turning it off, already worded, or null when turning it off needs no
+     *  question. Set on a setting whose "off" deletes something, which is not undone by
+     *  turning it back on.
+     */
+    confirmOff: { title: string; message: string; confirm: string } | null;
 }
 
 /**
@@ -170,7 +177,7 @@ export interface SettingsDTO {
  *  the moment the dialog is described.
  */
 type SettingDefinition =
-    | { kind: "toggle"; key: ToggleableSetting; wording: string }
+    | { kind: "toggle"; key: ToggleableSetting; wording: string; confirmOff?: boolean }
     | { kind: "range"; key: RangeSettingKey; wording: string }
     | { kind: "choice"; key: ChoiceSettingKey; wording: string }
     | { kind: "image"; key: ImageSettingKey; wording: string }
@@ -183,6 +190,9 @@ interface CategoryDefinition {
     wording: string;
     settings: SettingDefinition[];
 }
+
+/** The category holding what the profile records; the closed tabs panel opens Settings on it. */
+export const PRIVACY_CATEGORY = "privacy";
 
 /**
  *  Every setting there is, in the order and the sections the dialog shows them in.
@@ -213,6 +223,15 @@ const CATEGORIES: CategoryDefinition[] = [
         settings: [
             { kind: "choice", key: "language", wording: "language" },
             { kind: "choice", key: "dateFormat", wording: "dateFormat" }
+        ]
+    },
+    {
+        // What this profile records about the user's browsing. Turning a recorder off deletes
+        // what it recorded, here and on the account, which is why it asks first.
+        key: PRIVACY_CATEGORY,
+        wording: "privacy",
+        settings: [
+            { kind: "toggle", key: "recordClosedTabs", wording: "recordClosedTabs", confirmOff: true }
         ]
     },
     {
@@ -319,6 +338,11 @@ export class SettingsViewModel {
      */
     public async toggle(key: ToggleableSetting, enabled: boolean): Promise<void> {
         this.LOG.debug("toggle", `${key} -> ${enabled}`);
+        if (key === "recordClosedTabs" && !enabled) {
+            // Deleted before the setting moves, so the push the setting change causes carries
+            // the deletions with it. The user was asked first - see `confirmOff`.
+            await writeClosedTabs(this.profiles.getActiveProfileId(), {});
+        }
         await this.profiles.updateSettings({ [key]: enabled });
         this.refresh();
     }
@@ -416,6 +440,17 @@ export class SettingsViewModel {
      *
      *  @param key which category
      */
+    /**
+     *  Unfolds one category and folds every other, for a dialog opened to answer one question -
+     *  "where do I turn this back on" - rather than from the menu.
+     */
+    public expandOnly(key: string): void {
+        this.collapsed.clear();
+        CATEGORIES.filter(category => category.key !== key)
+            .forEach(category => this.collapsed.add(category.key));
+        this.refresh();
+    }
+
     public toggleCategory(key: string): void {
         if (this.collapsed.has(key)) {
             this.collapsed.delete(key);
@@ -441,6 +476,13 @@ export class SettingsViewModel {
                 title,
                 explanation,
                 enabled: settings[definition.key],
+                confirmOff: definition.confirmOff
+                    ? {
+                        title: t(`settings.${definition.wording}.confirmOff.title`),
+                        message: t(`settings.${definition.wording}.confirmOff.message`),
+                        confirm: t(`settings.${definition.wording}.confirmOff.confirm`)
+                    }
+                    : null,
                 disabledReason: null
             };
         }

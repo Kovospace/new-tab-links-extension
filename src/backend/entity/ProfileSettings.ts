@@ -7,7 +7,7 @@
  *  entity kind and no merge rules of its own. The price, paid knowingly: two profiles are two
  *  sets of preferences, and turning something on for work does not turn it on for home.
  *
- *  Every setting is a plain boolean, defaulting to "off" with one exception named below -
+ *  Every setting is a plain boolean, defaulting to "off" with two exceptions named below -
  *  except `dismissedTips`, a list that defaults to empty - and every one is read through
  *  `settingsOf()` rather than straight off the profile. A profile stored before a setting
  *  existed says nothing about it, and so does an account whose backend does not know it yet;
@@ -47,6 +47,21 @@ export interface ProfileSettings {
      *  (`TipsViewModel.dismissCurrent`), never where it is read.
      */
     dismissedTips: string[];
+
+    /**
+     *  Whether this profile records the tabs the user closes, for the panel on the right.
+     *
+     *  **On by default - the second exception to the "off" rule**, for the reason the first
+     *  one has: recording closed tabs is what every profile did before the setting existed, so
+     *  a profile that has never said anything has to read as recording. Named for what it
+     *  turns on rather than as a "disable" so that it reads the same way as the other switches
+     *  under Settings → Privacy, where a ticked box means "recording".
+     *
+     *  Turning it off deletes the profile's closed tabs, here and on the account - see
+     *  `SettingsViewModel.toggle` - and every device that hears of it stops recording
+     *  (`closedTabsRecorder`) and empties whatever it still holds (`SyncCoordinator`).
+     */
+    recordClosedTabs: boolean;
 }
 
 /** The settings that are on or off, which is every one but the list of dismissed tips. */
@@ -58,7 +73,8 @@ export type ToggleableSetting = {
 export const DEFAULT_PROFILE_SETTINGS: ProfileSettings = {
     enableDragAndDrop: true,
     hideTips: false,
-    dismissedTips: []
+    dismissedTips: [],
+    recordClosedTabs: true
 };
 
 /**

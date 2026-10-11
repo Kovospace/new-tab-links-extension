@@ -159,6 +159,33 @@ describe("synchronisation settles", () => {
         expect(await operationsOfTheSecondPass()).toEqual([]);
     });
 
+    it("empties closed tabs the account still holds for a profile that stopped recording them",
+        async () => {
+            // Another device recorded a tab before it heard recording was turned off, and
+            // pushed it. The pull stores it exactly as the account holds it; this device then
+            // deletes it as a write and pushes the deletion - and after that, says nothing.
+            const coordinating = coordinator();
+            await coordinating.synchronizeNow();
+
+            // After first contact, so the tab names the profile by the identifier the account
+            // knows it under.
+            const profileId = profiles.getActiveProfileId();
+            await profiles.updateSettings({ recordClosedTabs: false });
+            account.apply([{
+                op: "upsert", type: "closedTab", id: "0199aaaa-0000-7000-8000-0000000c1o5e",
+                profileId, url: "https://example.com/late", title: "Late",
+                closedAt: "2026-01-01T10:00:00Z"
+            }]);
+
+            await coordinating.synchronizeNow();
+            await coordinating.synchronizeNow();
+
+            expect(account.snapshot().closedTabs ?? []).toEqual([]);
+            pushes = [];
+            await coordinating.synchronizeNow();
+            expect(pushes.flat()).toEqual([]);
+        });
+
     it("has nothing to say the third time either", async () => {
         // A difference that alternates rather than repeats would settle in the second pass and
         // come back in the third.

@@ -137,6 +137,14 @@ export interface SyncOperation {
      */
     dismissedTips?: string[];
 
+    /**
+     *  Whether this profile records closed tabs. Carried on every profile upsert like the
+     *  rest. Unlike them it defaults to on, and the backend reads an absent value as "leave
+     *  it as it is" (on for a new profile), so an older extension that never sends it cannot
+     *  turn recording off.
+     */
+    recordClosedTabs?: boolean;
+
     /** Whether a subgroup is folded away right now. */
     collapsed?: boolean;
     /** Whether a subgroup starts folded away. */
@@ -222,6 +230,8 @@ export interface SnapshotProfileDto {
     hideTips?: boolean;
     /** Same again, and read as none dismissed. */
     dismissedTips?: string[];
+    /** Same again, and read as on - which is what a profile did before the setting existed. */
+    recordClosedTabs?: boolean;
     createdAt: string;
     updatedAt: string;
 }

@@ -5,6 +5,7 @@
   "categories": {
     "uiAndBehavior": "UI and behavior",
     "languageAndLocalCustoms": "Language & local customs",
+    "privacy": "Privacy",
     "search": "Search"
   },
   "enableDragAndDrop": {
@@ -51,5 +52,14 @@
     "explanation": "The keys that save the page you are on into Tabilinks. Chrome lets you change them only on its own shortcuts page - set Ctrl+D there and it saves here instead of into Chrome's bookmarks.",
     "notSet": "Not set",
     "change": "Change in Chrome…"
+  },
+  "recordClosedTabs": {
+    "title": "Record closed tabs",
+    "explanation": "Keep a list of the tabs you close in the panel on the right, synced to every device of this profile when you are signed in. Turning it off deletes the list.",
+    "confirmOff": {
+      "title": "Stop recording closed tabs?",
+      "message": "The list of closed tabs is deleted from this profile, on every device you are signed in on, and no more tabs are recorded until you turn it back on. Links you have already saved stay.",
+      "confirm": "Stop and delete"
+    }
   }
 }

@@ -58,7 +58,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
             environments: [environment("e", "W")], groups: [group("g", "R", "e")], activeEnvironmentId: "e"
         }));
         await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
-        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState));
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles));
         await panel.render(document.body);
         await flushStorageNotifications();
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -67,6 +67,17 @@ describe("ClosedTabsPanel, opening and closing", () => {
     afterEach(() => {
         panel.dispose();
         vi.useRealTimers();
+    });
+
+    it("says recording is off instead of listing anything, and comes back when it is on", async () => {
+        const aside = () => document.querySelector(".closed-tabs")!;
+
+        await profiles.updateSettings({ recordClosedTabs: false });
+        expect(aside().classList.contains("closed-tabs--off")).toBe(true);
+        expect(aside().querySelector(".closed-tabs__off-action")).not.toBeNull();
+
+        await profiles.updateSettings({ recordClosedTabs: true });
+        expect(aside().classList.contains("closed-tabs--off")).toBe(false);
     });
 
     it("opens over the rail, stays open to the right, closes to the left", () => {
@@ -102,7 +113,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
         panel.dispose();
         document.body.innerHTML = '<main></main>';
         panel = new ClosedTabsPanel(
-            new ClosedTabsViewModel(new ClosedTabsRepository(), appState), () => delay);
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles), () => delay);
         void panel.render(document.body);
         edgeAt(960);
 

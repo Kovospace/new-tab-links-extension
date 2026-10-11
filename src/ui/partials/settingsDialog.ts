@@ -4,6 +4,7 @@ import {
 } from '../../viewModel/settingsViewModel';
 import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { confirmDestructiveAction } from './confirmations';
 
 /**
  * Where "reopen the settings dialog once the page comes back" is left.
@@ -87,8 +88,12 @@ export class SettingsDialog {
     this.viewModel = viewModel;
   }
 
-  /** Builds the dialog, loads the settings into it, and shows it. */
-  public show(): void {
+  /**
+   * Builds the dialog, loads the settings into it, and shows it.
+   *
+   * @param category the one category to open unfolded; the first one when not given
+   */
+  public show(category?: string): void {
     this.dialogEl = this.build();
     document.body.appendChild(this.dialogEl);
 
@@ -99,7 +104,11 @@ export class SettingsDialog {
     this.dialogEl.showModal();
     toggleOverlay(true);
 
-    this.viewModel.refresh();
+    if (category) {
+      this.viewModel.expandOnly(category);
+    } else {
+      this.viewModel.refresh();
+    }
     void this.viewModel.refreshShortcut();
     window.addEventListener('focus', this.regainedFocus);
   }
@@ -287,6 +296,21 @@ export class SettingsDialog {
     }
   }
 
+  /**
+   * Applies a checkbox, asking first when turning the setting off deletes something.
+   * Declined, the box goes back to ticked and nothing is stored.
+   */
+  private async onToggled(setting: ToggleSettingDTO, checkbox: HTMLInputElement): Promise<void> {
+    if (!checkbox.checked && setting.confirmOff) {
+      const { title, message, confirm } = setting.confirmOff;
+      if (!await confirmDestructiveAction(title, message, confirm)) {
+        checkbox.checked = true;
+        return;
+      }
+    }
+    await this.viewModel.toggle(setting.key, checkbox.checked);
+  }
+
   /** A setting that is on or off: a checkbox, its name, and what it does. */
   private buildToggle(setting: ToggleSettingDTO): HTMLElement {
 
@@ -303,8 +327,7 @@ export class SettingsDialog {
       row.classList.add('settings-dialog__row--disabled');
       row.title = setting.disabledReason;
     } else {
-      checkbox.addEventListener('change',
-        () => void this.viewModel.toggle(setting.key, checkbox.checked));
+      checkbox.addEventListener('change', () => void this.onToggled(setting, checkbox));
     }
 
     const text = document.createElement('div');

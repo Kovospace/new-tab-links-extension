@@ -195,6 +195,7 @@ export class ChangeSetBuilder {
             enableDragAndDrop: settingsOf(profile).enableDragAndDrop,
             hideTips: settingsOf(profile).hideTips,
             dismissedTips: settingsOf(profile).dismissedTips,
+            recordClosedTabs: settingsOf(profile).recordClosedTabs,
             position
         };
     }

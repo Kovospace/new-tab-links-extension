@@ -1,4 +1,6 @@
 import { ClosedTabDTO, ClosedTabsViewModel } from '../../viewModel/closedTabsViewModel';
+import { PRIVACY_CATEGORY } from '../../viewModel/settingsViewModel';
+import { SettingsDialog } from './settingsDialog';
 import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { confirmDestructiveAction, showNotice } from './confirmations';
@@ -53,7 +55,9 @@ export class ClosedTabsPanel {
 
   private panelEl: HTMLElement | null = null;
   private listEl: HTMLElement | null = null;
+  private offEl: HTMLElement | null = null;
   private unsubscribe: (() => void) | null = null;
+  private unsubscribeRecording: (() => void) | null = null;
 
   /** Held open by the button, which the pointer is not allowed to overrule. */
   private pinned: boolean = false;
@@ -102,6 +106,8 @@ export class ClosedTabsPanel {
     host.appendChild(this.panelEl);
 
     this.unsubscribe = this.viewModel.observables.tabs.subscribe(tabs => this.drawRows(tabs));
+    this.unsubscribeRecording = this.viewModel.observables.recording
+      .subscribe(recording => this.drawRecording(recording));
 
     // On the document rather than on the panel: the rule is about where the pointer is on the
     // screen, including where the panel is not, which an element's own events cannot report.
@@ -266,6 +272,8 @@ export class ClosedTabsPanel {
     document.removeEventListener("click", this.clicked);
     this.unsubscribe?.();
     this.unsubscribe = null;
+    this.unsubscribeRecording?.();
+    this.unsubscribeRecording = null;
     this.viewModel.dispose();
     this.panelEl?.remove();
     this.panelEl = null;
@@ -294,7 +302,7 @@ export class ClosedTabsPanel {
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
-    clearBtn.classList.add('closed-tabs__head-action', CLASS_ACTION_DANGER);
+    clearBtn.classList.add('closed-tabs__head-action', 'closed-tabs__clear', CLASS_ACTION_DANGER);
     clearBtn.textContent = t('closedTabs.clear');
     clearBtn.title = t('closedTabs.forgetAll');
     clearBtn.addEventListener('click', () => void this.clearAll());
@@ -315,7 +323,39 @@ export class ClosedTabsPanel {
     this.listEl.classList.add('closed-tabs__list');
     panel.appendChild(this.listEl);
 
+    this.offEl = this.buildOffNotice();
+    panel.appendChild(this.offEl);
+
     return panel;
+  }
+
+  /**
+   * What the panel says while the profile does not record closed tabs: that it is off, and
+   * where it is turned back on. The panel stays rather than going away - a rail that vanished
+   * would leave nothing to say what happened to it.
+   */
+  private buildOffNotice(): HTMLElement {
+    const notice = document.createElement('div');
+    notice.classList.add('closed-tabs__off');
+
+    const message = document.createElement('p');
+    message.classList.add('closed-tabs__off-message');
+    message.textContent = t('closedTabs.off.message');
+
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.classList.add('closed-tabs__off-action');
+    open.textContent = t('closedTabs.off.openSettings');
+    open.addEventListener('click', () => new SettingsDialog().show(PRIVACY_CATEGORY));
+
+    notice.appendChild(message);
+    notice.appendChild(open);
+    return notice;
+  }
+
+  /** Swaps the list for the notice, and back, as recording is turned off and on. */
+  private drawRecording(recording: boolean): void {
+    this.panelEl?.classList.toggle('closed-tabs--off', !recording);
   }
 
   private drawRows(tabs: ClosedTabDTO[]): void {
