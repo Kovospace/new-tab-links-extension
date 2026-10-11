@@ -89,7 +89,7 @@
     align-items: center;
     gap: 0.5em;
     padding: 0.5em 0.375em;
-    border-bottom: 0.0625em solid var(--color-component-framing);
+    /*border-bottom: 0.0625em solid var(--color-component-framing);*/
     align-self: center;
     width: 100%;
 }
@@ -273,6 +273,8 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     gap: 0.5em;
     padding: 0.25em 0.375em;
     border-radius: var(--radius-small);
+    transition: background-color var(--time-transition-fast) ease-in-out;
+    min-height: 2.5em;
 }
 
 .closed-tabs--open .closed-tabs__row {
