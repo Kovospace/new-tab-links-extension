@@ -50,10 +50,24 @@ function constraintsOf(spec: FieldSpec): FieldConstraints {
 function buildInput(type: FieldType, id: string, placeholder: string): HTMLInputElement {
   const input = document.createElement('input');
   input.id = id;
+  if (type === 'checkbox') {
+    input.type = 'checkbox';
+    input.classList.add('input-dialog__checkbox');
+    return input;
+  }
   input.placeholder = placeholder;
   input.classList.add('editable', 'input-dialog__input');
   input.type = type === 'password' ? 'password' : 'text';
   return input;
+}
+
+/**
+ * What one field answers: "true" or "false" for a checkbox, which a string-valued callback can
+ * still compare; nothing for a field a checkbox has switched off.
+ */
+function valueOf(ref: FieldRef): string {
+  if (ref.constraints.type === 'checkbox') return String(ref.el.checked);
+  return ref.el.disabled ? '' : ref.el.value;
 }
 
 /** One field of the dialog, and everything about it the dialog has to keep hold of. */
@@ -166,6 +180,9 @@ export class InputDialog {
 
       const wrapper = document.createElement('div');
       wrapper.classList.add('input-dialog__field');
+      if (constraints.type === 'checkbox') {
+        wrapper.classList.add('input-dialog__field--checkbox');
+      }
 
       const labelEl = document.createElement('label');
       labelEl.classList.add('input-dialog__label');
@@ -173,14 +190,26 @@ export class InputDialog {
       labelEl.textContent = constraints.required ? t('dialogs.requiredField', { label }) : label;
 
       const input = buildInput(constraints.type, fieldId, label);
-      if (prefill?.[camelKey] !== undefined) input.value = prefill[camelKey];
+      if (constraints.type === 'checkbox') {
+        input.checked = prefill?.[camelKey] !== undefined
+          ? prefill[camelKey] === 'true'
+          : constraints.checked === true;
+      } else if (prefill?.[camelKey] !== undefined) {
+        input.value = prefill[camelKey];
+      }
 
       const errorEl = document.createElement('span');
       errorEl.classList.add('input-dialog__error');
       errorEl.hidden = true;
 
-      wrapper.appendChild(labelEl);
-      wrapper.appendChild(input);
+      // A checkbox comes before what it says, the way every form puts one.
+      if (constraints.type === 'checkbox') {
+        wrapper.appendChild(input);
+        wrapper.appendChild(labelEl);
+      } else {
+        wrapper.appendChild(labelEl);
+        wrapper.appendChild(input);
+      }
       wrapper.appendChild(errorEl);
       form.appendChild(wrapper);
 
@@ -203,7 +232,13 @@ export class InputDialog {
         ref.touched = true;
         this.revalidate();
       });
+      input.addEventListener('change', () => {
+        this.applyEnables();
+        this.revalidate();
+      });
     });
+
+    this.applyEnables();
 
     const actions = document.createElement('div');
     actions.classList.add('input-dialog__actions');
@@ -258,9 +293,27 @@ export class InputDialog {
   private currentValues(): FieldValues {
     const values: FieldValues = {};
     for (const ref of this.fieldRefs) {
-      values[ref.camelKey] = ref.el.value;
+      values[ref.camelKey] = valueOf(ref);
     }
     return values;
+  }
+
+  /** Disables every field whose enabling checkbox is unticked, and enables the rest. */
+  private applyEnables(): void {
+    for (const toggle of this.fieldRefs) {
+      if (toggle.constraints.type !== 'checkbox' || !toggle.constraints.enables) continue;
+      const target = this.fieldRefs.find(ref => ref.camelKey === toggle.constraints.enables);
+      if (target) {
+        target.el.disabled = !toggle.el.checked;
+        target.el.closest('.input-dialog__field')?.classList
+          .toggle('input-dialog__field--disabled', target.el.disabled);
+      }
+    }
+  }
+
+  /** The fields that take part: a disabled one is neither checked nor answered. */
+  private liveRefs(): FieldRef[] {
+    return this.fieldRefs.filter(ref => !ref.el.disabled);
   }
 
   /**
@@ -273,8 +326,8 @@ export class InputDialog {
 
     const problems = validateFields(
       this.currentValues(),
-      Object.fromEntries(this.fieldRefs.map(ref => [ref.camelKey, ref.constraints])),
-      Object.fromEntries(this.fieldRefs.map(ref => [ref.camelKey, ref.label])));
+      Object.fromEntries(this.liveRefs().map(ref => [ref.camelKey, ref.constraints])),
+      Object.fromEntries(this.liveRefs().map(ref => [ref.camelKey, ref.label])));
 
     for (const ref of this.fieldRefs) {
       const problem = problems[ref.camelKey];
@@ -311,10 +364,11 @@ export class InputDialog {
     }
 
     const values: FieldValues = {};
-    for (const { camelKey, constraints, el } of this.fieldRefs) {
-      values[camelKey] = constraints.type === 'url' && el.value.trim() !== ''
-        ? normalizeUrl(el.value)
-        : el.value;
+    for (const ref of this.fieldRefs) {
+      const value = valueOf(ref);
+      values[ref.camelKey] = ref.constraints.type === 'url' && value.trim() !== ''
+        ? normalizeUrl(value)
+        : value;
     }
 
     this.hide();

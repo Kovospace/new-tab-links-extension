@@ -1,3 +1,5 @@
+import deepEqual from "fast-deep-equal";
+
 import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageWrapper";
 import { DEVICE_PREFERENCES_KEY } from "../datasource/chromeStorage/storageKeys";
 import {
@@ -67,6 +69,14 @@ export interface DevicePreferences {
      *  this screen is being used rather than of what the profile holds.
      */
     sidePanelCard: SidePanelCard;
+
+    /**
+     *  Whether this browser synchronises with the account it is signed in to. On by default;
+     *  off, the browser stays signed in - premium still lifts its limits - but nothing is
+     *  pushed or pulled. Per device because the reason to turn it off is this machine: a work
+     *  laptop whose links should not leave it, while the same account synchronises at home.
+     */
+    syncEnabled: boolean;
 }
 
 /** The cards the side panel can show, one at a time. */
@@ -113,7 +123,8 @@ const DEFAULTS: DevicePreferences = {
     dateFormat: DEFAULT_DATE_FORMAT,
     searchEngine: DEFAULT_SEARCH_ENGINE,
     closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY,
-    sidePanelCard: DEFAULT_SIDE_PANEL_CARD
+    sidePanelCard: DEFAULT_SIDE_PANEL_CARD,
+    syncEnabled: true
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -154,6 +165,12 @@ export class DevicePreferencesRepository {
     /** Fires when something here changes, so an open page can redraw itself. */
     public readonly preferences$ = new ObservableValue<DevicePreferences>({ ...DEFAULTS });
 
+    /** Whether this browser synchronises, on its own so synchronisation follows nothing else. */
+    public readonly syncEnabled$ = new ObservableValue<boolean>(DEFAULTS.syncEnabled);
+
+    /** Whether the storage listener is on; `init` runs once per page, but nothing forbids twice. */
+    private watching: boolean = false;
+
     /**
      *  Loads what this browser prefers.
      *
@@ -163,16 +180,40 @@ export class DevicePreferencesRepository {
     public async init(): Promise<void> {
         const stored = await this.datasource.get<Partial<DevicePreferences>>(
             DEVICE_PREFERENCES_KEY);
-        this.preferences = {
-            scale: normalizeScale(stored?.scale ?? DEFAULT_SCALE),
-            language: normalizeLanguagePreference(stored?.language),
-            dateFormat: normalizeDateFormat(stored?.dateFormat),
-            searchEngine: normalizeSearchEngine(stored?.searchEngine),
-            closedTabsOpenDelay: normalizeClosedTabsOpenDelay(
-                stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
-            sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard)
-        };
+        this.preferences = normalizePreferences(stored);
+        this.publish();
+        this.watchForWrites();
+    }
+
+    private publish(): void {
         this.preferences$.set(this.preferences);
+        this.syncEnabled$.set(this.preferences.syncEnabled);
+    }
+
+    /**
+     *  Adopts what another page of this browser stored.
+     *
+     *  Turning synchronisation off in one new tab has to stop it in every other one already
+     *  open: a page still synchronising on the preference it loaded would push the very links
+     *  the user just decided to keep here. The rest of the preferences come along because
+     *  there is no reason for an open page to hold a stale copy of any of them.
+     */
+    private watchForWrites(): void {
+        if (this.watching || !chrome.storage?.onChanged?.addListener) {
+            return;
+        }
+        this.watching = true;
+        chrome.storage.onChanged.addListener((changes, areaName) => {
+            const change = changes[DEVICE_PREFERENCES_KEY];
+            if (areaName !== "local" || !change) {
+                return;
+            }
+            const next = normalizePreferences(change.newValue as Partial<DevicePreferences> | undefined);
+            if (!deepEqual(next, this.preferences)) {
+                this.preferences = next;
+                this.publish();
+            }
+        });
     }
 
     /** How big the interface is. */
@@ -193,7 +234,7 @@ export class DevicePreferencesRepository {
         this.preferences = { ...this.preferences, scale: wanted };
         this.LOG.debug("setScale", `${wanted}em`);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
-        this.preferences$.set(this.preferences);
+        this.publish();
     }
 
     /** How long the pointer rests on the closed-tabs rail before it opens, in milliseconds. */
@@ -216,10 +257,25 @@ export class DevicePreferencesRepository {
         this.preferences = { ...this.preferences, closedTabsOpenDelay: wanted };
         this.LOG.debug("setClosedTabsOpenDelay", `${wanted}ms`);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
-        this.preferences$.set(this.preferences);
+        this.publish();
     }
 
     /** Which card the side panel shows. */
+    /** Whether this browser synchronises with its account; see `DevicePreferences.syncEnabled`. */
+    public isSyncEnabled(): boolean {
+        return this.preferences.syncEnabled;
+    }
+
+    public async setSyncEnabled(enabled: boolean): Promise<void> {
+        if (enabled === this.preferences.syncEnabled) {
+            return;
+        }
+        this.preferences = { ...this.preferences, syncEnabled: enabled };
+        this.LOG.debug("setSyncEnabled", enabled);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
     public getSidePanelCard(): SidePanelCard {
         return this.preferences.sidePanelCard;
     }
@@ -237,7 +293,7 @@ export class DevicePreferencesRepository {
         this.preferences = { ...this.preferences, sidePanelCard: wanted };
         this.LOG.debug("setSidePanelCard", wanted);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
-        this.preferences$.set(this.preferences);
+        this.publish();
     }
 
     /** Which language this browser is set to, which may be "auto". */
@@ -263,7 +319,7 @@ export class DevicePreferencesRepository {
         this.preferences = { ...this.preferences, language: wanted };
         this.LOG.debug("setLanguage", wanted);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
-        this.preferences$.set(this.preferences);
+        this.publish();
     }
 
     /** How this browser is set to write dates, which may be "auto". */
@@ -284,7 +340,7 @@ export class DevicePreferencesRepository {
         this.preferences = { ...this.preferences, dateFormat: wanted };
         this.LOG.debug("setDateFormat", wanted);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
-        this.preferences$.set(this.preferences);
+        this.publish();
     }
 
     /** Which engine the search bar uses on this browser. */
@@ -308,7 +364,7 @@ export class DevicePreferencesRepository {
         this.preferences = { ...this.preferences, searchEngine: wanted };
         this.LOG.debug("setSearchEngine", wanted);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
-        this.preferences$.set(this.preferences);
+        this.publish();
     }
 
     /**
@@ -335,6 +391,21 @@ export class DevicePreferencesRepository {
     public applyScale(): void {
         applyScaleTo(document.documentElement, this.preferences.scale);
     }
+}
+
+/** Stored preferences as this version reads them: every field present and within range. */
+function normalizePreferences(stored?: Partial<DevicePreferences> | null): DevicePreferences {
+    return {
+        scale: normalizeScale(stored?.scale ?? DEFAULT_SCALE),
+        language: normalizeLanguagePreference(stored?.language),
+        dateFormat: normalizeDateFormat(stored?.dateFormat),
+        searchEngine: normalizeSearchEngine(stored?.searchEngine),
+        closedTabsOpenDelay: normalizeClosedTabsOpenDelay(
+            stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
+        sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard),
+        // Anything but an explicit false is on: a browser that never answered synchronised.
+        syncEnabled: stored?.syncEnabled !== false
+    };
 }
 
 /**

@@ -12,6 +12,7 @@
     "url": "URL",
     "title": "Title",
     "deviceName": "Device name",
+    "synchronise": "Synchronise this browser with the account",
     "profileName": "Profile name"
   }
 }

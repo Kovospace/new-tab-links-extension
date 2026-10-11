@@ -13,7 +13,7 @@ import { t } from '../../i18n/i18n';
  */
 
 /** How a field behaves and what it is checked against. */
-export type FieldType = 'string' | 'url' | 'password';
+export type FieldType = 'string' | 'url' | 'password' | 'checkbox';
 
 /** What one field will accept. */
 export interface FieldConstraints {
@@ -43,6 +43,17 @@ export interface FieldConstraints {
      *  whatever the reader's language says.
      */
     key?: string;
+
+    /** A checkbox's state when the dialog opens; unticked unless it says so. */
+    checked?: boolean;
+
+    /**
+     *  The key of the field a checkbox switches on: unticked, that field is drawn disabled,
+     *  is not checked against its constraints, and hands the callback an empty value. For a
+     *  question that only means something after a yes - what to call a device that is not
+     *  going to synchronise is not worth asking.
+     */
+    enables?: string;
 }
 
 /**
@@ -81,6 +92,11 @@ export function validateField(
     value: string,
     constraints: FieldConstraints
 ): string | null {
+
+    // A checkbox has no wrong answer: ticked or not, both are things somebody meant.
+    if (constraints.type === 'checkbox') {
+        return null;
+    }
 
     const trimmed = value.trim();
 

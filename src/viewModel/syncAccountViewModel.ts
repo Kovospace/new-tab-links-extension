@@ -9,6 +9,9 @@ import { DeviceNameReconciler, DeviceNameVerdict } from "../backend/sync/DeviceN
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { accountStandingRepository, AccountStandingRepository } from "../backend/sync/AccountStandingRepository";
 import { profileRepository, ProfileRepository, RegistryOwner } from "../backend/repository/ProfileRepository";
+import {
+    devicePreferencesRepository, DevicePreferencesRepository
+} from "../backend/repository/DevicePreferencesRepository";
 import { ChoiceDialog } from "../ui/partials/choiceDialog";
 import { InputDialog } from "../ui/partials/inputDialog";
 import { showNotice } from "../ui/partials/confirmations";
@@ -60,6 +63,16 @@ export interface AccountDTO {
     /** What to tell the user about synchronisation right now. */
     syncStatus: string | null;
 
+    /** Whether this browser synchronises with the account; the menu's checkbox. */
+    syncEnabled: boolean;
+
+    /**
+     *  Whether a synchronisation is running this moment. The checkbox cannot be used while it
+     *  is: switching off halfway through a push and pull is a question nobody should have to
+     *  answer about which half happened.
+     */
+    syncing: boolean;
+
     /** Whether the account is premium, which takes the upgrade offer out of the menu. */
     premium: boolean;
 
@@ -90,19 +103,24 @@ export class SyncAccountViewModel {
 
     public readonly observables = {
         account: new ObservableValue<AccountDTO>(
-            { signedIn: false, username: null, syncStatus: null, premium: false, signedOutOf: null })
+            {
+                signedIn: false, username: null, syncStatus: null, syncEnabled: true,
+                syncing: false, premium: false, signedOutOf: null
+            })
     };
 
     /** Last known session and synchronisation state, combined into the DTO on any change. */
     private session: SyncSession | null = null;
     private activity: SyncActivity = "idle";
     private premium: boolean = false;
+    private syncEnabled: boolean = true;
     /** The limit the account refused this device's changes over, while it stands. */
     private fairUseRefusal: LimitRefusal | null = null;
     private profilesOwner: RegistryOwner | null = null;
 
     private standing: AccountStandingRepository;
     private profiles: ProfileRepository;
+    private devicePreferences: Pick<DevicePreferencesRepository, "syncEnabled$" | "setSyncEnabled">;
 
     /**
      *  @param apiClient  talks to the backend; the singleton in normal use.
@@ -112,8 +130,11 @@ export class SyncAccountViewModel {
         apiClient: BackendApiClient = backendApiClient,
         sessions: SessionRepository = sessionRepository,
         standing: AccountStandingRepository = accountStandingRepository,
-        profiles: ProfileRepository = profileRepository
+        profiles: ProfileRepository = profileRepository,
+        devicePreferences: Pick<DevicePreferencesRepository, "syncEnabled$" | "setSyncEnabled">
+            = devicePreferencesRepository
     ) {
+        this.devicePreferences = devicePreferences;
         this.apiClient = apiClient;
         this.sessions = sessions;
         this.standing = standing;
@@ -129,6 +150,10 @@ export class SyncAccountViewModel {
         });
         syncCoordinator.activity$.subscribe((activity: SyncActivity) => {
             this.activity = activity;
+            this.publishAccount();
+        });
+        this.devicePreferences.syncEnabled$.subscribe((enabled: boolean) => {
+            this.syncEnabled = enabled;
             this.publishAccount();
         });
         this.standing.premium$.subscribe((premium: boolean) => {
@@ -199,6 +224,8 @@ export class SyncAccountViewModel {
             signedIn: this.session !== null,
             username: this.session?.username ?? null,
             syncStatus: this.session === null ? null : this.describeActivity(),
+            syncEnabled: this.syncEnabled,
+            syncing: this.syncEnabled && this.activity === "working",
             premium: this.session !== null && this.premium,
             signedOutOf: this.session === null ? this.profilesOwner?.username ?? null : null
         });
@@ -212,6 +239,9 @@ export class SyncAccountViewModel {
      *  are sent as soon as the connection returns.
      */
     private describeActivity(): string {
+        if (!this.syncEnabled) {
+            return t("sync.status.off");
+        }
         if (this.fairUseRefusal && this.activity !== "working") {
             // Not "Synchronised", which it is not: the account refused this device's changes
             // over a fair use limit, and they stay here until there is room for them.
@@ -227,6 +257,26 @@ export class SyncAccountViewModel {
             default:
                 return t("sync.status.idle");
         }
+    }
+
+    /**
+     *  Turns synchronisation of this browser on or off; the account menu's checkbox.
+     *
+     *  Off keeps the session, so premium still applies here, and keeps everything already on
+     *  the account for the account's other devices. On again pushes what changed meanwhile
+     *  and pulls the rest - see `SyncCoordinator.followSessionAndSwitch`.
+     */
+    public async setSyncEnabled(enabled: boolean): Promise<void> {
+        if (enabled === this.syncEnabled) {
+            return;
+        }
+        if (this.activity === "working") {
+            // The menu draws the checkbox disabled meanwhile; this is the backstop.
+            this.LOG.debug("setSyncEnabled", "refused while synchronising");
+            return;
+        }
+        this.LOG.debug("setSyncEnabled", enabled);
+        await this.devicePreferences.setSyncEnabled(enabled);
     }
 
     /** Opens the website's registration page in a new tab; the extension hosts no such form. */
@@ -266,11 +316,14 @@ export class SyncAccountViewModel {
      *  @param password        their password
      *  @param deviceName      what to call this installation in the account's device list;
      *                         optional, and blank means keep the automatic label
+     *  @param synchronise     whether this browser synchronises with the account, or only
+     *                         signs in - for premium's limits without the links leaving it
      */
     public async logIn(
         usernameOrEmail: string | null,
         password: string | null,
-        deviceName?: string | null
+        deviceName?: string | null,
+        synchronise: boolean = true
     ): Promise<void> {
 
         if (!usernameOrEmail || !usernameOrEmail.trim() || !password) {
@@ -282,6 +335,9 @@ export class SyncAccountViewModel {
         // Named before signing in, not after: the name travels in the header the sign-in itself
         // sends, so the device row is created carrying it rather than being renamed a moment later.
         await installationIdentity.setName(deviceName);
+        // And the choice to synchronise before the session exists: storing the tokens starts
+        // synchronisation, and first contact uploads this browser's links the moment it does.
+        await this.devicePreferences.setSyncEnabled(synchronise);
 
         const result = await this.apiClient.logInWithPassword(usernameOrEmail.trim(), password);
         await this.storeIssuedTokens(result, t("sync.logInFailed"));
@@ -293,14 +349,20 @@ export class SyncAccountViewModel {
      *  @param code       the code from the website's devices page
      *  @param deviceName what to call this installation in the account's device list; optional,
      *                    and blank means keep the automatic label
+     *  @param synchronise whether this browser synchronises with the account, or only signs in
      */
-    public async connectWithCode(code: string | null, deviceName?: string | null): Promise<void> {
+    public async connectWithCode(
+        code: string | null,
+        deviceName?: string | null,
+        synchronise: boolean = true
+    ): Promise<void> {
         if (!code || !code.trim()) {
             this.report(t("sync.connectCodeRequired"));
             return;
         }
         this.LOG.debug("connectWithCode", "redeeming connect code");
         await installationIdentity.setName(deviceName);
+        await this.devicePreferences.setSyncEnabled(synchronise);
 
         const result = await this.apiClient.redeemConnectCode(code.trim());
         await this.storeIssuedTokens(result, t("sync.connectCodeRefused"));

@@ -11,7 +11,8 @@
     "working": "Synchronizujem...",
     "offline": "Offline — zmeny sa odošlú neskôr",
     "idle": "Synchronizované",
-    "fairUseLimit": "Nesynchronizované: {reason}"
+    "fairUseLimit": "Nesynchronizované: {reason}",
+    "off": "Synchronizácia vypnutá"
   },
   "logInDialog": {
     "title": "Prihlásenie",

@@ -12,6 +12,7 @@
     "url": "URL",
     "title": "Názov",
     "deviceName": "Názov zariadenia",
+    "synchronise": "Synchronizovať tento prehliadač s účtom",
     "profileName": "Názov profilu"
   }
 }

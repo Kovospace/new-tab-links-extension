@@ -22,6 +22,7 @@ import { settingsOf } from "../entity/ProfileSettings";
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { ObservableValue } from "../../utils/observableValue";
+import { devicePreferencesRepository } from "../repository/DevicePreferencesRepository";
 import { LimitRefusal } from "../entity/PlanLimits";
 import { fairUseRefusals, FairUseRefusals } from "../repository/FairUseRefusals";
 import { planLimits$, premiumStanding$ } from "../repository/PremiumStanding";
@@ -253,6 +254,9 @@ export class SyncCoordinator {
     private remappedIds = new Set<string>();
 
     private readonly standing: StandingSource;
+
+    /** Whether this browser synchronises at all; a device preference, on by default. */
+    private readonly syncEnabled$: ObservableValue<boolean>;
     private readonly inventoryReporter: InventoryReporter;
 
     constructor(
@@ -261,8 +265,10 @@ export class SyncCoordinator {
         sessions: SessionRepository = sessionRepository,
         baselines: SyncBaselineRepository = syncBaselineRepository,
         apiClient: BackendApiClient = backendApiClient,
-        standing: StandingSource = SHARED_STANDING
+        standing: StandingSource = SHARED_STANDING,
+        syncEnabled$: ObservableValue<boolean> = devicePreferencesRepository.syncEnabled$
     ) {
+        this.syncEnabled$ = syncEnabled$;
         this.appState = appState;
         this.profiles = profiles;
         this.sessions = sessions;
@@ -306,10 +312,11 @@ export class SyncCoordinator {
         this.profiles.profiles$.subscribe(() => this.onLocalChange());
 
         // Subscribing fires immediately with the current session, so this both reacts to a
-        // sign-in later and starts synchronising a device that is already signed in.
-        this.sessions.session$.subscribe(session => {
-            void this.onSessionChanged(session);
-        });
+        // sign-in later and starts synchronising a device that is already signed in. Turning
+        // synchronisation off on this browser is, for everything here, the same as having no
+        // session: the session stays - premium still needs it - but nothing is pushed or pulled.
+        this.sessions.session$.subscribe(() => this.followSessionAndSwitch());
+        this.syncEnabled$.subscribe(() => this.followSessionAndSwitch());
     }
 
     /** Pushes and pulls right now, whatever the timers were about to do. */
@@ -318,6 +325,18 @@ export class SyncCoordinator {
     }
 
     // ---------------------------------------------------------------- lifecycle
+
+    /**
+     *  Synchronises while there is a session and this browser has synchronisation on.
+     *
+     *  Turning it back on is signing back in as far as the account is concerned: the baseline
+     *  was kept, so what was done meanwhile - deletions included - is pushed, then the account
+     *  is pulled. A browser that has never synchronised this account gets first contact.
+     */
+    private followSessionAndSwitch(): void {
+        const session = this.sessions.getSession();
+        void this.onSessionChanged(session && this.syncEnabled$.get() ? session : null);
+    }
 
     private async onSessionChanged(session: SyncSession | null): Promise<void> {
 
@@ -333,7 +352,7 @@ export class SyncCoordinator {
 
         if (!session && this.running) {
             this.running = false;
-            this.LOG.log("onSessionChanged", "Signed out; synchronisation stopped");
+            this.LOG.log("onSessionChanged", "Signed out or switched off; synchronisation stopped");
             this.cancelTimers();
             this.channel.disconnect();
             this.clearLimitRefusal();

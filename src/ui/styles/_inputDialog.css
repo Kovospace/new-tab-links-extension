@@ -43,6 +43,34 @@ html.dark dialog.input-dialog {
     gap: 0.25em;
 }
 
+/* A checkbox and its sentence on one line, the box first. */
+.input-dialog__field--checkbox {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.input-dialog__field--checkbox .input-dialog__label {
+    font-size: 1em;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.input-dialog__checkbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Switched off by a checkbox above it: still there, so nobody wonders where it went. */
+.input-dialog__field--disabled {
+    opacity: 0.45;
+}
+
+.input-dialog__field--disabled .input-dialog__input {
+    cursor: not-allowed;
+}
+
 .input-dialog__label {
     font-size: 0.85em;
     opacity: 0.75;

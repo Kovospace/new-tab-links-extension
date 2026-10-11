@@ -176,4 +176,37 @@ describe("InputDialog field keys", () => {
 
         expect(received).toEqual({ linkTitle: "Docs" });
     });
+
+    /**
+     *  Signing in without synchronising (#80): unticked, the device name is greyed out, left
+     *  unchecked - an over-long leftover does not block the sign-in - and answers nothing.
+     */
+    it("disables the field a checkbox enables while the box is unticked", () => {
+        const confirmed = vi.fn();
+        new InputDialog("Log in", {
+            "Username": { type: "string", required: true, key: "username" },
+            "Synchronise": { type: "checkbox", checked: true, key: "synchronise", enables: "deviceName" },
+            "Device name": { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
+        }, confirmed).show();
+
+        const ok = () => Array.from(document.querySelectorAll('button')).find(b => b.textContent === 'OK') as HTMLButtonElement;
+        const [username, synchronise, deviceName] = Array.from(document.querySelectorAll('input'));
+        expect(synchronise.type).toBe("checkbox");
+        expect(synchronise.checked).toBe(true);
+        expect(deviceName.disabled).toBe(false);
+
+        username.value = "kovo";
+        username.dispatchEvent(new Event('input'));
+        deviceName.value = "x".repeat(MAX_NAME_LENGTH + 1);
+        deviceName.dispatchEvent(new Event('input'));
+        expect(ok().disabled).toBe(true);
+
+        synchronise.checked = false;
+        synchronise.dispatchEvent(new Event('change'));
+        expect(deviceName.disabled).toBe(true);
+        expect(ok().disabled).toBe(false);
+
+        ok().click();
+        expect(confirmed).toHaveBeenCalledWith({ username: "kovo", synchronise: "false", deviceName: "" });
+    });
 });

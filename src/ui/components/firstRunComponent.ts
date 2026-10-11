@@ -9,6 +9,7 @@ import {
     ACT_LOAD_DEFAUTLS
 } from "../../constants"
 import {InputDialog} from "../partials/inputDialog";
+import { signInDeviceFields, wantsSync } from "../partials/signInFields";
 import { MAX_NAME_LENGTH } from "../../backend/sync/SyncContracts";
 import { t } from "../../i18n/i18n";
 
@@ -28,18 +29,17 @@ export class FirstRunComponent extends HTMLElement {
         ({ workspaceName }) => this.VIEW_MODEL.addWorkspace(
             workspaceName, t("firstRun.defaultWorkspaceDescription")));
 
-    // "Device name" is optional and last, so the required fields stay where the eye starts.
-    // Leaving it blank keeps the automatic label; it earns its place only for somebody running
-    // several browsers on one machine, where the automatic labels are all identical.
+    // The last two fields - synchronise, device name - are `signInDeviceFields`, shared by
+    // every sign-in dialog.
     private connectCodeDialog: InputDialog = new InputDialog(
         t("sync.syncCodeDialog.title"),
         {
             [t("sync.syncCodeDialog.connectCode")]:
                 { type: "string", required: true, key: "connectCode" },
-            [t("dialogs.fields.deviceName")]:
-                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
+            ...signInDeviceFields()
         },
-        ({ connectCode, deviceName }) => this.connectAccount(connectCode, deviceName));
+        ({ connectCode, deviceName, synchronise }) =>
+            this.connectAccount(connectCode, deviceName, wantsSync(synchronise)));
 
     private logInDialog: InputDialog = new InputDialog(
         t("sync.logInDialog.title"),
@@ -48,11 +48,10 @@ export class FirstRunComponent extends HTMLElement {
                 { type: "string", required: true, key: "usernameOrEmail" },
             [t("sync.logInDialog.password")]:
                 { type: "password", required: true, key: "password" },
-            [t("dialogs.fields.deviceName")]:
-                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
+            ...signInDeviceFields()
         },
-        ({ usernameOrEmail, password, deviceName }) =>
-            this.logIn(usernameOrEmail, password, deviceName));
+        ({ usernameOrEmail, password, deviceName, synchronise }) =>
+            this.logIn(usernameOrEmail, password, deviceName, wantsSync(synchronise)));
 
     initialize(repository: AppStateRepository): void {
         this.REPOSITORY = repository;
@@ -145,9 +144,10 @@ export class FirstRunComponent extends HTMLElement {
     /** Redeems the code from the website's devices page, then shows what arrived. */
     private async connectAccount(
         code: string | null,
-        deviceName?: string | null
+        deviceName?: string | null,
+        synchronise: boolean = true
     ): Promise<void> {
-        await this.ACCOUNT_VIEW_MODEL.connectWithCode(code, deviceName);
+        await this.ACCOUNT_VIEW_MODEL.connectWithCode(code, deviceName, synchronise);
         this.restartIfSignedIn();
     }
 
@@ -155,9 +155,10 @@ export class FirstRunComponent extends HTMLElement {
     private async logIn(
         usernameOrEmail: string | null,
         password: string | null,
-        deviceName?: string | null
+        deviceName?: string | null,
+        synchronise: boolean = true
     ): Promise<void> {
-        await this.ACCOUNT_VIEW_MODEL.logIn(usernameOrEmail, password, deviceName);
+        await this.ACCOUNT_VIEW_MODEL.logIn(usernameOrEmail, password, deviceName, synchronise);
         this.restartIfSignedIn();
     }
 

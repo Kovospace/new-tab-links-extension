@@ -6,6 +6,7 @@ import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
 import { planLimits$, premiumStanding$ } from "../repository/PremiumStanding";
 import { defaultPlanLimits, PlanLimits, planLimitsFrom } from "../entity/PlanLimits";
+import { FetchReachabilityProbe, ReachabilityProbe, Unreachability } from "./ReachabilityProbe";
 
 /**
  *  Whether the signed-in account is premium - which is what decides whether the new tab page
@@ -30,10 +31,38 @@ import { defaultPlanLimits, PlanLimits, planLimitsFrom } from "../entity/PlanLim
  *
  *  **Signed out is not premium**, and a different account starts from "not premium" until it
  *  has been asked about: one account's purchase is never shown on another's page.
+ *
+ *  **Asked on a timer, not only when a page opens** (`STANDING_POLL_MS`), and an answer dated
+ *  in the future counts as stale. The standing sits in `chrome.storage.local`, where anyone
+ *  can write `premium: true` from the console; with synchronisation on a pull put the truth
+ *  back, but a browser that does not synchronise has nothing else that asks. A forged answer
+ *  now lasts until the next poll.
+ *
+ *  **Not hearing back is not being told no** - unless the silence looks deliberate. A browser
+ *  that is plainly offline keeps premium however long it stays away; it is corrected the
+ *  moment it is online and asks. But premium the account has not confirmed for a day, while
+ *  the website or the API host itself answers (`ReachabilityProbe`), is the standing endpoint
+ *  being blocked, and premium the account has not confirmed for a week while the rest of the
+ *  internet answers and nothing of ours does, is the whole domain being blocked - or an outage
+ *  long enough that a banner is the least of it. Either is read as not premium, which takes
+ *  nothing away but the lifted limits and the missing banner: only growth is ever refused.
+ *  The next answer the account gives puts it right.
  */
 
 /** How long an answer is trusted before the account is asked again. */
 export const STANDING_MAX_AGE_MS = 30 * 60 * 1000;
+
+/** How often an open page checks whether the answer it holds has grown stale. */
+export const STANDING_POLL_MS = 5 * 60 * 1000;
+
+/** Unconfirmed premium, with our own hosts answering, is not trusted after this long. */
+export const BLOCKED_GRACE_MS = 24 * 60 * 60 * 1000;
+
+/** Unconfirmed premium, with only the rest of the internet answering, after this long. */
+export const UNREACHABLE_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** The least time between two diagnoses, so a long outage is not a probe every poll. */
+const DIAGNOSIS_INTERVAL_MS = 60 * 60 * 1000;
 
 /** What is kept between pages. */
 export interface AccountStanding {
@@ -72,6 +101,7 @@ export class AccountStandingRepository {
 
     private stored: AccountStanding | null = null;
     private inFlight: Promise<void> | null = null;
+    private lastDiagnosisAt: number = Number.NEGATIVE_INFINITY;
 
     /**
      *  @param account  where the account is read from; the API client in normal use
@@ -79,6 +109,8 @@ export class AccountStandingRepository {
      *  @param now      the clock, so a test can move it
      *  @param premium$ where the standing is published; a fresh value unless given one
      *  @param limits$  where the limits are published; a fresh value unless given one
+     *  @param probe    tells "offline" from "blocked" when the account does not answer
+     *  @param pollMs   how often to look for a stale answer; 0, the tests' default, never
      */
     constructor(
         private readonly account: AccountSource = backendApiClient,
@@ -86,7 +118,9 @@ export class AccountStandingRepository {
             = sessionRepository,
         private readonly now: () => number = () => Date.now(),
         premium$: ObservableValue<boolean> = new ObservableValue<boolean>(false),
-        limits$: ObservableValue<PlanLimits> = new ObservableValue<PlanLimits>(defaultPlanLimits(false))
+        limits$: ObservableValue<PlanLimits> = new ObservableValue<PlanLimits>(defaultPlanLimits(false)),
+        private readonly probe: ReachabilityProbe = new FetchReachabilityProbe(),
+        private readonly pollMs: number = 0
     ) {
         this.premium$ = premium$;
         this.limits$ = limits$;
@@ -115,6 +149,29 @@ export class AccountStandingRepository {
     public async init(): Promise<void> {
         this.stored = await this.datasource.get<AccountStanding>(ACCOUNT_STANDING_KEY);
         this.sessions.session$.subscribe(session => void this.follow(session));
+        if (this.pollMs > 0) {
+            setInterval(() => void this.poll(), this.pollMs);
+        }
+    }
+
+    /**
+     *  Asks again when the answer held has grown stale. Re-reads storage first: another open
+     *  page may have asked a minute ago, and its answer is as good as this page's own.
+     */
+    public async poll(): Promise<void> {
+        const session = this.sessions.getSession();
+        if (!session) {
+            return;
+        }
+        this.stored = await this.datasource.get<AccountStanding>(ACCOUNT_STANDING_KEY);
+        if (this.stored?.userId !== session.userId) {
+            await this.follow(session);
+            return;
+        }
+        this.publish(this.stored);
+        if (this.isStale(this.stored)) {
+            await this.refresh();
+        }
     }
 
     /**
@@ -159,11 +216,19 @@ export class AccountStandingRepository {
             return;
         }
 
-        this.premium$.set(this.stored.premium);
-        this.limits$.set(this.stored.limits ?? defaultPlanLimits(this.stored.premium));
-        if (this.now() - this.stored.checkedAt >= STANDING_MAX_AGE_MS) {
+        this.publish(this.stored);
+        if (this.isStale(this.stored)) {
             await this.refresh();
         }
+    }
+
+    /**
+     *  Whether the answer is old enough to ask again - or dated in the future, which no answer
+     *  the account gave can be, and which would otherwise never grow old.
+     */
+    private isStale(standing: AccountStanding): boolean {
+        const age = this.now() - standing.checkedAt;
+        return age < 0 || age >= STANDING_MAX_AGE_MS;
     }
 
     /** Asks the account, once at a time, and keeps the answer if there is one. */
@@ -179,6 +244,10 @@ export class AccountStandingRepository {
         if (!session) return;
 
         const answer = await this.askForStanding();
+        if (answer === "offline") {
+            await this.judgeSilence(session.userId);
+            return;
+        }
         if (!answer) {
             return;
         }
@@ -193,7 +262,7 @@ export class AccountStandingRepository {
      *  The standing and limits, from the endpoint that names both, or the standing alone from
      *  a backend that predates it. Null when neither answered.
      */
-    private async askForStanding(): Promise<{ premium: boolean; limits?: PlanLimits } | null> {
+    private async askForStanding(): Promise<{ premium: boolean; limits?: PlanLimits } | "offline" | null> {
         const withLimits = this.account.getPlanLimits ? await this.account.getPlanLimits() : null;
         if (withLimits?.outcome === "success") {
             const premium = withLimits.data.premium === true;
@@ -201,9 +270,12 @@ export class AccountStandingRepository {
         }
         if (withLimits && withLimits.outcome === "offline") {
             this.LOG.debug("ask", "standing unchanged: offline");
-            return null;
+            return "offline";
         }
         const result = await this.account.getMyAccount();
+        if (result.outcome === "offline") {
+            return "offline";
+        }
         if (result.outcome !== "success") {
             this.LOG.debug("ask", `standing unchanged: ${result.outcome}`);
             return null;
@@ -211,14 +283,63 @@ export class AccountStandingRepository {
         return { premium: result.data.premium === true };
     }
 
+    /**
+     *  Decides what the account not answering means for premium it has not confirmed lately.
+     *
+     *  Nothing at all happens to a free account, nor within a day of the last confirmation -
+     *  no probe is even sent. Past that, the probe says whether anything of ours answers.
+     */
+    private async judgeSilence(userId: string): Promise<void> {
+        const standing = this.stored;
+        if (!standing?.premium || standing.userId !== userId) {
+            return;
+        }
+        // A date in the future is no answer the account gave: as unconfirmed as can be.
+        const age = this.now() - standing.checkedAt;
+        const unconfirmedFor = age < 0 ? Number.POSITIVE_INFINITY : age;
+        if (unconfirmedFor < BLOCKED_GRACE_MS) {
+            return;
+        }
+        if (this.now() - this.lastDiagnosisAt < DIAGNOSIS_INTERVAL_MS) {
+            return;
+        }
+        this.lastDiagnosisAt = this.now();
+
+        const diagnosis = await this.probe.diagnose();
+        if (!this.forfeits(diagnosis, unconfirmedFor)) {
+            this.LOG.debug("judgeSilence", `premium kept: ${diagnosis}`);
+            return;
+        }
+        this.LOG.warn("judgeSilence",
+            `premium unconfirmed for ${Math.round(unconfirmedFor / 3_600_000)} h while ${diagnosis}; reading it as free`);
+        // The date of the last real answer stays, so the next chance to ask still asks.
+        await this.keep({ userId, premium: false, checkedAt: standing.checkedAt });
+    }
+
+    private forfeits(diagnosis: Unreachability, unconfirmedFor: number): boolean {
+        switch (diagnosis) {
+            case "offline":
+                return false;
+            case "accountBlocked":
+                return unconfirmedFor >= BLOCKED_GRACE_MS;
+            case "ourServersUnreachable":
+                return unconfirmedFor >= UNREACHABLE_GRACE_MS;
+        }
+    }
+
     /** Stores an answer and publishes it. */
     private async keep(standing: AccountStanding): Promise<void> {
         this.stored = standing;
         await this.datasource.save(ACCOUNT_STANDING_KEY, this.stored);
+        this.publish(standing);
+    }
+
+    private publish(standing: AccountStanding): void {
         this.premium$.set(standing.premium);
         this.limits$.set(standing.limits ?? defaultPlanLimits(standing.premium));
     }
 }
 
 export const accountStandingRepository = new AccountStandingRepository(
-    backendApiClient, sessionRepository, () => Date.now(), premiumStanding$, planLimits$);
+    backendApiClient, sessionRepository, () => Date.now(), premiumStanding$, planLimits$,
+    new FetchReachabilityProbe(), STANDING_POLL_MS);
