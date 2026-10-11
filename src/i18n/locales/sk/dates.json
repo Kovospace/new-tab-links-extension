@@ -17,6 +17,7 @@
       "other": "pred {count} dňami"
     }
   },
+  "ageAt": "{age} ({at})",
   "formats": {
     "auto": "Miestna zvyklosť ({sample})",
     "dayMonthYearDots": "Deň mesiac rok — {sample}",
