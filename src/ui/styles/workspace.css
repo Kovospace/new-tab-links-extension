@@ -133,6 +133,7 @@ workspace-plane-footer {
     flex-grow: 1;
     flex-shrink: 0;
     flex-basis: auto;
+    justify-content: end;
 }
 
 /* Why the open workspace does not synchronise: where the signed-out notice sits, and shown
