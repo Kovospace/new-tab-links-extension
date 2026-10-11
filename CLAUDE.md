@@ -692,6 +692,14 @@ anchor on the new tab page, which is an extension page, so a `javascript:` href 
 runs with that page behind it. Any other scheme is allowed, `file:` and `mailto:` included, and
 a host is demanded only of http(s).
 
+**What only a server can refuse goes through the dialog's submit check** (`InputDialog`'s fourth
+argument, a `SubmitCheck` resolving to a message or null; #82). While it runs the dialog is busy -
+no second submit, no Cancel, no Escape. Refused, it stays open with the message under the fields
+and everything typed still there, except passwords, which are cleared and focused. The dialog knows
+only that an answer can be refused, never what is being checked: the sign-in dialogs pass
+`SyncAccountViewModel.logIn` / `connectWithCode`, which return the failure instead of announcing
+it, and run `finishSignIn` (device name, or the devices-limit way out) once the dialog has closed.
+
 The view models still refuse invalid input, but only as backstops for callers that are not a
 dialog: they log and return rather than telling the user, because the dialog is what tells the
 user now.

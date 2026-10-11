@@ -38,8 +38,10 @@ export class FirstRunComponent extends HTMLElement {
                 { type: "string", required: true, key: "connectCode" },
             ...signInDeviceFields()
         },
+        () => void this.finishSignIn(),
         ({ connectCode, deviceName, synchronise }) =>
-            this.connectAccount(connectCode, deviceName, wantsSync(synchronise)));
+            this.ACCOUNT_VIEW_MODEL.connectWithCode(
+                connectCode, deviceName, wantsSync(synchronise)));
 
     private logInDialog: InputDialog = new InputDialog(
         t("sync.logInDialog.title"),
@@ -50,8 +52,10 @@ export class FirstRunComponent extends HTMLElement {
                 { type: "password", required: true, key: "password" },
             ...signInDeviceFields()
         },
+        () => void this.finishSignIn(),
         ({ usernameOrEmail, password, deviceName, synchronise }) =>
-            this.logIn(usernameOrEmail, password, deviceName, wantsSync(synchronise)));
+            this.ACCOUNT_VIEW_MODEL.logIn(
+                usernameOrEmail, password, deviceName, wantsSync(synchronise)));
 
     initialize(repository: AppStateRepository): void {
         this.REPOSITORY = repository;
@@ -141,24 +145,12 @@ export class FirstRunComponent extends HTMLElement {
             ?.addEventListener('click', () => this.logInDialog.show());
     }
 
-    /** Redeems the code from the website's devices page, then shows what arrived. */
-    private async connectAccount(
-        code: string | null,
-        deviceName?: string | null,
-        synchronise: boolean = true
-    ): Promise<void> {
-        await this.ACCOUNT_VIEW_MODEL.connectWithCode(code, deviceName, synchronise);
-        this.restartIfSignedIn();
-    }
-
-    /** Signs in with a password, then shows what arrived. */
-    private async logIn(
-        usernameOrEmail: string | null,
-        password: string | null,
-        deviceName?: string | null,
-        synchronise: boolean = true
-    ): Promise<void> {
-        await this.ACCOUNT_VIEW_MODEL.logIn(usernameOrEmail, password, deviceName, synchronise);
+    /**
+     *  Once a sign-in dialog has closed - which it does only when the sign-in worked or was
+     *  refused over the devices limit - settles what follows, then shows what arrived.
+     */
+    private async finishSignIn(): Promise<void> {
+        await this.ACCOUNT_VIEW_MODEL.finishSignIn();
         this.restartIfSignedIn();
     }
 

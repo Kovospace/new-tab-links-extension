@@ -80,8 +80,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 { type: "password", required: true, key: "password" },
             ...signInDeviceFields()
         },
+        () => void this.accountViewModel.finishSignIn(),
         ({ usernameOrEmail, password, deviceName, synchronise }) =>
-            this.accountViewModel.logIn(usernameOrEmail, password, deviceName, wantsSync(synchronise)));
+            this.accountViewModel.logIn(
+                usernameOrEmail, password, deviceName, wantsSync(synchronise)));
 
     // the field is labelled the way the website labels it ("Your connect code"), so the user
     // recognises what to paste, while the menu entry keeps the wording of the sync feature
@@ -92,8 +94,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 { type: "string", required: true, key: "connectCode" },
             ...signInDeviceFields()
         },
+        () => void this.accountViewModel.finishSignIn(),
         ({ connectCode, deviceName, synchronise }) =>
-            this.accountViewModel.connectWithCode(connectCode, deviceName, wantsSync(synchronise)));
+            this.accountViewModel.connectWithCode(
+                connectCode, deviceName, wantsSync(synchronise)));
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         t("workspace.addDialog.title"),

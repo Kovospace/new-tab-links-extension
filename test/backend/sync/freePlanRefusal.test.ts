@@ -267,7 +267,12 @@ describe("signing in past the free plan's installations", () => {
         ["a password sign-in", (model: SyncAccountViewModel) => model.logIn("kovo", "secret")],
         ["a pairing code", (model: SyncAccountViewModel) => model.connectWithCode("ABCD-1234")]
     ])("refused on %s: stays signed out and offers the devices page and the upgrade", async (_, signIn) => {
-        await signIn(viewModel());
+        const model = viewModel();
+        // Not a failure for the sign-in dialog to show: it closes, and the way out follows.
+        expect(await signIn(model)).toBeNull();
+        expect(dialogs.shown).toHaveLength(0);
+
+        await model.finishSignIn();
         await settle();
 
         expect(sessions.getSession()).toBeNull();
@@ -279,7 +284,9 @@ describe("signing in past the free plan's installations", () => {
     it("opens the website's devices page when asked to", async () => {
         dialogs.answer = "devices";
 
-        await viewModel().logIn("kovo", "secret");
+        const model = viewModel();
+        await model.logIn("kovo", "secret");
+        await model.finishSignIn();
         await settle();
 
         expect(chrome.tabs.create).toHaveBeenCalledWith({ url: expect.stringMatching(/\/devices$/) });
@@ -288,7 +295,9 @@ describe("signing in past the free plan's installations", () => {
     it("opens the upgrade page when asked to", async () => {
         dialogs.answer = "upgrade";
 
-        await viewModel().connectWithCode("ABCD-1234");
+        const model = viewModel();
+        await model.connectWithCode("ABCD-1234");
+        await model.finishSignIn();
         await settle();
 
         expect(chrome.tabs.create).toHaveBeenCalledWith({ url: expect.stringMatching(/\/account$/) });

@@ -114,6 +114,9 @@ export class SyncAccountViewModel {
     private activity: SyncActivity = "idle";
     private premium: boolean = false;
     private syncEnabled: boolean = true;
+
+    /** A sign-in refused over the devices limit, waiting for its dialog to close. */
+    private deviceLimitRefusal: LimitRefusal | null = null;
     /** The limit the account refused this device's changes over, while it stands. */
     private fairUseRefusal: LimitRefusal | null = null;
     private profilesOwner: RegistryOwner | null = null;
@@ -312,23 +315,28 @@ export class SyncAccountViewModel {
     /**
      *  Signs in with a username or email address and a password.
      *
+     *  **Returns what went wrong rather than saying it**, so the dialog it was typed into can
+     *  stay open with the message in it and the username still filled in (#82). What follows
+     *  a sign-in that worked - or the device-limit way out of one that was refused - is
+     *  `finishSignIn`, run once the dialog has closed.
+     *
      *  @param usernameOrEmail what the user typed to identify themselves
      *  @param password        their password
      *  @param deviceName      what to call this installation in the account's device list;
      *                         optional, and blank means keep the automatic label
      *  @param synchronise     whether this browser synchronises with the account, or only
      *                         signs in - for premium's limits without the links leaving it
+     *  @return why it failed, worded for the user, or null when the dialog may close
      */
     public async logIn(
         usernameOrEmail: string | null,
         password: string | null,
         deviceName?: string | null,
         synchronise: boolean = true
-    ): Promise<void> {
+    ): Promise<string | null> {
 
         if (!usernameOrEmail || !usernameOrEmail.trim() || !password) {
-            this.report(t("sync.credentialsRequired"));
-            return;
+            return t("sync.credentialsRequired");
         }
         this.LOG.debug("logIn", `as ${usernameOrEmail}`);
 
@@ -340,7 +348,7 @@ export class SyncAccountViewModel {
         await this.devicePreferences.setSyncEnabled(synchronise);
 
         const result = await this.apiClient.logInWithPassword(usernameOrEmail.trim(), password);
-        await this.storeIssuedTokens(result, t("sync.logInFailed"));
+        return this.storeIssuedTokens(result, t("sync.logInFailed"));
     }
 
     /**
@@ -350,22 +358,41 @@ export class SyncAccountViewModel {
      *  @param deviceName what to call this installation in the account's device list; optional,
      *                    and blank means keep the automatic label
      *  @param synchronise whether this browser synchronises with the account, or only signs in
+     *  @return why it failed, worded for the user, or null when the dialog may close; see
+     *          `logIn`
      */
     public async connectWithCode(
         code: string | null,
         deviceName?: string | null,
         synchronise: boolean = true
-    ): Promise<void> {
+    ): Promise<string | null> {
         if (!code || !code.trim()) {
-            this.report(t("sync.connectCodeRequired"));
-            return;
+            return t("sync.connectCodeRequired");
         }
         this.LOG.debug("connectWithCode", "redeeming connect code");
         await installationIdentity.setName(deviceName);
         await this.devicePreferences.setSyncEnabled(synchronise);
 
         const result = await this.apiClient.redeemConnectCode(code.trim());
-        await this.storeIssuedTokens(result, t("sync.connectCodeRefused"));
+        return this.storeIssuedTokens(result, t("sync.connectCodeRefused"));
+    }
+
+    /**
+     *  What follows a sign-in once its dialog has closed: settling the device name with the
+     *  account, or - when the account refused this installation over the devices limit - the
+     *  way out of that, which is a dialog of its own and so cannot open over the sign-in one.
+     *  Nothing at all after a failure the dialog already showed.
+     */
+    public async finishSignIn(): Promise<void> {
+        const refusal = this.deviceLimitRefusal;
+        this.deviceLimitRefusal = null;
+        if (refusal) {
+            await this.offerDeviceLimitWayOut(refusal);
+            return;
+        }
+        if (this.sessions.getSession()) {
+            await this.reconcileDeviceName();
+        }
     }
 
     /**
@@ -384,29 +411,32 @@ export class SyncAccountViewModel {
         }
     }
 
-    /** Stores a freshly issued token pair, or tells the user why there is none. */
+    /**
+     *  Stores a freshly issued token pair, or says why there is none.
+     *
+     *  @return the reason, worded for the user, or null - also for the devices limit, whose
+     *          way out `finishSignIn` offers once the dialog is gone
+     */
     private async storeIssuedTokens(
         result: ApiResult<TokenPairDto>,
         failureHeadline: string
-    ): Promise<void> {
+    ): Promise<string | null> {
         if (result.outcome === "success") {
             // Untouched example data goes before the account sees anything: it was only ever
             // there to show what the page does, and is never synchronised (`ExampleData.ts`).
             await removeUntouchedExamples(appStateRepository, this.profiles);
             const session = await this.sessions.storeTokenPair(result.data);
             this.LOG.log("storeIssuedTokens", `Signed in as ${session.username}`);
-            await this.reconcileDeviceName();
-            return;
+            return null;
         }
         this.LOG.warn("storeIssuedTokens", `${failureHeadline} ${result.message}`);
         if (result.outcome === "rejected" && result.limitRefusal?.limit === "DEVICES") {
             // Nothing was stored, so this installation stays signed out and keeps working
             // locally. The account is what counts its installations; this one only says so.
-            void this.offerDeviceLimitWayOut(result.limitRefusal);
-            return;
+            this.deviceLimitRefusal = result.limitRefusal;
+            return null;
         }
-        this.report(t("sync.reportedFailure",
-            { headline: failureHeadline, message: result.message }));
+        return t("sync.reportedFailure", { headline: failureHeadline, message: result.message });
     }
 
     /**

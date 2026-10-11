@@ -19,6 +19,12 @@ export type FieldMap = Record<string, FieldSpec>;
 type FieldValues = Record<string, string>;
 
 /**
+ * A step the answer has to pass before the dialog accepts it: an account asked whether the
+ * password is right. Resolves to what went wrong, worded for the user, or to null.
+ */
+export type SubmitCheck = (values: FieldValues) => Promise<string | null>;
+
+/**
  * What a field's value is handed to the callback under.
  *
  * The label, camel-cased, unless the field says otherwise - and every field in this extension
@@ -102,17 +108,38 @@ export class InputDialog {
   private readonly title: string | undefined;
   private readonly fields: FieldMap;
   private readonly onConfirm: (values: FieldValues) => void;
+  private readonly submit: SubmitCheck | undefined;
 
   private dialogEl: HTMLDialogElement | null = null;
   private pendingAnswer: ((values: FieldValues | null) => void) | null = null;
 
   private fieldRefs: FieldRef[] = [];
   private confirmBtn: HTMLButtonElement | null = null;
+  private formErrorEl: HTMLElement | null = null;
 
-  constructor(title: string | null | undefined, fields: FieldMap, onConfirm: (values: FieldValues) => void) {
+  /** Whether `submit` is out; the dialog can neither be confirmed again nor left meanwhile. */
+  private submitting: boolean = false;
+
+  /**
+   * @param title     heads the dialog
+   * @param fields    what it asks, in order
+   * @param onConfirm what to do with the answer, once the dialog has closed
+   * @param submit    a check the answer has to pass first, when there is one only a server can
+   *                  make. While it runs the dialog is busy; when it fails the dialog stays open
+   *                  with its message and with what was typed - except passwords, which are
+   *                  cleared, so a wrong one is not sent again by a second Enter (#82). The
+   *                  dialog knows nothing of what is checked: it only knows it can be refused.
+   */
+  constructor(
+    title: string | null | undefined,
+    fields: FieldMap,
+    onConfirm: (values: FieldValues) => void,
+    submit?: SubmitCheck
+  ) {
     this.title = title ?? undefined;
     this.fields = fields;
     this.onConfirm = onConfirm;
+    this.submit = submit;
   }
 
   show(prefill?: FieldValues): void {
@@ -152,7 +179,7 @@ export class InputDialog {
   }
 
   hide(): void {
-    if (!this.dialogEl) return;
+    if (!this.dialogEl || this.submitting) return;
     this.dialogEl.close();
   }
 
@@ -240,6 +267,14 @@ export class InputDialog {
 
     this.applyEnables();
 
+    // What a submit check refused, under the fields rather than under one of them: "wrong
+    // username or password" is about the pair, and the account does not say which.
+    this.formErrorEl = document.createElement('p');
+    this.formErrorEl.classList.add('input-dialog__form-error');
+    this.formErrorEl.setAttribute('role', 'alert');
+    this.formErrorEl.hidden = true;
+    form.appendChild(this.formErrorEl);
+
     const actions = document.createElement('div');
     actions.classList.add('input-dialog__actions');
 
@@ -273,6 +308,12 @@ export class InputDialog {
       if (e.target === dialog) this.hide();
     });
 
+    // Escape while the answer is being checked: the check would finish into a closed dialog -
+    // a sign-in that worked with nothing left to say so.
+    dialog.addEventListener('cancel', (e: Event) => {
+      if (this.submitting) e.preventDefault();
+    });
+
     // clean up DOM when closed (including native Escape key and backdrop click)
     dialog.addEventListener('close', () => {
       toggleOverlay(false);
@@ -280,6 +321,7 @@ export class InputDialog {
       this.dialogEl = null;
       this.fieldRefs = [];
       this.confirmBtn = null;
+      this.formErrorEl = null;
     });
 
     // The button starts out reflecting the form it is looking at, which for an empty required
@@ -338,7 +380,7 @@ export class InputDialog {
     }
 
     if (this.confirmBtn) {
-      this.confirmBtn.disabled = Object.keys(problems).length > 0;
+      this.confirmBtn.disabled = this.submitting || Object.keys(problems).length > 0;
     }
 
     return problems;
@@ -353,6 +395,8 @@ export class InputDialog {
    * and is owed the reason.
    */
   private confirm(): void {
+
+    if (this.submitting) return;
 
     for (const ref of this.fieldRefs) {
       ref.touched = true;
@@ -371,11 +415,67 @@ export class InputDialog {
         : value;
     }
 
+    if (this.submit) {
+      void this.check(this.submit, values);
+      return;
+    }
+    this.accept(values);
+  }
+
+  /** Closes with the answer, and hands it over. */
+  private accept(values: FieldValues): void {
     this.hide();
     const answer = this.pendingAnswer;
     this.pendingAnswer = null;
     this.onConfirm(values);
     answer?.(values);
+  }
+
+  /**
+   * Runs the submit check with the dialog busy, then closes it - or keeps it open with what
+   * went wrong, the passwords emptied and the first of them focused for the next attempt.
+   */
+  private async check(submit: SubmitCheck, values: FieldValues): Promise<void> {
+
+    this.setSubmitting(true);
+    let problem: string | null;
+    try {
+      problem = await submit(values);
+    } finally {
+      this.setSubmitting(false);
+    }
+
+    if (problem === null) {
+      this.accept(values);
+      return;
+    }
+    if (this.formErrorEl) {
+      this.formErrorEl.textContent = problem;
+      this.formErrorEl.hidden = false;
+    }
+    const passwords = this.fieldRefs.filter(ref => ref.constraints.type === 'password');
+    for (const ref of passwords) {
+      ref.el.value = '';
+      // Emptied by the dialog, not by the user: not a reason to say it is required.
+      ref.touched = false;
+    }
+    this.revalidate();
+    (passwords[0]?.el ?? this.fieldRefs[0]?.el)?.focus();
+  }
+
+  private setSubmitting(submitting: boolean): void {
+    this.submitting = submitting;
+    this.dialogEl?.classList.toggle('input-dialog--busy', submitting);
+    this.dialogEl?.setAttribute('aria-busy', String(submitting));
+    for (const ref of this.fieldRefs) {
+      // Read-only rather than disabled: a disabled field is one a checkbox switched off, and
+      // would answer nothing (`valueOf`).
+      ref.el.readOnly = submitting;
+    }
+    if (submitting && this.formErrorEl) {
+      this.formErrorEl.hidden = true;
+    }
+    this.revalidate();
   }
 
   private firstInvalidField(): HTMLInputElement | undefined {

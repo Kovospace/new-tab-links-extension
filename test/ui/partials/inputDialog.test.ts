@@ -209,4 +209,83 @@ describe("InputDialog field keys", () => {
         ok().click();
         expect(confirmed).toHaveBeenCalledWith({ username: "kovo", synchronise: "false", deviceName: "" });
     });
+
+    /**
+     *  #82: a refused sign-in closed the dialog, and the user went back to the menu and typed
+     *  it all again. Refused, the dialog now stays, keeps what was typed but the password, and
+     *  says why.
+     */
+    describe("with a submit check", () => {
+
+        const ok = () => Array.from(document.querySelectorAll('button')).find(b => b.textContent === 'OK') as HTMLButtonElement;
+        const cancel = () => Array.from(document.querySelectorAll('button')).find(b => b.textContent === 'Cancel') as HTMLButtonElement;
+        const fill = (input: HTMLInputElement, value: string) => {
+            input.value = value;
+            input.dispatchEvent(new Event('input'));
+        };
+        const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+        function logInDialog(submit: (values: Record<string, string>) => Promise<string | null>, confirmed = vi.fn()) {
+            new InputDialog("Log in", {
+                "Username": { type: "string", required: true, key: "username" },
+                "Password": { type: "password", required: true, key: "password" },
+                "Device name": { type: "string", key: "deviceName" }
+            }, confirmed, submit).show();
+            const [username, password, deviceName] = Array.from(document.querySelectorAll('input'));
+            fill(username, "kovo");
+            fill(password, "wrong");
+            fill(deviceName, "Laptop");
+            return { username, password, deviceName, confirmed };
+        }
+
+        it("stays open when refused, with the username kept and the password cleared", async () => {
+            const { username, password, deviceName, confirmed } =
+                logInDialog(() => Promise.resolve("Signing in failed."));
+
+            ok().click();
+            await settle();
+
+            expect(document.querySelector('dialog')).not.toBeNull();
+            expect(confirmed).not.toHaveBeenCalled();
+            expect(username.value).toBe("kovo");
+            expect(deviceName.value).toBe("Laptop");
+            expect(password.value).toBe("");
+            expect(document.activeElement).toBe(password);
+            const formError = document.querySelector('.input-dialog__form-error') as HTMLElement;
+            expect(formError.hidden).toBe(false);
+            expect(formError.textContent).toBe("Signing in failed.");
+            // Emptied by the dialog, so not told off for being empty.
+            const shownErrors = Array.from(document.querySelectorAll('.input-dialog__error'))
+                .filter(e => !(e as HTMLElement).hidden);
+            expect(shownErrors).toEqual([]);
+        });
+
+        it("closes and hands the answer over once the check passes", async () => {
+            const { confirmed } = logInDialog(() => Promise.resolve(null));
+
+            ok().click();
+            await settle();
+
+            expect(document.querySelector('dialog')).toBeNull();
+            expect(confirmed).toHaveBeenCalledWith({ username: "kovo", password: "wrong", deviceName: "Laptop" });
+        });
+
+        it("is busy while the check runs: no second submit, no way out", async () => {
+            let answer!: (problem: string | null) => void;
+            const submit = vi.fn(() => new Promise<string | null>(resolve => { answer = resolve; }));
+            logInDialog(submit);
+
+            ok().click();
+            expect(ok().disabled).toBe(true);
+            document.querySelector('form')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            cancel().click();
+
+            expect(submit).toHaveBeenCalledTimes(1);
+            expect(document.querySelector('dialog')).not.toBeNull();
+
+            answer(null);
+            await settle();
+            expect(document.querySelector('dialog')).toBeNull();
+        });
+    });
 });
