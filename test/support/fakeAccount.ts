@@ -112,7 +112,12 @@ export class FakeAccount {
                     position: operation.position ?? 0,
                     enableDragAndDrop: operation.enableDragAndDrop ?? false,
                     hideTips: operation.hideTips ?? false,
-                    dismissedTips: operation.dismissedTips ?? []
+                    dismissedTips: operation.dismissedTips ?? [],
+                    // The one field an absent value leaves alone rather than turns off: it
+                    // defaults to on, and an extension too old to send it must not stop
+                    // recording on every device.
+                    recordClosedTabs: operation.recordClosedTabs
+                        ?? this.profiles.get(operation.id)?.recordClosedTabs ?? true
                 };
             case "environment":
                 return {

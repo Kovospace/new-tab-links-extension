@@ -5,6 +5,7 @@
   "categories": {
     "uiAndBehavior": "Vzhľad a správanie",
     "languageAndLocalCustoms": "Jazyk a miestne zvyklosti",
+    "privacy": "Súkromie",
     "search": "Vyhľadávanie"
   },
   "enableDragAndDrop": {
@@ -51,5 +52,14 @@
     "explanation": "Klávesy, ktoré uložia stránku, na ktorej práve ste, do Tabilinks. Chrome ich dovoľuje zmeniť len na svojej stránke skratiek - nastavte tam Ctrl+D a stránka sa uloží sem namiesto záložiek Chromu.",
     "notSet": "Nenastavená",
     "change": "Zmeniť v Chrome…"
+  },
+  "recordClosedTabs": {
+    "title": "Zaznamenávať zatvorené karty",
+    "explanation": "Uchováva zoznam kariet, ktoré zatvoríte, v paneli vpravo a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Vypnutím sa zoznam vymaže.",
+    "confirmOff": {
+      "title": "Prestať zaznamenávať zatvorené karty?",
+      "message": "Zoznam zatvorených kariet sa z tohto profilu vymaže na všetkých zariadeniach, na ktorých ste prihlásení, a ďalšie karty sa nezaznamenajú, kým to znova nezapnete. Už uložené odkazy zostanú.",
+      "confirm": "Prestať a vymazať"
+    }
   }
 }

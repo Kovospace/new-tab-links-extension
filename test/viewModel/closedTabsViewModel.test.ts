@@ -39,7 +39,7 @@ describe("ClosedTabsViewModel", () => {
             url: "https://example.com/one", title: "One", closedAt: Date.now() - 120_000
         });
 
-        panel = new ClosedTabsViewModel(new ClosedTabsRepository(), appState);
+        panel = new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles);
         await panel.initialize();
     });
 
@@ -158,6 +158,17 @@ describe("ClosedTabsViewModel", () => {
         expect(rows()).toHaveLength(MAX_CLOSED_TABS);
     });
 
+    it("says whether the loaded profile records closed tabs, and follows it", async () => {
+        const watching = new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles);
+        await watching.initialize();
+        expect(watching.observables.recording.get()).toBe(true);
+
+        await profiles.updateSettings({ recordClosedTabs: false });
+
+        expect(watching.observables.recording.get()).toBe(false);
+        watching.dispose();
+    });
+
     it("forgets one entry", async () => {
         await panel.forget(rows()[0].id);
 
@@ -183,7 +194,7 @@ describe("ClosedTabsViewModel, switching profiles", () => {
         await profiles.upsertProfile({ id: other, name: "Home", createdAt: 0 });
         await recordClosedTab(other, { url: "https://home.test/", title: "Home", closedAt: 2000 });
 
-        const panel = new ClosedTabsViewModel(new ClosedTabsRepository(), appState);
+        const panel = new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles);
         await panel.initialize();
         expect(panel.observables.tabs.get().map(t => t.title)).toEqual(["Work"]);
 

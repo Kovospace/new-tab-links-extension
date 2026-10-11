@@ -1,9 +1,11 @@
 import { AppStateRepository, appStateRepository } from "../backend/repository/AppStateRepository";
+import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { ClosedTabsRepository } from "../backend/repository/ClosedTabsRepository";
 import { ClosedTab, MAX_CLOSED_TABS } from "../backend/entity/ClosedTabEntity";
 import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { resolveDeviceName } from "../backend/sync/DeviceName";
+import { settingsOf } from "../backend/entity/ProfileSettings";
 import { describeAge } from "../i18n/dates";
 
 import { Logger } from "../utils/logger";
@@ -46,23 +48,33 @@ export class ClosedTabsViewModel {
 
     private readonly closedTabs: ClosedTabsRepository;
     private readonly appState: AppStateRepository;
+    private readonly profiles: ProfileRepository;
 
     private unsubscribes: Array<() => void> = [];
 
     public readonly observables = {
-        tabs: new ObservableValue<ClosedTabDTO[]>([])
+        tabs: new ObservableValue<ClosedTabDTO[]>([]),
+        /**
+         *  Whether the loaded profile records closed tabs. When it does not, the panel stays
+         *  where it is and says so, rather than disappearing and leaving nothing to say where
+         *  it went.
+         */
+        recording: new ObservableValue<boolean>(true)
     };
 
     /**
      *  @param closedTabs where the closed tabs are; a fresh repository in normal use
      *  @param appState   where the links are, for the "already kept" mark
+     *  @param profiles   where the profile's settings are, for whether anything is recorded
      */
     constructor(
         closedTabs: ClosedTabsRepository = new ClosedTabsRepository(),
-        appState: AppStateRepository = appStateRepository
+        appState: AppStateRepository = appStateRepository,
+        profiles: ProfileRepository = profileRepository
     ) {
         this.closedTabs = closedTabs;
         this.appState = appState;
+        this.profiles = profiles;
     }
 
     /** Loads the panel and keeps it current. */
@@ -70,6 +82,14 @@ export class ClosedTabsViewModel {
         await this.closedTabs.init(this.appState.getActiveProfileId());
         this.unsubscribes.push(this.closedTabs.tabs$.subscribe(() => this.refresh()));
         this.unsubscribes.push(this.appState.state$.subscribe(() => this.onStateChanged()));
+        this.unsubscribes.push(this.profiles.profiles$.subscribe(() => this.refreshRecording()));
+    }
+
+    /** Reads whether the loaded profile records closed tabs, which a pull can change too. */
+    private refreshRecording(): void {
+        const profile = this.profiles.getProfiles()
+            .find(candidate => candidate.id === this.appState.getActiveProfileId());
+        this.observables.recording.set(settingsOf(profile).recordClosedTabs);
     }
 
     /**
@@ -86,6 +106,7 @@ export class ClosedTabsViewModel {
         if (active !== this.closedTabs.getProfileId()) {
             this.LOG.debug("onStateChanged", `Following profile ${active}`);
             void this.closedTabs.init(active).then(() => this.refresh());
+            this.refreshRecording();
             return;
         }
         this.refresh();

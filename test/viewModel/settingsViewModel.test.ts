@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
 import { DEFAULT_PROFILE_SETTINGS } from "../../src/backend/entity/ProfileSettings";
 import { SettingsViewModel } from "../../src/viewModel/settingsViewModel";
+import { readClosedTabs, recordClosedTab } from "../../src/backend/repository/ClosedTabsRepository";
 import {
     DevicePreferencesRepository, MAX_SCALE, MIN_SCALE, SCALE_STEP
 } from "../../src/backend/repository/DevicePreferencesRepository";
@@ -63,6 +64,40 @@ describe("SettingsViewModel", () => {
 
         expect(profiles.getSettings().enableDragAndDrop).toBe(false);
         expect(toggleAt(0).enabled).toBe(false);
+    });
+
+    it("puts recording closed tabs under Privacy, on, asking before it is turned off", () => {
+        const privacy = shown().categories.find(category => category.key === "privacy");
+        const setting = privacy?.settings.find(candidate => candidate.key === "recordClosedTabs");
+
+        expect(setting?.kind).toBe("toggle");
+        if (setting?.kind === "toggle") {
+            expect(setting.enabled).toBe(true);
+            expect(setting.confirmOff).not.toBeNull();
+        }
+    });
+
+    it("deletes the profile's closed tabs when recording them is turned off", async () => {
+        const profileId = profiles.getActiveProfileId();
+        await recordClosedTab(profileId, {
+            url: "https://example.com/one", title: "One", closedAt: Date.now()
+        });
+
+        await settings.toggle("recordClosedTabs", false);
+
+        expect(await readClosedTabs(profileId)).toEqual({});
+        expect(profiles.getSettings().recordClosedTabs).toBe(false);
+    });
+
+    it("keeps the closed tabs when some other setting is turned off", async () => {
+        const profileId = profiles.getActiveProfileId();
+        await recordClosedTab(profileId, {
+            url: "https://example.com/one", title: "One", closedAt: Date.now()
+        });
+
+        await settings.toggle("hideTips", false);
+
+        expect(Object.keys(await readClosedTabs(profileId))).toHaveLength(1);
     });
 
     it("folds a category away and back", () => {

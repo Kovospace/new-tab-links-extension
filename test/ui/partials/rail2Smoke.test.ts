@@ -34,7 +34,7 @@ describe("rail pointer logic", () => {
             environments: [environment("e", "W")], groups: [group("g", "R", "e")], activeEnvironmentId: "e"
         }));
         await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
-        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState));
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles));
         await panel.render(document.body);
         await flushStorageNotifications();
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });

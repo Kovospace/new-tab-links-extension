@@ -4,6 +4,7 @@ import {
     INSTALLATION_NAME_KEY, PROFILE_REGISTRY_KEY
 } from "../../datasource/chromeStorage/storageKeys";
 import { recordClosedTab } from "../../repository/ClosedTabsRepository";
+import { settingsOf } from "../../entity/ProfileSettings";
 import { isBookmarkableUrl } from "../../../utils/bookmarkRequest";
 import { resolveDeviceName } from "../../sync/DeviceName";
 import { Logger } from "../../../utils/logger";
@@ -25,6 +26,10 @@ import { Logger } from "../../../utils/logger";
  *
  *  Nothing is recorded for a page that cannot be kept as a link: `chrome://`, the extension's
  *  own pages, a blank tab. The panel exists to find pages again, and none of those are pages.
+ *
+ *  Nor anything at all while the active profile has `recordClosedTabs` turned off - and then
+ *  the mirror is emptied as well, not only left unread. A mirror kept up while recording was
+ *  off would, once it was turned back on, record the closing of tabs opened while it was off.
  */
 
 const LOG = new Logger("ClosedTabsRecorder");
@@ -65,6 +70,11 @@ export function registerClosedTabsRecorder(): void {
 /** Writes down what a tab currently is, so that its closing can be understood. */
 async function rememberTab(tabId: number, tab: chrome.tabs.Tab): Promise<void> {
 
+    if (!await isRecording()) {
+        await forgetEverything();
+        return;
+    }
+
     if (!isBookmarkableUrl(tab.url)) {
         // Not a page worth keeping, and it may have been one a moment ago - a tab navigating
         // from a site to the new tab page must not be remembered as the site.
@@ -97,7 +107,7 @@ async function recordRemoval(tabId: number): Promise<void> {
     await writeMirror(mirror);
 
     const profileId = await activeProfileId();
-    if (!profileId) {
+    if (!profileId || !await isRecording()) {
         return;
     }
 
@@ -123,6 +133,12 @@ async function forget(tabId: number): Promise<void> {
     }
 }
 
+async function forgetEverything(): Promise<void> {
+    if (Object.keys(await readMirror()).length > 0) {
+        await writeMirror({});
+    }
+}
+
 async function readMirror(): Promise<TabMirror> {
     const stored = await chrome.storage.session.get(MIRROR_KEY);
     return (stored[MIRROR_KEY] as TabMirror | undefined) ?? {};
@@ -136,6 +152,17 @@ async function writeMirror(mirror: TabMirror): Promise<void> {
 async function activeProfileId(): Promise<string | null> {
     const registry = await storage.get<ProfileRegistry>(PROFILE_REGISTRY_KEY);
     return registry?.activeProfileId ?? null;
+}
+
+/**
+ *  Whether the active profile records closed tabs. Read from storage on every event, like the
+ *  profile itself: the setting can change in a page, or arrive from another device, between
+ *  any two of them.
+ */
+async function isRecording(): Promise<boolean> {
+    const registry = await storage.get<ProfileRegistry>(PROFILE_REGISTRY_KEY);
+    const active = registry?.profiles[registry.activeProfileId];
+    return settingsOf(active).recordClosedTabs;
 }
 
 /** The name the user gave this installation, or null when they never gave it one. */

@@ -15,6 +15,7 @@ import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRe
 import { SyncOperation, SyncRejectedOperation } from "./SyncContracts";
 import { ClosedTab } from "../entity/ClosedTabEntity";
 import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
+import { settingsOf } from "../entity/ProfileSettings";
 
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
@@ -844,6 +845,8 @@ export class SyncCoordinator {
             return;
         }
 
+        await this.emptyClosedTabsNotRecorded();
+
         const baseline = this.baselines.getFor(session.userId);
         if (!baseline || this.profiles.isAwaitingAccount()) {
             // This device has never synchronised this account, which normally means the merge
@@ -1392,6 +1395,28 @@ export class SyncCoordinator {
         await this.inventoryReporter.report(
             session.userId, this.localProfilesOf(await this.readEverythingLocally()), scope,
             this.accountInventory);
+    }
+
+    /**
+     *  Empties the closed tabs of every profile that has stopped recording them.
+     *
+     *  Turning recording off deletes the list on the device it was turned off on, but another
+     *  device may have recorded a tab before it heard of the change and pushed it afterwards -
+     *  and a pull stores what the account holds, exactly, so that tab arrives here too. It is
+     *  not filtered out on the way in: anything a pull drops is a difference reported again on
+     *  every synchronisation. It is deleted here instead, as a write, before the difference is
+     *  computed, so this push carries the deletion and the account ends up empty as well.
+     */
+    private async emptyClosedTabsNotRecorded(): Promise<void> {
+        for (const profile of this.profiles.getProfiles()) {
+            if (settingsOf(profile).recordClosedTabs) {
+                continue;
+            }
+            if (Object.keys(await readClosedTabs(profile.id)).length > 0) {
+                this.LOG.debug("emptyClosedTabsNotRecorded", `Profile ${profile.id}`);
+                await writeClosedTabs(profile.id, {});
+            }
+        }
     }
 
     /** Everything this device holds, in the shape the difference is computed against. */
