@@ -424,6 +424,9 @@ export class ClosedTabsPanel {
     const meta = document.createElement('span');
     meta.classList.add('closed-tabs__meta');
     meta.textContent = tab.when;
+    // The exact date makes the line long enough to be ellipsised in a narrow panel, and the
+    // part cut off is the part asked for.
+    meta.title = tab.when;
 
     text.appendChild(title);
     text.appendChild(meta);

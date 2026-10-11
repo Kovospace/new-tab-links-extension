@@ -6,7 +6,7 @@ import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { resolveDeviceName } from "../backend/sync/DeviceName";
 import { settingsOf } from "../backend/entity/ProfileSettings";
-import { describeAge } from "../i18n/dates";
+import { describeMoment } from "../i18n/dates";
 
 import { Logger } from "../utils/logger";
 import { ObservableValue } from "../utils/observableValue";
@@ -19,7 +19,7 @@ export interface ClosedTabDTO {
     url: string;
     faviconUrl?: string;
 
-    /** How long ago it was closed, already worded. */
+    /** How long ago it was closed and when exactly, already worded. */
     when: string;
 
     /**
@@ -159,7 +159,7 @@ export class ClosedTabsViewModel {
             title: tab.title || tab.url,
             url: tab.url,
             faviconUrl: tab.faviconUrl,
-            when: describeAge(Date.now() - tab.closedAt),
+            when: describeMoment(tab.closedAt),
             elsewhere: tab.deviceName && tab.deviceName !== here ? tab.deviceName : null,
             bookmarked: this.isKept(kept, tab.url)
         }));

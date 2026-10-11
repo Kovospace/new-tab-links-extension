@@ -160,6 +160,31 @@ export function describeAge(milliseconds: number): string {
     return t("dates.age.days", { count: days });
 }
 
+/**
+ *  How long ago something happened, followed by when exactly, in brackets.
+ *
+ *  The exact part is only the time when it happened today, and the date with the time when it
+ *  happened on any earlier day - **by the calendar, not by the hours elapsed**. Ten minutes
+ *  before midnight is "an hour ago" a little after one in the morning, and a bare "23:50" next
+ *  to that reads as tonight's, which has not happened yet.
+ *
+ *  @param when the moment it happened, epoch milliseconds
+ *  @param now  the moment to measure from; a parameter so that "today" can be tested
+ */
+export function describeMoment(when: number, now: number = Date.now()): string {
+    const exact = isSameDay(when, now) ? formatTime(when) : formatDateTime(when);
+    return t("dates.ageAt", { age: describeAge(now - when), at: exact });
+}
+
+/** Whether two moments fall on the same calendar day here, in the device's own time zone. */
+function isSameDay(first: number, second: number): boolean {
+    const a = new Date(first);
+    const b = new Date(second);
+    return a.getFullYear() === b.getFullYear()
+        && a.getMonth() === b.getMonth()
+        && a.getDate() === b.getDate();
+}
+
 function pad(value: string): string {
     return value.padStart(2, "0");
 }
