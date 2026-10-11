@@ -62,6 +62,16 @@ export interface ProfileSettings {
      *  (`closedTabsRecorder`) and empties whatever it still holds (`SyncCoordinator`).
      */
     recordClosedTabs: boolean;
+
+    /**
+     *  Whether this profile records the pages the user visits, for the history card.
+     *
+     *  **Off by default**, following the rule rather than `recordClosedTabs`: recording
+     *  history is new behaviour, and nothing about where somebody has been leaves the browser
+     *  until they ask for it. Turning it off deletes the profile's history, here and on the
+     *  account, exactly as turning off closed tabs deletes those.
+     */
+    recordBrowsingHistory: boolean;
 }
 
 /** The settings that are on or off, which is every one but the list of dismissed tips. */
@@ -74,7 +84,8 @@ export const DEFAULT_PROFILE_SETTINGS: ProfileSettings = {
     enableDragAndDrop: true,
     hideTips: false,
     dismissedTips: [],
-    recordClosedTabs: true
+    recordClosedTabs: true,
+    recordBrowsingHistory: false
 };
 
 /**

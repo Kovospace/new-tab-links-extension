@@ -96,7 +96,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
 
     it("takes the settings the account holds", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: true })).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false });
     });
 
     it("reads a backend that does not store settings yet as having the defaults", () => {
@@ -104,7 +104,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
         // whose settings are undefined compares differently from one whose settings are the
         // defaults, and the difference would be pushed straight back.
         expect(mappedProfile(accountWithProfile({})).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false });
     });
 
     it("takes the dismissed tips exactly as the account holds them, order included", () => {
@@ -125,7 +125,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
 
     it("keeps an account that has them off, off", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: false })).settings)
-            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true });
+            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false });
     });
 });
 
@@ -215,5 +215,40 @@ describe("SyncSnapshotMapper, closed tabs", () => {
         }]));
 
         expect(Object.values(mapped.closedTabsByProfileId).flatMap(Object.keys)).toEqual([]);
+    });
+});
+
+/**
+ *  The browsing history arrives the way closed tabs do, and the same distinction matters:
+ *  an account with no visits is not a backend that has never heard of them.
+ */
+describe("SyncSnapshotMapper, browsing history", () => {
+
+    const withVisits = (visits: SyncSnapshot["visits"]): SyncSnapshot => ({
+        ...accountWithSubgroup({}),
+        visits
+    });
+
+    it("files each visit under the profile it names", () => {
+        const mapped = SyncSnapshotMapper.toProfiles(withVisits([{
+            id: "visit-1", profileId: PROFILE, url: "https://example.com/", title: "Example",
+            faviconUrl: null, visitedAt: NOW, deviceName: "Laptop"
+        }]));
+
+        expect(mapped.visitsByProfileId[PROFILE]["visit-1"]).toEqual({
+            id: "visit-1", url: "https://example.com/", title: "Example",
+            faviconUrl: undefined, visitedAt: Date.parse(NOW), deviceName: "Laptop"
+        });
+    });
+
+    it("tells an account that keeps none apart from one that does not keep them", () => {
+        expect(SyncSnapshotMapper.toProfiles(withVisits([])).visitsSupported).toBe(true);
+        expect(SyncSnapshotMapper.toProfiles(accountWithSubgroup({})).visitsSupported).toBe(false);
+    });
+
+    it("reads a profile that says nothing about recording history as not recording it", () => {
+        expect(mappedProfile(accountWithProfile({})).settings?.recordBrowsingHistory).toBe(false);
+        expect(mappedProfile(accountWithProfile({ recordBrowsingHistory: true })).settings
+            ?.recordBrowsingHistory).toBe(true);
     });
 });

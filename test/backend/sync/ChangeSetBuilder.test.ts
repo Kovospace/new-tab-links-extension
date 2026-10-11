@@ -225,7 +225,7 @@ describe("ChangeSetBuilder, profile settings", () => {
             baselineOf(),
             [{
                 id: PROFILE_ID, name: "Default", createdAt: 0,
-                settings: { enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true }
+                settings: { enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false }
             }],
             { [PROFILE_ID]: emptyProfile() });
 
@@ -235,7 +235,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("says nothing about a profile whose settings did not change", () => {
-        const settings = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true };
+        const settings = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -266,7 +266,7 @@ describe("ChangeSetBuilder, profile settings", () => {
         // would turn the setting off, on every device the account reaches. Every setting has
         // to be asserted here, not just the first one: they are what a second one added
         // carelessly would silently stop carrying.
-        const settings = { enableDragAndDrop: true, hideTips: true, dismissedTips: ["hide-tips"], recordClosedTabs: true };
+        const settings = { enableDragAndDrop: true, hideTips: true, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -285,7 +285,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("pushes a profile that dismissed one more tip", () => {
-        const before = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true };
+        const before = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false };
         const after = { ...before, dismissedTips: ["hide-tips", "disable-ads"] };
 
         const operations = ChangeSetBuilder.build(
@@ -310,7 +310,7 @@ describe("ChangeSetBuilder, profile settings", () => {
                 { id: PROFILE_ID, name: "Default", createdAt: 0 },
                 {
                     id: created, name: "Fresh", createdAt: 0,
-                    settings: { enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true }
+                    settings: { enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false }
                 }
             ],
             { [PROFILE_ID]: emptyProfile(), [created]: emptyProfile() });
@@ -439,5 +439,60 @@ describe("ChangeSetBuilder, closed tabs", () => {
             { [PROFILE_ID]: {} });
 
         expect(kindsOf(operations, "delete")).toEqual(["closedTab"]);
+    });
+});
+
+/** The browsing history reaches the change set by the channel closed tabs use, under the same guard. */
+describe("ChangeSetBuilder, browsing history", () => {
+
+    const visit = (id: string, url: string, visitedAt: number) => ({ id, url, title: "A page", visitedAt });
+    const profiles = [{ id: PROFILE_ID, name: "Default", createdAt: 0 }];
+
+    const baselineWith = (visits: Record<string, unknown>, supported = true): SyncBaseline => ({
+        profiles,
+        dataByProfileId: { [PROFILE_ID]: emptyProfile() },
+        visitsByProfileId: { [PROFILE_ID]: visits as never },
+        visitsSupported: supported
+    });
+
+    it("pushes a visit the account has not heard of, its time as an instant", () => {
+        const operations = ChangeSetBuilder.build(
+            baselineWith({}), profiles, { [PROFILE_ID]: emptyProfile() }, {},
+            { [PROFILE_ID]: { one: visit("one", "https://example.com/", 1_700_000_000_000) } });
+
+        const visits = operations.filter(operation => operation.type === "visit");
+        expect(visits).toHaveLength(1);
+        expect(visits[0]).toMatchObject({ op: "upsert", id: "one", profileId: PROFILE_ID });
+        expect(visits[0].visitedAt).toBe(new Date(1_700_000_000_000).toISOString());
+    });
+
+    it("deletes a visit this device has let go of", () => {
+        const operations = ChangeSetBuilder.build(
+            baselineWith({ one: visit("one", "https://example.com/", 1000) }),
+            profiles, { [PROFILE_ID]: emptyProfile() }, {}, { [PROFILE_ID]: {} });
+
+        expect(operations.filter(operation => operation.type === "visit"))
+            .toEqual([{ op: "delete", type: "visit", id: "one" }]);
+    });
+
+    it("says nothing about them to an account that does not keep them", () => {
+        // One operation naming a kind the server has no vocabulary for fails the whole push.
+        const operations = ChangeSetBuilder.build(
+            baselineWith({}, false), profiles, { [PROFILE_ID]: emptyProfile() }, {},
+            { [PROFILE_ID]: { one: visit("one", "https://example.com/", 1000) } });
+
+        expect(operations.filter(operation => operation.type === "visit")).toEqual([]);
+    });
+
+    it("sends whether the profile records history on every profile upsert", () => {
+        const operations = ChangeSetBuilder.build(
+            { profiles: [], dataByProfileId: {} },
+            [{ ...profiles[0], settings: {
+                enableDragAndDrop: true, hideTips: false, dismissedTips: [],
+                recordClosedTabs: true, recordBrowsingHistory: true } }],
+            {});
+
+        expect(operations.find(operation => operation.type === "profile")?.recordBrowsingHistory)
+            .toBe(true);
     });
 });

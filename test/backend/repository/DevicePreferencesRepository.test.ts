@@ -247,7 +247,7 @@ describe("DevicePreferencesRepository, the side panel's card", () => {
     });
 
     it("reads a card this version does not know as the closed tabs", async () => {
-        seedFakeStorage(DEVICE_PREFERENCES_KEY, { sidePanelCard: "history" });
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { sidePanelCard: "bookmarks" });
         const preferences = new DevicePreferencesRepository();
         await preferences.init();
 

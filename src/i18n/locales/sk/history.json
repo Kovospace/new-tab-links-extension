@@ -1,0 +1,24 @@
+{
+  "card": "História",
+  "cardTooltip": "Navštívené stránky",
+  "title": "História",
+  "today": "Dnes",
+  "yesterday": "Včera",
+  "empty": "Zatiaľ nič. Navštívené stránky sa zobrazia tu.",
+  "rowTooltip": "{url}\nOtvoriť znova",
+  "visitedOn": "Navštívené na {device}",
+  "alreadySaved": "V tomto profile už uložené",
+  "saveAsLink": "Uložiť ako odkaz",
+  "forgetOne": "Zabudnúť túto",
+  "clear": "Vymazať",
+  "forgetAll": "Zabudnúť celú históriu",
+  "forgetAllConfirmation": {
+    "title": "Zabudnúť celú históriu?",
+    "message": "História sa v tomto profile vyprázdni na všetkých zariadeniach, na ktorých ste prihlásení. Čo ste už uložili ako odkaz, zostane.",
+    "confirm": "Zabudnúť"
+  },
+  "off": {
+    "message": "História prehliadania je pre tento profil vypnutá. Zapnite ju v Nastaveniach → Súkromie a zoznam navštívených stránok sa bude ukladať sem.",
+    "openSettings": "Otvoriť nastavenia súkromia"
+  }
+}

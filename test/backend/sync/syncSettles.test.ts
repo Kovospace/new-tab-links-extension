@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AppStateRepository } from "../../../src/backend/repository/AppStateRepository";
 import { ProfileRepository } from "../../../src/backend/repository/ProfileRepository";
 import { recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
+import { readVisits, recordVisit } from "../../../src/backend/repository/VisitsRepository";
 import { stateWithLinks } from "../../support/profileDataFixtures";
 import { ApiResult } from "../../../src/backend/sync/BackendApiClient";
 import { installationIdentity } from "../../../src/backend/sync/InstallationIdentity";
@@ -185,6 +186,58 @@ describe("synchronisation settles", () => {
             await coordinating.synchronizeNow();
             expect(pushes.flat()).toEqual([]);
         });
+
+    it("has nothing to say the second time, with browsing history in the account", async () => {
+        await profiles.updateSettings({ recordBrowsingHistory: true });
+        await recordVisit(profiles.getActiveProfileId(), {
+            url: "https://example.com/one", title: "One", visitedAt: 1_700_000_000_000,
+            deviceName: "Laptop"
+        }, 50);
+        await recordVisit(profiles.getActiveProfileId(), {
+            url: "https://example.com/two", title: "", visitedAt: 1_700_000_001_000
+        }, 50);
+
+        expect(await operationsOfTheSecondPass()).toEqual([]);
+    });
+
+    it("empties history the account still holds for a profile that stopped recording it",
+        async () => {
+            const coordinating = coordinator();
+            await coordinating.synchronizeNow();
+
+            const profileId = profiles.getActiveProfileId();
+            account.apply([{
+                op: "upsert", type: "visit", id: "0199aaaa-0000-7000-8000-00000000v151",
+                profileId, url: "https://example.com/late", title: "Late",
+                visitedAt: "2026-01-01T10:00:00Z"
+            }]);
+
+            await coordinating.synchronizeNow();
+            await coordinating.synchronizeNow();
+
+            expect(account.snapshot().visits ?? []).toEqual([]);
+            pushes = [];
+            await coordinating.synchronizeNow();
+            expect(pushes.flat()).toEqual([]);
+        });
+
+    it("sends no history to an account that has never heard of it, and keeps its own", async () => {
+        // A push naming the kind would fail as a whole - links, groups and all.
+        account = new FakeAccount(false);
+        await profiles.updateSettings({ recordBrowsingHistory: true });
+        await recordVisit(profiles.getActiveProfileId(), {
+            url: "https://example.com/mine", title: "Mine", visitedAt: 1_700_000_000_000
+        }, 50);
+
+        const coordinating = coordinator();
+        await coordinating.synchronizeNow();
+        await coordinating.synchronizeNow();
+
+        expect(pushes.flat().some(operation => operation.type === "visit")).toBe(false);
+        expect(account.snapshot().links.length).toBeGreaterThan(0);
+        expect(Object.values(await readVisits(profiles.getActiveProfileId())).map(visit => visit.url))
+            .toEqual(["https://example.com/mine"]);
+    });
 
     it("has nothing to say the third time either", async () => {
         // A difference that alternates rather than repeats would settle in the second pass and

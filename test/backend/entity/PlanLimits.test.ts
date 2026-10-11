@@ -33,11 +33,11 @@ describe("the compiled limits", () => {
     it("are the published table", () => {
         expect(FREE_PLAN_LIMITS).toEqual({
             profiles: 1, workspacesPerProfile: 2, groupsPerWorkspace: 25, subgroupsPerGroup: 25,
-            linksPerWorkspace: 500, closedTabs: 25, devices: 5
+            linksPerWorkspace: 500, closedTabs: 25, browsingHistory: 50, devices: 5
         });
         expect(PREMIUM_PLAN_LIMITS).toEqual({
             profiles: 50, workspacesPerProfile: 50, groupsPerWorkspace: 25, subgroupsPerGroup: 25,
-            linksPerWorkspace: 500, closedTabs: 500, devices: 100
+            linksPerWorkspace: 500, closedTabs: 500, browsingHistory: 1000, devices: 100
         });
     });
 

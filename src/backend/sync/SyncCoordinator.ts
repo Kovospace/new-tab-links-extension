@@ -15,6 +15,8 @@ import { SyncBaselineRepository, syncBaselineRepository } from "./SyncBaselineRe
 import { SyncOperation, SyncRejectedOperation } from "./SyncContracts";
 import { ClosedTab } from "../entity/ClosedTabEntity";
 import { readClosedTabs, writeClosedTabs } from "../repository/ClosedTabsRepository";
+import { Visit } from "../entity/VisitEntity";
+import { readVisits, writeVisits } from "../repository/VisitsRepository";
 import { settingsOf } from "../entity/ProfileSettings";
 
 import { Logger } from "../../utils/logger";
@@ -491,6 +493,9 @@ export class SyncCoordinator {
                 await writeClosedTabs(
                     remote.id, snapshot.closedTabsByProfileId[remote.id] ?? {});
             }
+            if (snapshot.visitsSupported) {
+                await writeVisits(remote.id, snapshot.visitsByProfileId[remote.id] ?? {});
+            }
             await this.appState.saveProfileData(
                 remote.id,
                 // Through withLocalWorkspaceChoice, exactly as applySnapshot writes a profile.
@@ -519,7 +524,9 @@ export class SyncCoordinator {
             profiles: snapshot.profiles,
             dataByProfileId: snapshot.dataByProfileId,
             closedTabsByProfileId: snapshot.closedTabsByProfileId,
-            closedTabsSupported: snapshot.closedTabsSupported
+            closedTabsSupported: snapshot.closedTabsSupported,
+            visitsByProfileId: snapshot.visitsByProfileId,
+            visitsSupported: snapshot.visitsSupported
         }, id => slotProfileIds.has(id), id => slotWorkspaceIds.has(id)));
 
         // From here the visible profiles are this account's.
@@ -654,6 +661,10 @@ export class SyncCoordinator {
                 await readClosedTabs(local.id),
                 snapshot.closedTabsByProfileId[remote.id] ?? {})
             : await readClosedTabs(local.id));
+        // Browsing history is a log too, joined by the same rule.
+        await writeVisits(remote.id, snapshot.visitsSupported
+            ? mergeVisits(await readVisits(local.id), snapshot.visitsByProfileId[remote.id] ?? {})
+            : await readVisits(local.id));
 
         if (local.id !== remote.id) {
             await this.dropMergedProfile(local.id, remote.id);
@@ -678,6 +689,7 @@ export class SyncCoordinator {
         await this.appState.discardProfileData(mergedId);
         // Safe because the list has just been written under the identifier that survives.
         await writeClosedTabs(mergedId, {});
+        await writeVisits(mergedId, {});
 
         if (wasActive) {
             await this.profiles.setActiveProfile(survivorId);
@@ -740,6 +752,8 @@ export class SyncCoordinator {
             await this.appState.saveProfileData(counterpart.id, merged.merged);
             await writeClosedTabs(counterpart.id, mergeClosedTabs(
                 await readClosedTabs(local.id), await readClosedTabs(counterpart.id)));
+            await writeVisits(counterpart.id, mergeVisits(
+                await readVisits(local.id), await readVisits(counterpart.id)));
             await this.dropMergedProfile(local.id, counterpart.id);
             heldApart.push(...merged.heldApart.map(workspace => workspace.name));
             changed = true;
@@ -846,6 +860,7 @@ export class SyncCoordinator {
         }
 
         await this.emptyClosedTabsNotRecorded();
+        await this.emptyHistoryNotRecorded();
 
         const baseline = this.baselines.getFor(session.userId);
         if (!baseline || this.profiles.isAwaitingAccount()) {
@@ -921,7 +936,8 @@ export class SyncCoordinator {
         const everything = ChangeSetBuilder.build(
             restrictToScope(baseline, inProfile, inWorkspace),
             scopedCurrent.profiles, scopedCurrent.dataByProfileId,
-            scopedCurrent.closedTabsByProfileId ?? {});
+            scopedCurrent.closedTabsByProfileId ?? {},
+            scopedCurrent.visitsByProfileId ?? {});
 
         const withheld = occasion === FIRST_CONTACT
             ? everything.filter(operation => operation.op === "delete")
@@ -1152,7 +1168,9 @@ export class SyncCoordinator {
                 profiles: snapshot.profiles,
                 dataByProfileId: snapshot.dataByProfileId,
                 closedTabsByProfileId: snapshot.closedTabsByProfileId,
-                closedTabsSupported: snapshot.closedTabsSupported
+                closedTabsSupported: snapshot.closedTabsSupported,
+                visitsByProfileId: snapshot.visitsByProfileId,
+                visitsSupported: snapshot.visitsSupported
             }, inProfile, inWorkspace),
             inProfile, inWorkspace,
             // Kept from before only while the account still has it; what was deleted there is
@@ -1215,6 +1233,10 @@ export class SyncCoordinator {
                 // An account that does not keep closed tabs says nothing about this device's,
                 // and a pull that overwrote them with the nothing it was told would empty the
                 // panel every time the extension synchronised.
+                if (snapshot.visitsSupported) {
+                    // The same rule for browsing history: as the account holds it, untouched.
+                    await writeVisits(profile.id, snapshot.visitsByProfileId[profile.id] ?? {});
+                }
             }
 
             for (const local of this.profiles.getProfiles()) {
@@ -1419,6 +1441,22 @@ export class SyncCoordinator {
         }
     }
 
+    /**
+     *  Empties the browsing history of every profile that does not record it, for the reason
+     *  and in the way `emptyClosedTabsNotRecorded` empties closed tabs.
+     */
+    private async emptyHistoryNotRecorded(): Promise<void> {
+        for (const profile of this.profiles.getProfiles()) {
+            if (settingsOf(profile).recordBrowsingHistory) {
+                continue;
+            }
+            if (Object.keys(await readVisits(profile.id)).length > 0) {
+                this.LOG.debug("emptyHistoryNotRecorded", `Profile ${profile.id}`);
+                await writeVisits(profile.id, {});
+            }
+        }
+    }
+
     /** Everything this device holds, in the shape the difference is computed against. */
     private async readEverythingLocally(): Promise<SyncBaseline> {
 
@@ -1426,6 +1464,7 @@ export class SyncCoordinator {
         const dataByProfileId: Record<string, ProfileData> = {};
 
         const closedTabsByProfileId: Record<string, Record<string, ClosedTab>> = {};
+        const visitsByProfileId: Record<string, Record<string, Visit>> = {};
 
         for (const profile of profiles) {
             const data = await this.readProfileData(profile.id);
@@ -1436,8 +1475,9 @@ export class SyncCoordinator {
             // tabs are stored under their own key, and an empty list is a real answer rather
             // than the "nothing known" that an absent ProfileData means.
             closedTabsByProfileId[profile.id] = await readClosedTabs(profile.id);
+            visitsByProfileId[profile.id] = await readVisits(profile.id);
         }
-        return { profiles, dataByProfileId, closedTabsByProfileId };
+        return { profiles, dataByProfileId, closedTabsByProfileId, visitsByProfileId };
     }
 
     /**
@@ -1596,5 +1636,16 @@ export function mergeClosedTabs(
     local: Record<string, ClosedTab>,
     remote: Record<string, ClosedTab>
 ): Record<string, ClosedTab> {
+    return { ...remote, ...local };
+}
+
+/**
+ *  Joins this device's browsing history with the account's at first contact - a union, for the
+ *  reason `mergeClosedTabs` is one, and with the same restraint: nothing capped, nothing dropped.
+ */
+export function mergeVisits(
+    local: Record<string, Visit>,
+    remote: Record<string, Visit>
+): Record<string, Visit> {
     return { ...remote, ...local };
 }

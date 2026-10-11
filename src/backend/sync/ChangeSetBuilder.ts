@@ -1,5 +1,6 @@
 import { Group, Link, ProfileData, ProfileMeta, Subgroup } from "../entity/AppStateEntity";
 import { ClosedTab, storableClosedTab } from "../entity/ClosedTabEntity";
+import { storableVisit, Visit } from "../entity/VisitEntity";
 import { settingsOf } from "../entity/ProfileSettings";
 import { SyncEntityKind, SyncOperation } from "./SyncContracts";
 
@@ -12,7 +13,7 @@ import { SyncEntityKind, SyncOperation } from "./SyncContracts";
  *  whose environments it had not been told about yet.
  */
 const DELETION_ORDER: SyncEntityKind[] =
-    ["closedTab", "link", "subgroup", "group", "environment", "profile"];
+    ["visit", "closedTab", "link", "subgroup", "group", "environment", "profile"];
 
 /** What the device believes the account already holds. */
 export interface SyncBaseline {
@@ -40,6 +41,15 @@ export interface SyncBaseline {
      *  groups and everything else from reaching the account too.
      */
     closedTabsSupported?: boolean;
+
+    /** Each profile's browsing history as last confirmed, beside the data like closed tabs. */
+    visitsByProfileId?: Record<string, Record<string, Visit>>;
+
+    /**
+     *  Whether the account stores browsing history at all, as the last snapshot showed - the
+     *  same guard as `closedTabsSupported`, for the same whole-batch reason.
+     */
+    visitsSupported?: boolean;
 }
 
 /**
@@ -72,7 +82,8 @@ export class ChangeSetBuilder {
         baseline: SyncBaseline,
         profiles: ProfileMeta[],
         dataByProfileId: Record<string, ProfileData>,
-        closedTabsByProfileId: Record<string, Record<string, ClosedTab>> = {}
+        closedTabsByProfileId: Record<string, Record<string, ClosedTab>> = {},
+        visitsByProfileId: Record<string, Record<string, Visit>> = {}
     ): SyncOperation[] {
 
         const upserts: SyncOperation[] = [];
@@ -125,6 +136,27 @@ export class ChangeSetBuilder {
                         // of every list for ever.
                         closedAt: new Date(tab.closedAt).toISOString(),
                         deviceName: tab.deviceName ?? null
+                    };
+                },
+                upserts, deletes);
+        }
+
+        // Browsing history, by exactly the rules closed tabs follow - including the guard.
+        for (const profile of baseline.visitsSupported === true ? profiles : []) {
+            this.collect(
+                "visit",
+                baseline.visitsByProfileId?.[profile.id] ?? {},
+                visitsByProfileId[profile.id] ?? {},
+                (raw: Visit) => {
+                    const visit = storableVisit(raw);
+                    return {
+                        op: "upsert" as const, type: "visit" as const, id: visit.id,
+                        profileId: profile.id,
+                        title: visit.title,
+                        url: visit.url,
+                        faviconUrl: visit.faviconUrl ?? null,
+                        visitedAt: new Date(visit.visitedAt).toISOString(),
+                        deviceName: visit.deviceName ?? null
                     };
                 },
                 upserts, deletes);
@@ -196,6 +228,7 @@ export class ChangeSetBuilder {
             hideTips: settingsOf(profile).hideTips,
             dismissedTips: settingsOf(profile).dismissedTips,
             recordClosedTabs: settingsOf(profile).recordClosedTabs,
+            recordBrowsingHistory: settingsOf(profile).recordBrowsingHistory,
             position
         };
     }

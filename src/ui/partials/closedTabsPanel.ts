@@ -1,12 +1,15 @@
 import { ClosedTabDTO, ClosedTabsViewModel } from '../../viewModel/closedTabsViewModel';
 import { OpenTabDTO, OpenTabsViewModel, OpenTabWindowDTO } from '../../viewModel/openTabsViewModel';
+import { HistoryViewModel } from '../../viewModel/historyViewModel';
+import { HistoryCard } from './historyCard';
+import {
+  buildLogRow, buildOffNotice, favicon, keptMark, LogRowWording, rowButton, saveAsLink
+} from './sidePanelRows';
 import { PRIVACY_CATEGORY } from '../../viewModel/settingsViewModel';
 import { SettingsDialog } from './settingsDialog';
-import { BookmarkForm } from './bookmarkForm';
-import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
-import { confirmDestructiveAction, showNotice } from './confirmations';
+import { confirmDestructiveAction } from './confirmations';
 import { t } from '../../i18n/i18n';
-import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { ICON } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
 import { ObservableValue } from '../../utils/observableValue';
 import {
@@ -20,6 +23,18 @@ export interface CardPreference {
   set(card: SidePanelCard): Promise<void>;
 }
 
+const CLOSED_TAB_WORDING: LogRowWording = {
+  rowTooltip: 'closedTabs.rowTooltip',
+  happenedOn: 'closedTabs.closedOn',
+  alreadySaved: 'closedTabs.alreadySaved',
+  saveAsLink: 'closedTabs.saveAsLink',
+  forgetOne: 'closedTabs.forgetOne'
+};
+
+/** The cards in the order the switcher offers them, with the catalogue file naming each. */
+const CARDS: ReadonlyArray<[SidePanelCard, string]> =
+  [['open', 'openTabs'], ['closed', 'closedTabs'], ['history', 'history']];
+
 const deviceCardPreference: CardPreference = {
   get: () => devicePreferencesRepository.getSidePanelCard(),
   set: card => devicePreferencesRepository.setSidePanelCard(card)
@@ -28,8 +43,9 @@ const deviceCardPreference: CardPreference = {
 /**
  * The side panel: recently closed tabs, and the tabs open in this browser.
  *
- * **Two cards, one shown at a time**, chosen with a switcher under the head and remembered per
- * device. One list at full height rather than two stacked at half: either list can run to
+ * **Three cards, one shown at a time** - open tabs, closed tabs and the browsing history -
+ * chosen with a switcher under the head and remembered per device. The history card is its own
+ * module (`historyCard.ts`); the rows all three draw are in `sidePanelRows.ts`. One list at full height rather than two stacked at half: either list can run to
  * hundreds of rows, and the folded rail shows the favicons of whichever card is chosen, which
  * only reads as something when they are all one kind of thing. The closed tabs card is what
  * the panel showed before it had a second one, and is the default.
@@ -72,6 +88,7 @@ export class ClosedTabsPanel {
   private readonly viewModel: ClosedTabsViewModel;
   private readonly openTabs: OpenTabsViewModel;
   private readonly cardPreference: CardPreference;
+  private readonly history: HistoryCard;
 
   private panelEl: HTMLElement | null = null;
   private titleEl: HTMLElement | null = null;
@@ -112,17 +129,23 @@ export class ClosedTabsPanel {
    *                  asked each time rather than once, so a changed setting needs no reload
    * @param openTabs  supplies the open tabs card and acts on it; injectable for testing
    * @param cardPreference where the chosen card is remembered; injectable for testing
+   * @param history   supplies the browsing history card; injectable for testing
    */
   constructor(
       viewModel: ClosedTabsViewModel = new ClosedTabsViewModel(),
       openDelay: () => number = () => devicePreferencesRepository.getClosedTabsOpenDelay(),
       openTabs: OpenTabsViewModel = new OpenTabsViewModel(),
-      cardPreference: CardPreference = deviceCardPreference
+      cardPreference: CardPreference = deviceCardPreference,
+      history: HistoryViewModel = new HistoryViewModel()
   ) {
     this.viewModel = viewModel;
     this.openDelay = openDelay;
     this.openTabs = openTabs;
     this.cardPreference = cardPreference;
+    this.history = new HistoryCard(
+      history,
+      () => this.finishErrand(),
+      recording => this.panelEl?.classList.toggle('closed-tabs--history-off', !recording));
   }
 
   /**
@@ -150,6 +173,7 @@ export class ClosedTabsPanel {
 
     await this.viewModel.initialize();
     await this.openTabs.initialize();
+    await this.history.initialize();
   }
 
   /** Whether the panel is being held open by the button. */
@@ -312,6 +336,7 @@ export class ClosedTabsPanel {
     this.unsubscribeOpenTabs = null;
     this.viewModel.dispose();
     this.openTabs.dispose();
+    this.history.dispose();
     this.panelEl?.remove();
     this.panelEl = null;
     this.titleEl = null;
@@ -356,6 +381,7 @@ export class ClosedTabsPanel {
 
     head.appendChild(title);
     head.appendChild(clearBtn);
+    head.appendChild(this.history.clearEl);
     head.appendChild(pinBtn);
     panel.appendChild(head);
     panel.appendChild(this.buildCardSwitcher());
@@ -368,20 +394,27 @@ export class ClosedTabsPanel {
     this.listEl.classList.add('closed-tabs__list', 'closed-tabs__list--closed');
     panel.appendChild(this.listEl);
 
-    this.offEl = this.buildOffNotice();
+    // What the panel says while the profile does not record closed tabs. The panel stays
+    // rather than going away - a rail that vanished would leave nothing to say where it went.
+    this.offEl = buildOffNotice(
+      t('closedTabs.off.message'),
+      t('closedTabs.off.openSettings'),
+      () => new SettingsDialog().show(PRIVACY_CATEGORY));
     panel.appendChild(this.offEl);
+
+    panel.appendChild(this.history.listEl);
+    panel.appendChild(this.history.offEl);
 
     return panel;
   }
 
-  /** The two buttons that choose between the cards, open tabs first as the browser has them. */
+  /** The buttons that choose between the cards, open tabs first as the browser has them. */
   private buildCardSwitcher(): HTMLElement {
     const switcher = document.createElement('div');
     switcher.classList.add('closed-tabs__cards');
     switcher.setAttribute('role', 'group');
 
-    const cards: Array<[SidePanelCard, string]> = [['open', 'openTabs'], ['closed', 'closedTabs']];
-    for (const [card, wording] of cards) {
+    for (const [card, wording] of CARDS) {
       const button = document.createElement('button');
       button.type = 'button';
       button.classList.add('closed-tabs__card');
@@ -408,34 +441,11 @@ export class ClosedTabsPanel {
     if (!this.panelEl) return;
     this.panelEl.dataset.card = card;
     if (this.titleEl) {
-      this.titleEl.textContent = t(card === 'open' ? 'openTabs.title' : 'closedTabs.title');
+      const wording = CARDS.find(([key]) => key === card)?.[1] ?? 'closedTabs';
+      this.titleEl.textContent = t(`${wording}.title`);
     }
     this.cardButtons.forEach((button, key) =>
       button.setAttribute('aria-pressed', String(key === card)));
-  }
-
-  /**
-   * What the panel says while the profile does not record closed tabs: that it is off, and
-   * where it is turned back on. The panel stays rather than going away - a rail that vanished
-   * would leave nothing to say what happened to it.
-   */
-  private buildOffNotice(): HTMLElement {
-    const notice = document.createElement('div');
-    notice.classList.add('closed-tabs__off');
-
-    const message = document.createElement('p');
-    message.classList.add('closed-tabs__off-message');
-    message.textContent = t('closedTabs.off.message');
-
-    const open = document.createElement('button');
-    open.type = 'button';
-    open.classList.add('closed-tabs__off-action');
-    open.textContent = t('closedTabs.off.openSettings');
-    open.addEventListener('click', () => new SettingsDialog().show(PRIVACY_CATEGORY));
-
-    notice.appendChild(message);
-    notice.appendChild(open);
-    return notice;
   }
 
   /** Swaps the list for the notice, and back, as recording is turned off and on. */
@@ -455,7 +465,13 @@ export class ClosedTabsPanel {
       return;
     }
 
-    tabs.forEach(tab => this.listEl!.appendChild(this.buildRow(tab)));
+    tabs.forEach(tab => this.listEl!.appendChild(buildLogRow(tab, CLOSED_TAB_WORDING, {
+      open: () => {
+        this.viewModel.reopen(tab.id);
+        this.finishErrand();
+      },
+      forget: () => void this.viewModel.forget(tab.id)
+    })));
   }
 
   private drawOpenTabs(windows: OpenTabWindowDTO[]): void {
@@ -496,8 +512,7 @@ export class ClosedTabsPanel {
         return;
       }
       void this.openTabs.activate(tab.id);
-      this.setPinned(false);
-      this.setOpen(false);
+      this.finishErrand();
     });
 
     // The same payload a closed tab carries: what it makes on the other side is a new link,
@@ -517,180 +532,26 @@ export class ClosedTabsPanel {
     actions.classList.add('closed-tabs__row-actions');
 
     if (tab.bookmarked) {
-      actions.appendChild(this.keptMark(t('openTabs.alreadySaved')));
+      actions.appendChild(keptMark(t('openTabs.alreadySaved')));
     }
+    actions.appendChild(rowButton(ICON.ADD, 'add', t('openTabs.saveAsLink'),
+      () => void saveAsLink(tab)));
+    actions.appendChild(rowButton(ICON.DELETE, 'danger', t('openTabs.closeTab'),
+      () => void this.openTabs.close(tab.id)));
 
-    const addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.classList.add('closed-tabs__row-action', 'add');
-    addBtn.textContent = ICON.ADD;
-    addBtn.title = t('openTabs.saveAsLink');
-    addBtn.addEventListener('click', () => void this.addAsLink(tab));
-
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.classList.add('closed-tabs__row-action', 'danger');
-    closeBtn.textContent = ICON.DELETE;
-    closeBtn.title = t('openTabs.closeTab');
-    closeBtn.addEventListener('click', () => void this.openTabs.close(tab.id));
-
-    actions.appendChild(addBtn);
-    actions.appendChild(closeBtn);
-
-    row.appendChild(this.favicon(tab.faviconUrl));
-    row.appendChild(text);
-    row.appendChild(actions);
-    return row;
-  }
-
-  private favicon(url: string | undefined): HTMLImageElement {
-    const icon = document.createElement('img');
-    icon.classList.add('closed-tabs__favicon');
-    icon.width = 16;
-    icon.height = 16;
-    icon.alt = '';
-    icon.src = url ?? '/gfx/favicon-default.svg';
-    icon.addEventListener('error', () => { icon.src = '/gfx/favicon-default.svg'; });
-    return icon;
-  }
-
-  /**
-   * Already kept somewhere in this profile. A mark rather than a hidden row: the tab is still
-   * there, and knowing it is already saved is the useful half of that.
-   */
-  private keptMark(title: string): HTMLElement {
-    const kept = document.createElement('span');
-    kept.classList.add('closed-tabs__kept');
-    kept.textContent = ICON.CHECKED;
-    kept.title = title;
-    return kept;
-  }
-
-  private buildRow(tab: ClosedTabDTO): HTMLElement {
-
-    const row = document.createElement('div');
-    row.classList.add('closed-tabs__row');
-    row.title = t('closedTabs.rowTooltip', { url: tab.url });
-
-    // The whole row reopens the tab, not only its text. Folded, the rail shows nothing but the
-    // favicons - the text is not drawn at all - so a row that only answered to its text was a
-    // column of icons that did nothing when clicked. The text stays a button, so a keyboard
-    // can still reach it; its click bubbles here. The "+" and "x" are their own business.
-    row.addEventListener('click', event => {
-      if ((event.target as HTMLElement | null)?.closest('.closed-tabs__row-actions')) {
-        return;
-      }
-      this.viewModel.reopen(tab.id);
-      // Opening one is the end of the errand. Deleting one or saving one is not, so those
-      // leave the panel where it is.
-      this.setPinned(false);
-      this.setOpen(false);
-    });
-
-    // Draggable out of the panel and onto a group, a subgroup or a place between two links.
-    // It carries its address and title rather than only an identifier, because what it makes
-    // over there is a new link: nothing in the workspace can look a closed tab up, and
-    // nothing should have to reach into this panel to do it.
-    makeDraggable(row, {
-      kind: 'panelTab',
-      id: tab.id,
-      url: tab.url,
-      title: tab.title
-    });
-
-    const icon = this.favicon(tab.faviconUrl);
-
-    const text = document.createElement('button');
-    text.type = 'button';
-    text.classList.add('closed-tabs__text');
-
-    const title = document.createElement('span');
-    title.classList.add('closed-tabs__row-title');
-    title.textContent = tab.title;
-
-    const meta = document.createElement('span');
-    meta.classList.add('closed-tabs__meta');
-    meta.textContent = tab.when;
-    // The exact date makes the line long enough to be ellipsised in a narrow panel, and the
-    // part cut off is the part asked for.
-    meta.title = tab.when;
-
-    text.appendChild(title);
-    text.appendChild(meta);
-
-    // A line of its own rather than a tail on the time: the rail is narrow, and two facts
-    // sharing one line means the second is the one that gets ellipsised away. Drawn only when
-    // the tab was closed somewhere else - see the view model, which decides that.
-    if (tab.elsewhere) {
-      const device = document.createElement('span');
-      device.classList.add('closed-tabs__device');
-      device.textContent = tab.elsewhere;
-      device.title = t('closedTabs.closedOn', { device: tab.elsewhere });
-      text.appendChild(device);
-    }
-
-    const actions = document.createElement('div');
-    actions.classList.add('closed-tabs__row-actions');
-
-    if (tab.bookmarked) {
-      actions.appendChild(this.keptMark(t('closedTabs.alreadySaved')));
-    }
-
-    const addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.classList.add('closed-tabs__row-action', 'add');
-    addBtn.textContent = ICON.ADD;
-    addBtn.title = t('closedTabs.saveAsLink');
-    addBtn.addEventListener('click', () => void this.addAsLink(tab));
-
-    const forgetBtn = document.createElement('button');
-    forgetBtn.type = 'button';
-    forgetBtn.classList.add('closed-tabs__row-action', 'danger');
-    forgetBtn.textContent = ICON.DELETE;
-    forgetBtn.title = t('closedTabs.forgetOne');
-    forgetBtn.addEventListener('click', () => void this.viewModel.forget(tab.id));
-
-    actions.appendChild(addBtn);
-    actions.appendChild(forgetBtn);
-
-    row.appendChild(icon);
+    row.appendChild(favicon(tab.faviconUrl));
     row.appendChild(text);
     row.appendChild(actions);
     return row;
   }
 
   /**
-   * Keeps a closed or an open tab as a link.
-   *
-   * The bookmarking form again, in a dialog rather than in the popup window it was written
-   * for: it is the same question - which group, which subgroup, under what name - and asking
-   * it a second way here would be a second thing to keep working.
+   * Opening something from the panel is the end of the errand it was opened for. Deleting one
+   * or saving one is not, so those leave the panel where it is.
    */
-  private async addAsLink(tab: { url: string; title: string; faviconUrl?: string }): Promise<void> {
-
-    const viewModel = new BookmarkViewModel();
-    if (!viewModel.canBookmark()) {
-      await showNotice(
-        t('closedTabs.nowhereToPut.title'),
-        t('closedTabs.nowhereToPut.message'));
-      return;
-    }
-
-    const dialog = document.createElement('dialog');
-    dialog.classList.add('input-dialog', 'closed-tabs__dialog');
-    document.body.appendChild(dialog);
-    dialog.showModal();
-    toggleOverlay(true);
-
-    const form = new BookmarkForm(
-      { url: tab.url, title: tab.title, favIconUrl: tab.faviconUrl },
-      viewModel);
-
-    await form.render(dialog);
-
-    toggleOverlay(false);
-    dialog.close();
-    dialog.remove();
+  private finishErrand(): void {
+    this.setPinned(false);
+    this.setOpen(false);
   }
 
   /** Forgets everything, once, after asking. */
