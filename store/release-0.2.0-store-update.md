@@ -134,34 +134,79 @@ policy and the privacy policy. Store limit is 16 000 characters; both are well u
 ```
 A new tab that finally does something useful.
 
-Tabilinks replaces the empty new tab page with your own links, organised as Profile > Workspace > Group > Subgroup > Link - plus your open tabs, recently closed tabs and, if you want it, your browsing history, in a panel on the right.
+Tabilinks replaces the empty new tab page with your own links, organised into a logical hierarchical structure of Workspaces, their Groups and optional Subgroups, all within switchable Profiles.
+
+As a bonus, the history of visited pages, recently closed tabs and the list of currently open tabs - all accessible without a single click: just hover the mouse over the panel on the right side.
+
+Of course, everything mentioned can be backed up and synchronised across all your browsers and devices.
 
 WHO IT IS FOR
+
 • People with many bookmarks who want order rather than another wall of speed-dial tiles
 • People who work in more than one browser or on more than one computer
 • People who want to save a page in two clicks and find it again in one
+• People who value privacy and want to decide what is tracked and what is not
+• People looking for a bookmarks solution that is simple, fast and not bloated with unnecessary widgets and over-engineered functions and configurations
 
 WHY TABILINKS
-• A real hierarchy: profiles for roles (work, home), workspaces for topics, groups and subgroups for the links
-• Works in every Chromium browser and syncs between them - Chrome, Brave, Edge and others - with a free account
-• Works fully without any account too: nothing reaches our servers until you sign in
-• The free version is complete; premium mainly lifts limits and removes a small banner
-• No widgets, notes or to-do lists - just links and tabs, made fast
-• Made by an independent developer; your data is never sold or used for advertising
 
-WHAT IT DOES
-• Drag and drop links, subgroups and whole groups; drop a link in the trash to delete it
-• Open a whole subgroup at once as a coloured Chrome tab group; links opened later can join it automatically
-• Save the page you are on from the right-click menu straight into a group, or with the toolbar button or Alt+Shift+D
-• Side panel with three cards: Open tabs (this browser only), Closed tabs, and History of visited pages, grouped by day - reopen, close or drag any of them into a group
-• Search bar using your browser's default engine, or Google, DuckDuckGo or Bing
-• English and Slovak, adjustable size, dates in your local format
+• A real hierarchy:
+  - profiles meant for roles (work, home)
+  - workspaces for topics
+  - groups and subgroups for categories of links within that topic
+• Compatibility:
+  - works in every Chromium browser and syncs between them - Chrome, Brave, Edge and others - with a free account
+• Privacy:
+  - works fully without any account too: nothing reaches our servers until you sign in
+  - you choose what to track and sync
+• Fairness:
+  - the free version is complete - premium mainly lifts limits and removes a small banner
+  - 95% of users should never reach the free limits
+  - no hidden traps forcing you to give in and buy premium
+• Only useful functions:
+  - no widgets, notes, to-do lists, clocks, weather or other fluff that is everywhere
+• Independent developer:
+  - who is aware of what evil corporations do - but from this garage your data is not going anywhere
+
+WHAT PROBLEMS IT SOLVES, WHY TABILINKS IS UNIQUE
+
+• Unused or useless space on the new tab page of most browsers
+• Bookmarks in most browsers:
+  - take long to save and even longer to find
+  - are even harder to organise
+  - Tabilinks inverts this logic and makes saving fast and reaching even faster
+• Most extensions like this are some kind of "Opera Speed Dial" tiles
+• Some good extensions with a hierarchy and syncing are pricey and bloated with fluff like to-do lists, notes, clocks, weather, ...
+• Includes the functionality of a simple tab group manager too:
+  - put links inside a subgroup and they are always caught into that subgroup's tab group
+• Batch link opening:
+  - open all links of a subgroup at once
 
 FREE AND PREMIUM
-Free: 1 profile, 2 workspaces, 5 synced installations, 25 closed tabs, 50 history entries, a small banner at the bottom. Premium: practically unlimited under the fair use policy (https://tabilinks.app/fair-use), no banner, your own background picture.
+
+FREE VERSION:
+- UNLIMITED* number of links
+- 1 profile
+- 2 workspaces
+- 5 synced installations
+- memory for the last 25 closed tabs
+- memory for the last 50 history entries
+- a small banner at the bottom
+
+PREMIUM VERSION:
+- practically UNLIMITED*
+- no banner at the bottom
+- your own background image
+
+*UNLIMITED under the fair use policy (https://tabilinks.app/fair-use)
+- generous limits: we expect 99.99% of users never to reach them
+- if you somehow do, write to us and explain your use case so we can make it work for you
 
 PRIVACY
+
 Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Privacy, which also deletes them. With an account, your links, closed tabs and (if on) history are stored to sync them. Full policy: https://tabilinks.app/privacy
+
+OTHER
 
 How Tabilinks compares with other new tab extensions: https://tabilinks.app/compare
 Website: https://tabilinks.app
@@ -172,34 +217,79 @@ Website: https://tabilinks.app
 ```
 Nová karta, ktorá konečne k niečomu je.
 
-Tabilinks nahradí prázdnu novú kartu vašimi odkazmi, usporiadanými ako Profil > Pracovný priestor > Skupina > Podskupina > Odkaz - a k tomu v paneli vpravo otvorené karty, nedávno zatvorené karty a, ak chcete, aj históriu prehliadania.
+Tabilinks nahradí prázdnu novú kartu vašimi vlastnými odkazmi, usporiadanými do logickej hierarchickej štruktúry: pracovné priestory, v nich skupiny a voliteľné podskupiny, a to všetko v rámci prepínateľných profilov.
+
+Ako bonus história navštívených stránok, nedávno zatvorené karty a zoznam práve otvorených kariet - všetko dostupné bez jediného kliknutia: stačí prejsť myšou nad panel na pravej strane.
+
+Samozrejme, všetko spomenuté sa dá zálohovať a synchronizovať naprieč všetkými vašimi prehliadačmi a zariadeniami.
 
 PRE KOHO JE
+
 • Pre ľudí s množstvom záložiek, ktorí chcú poriadok, nie ďalšiu stenu dlaždíc rýchlej voľby
 • Pre ľudí, ktorí pracujú vo viacerých prehliadačoch alebo na viacerých počítačoch
 • Pre ľudí, ktorí chcú stránku uložiť na dva kliky a nájsť ju na jeden
+• Pre ľudí, ktorým záleží na súkromí a chcú sami rozhodnúť, čo sa bude zaznamenávať a čo nie
+• Pre ľudí, ktorí hľadajú jednoduché a rýchle riešenie záložiek, nezahltené zbytočnými widgetmi a prekomplikovanými funkciami a nastaveniami
 
 PREČO TABILINKS
-• Skutočná hierarchia: profily pre role (práca, domov), pracovné priestory pre témy, skupiny a podskupiny pre odkazy
-• Funguje vo všetkých prehliadačoch na Chromiu a synchronizuje medzi nimi - Chrome, Brave, Edge a ďalšie - s bezplatným účtom
-• Funguje aj úplne bez účtu: kým sa neprihlásite, na naše servery sa nič nedostane
-• Bezplatná verzia je kompletná; premium hlavne zvyšuje limity a odstraňuje malý banner
-• Žiadne widgety, poznámky ani zoznamy úloh - len odkazy a karty, a rýchlo
-• Vytvára ho nezávislý vývojár; vaše dáta nikdy nepredávame ani nepoužívame na reklamu
 
-ČO TO VIE
-• Odkazy, podskupiny aj celé skupiny presúvate myšou; odkaz pustený do koša sa vymaže
-• Celú podskupinu otvoríte naraz ako farebnú skupinu kariet Chromu; neskôr otvorené odkazy sa k nej môžu pridať samy
-• Stránku, na ktorej ste, uložíte z menu pravého tlačidla rovno do skupiny, alebo tlačidlom na lište či Alt+Shift+D
-• Bočný panel s tromi kartami: Otvorené karty (len tento prehliadač), Zatvorené karty a História navštívených stránok po dňoch - každú znova otvoríte, zavriete alebo presuniete do skupiny
-• Vyhľadávanie cez predvolený vyhľadávač prehliadača, alebo Google, DuckDuckGo či Bing
-• Slovenčina a angličtina, nastaviteľná veľkosť, dátumy v miestnom formáte
+• Skutočná hierarchia:
+  - profily pre role (práca, domov)
+  - pracovné priestory pre témy
+  - skupiny a podskupiny pre kategórie odkazov v rámci témy
+• Kompatibilita:
+  - funguje vo všetkých prehliadačoch na Chromiu a s bezplatným účtom sa medzi nimi synchronizuje - Chrome, Brave, Edge a ďalšie
+• Súkromie:
+  - funguje úplne aj bez účtu: kým sa neprihlásite, na naše servery sa nič nedostane
+  - sami si vyberiete, čo sa bude zaznamenávať a synchronizovať
+• Férovosť:
+  - bezplatná verzia je kompletná - premium hlavne zvyšuje limity a odstraňuje malý banner
+  - 95 % používateľov by na limity bezplatnej verzie nemalo nikdy naraziť
+  - žiadne skryté pasce, ktoré by vás nútili vzdať sa a kúpiť premium
+• Len užitočné funkcie:
+  - žiadne widgety, poznámky, zoznamy úloh, hodiny, počasie ani iná vata, ktorá je všade
+• Nezávislý vývojár:
+  - ktorý vie, čo robia zlé korporácie - ale z tejto garáže vaše dáta nikam nejdú
+
+ČO RIEŠI A PREČO JE TABILINKS JEDINEČNÝ
+
+• Nevyužité alebo zbytočné miesto na novej karte väčšiny prehliadačov
+• Záložky vo väčšine prehliadačov:
+  - uložiť ich trvá dlho a nájsť ešte dlhšie
+  - usporiadať ich je ešte ťažšie
+  - Tabilinks túto logiku obracia: ukladanie je rýchle a otvorenie ešte rýchlejšie
+• Väčšina podobných rozšírení sú len nejaké dlaždice v štýle „Opera Speed Dial“
+• Niektoré dobré rozšírenia s hierarchiou a synchronizáciou sú drahé a preplnené vatou ako zoznamy úloh, poznámky, hodiny, počasie...
+• Obsahuje aj funkcie jednoduchého správcu skupín kariet:
+  - vložte odkazy do podskupiny a tá ich vždy zachytí do svojej skupiny kariet
+• Hromadné otváranie odkazov:
+  - otvorte všetky odkazy podskupiny naraz
 
 ZADARMO A PREMIUM
-Zadarmo: 1 profil, 2 pracovné priestory, 5 synchronizovaných inštalácií, 25 zatvorených kariet, 50 záznamov histórie, malý banner v spodnej časti. Premium: prakticky bez limitov podľa zásad primeraného používania (https://tabilinks.app/sk/fair-use), bez bannera, vlastný obrázok na pozadí.
+
+BEZPLATNÁ VERZIA:
+- NEOBMEDZENÝ* počet odkazov
+- 1 profil
+- 2 pracovné priestory
+- 5 synchronizovaných inštalácií
+- pamäť na posledných 25 zatvorených kariet
+- pamäť na posledných 50 záznamov histórie
+- malý banner v spodnej časti
+
+PREMIUM VERZIA:
+- prakticky všetko NEOBMEDZENÉ*
+- bez bannera v spodnej časti
+- vlastný obrázok na pozadí
+
+*NEOBMEDZENÉ v rámci zásad primeraného používania (https://tabilinks.app/sk/fair-use)
+- štedré limity: očakávame, že 99,99 % používateľov na ne nikdy nenarazí
+- ak ich predsa dosiahnete, napíšte nám a vysvetlite svoj prípad, aby sme to pre vás vyriešili
 
 SÚKROMIE
+
 Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Súkromie, čím sa aj vymaže. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať. Celé zásady: https://tabilinks.app/sk/privacy
+
+ĎALŠIE
 
 Porovnanie Tabilinks s inými rozšíreniami novej karty: https://tabilinks.app/sk/compare
 Web: https://tabilinks.app/sk
