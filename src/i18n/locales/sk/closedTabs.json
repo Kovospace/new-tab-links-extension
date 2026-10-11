@@ -1,6 +1,8 @@
 {
   "railTooltip": "Nedávno zavreté karty",
   "title": "Nedávno zavreté",
+  "card": "Zatvorené",
+  "cardTooltip": "Nedávno zatvorené karty",
   "forgetAll": "Zabudnúť všetky zavreté karty",
   "closePanel": "Zavrieť panel",
   "empty": "Zatiaľ nič zavreté. Karty, ktoré zavriete, sa objavia tu.",

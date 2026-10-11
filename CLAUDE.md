@@ -288,6 +288,16 @@ page. Widening narrows the link columns instead of covering them - a floating pa
 cannot drag a link underneath, and one anchored to the top of the window covers the header's
 own buttons.
 
+**It has two cards, one shown at a time**: the tabs open in this browser
+(`viewModel/openTabsViewModel.ts`) and the recently closed ones, chosen with a switcher under
+the head and remembered per device (`sidePanelCard`, closed by default). Which list, notice and
+Clear button show is the stylesheet's, keyed off `data-card` on the panel, so the folded rail
+shows the chosen card's favicons alone. **The open tabs are this browser's only and are never
+stored or synchronised** - read from `chrome.tabs` on load and again, debounced, on every tab
+event; other devices' open tabs were considered and dropped as too much for what they show.
+Listed as the tab strip has them, window by window, this window first, with a heading per
+window only when there is more than one. A click switches to the tab, the "x" closes it.
+
 **Opening is decided from the pointer's position, not by `:hover`.** Hover gives up the moment
 the pointer crosses onto the scrollbar or the gap beside it, which is exactly where somebody
 reaching for the list is about to be. The rule is: at or right of the panel's left edge, *and*
@@ -499,8 +509,8 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   padding-less parent the strip is outside that parent altogether, so there is nothing under
   the cursor for a drop to bubble out of. A gap is inside the box that declares it, so every
   pixel between a heading and its description belongs to the head.
-- **A closed tab can be dragged out of the panel and dropped as a new link.** It is the one
-  payload that is not already somewhere, so it carries its address and title rather than only
+- **A closed tab, or an open one, can be dragged out of the panel and dropped as a new link**
+  (drag kind `panelTab`). It is the one payload that is not already somewhere, so it carries its address and title rather than only
   an identifier: what it makes on the other side is a new link, and nothing in the workspace
   can look a closed tab up - nor should have to reach into the panel to do it. The tab stays in
   the panel afterwards and is marked as kept; it is a record of something that happened, and it

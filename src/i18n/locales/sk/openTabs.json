@@ -1,0 +1,12 @@
+{
+  "card": "Otvorené",
+  "title": "Otvorené karty",
+  "cardTooltip": "Karty otvorené v tomto prehliadači",
+  "thisWindow": "Toto okno",
+  "window": "Okno {number}",
+  "empty": "V tomto prehliadači nie sú otvorené žiadne stránky.",
+  "rowTooltip": "{url}\nPrepnúť na túto kartu",
+  "alreadySaved": "V tomto profile už uložené",
+  "saveAsLink": "Uložiť ako odkaz",
+  "closeTab": "Zavrieť túto kartu"
+}

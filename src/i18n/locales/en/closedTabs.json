@@ -1,6 +1,8 @@
 {
   "railTooltip": "Recently closed tabs",
   "title": "Recently closed",
+  "card": "Closed",
+  "cardTooltip": "Recently closed tabs",
   "forgetAll": "Forget every closed tab",
   "closePanel": "Close the panel",
   "empty": "Nothing closed yet. Tabs you close will appear here.",

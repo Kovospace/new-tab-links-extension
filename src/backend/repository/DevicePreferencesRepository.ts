@@ -60,6 +60,24 @@ export interface DevicePreferences {
      *  pointing device, and a trackpad and a mouse want different answers.
      */
     closedTabsOpenDelay: number;
+
+    /**
+     *  Which card the side panel shows - the tabs open in this browser, or the recently closed
+     *  ones. Per device because the open tabs are this browser's alone, and a question of how
+     *  this screen is being used rather than of what the profile holds.
+     */
+    sidePanelCard: SidePanelCard;
+}
+
+/** The cards the side panel can show, one at a time. */
+export type SidePanelCard = "open" | "closed";
+
+/** Closed tabs, which is what the panel showed before it had a second card. */
+export const DEFAULT_SIDE_PANEL_CARD: SidePanelCard = "closed";
+
+/** The card a stored value names, or the default for anything this version does not know. */
+export function normalizeSidePanelCard(value?: string | null): SidePanelCard {
+    return value === "open" || value === "closed" ? value : DEFAULT_SIDE_PANEL_CARD;
 }
 
 /** The size an interface nobody has resized is drawn at: the browser's own. */
@@ -92,7 +110,8 @@ const DEFAULTS: DevicePreferences = {
     language: AUTOMATIC_LANGUAGE,
     dateFormat: DEFAULT_DATE_FORMAT,
     searchEngine: DEFAULT_SEARCH_ENGINE,
-    closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY
+    closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY,
+    sidePanelCard: DEFAULT_SIDE_PANEL_CARD
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -148,7 +167,8 @@ export class DevicePreferencesRepository {
             dateFormat: normalizeDateFormat(stored?.dateFormat),
             searchEngine: normalizeSearchEngine(stored?.searchEngine),
             closedTabsOpenDelay: normalizeClosedTabsOpenDelay(
-                stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY)
+                stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
+            sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard)
         };
         this.preferences$.set(this.preferences);
     }
@@ -193,6 +213,27 @@ export class DevicePreferencesRepository {
         }
         this.preferences = { ...this.preferences, closedTabsOpenDelay: wanted };
         this.LOG.debug("setClosedTabsOpenDelay", `${wanted}ms`);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.preferences$.set(this.preferences);
+    }
+
+    /** Which card the side panel shows. */
+    public getSidePanelCard(): SidePanelCard {
+        return this.preferences.sidePanelCard;
+    }
+
+    /**
+     *  Remembers which card the side panel shows, so the next new tab opens on it.
+     *
+     *  @param card the card chosen
+     */
+    public async setSidePanelCard(card: SidePanelCard): Promise<void> {
+        const wanted = normalizeSidePanelCard(card);
+        if (wanted === this.preferences.sidePanelCard) {
+            return;
+        }
+        this.preferences = { ...this.preferences, sidePanelCard: wanted };
+        this.LOG.debug("setSidePanelCard", wanted);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
         this.preferences$.set(this.preferences);
     }

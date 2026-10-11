@@ -51,6 +51,11 @@ export function readFakeStorage<VALUE>(key: string): VALUE | null {
     return (storedValues.get(key) as VALUE | undefined) ?? null;
 }
 
+/** An event nothing fires: listeners can be added and taken off, and are never called. */
+function silentEvent(): { addListener: () => void; removeListener: () => void } {
+    return { addListener: () => undefined, removeListener: () => undefined };
+}
+
 const chromeStub = {
     storage: {
         local: {
@@ -104,7 +109,21 @@ const chromeStub = {
         create: vi.fn(),
         // Answers with no tabs unless a test says otherwise; the bookmarking popup asks
         // which tab it is standing on.
-        query: vi.fn(async (_query: unknown) => [] as unknown[])
+        query: vi.fn(async (_query: unknown) => [] as unknown[]),
+        // What the open tabs card of the side panel reaches for. Nothing is open and nothing
+        // happens unless a test says otherwise.
+        getCurrent: vi.fn(async () => undefined),
+        update: vi.fn(async () => undefined),
+        remove: vi.fn(async () => undefined),
+        onCreated: silentEvent(),
+        onUpdated: silentEvent(),
+        onRemoved: silentEvent(),
+        onMoved: silentEvent(),
+        onAttached: silentEvent(),
+        onDetached: silentEvent()
+    },
+    windows: {
+        update: vi.fn(async () => undefined)
     },
     runtime: {
         // Only the address of a page inside the extension; the bookmarking window is opened
