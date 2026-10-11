@@ -174,5 +174,16 @@
       "en": "/tips/discover-history",
       "sk": "/sk/tips/discover-history"
     }
+  },
+  {
+    "id": "lets-begin",
+    "text": {
+      "en": "New here? A short tour of the first screen, the closed tabs on the right edge and the menus behind the three dots.",
+      "sk": "Ste tu nový? Krátka prehliadka prvej obrazovky, zavretých kariet na pravom okraji a menu za tromi bodkami."
+    },
+    "url": {
+      "en": "/tips/lets-begin",
+      "sk": "/sk/tips/lets-begin"
+    }
   }
 ]
