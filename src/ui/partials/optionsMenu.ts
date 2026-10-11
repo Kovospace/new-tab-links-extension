@@ -44,6 +44,8 @@ export type OptionsMenuAction = {
      */
     notSynced?: string,
     noBorder?: boolean,
+    /** Drawn greyed out and does nothing when picked - for an item that cannot be used yet. */
+    disabled?: boolean,
     dangerConfirmation?: string,
     separator?: false,
     onClick: () => void
@@ -183,8 +185,17 @@ export class OptionsMenu {
         if (option.active) {
             optionElem.classList.add("active");
         }
+        if (option.disabled) {
+            optionElem.classList.add("disabled");
+            optionElem.setAttribute("aria-disabled", "true");
+        }
 
-        optionElem.addEventListener('click', async () => {
+        optionElem.addEventListener('click', async (event: MouseEvent) => {
+            if (option.disabled) {
+                // Kept from bubbling too, so the menu stays open on an item that did nothing.
+                event.stopPropagation();
+                return;
+            }
             this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
             this.LOG.debug("Metadata: " + this.metadata);
             toggleOverlay(false);

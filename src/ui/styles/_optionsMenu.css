@@ -139,6 +139,14 @@ options-menu-item.active:hover {
     background-color: var(--color-button-active-background);
 }
 
+options-menu-item.disabled,
+options-menu-item.disabled:hover {
+    opacity: 0.5;
+    cursor: default;
+    color: inherit;
+    background-color: inherit;
+}
+
 options-menu-item.separator:hover {
     color: inherit;
     background-color: inherit;

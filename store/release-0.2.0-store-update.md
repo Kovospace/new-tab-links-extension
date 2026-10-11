@@ -8,12 +8,23 @@ Everything to change for the 0.2.0 upload, gathered from four board tasks:
 | [frontend#52](https://github.com/Kovospace/new-tab-links-frontend/issues/52) | Closed tabs can now be turned off (#72) |
 | [frontend#54](https://github.com/Kovospace/new-tab-links-frontend/issues/54) | The open tabs card (#73) - local only |
 | [frontend#55](https://github.com/Kovospace/new-tab-links-frontend/issues/55) | Marketing texts: shorter, aligned with the website, AI-readable, links incl. the comparison |
+| [extension#80](https://github.com/Kovospace/new-tab-links-extension/issues/80) | Sync can be switched off per browser while signed in; premium re-checked and probed when blocked |
 
 What 0.2.0 adds, for reference: a side panel with three cards - **Open** tabs of this browser
 (never leave it), **Closed** tabs (recorded by default, can be turned off) and **History** of
 visited pages (off by default; 50 free / 1000 premium; synced when on) - and a new
 **Settings → Privacy** section holding both switches. Turning either off deletes what it
-recorded, here and on the account. Plus the exact time beside "X ago" (#75).
+recorded, here and on the account. Plus the exact time beside "X ago" (#75). And (#80) a
+"Synchronise this browser" checkbox in every sign-in dialog and in the account menu: signed in
+without synchronising, nothing is pushed or pulled, premium still applies.
+
+**#80 and the privacy policy.** Add to "What we process when you have an account": *"You can
+sign in without synchronising ("Synchronise this browser" unticked). Then only your sign-in,
+the device name and whether your account is premium are exchanged with us; your links, closed
+tabs and history stay in the browser."* And to the technical section: *"If our servers cannot be
+reached for a long time while you are premium, the extension checks whether the internet works
+by requesting https://www.gstatic.com/generate_204 and https://1.1.1.1/cdn-cgi/trace; nothing
+about you is sent, and it never happens while the account answers."* Slovak the same.
 
 **What does not change:** the manifest's permissions. Nothing new is requested, so users get
 no re-consent prompt and the extension is not disabled on update - which is exactly why the
@@ -204,7 +215,7 @@ PREMIUM VERSION:
 
 PRIVACY
 
-Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Privacy, which also deletes them. With an account, your links, closed tabs and (if on) history are stored to sync them. Full policy: https://tabilinks.app/privacy
+Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Privacy, which also deletes them. With an account, your links, closed tabs and (if on) history are stored to sync them - unless you untick "Synchronise this browser" when signing in or in the menu, which keeps everything on this browser while premium still applies. Full policy: https://tabilinks.app/privacy
 
 OTHER
 
@@ -287,7 +298,7 @@ PREMIUM VERZIA:
 
 SÚKROMIE
 
-Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Súkromie, čím sa aj vymaže. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať. Celé zásady: https://tabilinks.app/sk/privacy
+Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Súkromie, čím sa aj vymaže. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať - pokiaľ pri prihlásení alebo v menu nezrušíte „Synchronizovať tento prehliadač“; vtedy všetko zostane v tomto prehliadači a premium aj tak platí. Celé zásady: https://tabilinks.app/sk/privacy
 
 ĎALŠIE
 
@@ -330,7 +341,7 @@ The panel on the right edge opens when the pointer rests on it. It has three car
 To test synchronisation, sign in from the menu with this test account:
   username: <reviewer account>
   password: <password>
-Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there.
+Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in dialog has a "Synchronise this browser" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised. The same switch is the status line in the menu.
 
 The banner at the bottom is our own premium offer, loaded from https://tabilinks.app/slot/workspace-footer.html.
 ```

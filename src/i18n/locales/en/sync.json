@@ -11,7 +11,8 @@
     "working": "Synchronising...",
     "offline": "Offline - changes will be sent later",
     "idle": "Synchronised",
-    "fairUseLimit": "Not synchronised: {reason}"
+    "fairUseLimit": "Not synchronised: {reason}",
+    "off": "Synchronisation off"
   },
   "logInDialog": {
     "title": "Log in",

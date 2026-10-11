@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-    AccountStanding, AccountStandingRepository, STANDING_MAX_AGE_MS
+    AccountStanding, AccountStandingRepository, BLOCKED_GRACE_MS, STANDING_MAX_AGE_MS,
+    UNREACHABLE_GRACE_MS
 } from "../../../src/backend/sync/AccountStandingRepository";
+import { Unreachability } from "../../../src/backend/sync/ReachabilityProbe";
+import { defaultPlanLimits } from "../../../src/backend/entity/PlanLimits";
 import { ApiResult, MyAccountDto } from "../../../src/backend/sync/BackendApiClient";
 import { SyncSession } from "../../../src/backend/sync/SessionRepository";
 import { ACCOUNT_STANDING_KEY } from "../../../src/backend/datasource/chromeStorage/storageKeys";
@@ -23,12 +26,18 @@ let answer: ApiResult<MyAccountDto>;
 let asked: number;
 let clock: number;
 let session$: ObservableValue<SyncSession | null>;
+/** What the reachability probe finds, and how often it was sent. */
+let diagnosis: Unreachability;
+let probed: number;
 
 function repository(): AccountStandingRepository {
     return new AccountStandingRepository(
         { getMyAccount: async () => { asked++; return answer; } },
         { session$, getSession: () => session$.get() },
-        () => clock
+        () => clock,
+        new ObservableValue<boolean>(false),
+        new ObservableValue(defaultPlanLimits(false)),
+        { diagnose: async () => { probed++; return diagnosis; } }
     );
 }
 
@@ -43,6 +52,8 @@ beforeEach(() => {
     asked = 0;
     clock = 1_000_000_000;
     session$ = new ObservableValue<SyncSession | null>(null);
+    diagnosis = "offline";
+    probed = 0;
 });
 
 describe("AccountStandingRepository", () => {
@@ -160,5 +171,134 @@ describe("AccountStandingRepository", () => {
         await settle();
 
         expect(nextTab.premium$.get()).toBe(true);
+    });
+
+    /**
+     *  The console forgery: `premium: true` dated in the future. An age below zero is never
+     *  "old enough", so the account was never asked again.
+     */
+    it("asks again about an answer dated in the future", async () => {
+        session$.set(session("u1"));
+        seedFakeStorage(ACCOUNT_STANDING_KEY,
+            { userId: "u1", premium: true, checkedAt: clock + 365 * 24 * 60 * MINUTE } satisfies AccountStanding);
+        answer = premium(false);
+
+        const standing = repository();
+        await standing.init();
+        await settle();
+
+        expect(asked).toBe(1);
+        expect(standing.premium$.get()).toBe(false);
+    });
+
+    /** A page left open for days - a pinned tab - with nothing else asking. */
+    it("asks again from a poll once the answer it holds grows stale", async () => {
+        session$.set(session("u1"));
+        answer = premium(true);
+        const standing = repository();
+        await standing.init();
+        await settle();
+        expect(asked).toBe(1);
+
+        clock += STANDING_MAX_AGE_MS - MINUTE;
+        await standing.poll();
+        expect(asked).toBe(1);
+
+        answer = premium(false);
+        clock += 2 * MINUTE;
+        await standing.poll();
+        expect(asked).toBe(2);
+        expect(standing.premium$.get()).toBe(false);
+    });
+
+    it("takes the answer another page stored instead of asking itself", async () => {
+        session$.set(session("u1"));
+        answer = premium(false);
+        const standing = repository();
+        await standing.init();
+        await settle();
+
+        clock += STANDING_MAX_AGE_MS;
+        seedFakeStorage(ACCOUNT_STANDING_KEY,
+            { userId: "u1", premium: true, checkedAt: clock } satisfies AccountStanding);
+        await standing.poll();
+
+        expect(asked).toBe(1);
+        expect(standing.premium$.get()).toBe(true);
+    });
+
+    describe("when the account does not answer", () => {
+
+        async function unconfirmedFor(duration: number): Promise<AccountStandingRepository> {
+            session$.set(session("u1"));
+            seedFakeStorage(ACCOUNT_STANDING_KEY,
+                { userId: "u1", premium: true, checkedAt: clock - duration } satisfies AccountStanding);
+            answer = { outcome: "offline", message: "offline" };
+            const standing = repository();
+            await standing.init();
+            await settle();
+            return standing;
+        }
+
+        /** Not punished for being away: corrected once online, never for being offline. */
+        it("keeps premium for a browser that is plainly offline, however long", async () => {
+            diagnosis = "offline";
+            const standing = await unconfirmedFor(90 * 24 * 60 * MINUTE);
+
+            expect(probed).toBe(1);
+            expect(standing.premium$.get()).toBe(true);
+        });
+
+        it("sends no probe at all within a day of the last confirmation", async () => {
+            diagnosis = "accountBlocked";
+            const standing = await unconfirmedFor(BLOCKED_GRACE_MS - MINUTE);
+
+            expect(probed).toBe(0);
+            expect(standing.premium$.get()).toBe(true);
+        });
+
+        it("reads premium as free after a day while our own hosts answer", async () => {
+            diagnosis = "accountBlocked";
+            const standing = await unconfirmedFor(BLOCKED_GRACE_MS);
+
+            expect(standing.premium$.get()).toBe(false);
+            // The date of the last real answer stays, so the next chance still asks.
+            expect(readFakeStorage<AccountStanding>(ACCOUNT_STANDING_KEY)).toEqual(
+                { userId: "u1", premium: false, checkedAt: clock - BLOCKED_GRACE_MS });
+        });
+
+        it("gives a week when only the rest of the internet answers - our outage, or the domain blocked", async () => {
+            diagnosis = "ourServersUnreachable";
+            const withinAWeek = await unconfirmedFor(UNREACHABLE_GRACE_MS - MINUTE);
+            expect(withinAWeek.premium$.get()).toBe(true);
+
+            const pastAWeek = await unconfirmedFor(UNREACHABLE_GRACE_MS);
+            expect(pastAWeek.premium$.get()).toBe(false);
+        });
+
+        it("is premium again the moment the account answers so", async () => {
+            diagnosis = "accountBlocked";
+            const standing = await unconfirmedFor(2 * BLOCKED_GRACE_MS);
+            expect(standing.premium$.get()).toBe(false);
+
+            answer = premium(true);
+            await standing.poll();
+            expect(standing.premium$.get()).toBe(true);
+        });
+
+        it("diagnoses at most once an hour", async () => {
+            diagnosis = "offline";
+            const standing = await unconfirmedFor(2 * BLOCKED_GRACE_MS);
+            expect(probed).toBe(1);
+
+            clock += STANDING_MAX_AGE_MS;
+            await standing.poll();
+            expect(asked).toBe(2);
+            expect(probed).toBe(1);
+
+            clock += 60 * MINUTE;
+            await standing.poll();
+            expect(probed).toBe(2);
+        });
     });
 });

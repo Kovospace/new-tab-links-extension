@@ -100,7 +100,7 @@ PREMIUM VERSION:
 
 PRIVACY
 
-Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Privacy, which also deletes them. With an account, your links, closed tabs and (if on) history are stored to sync them. Full policy: https://tabilinks.app/privacy
+Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Privacy, which also deletes them. With an account, your links, closed tabs and (if on) history are stored to sync them - unless you untick "Synchronise this browser" when signing in or in the menu, which keeps everything on this browser while premium still applies. Full policy: https://tabilinks.app/privacy
 
 OTHER
 
@@ -183,7 +183,7 @@ PREMIUM VERZIA:
 
 SÚKROMIE
 
-Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Súkromie, čím sa aj vymaže. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať. Celé zásady: https://tabilinks.app/sk/privacy
+Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Súkromie, čím sa aj vymaže. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať - pokiaľ pri prihlásení alebo v menu nezrušíte „Synchronizovať tento prehliadač“; vtedy všetko zostane v tomto prehliadači a premium aj tak platí. Celé zásady: https://tabilinks.app/sk/privacy
 
 ĎALŠIE
 

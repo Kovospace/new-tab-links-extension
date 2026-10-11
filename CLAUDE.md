@@ -148,6 +148,16 @@ Rules that are load-bearing, and easy to break by accident:
   the registry it loaded at startup would merge the old set into the new account.
   While signed out with an owned set, the workspace head shows "Signed out of {username}"
   with a log-in button; a browser whose links belong to no account never shows it.
+- **Synchronisation can be switched off per browser while staying signed in** (`syncEnabled`,
+  a device preference, on by default; #80). For `SyncCoordinator` off is the same as no session
+  (`followSessionAndSwitch`): no push, no pull, no refresh channel. The session stays, so premium
+  still applies - signing in for premium's limits alone is the case it exists for. **The choice
+  is asked in every sign-in dialog, before the tokens are stored** (`ui/partials/signInFields.ts`),
+  because storing them starts first contact, which uploads this browser's links; unticked, the
+  device name is greyed out. In the account menu the status row is the checkbox, greyed out
+  while a synchronisation runs. On again is signing back in: the baseline was kept, so what
+  changed meanwhile - deletions included - is pushed, then pulled. Every open page follows the
+  switch, since `DevicePreferencesRepository` adopts other pages' writes.
 - **`persisted$`, not `state$`, is what synchronization listens to.** `state$` is for redrawing
   and is deliberately not fired by `saveQuiet()`; subscribing to it would never synchronize a
   collapsed subgroup.
@@ -429,6 +439,17 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   draws, so no ad flashes on a premium user's tab, and asked again only after 30 minutes or
   after "Upgrade to premium" was clicked. Offline keeps the last answer; signed out, or another
   account, is not premium until asked.
+- **Premium is re-checked on a timer and is not trusted while the check looks blocked**
+  (`AccountStandingRepository`). The standing lives in `chrome.storage.local`, where the console
+  can write `premium: true`; with synchronisation off nothing else would ever correct it. So an
+  open page polls every 5 minutes and asks when the answer is 30 minutes old - or dated in the
+  future, which no real answer is. A browser that is plainly offline keeps premium however long
+  it is away. When the account does not answer and premium is unconfirmed for a day,
+  `ReachabilityProbe` asks (no-cors, nothing sent) whether the API host or the website answer -
+  if they do, the standing endpoint is being blocked and premium is read as free; if only the
+  rest of the internet does (gstatic, 1.1.1.1), it gets a week, since that is also what our
+  outage looks like. Nothing is removed by it - only growth is refused - and the next real
+  answer restores it. A modified, unpacked build defeats all of this; that is accepted.
 
 ### Tips on the workspace background (`ui/tips/`)
 

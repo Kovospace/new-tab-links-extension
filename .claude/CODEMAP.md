@@ -31,7 +31,8 @@ Keep it current: a new module or a new concern adds a row here.
 | Sync — environment values, every endpoint path, the device headers | `backend/sync/SyncConfiguration.ts` |
 | Sync — tokens, sign-in state | `backend/sync/SessionRepository.ts` |
 | Whose profiles are visible — ownership, hidden sets per account, the swap at sign-in | `backend/repository/ProfileRepository.ts` (`showAccount`, `claimFor`), `backend/sync/SyncCoordinator.ts` (`showProfilesOf`) |
-| Whether the account is premium (hides the ad slot and the upgrade offer) | `backend/sync/AccountStandingRepository.ts` |
+| Whether the account is premium (hides the ad slot and the upgrade offer); polled, and read as free when the check looks blocked | `backend/sync/AccountStandingRepository.ts`, `backend/sync/ReachabilityProbe.ts` |
+| Synchronisation switched off on this browser while signed in (`syncEnabled`), the sign-in dialogs' checkbox, the menu's status checkbox | `backend/repository/DevicePreferencesRepository.ts`, `SyncCoordinator.followSessionAndSwitch`, `ui/partials/signInFields.ts`, `viewModel/syncAccountViewModel.ts` (`setSyncEnabled`) |
 | Sync — local vs account merge rules | `backend/sync/ProfileMergeEngine.ts` |
 | Sync — what to push, deletion order | `backend/sync/ChangeSetBuilder.ts`, `backend/sync/SyncBaselineRepository.ts` |
 | Sync — snapshot → local state, id rewriting | `backend/sync/SyncSnapshotMapper.ts`, `backend/sync/LocalIdentifierNormalizer.ts` |

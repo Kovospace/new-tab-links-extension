@@ -31,6 +31,7 @@ import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 import {InputDialog} from "../partials/inputDialog";
 import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncContracts";
+import { signInDeviceFields, wantsSync } from "../partials/signInFields";
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
@@ -68,9 +69,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
 
-    // "Device name" is optional and last, so the required fields stay where the eye starts.
-    // Leaving it blank keeps the automatic label; it earns its place only for somebody running
-    // several browsers on one machine, where the automatic labels are all identical.
+    // The last two fields - synchronise, device name - are `signInDeviceFields`, shared by
+    // every sign-in dialog.
     private logInDialog: InputDialog = new InputDialog(
         t("sync.logInDialog.title"),
         {
@@ -78,11 +78,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 { type: "string", required: true, key: "usernameOrEmail" },
             [t("sync.logInDialog.password")]:
                 { type: "password", required: true, key: "password" },
-            [t("dialogs.fields.deviceName")]:
-                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
+            ...signInDeviceFields()
         },
-        ({ usernameOrEmail, password, deviceName }) =>
-            this.accountViewModel.logIn(usernameOrEmail, password, deviceName));
+        ({ usernameOrEmail, password, deviceName, synchronise }) =>
+            this.accountViewModel.logIn(usernameOrEmail, password, deviceName, wantsSync(synchronise)));
 
     // the field is labelled the way the website labels it ("Your connect code"), so the user
     // recognises what to paste, while the menu entry keeps the wording of the sync feature
@@ -91,11 +90,10 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         {
             [t("sync.syncCodeDialog.connectCode")]:
                 { type: "string", required: true, key: "connectCode" },
-            [t("dialogs.fields.deviceName")]:
-                { type: "string", maxLength: MAX_NAME_LENGTH, key: "deviceName" }
+            ...signInDeviceFields()
         },
-        ({ connectCode, deviceName }) =>
-            this.accountViewModel.connectWithCode(connectCode, deviceName));
+        ({ connectCode, deviceName, synchronise }) =>
+            this.accountViewModel.connectWithCode(connectCode, deviceName, wantsSync(synchronise)));
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         t("workspace.addDialog.title"),
@@ -397,10 +395,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 noBorder: true,
                 onClick: () => {}
             },
+            // The status is also the switch: ticked, this browser synchronises and the text says
+            // how that is going; unticked, it says it is off. Greyed out while a synchronisation
+            // runs, so it cannot be switched off halfway through one.
             {
                 actionTitle: account.syncStatus ?? "",
                 noBorder: true,
-                onClick: () => {}
+                checkable: true,
+                active: account.syncEnabled,
+                disabled: account.syncing,
+                onClick: () => void this.accountViewModel.setSyncEnabled(!account.syncEnabled)
             },
             // Offered only to an account that does not have it yet.
             ...(account.premium ? [] : [{
