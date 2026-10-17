@@ -389,3 +389,19 @@ html.dark .editable:focus {
     opacity: 0.75;
     cursor: help;
 }
+
+/*
+   Every favicon sits on a mid-grey disc (--color-favicon-backdrop), so an icon drawn white -
+   or black - is never the colour of whatever it is on. The padding keeps a square icon's
+   corners inside the circle: with 15% on each side its diagonal is 0.7 x sqrt(2) = 0.99 of
+   the disc, so border-radius has nothing of the icon to cut off. box-sizing is border-box
+   everywhere, so each icon keeps the size its own stylesheet gives it.
+*/
+link-container > div.cls-link-icon > img,
+.closed-tabs__favicon,
+.bookmark-panel__icon > img {
+    padding: 15%;
+    border-radius: 50%;
+    background-color: var(--color-favicon-backdrop);
+    object-fit: contain;
+}
