@@ -16,6 +16,15 @@
     "title": "Hide tips",
     "explanation": "Stop showing the tips along the bottom of the page. This is where they come back from."
   },
+  "theme": {
+    "title": "Theme",
+    "explanation": "Whether the page is drawn light or dark. \"Follow the system\" switches along with your operating system's setting. Kept on this device only.",
+    "options": {
+      "auto": "Follow the system",
+      "light": "Always light",
+      "dark": "Always dark"
+    }
+  },
   "uiScale": {
     "title": "Size",
     "explanation": "How big everything is drawn. This one is kept on this device only - a desktop and a laptop want different answers, and one should not decide for the other."

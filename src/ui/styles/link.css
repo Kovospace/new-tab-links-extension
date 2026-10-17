@@ -57,7 +57,7 @@ link-container > div.cls-link-actions-container > button:last-child {
 }
 
 link-container:hover > div.cls-link-actions-container > button {
-  background-color: #111;
+  background-color: var(--color-link-action-background);
 }
 
 link-container:hover > div.cls-link-actions-container > button.act-link-move-up:hover,

@@ -1,30 +1,49 @@
+/*
+   Every colour is a light-dark() pair - light first, dark second - and color-scheme decides
+   which of the two is in force. Following the system needs no script: "light dark" lets the
+   browser answer with the operating system's setting, and changes with it. The theme setting
+   (DevicePreferencesRepository.theme) only narrows that, through data-theme on the root.
+
+   The coloured backgrounds - active, add, danger - are paler in the light theme rather than
+   given a text colour of their own: the text on them is inherited, which is dark there.
+
+   `html.dark` throughout the stylesheets is not the dark theme. It is the class both pages
+   carry to say "themed", older than the light theme; every rule under it reads these
+   variables and so serves both.
+*/
 :root {
-    --color-document-background: #000;
-    --color-document-text: #eee;
+    color-scheme: light dark;
 
-    --color-component-background: #222;
-    --color-component-text: #eee;
-    --color-component-background-hover: #333;
-    --color-component-framing: #888;
+    --color-document-background: light-dark(#e9e9e9, #000);
+    --color-document-text: light-dark(#1a1a1a, #eee);
 
-    --color-button-background: #444;
-    --color-button-text: #eee;
-    --color-button-background-hover: #555;
-    --color-button-text-hover: #fff;
-    --color-button-active-background: #09F;
-    --color-button-active-background-hover: #0BF;
-    --color-button-add-background: #090;
-    --color-button-add-background-hover: #0B0;
-    --color-button-danger-background: #900;
-    --color-button-danger-background-hover: #B00;
+    --color-component-background: light-dark(#fff, #222);
+    --color-component-text: light-dark(#1a1a1a, #eee);
+    --color-component-background-hover: light-dark(#eee, #333);
+    --color-component-framing: light-dark(#999, #888);
+
+    --color-button-background: light-dark(#ddd, #444);
+    --color-button-text: light-dark(#1a1a1a, #eee);
+    --color-button-background-hover: light-dark(#ccc, #555);
+    --color-button-text-hover: light-dark(#000, #fff);
+    --color-button-active-background: light-dark(#6cc4ff, #09F);
+    --color-button-active-background-hover: light-dark(#94d4ff, #0BF);
+    --color-button-add-background: light-dark(#7c7, #090);
+    --color-button-add-background-hover: light-dark(#9d9, #0B0);
+    --color-button-danger-background: light-dark(#f88, #900);
+    --color-button-danger-background-hover: light-dark(#faa, #B00);
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
-    --color-danger-text: #F66;
+    --color-danger-text: light-dark(#c00, #F66);
 
-    --color-textfield-background: #444;
-    --color-textfield-text: #eee;
-    --color-textfield-background-hover: #555;
-    --color-textfield-text-hover: #fff;
+    /* A link's action buttons while the link is hovered: a step away from the hovered
+       component in whichever direction the theme has room for. */
+    --color-link-action-background: light-dark(#d5d5d5, #111);
+
+    --color-textfield-background: light-dark(#eee, #444);
+    --color-textfield-text: light-dark(#1a1a1a, #eee);
+    --color-textfield-background-hover: light-dark(#e2e2e2, #555);
+    --color-textfield-text-hover: light-dark(#000, #fff);
     --color-textfield-border-active: #09f;
 
     --time-transition-fast: 0.125s;
@@ -34,4 +53,12 @@
     --radius-normal: 0.25em;
     --radius-circular: 100%;
 
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
 }

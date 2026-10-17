@@ -16,6 +16,15 @@
     "title": "Skryť tipy",
     "explanation": "Prestane zobrazovať tipy v spodnej časti stránky. Odtiaľto sa dajú vrátiť späť."
   },
+  "theme": {
+    "title": "Vzhľad",
+    "explanation": "Či sa stránka vykreslí svetlá alebo tmavá. „Podľa systému“ sa prepína spolu s nastavením vášho operačného systému. Zostáva len na tomto zariadení.",
+    "options": {
+      "auto": "Podľa systému",
+      "light": "Vždy svetlý",
+      "dark": "Vždy tmavý"
+    }
+  },
   "uiScale": {
     "title": "Veľkosť",
     "explanation": "Ako veľko sa všetko vykreslí. Toto nastavenie zostáva len na tomto zariadení — stolný počítač a notebook chcú inú odpoveď a jeden by nemal rozhodovať za druhý."

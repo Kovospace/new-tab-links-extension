@@ -47,6 +47,7 @@ import './ui/styles/_bookmarkPanel.css'
     // and sized in the same em, and a popup half the size of everything else looks broken.
     await devicePreferencesRepository.init();
     devicePreferencesRepository.applyScale();
+    devicePreferencesRepository.followTheme();
     devicePreferencesRepository.applyLocale();
     document.title = t("bookmark.pageTitle");
 

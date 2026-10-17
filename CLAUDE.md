@@ -730,6 +730,14 @@ neither knowing; it is the same reasoning that keeps the open workspace per-devi
 a root font size, because everything here is sized in em, and it is applied before the page
 draws anything so that a resized interface does not jump a size once storage answers.
 
+**The theme is one of them too** (`theme`: follow the system, always light, always dark; #88).
+Every colour in `__variables.css` is a `light-dark(light, dark)` pair and the root's
+`color-scheme` picks one: `light dark` by default, so following the system needs no script, and
+`data-theme` on `<html>` (`followTheme`, applied before drawing and on every change from any
+page) narrows it. A new colour goes into `__variables.css` as a pair - one written out in a
+component stylesheet is a colour only one theme gets. `html.dark` in the stylesheets is not the
+dark theme; it is the older "themed" class both pages carry, and its rules serve both.
+
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to
 do, as opposed to what it holds. They live on the profile record rather than in a store of
 their own, which is what lets them synchronise with no new entity kind, no snapshot collection
