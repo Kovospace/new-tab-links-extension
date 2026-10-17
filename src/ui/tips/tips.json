@@ -185,5 +185,16 @@
       "en": "/tips/lets-begin",
       "sk": "/sk/tips/lets-begin"
     }
+  },
+  {
+    "id": "choose-theme",
+    "text": {
+      "en": "Light or dark? Settings → \"UI and behavior\" → \"Theme\" - or let it follow your system.",
+      "sk": "Svetlý alebo tmavý? Nastavenia → „Vzhľad a správanie“ → „Vzhľad“ - alebo nech sa riadi systémom."
+    },
+    "url": {
+      "en": "/tips/choose-theme",
+      "sk": "/sk/tips/choose-theme"
+    }
   }
 ]
