@@ -307,60 +307,71 @@ html.dark button {
     color: var(--color-button-text);
 }
 
-html.dark button:hover {
+/* A disabled button answers neither the pointer nor a press: it is drawn as it is at rest,
+   faded by whoever disabled it. Without :not(:disabled) it lit up under the pointer like any
+   other, and so looked clickable. */
+html.dark button:hover:not(:disabled) {
   color: var(--color-button-text-hover);
   background-color: var(--color-button-background-hover);
 }
 
-html.dark button:active {
+html.dark button:active:not(:disabled) {
   box-shadow: 0 0 0.25em 0.25em var(--color-button-background);
 }
 
 html.dark .active {
     background-color: var(--color-button-active-background);
+    color: var(--color-button-active-text);
 }
 
 html.dark .highlight {
     background-color: var(--color-button-active-background);
+    color: var(--color-button-active-text);
 }
 
 html.dark .add {
   background-color: var(--color-button-add-background);
+  color: var(--color-button-add-text);
 }
 
 html.dark .danger {
   background-color: var(--color-button-danger-background);
+  color: var(--color-button-danger-text);
 }
 
-html.dark .active:hover {
+html.dark .active:hover:not(:disabled) {
   background-color: var(--color-button-active-background-hover);
+  color: var(--color-button-active-text-hover);
 }
 
-html.dark .highlight:hover {
+html.dark .highlight:hover:not(:disabled) {
     background-color: var(--color-button-active-background-hover);
+    color: var(--color-button-active-text-hover);
 }
 
-html.dark .add:hover {
+html.dark .add:hover:not(:disabled) {
   background-color: var(--color-button-add-background-hover);
+  color: var(--color-button-add-text-hover);
 }
 
-html.dark .danger:hover {
+html.dark .danger:hover:not(:disabled) {
   background-color: var(--color-button-danger-background-hover);
+  color: var(--color-button-danger-text-hover);
 }
 
-html.dark .active:active {
+html.dark .active:active:not(:disabled) {
   box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
 }
 
-html.dark .highlight:active {
-    box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
+html.dark .highlight:active:not(:disabled) {
+  box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
 }
 
-html.dark .add:active {
+html.dark .add:active:not(:disabled) {
   box-shadow: 0 0 0.25em 0.25em var(--color-button-add-background);
 }
 
-html.dark .danger:active {
+html.dark .danger:active:not(:disabled) {
   box-shadow: 0 0 0.25em 0.25em var(--color-button-danger-background);
 }
 

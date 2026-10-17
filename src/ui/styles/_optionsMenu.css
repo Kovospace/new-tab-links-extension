@@ -20,6 +20,11 @@ options-menu {
     right: auto;
     border-radius: var(--radius-normal);
     background-color: var(--color-component-background);
+    /* Its own text colour, never its button's. The menu is a child of the button that opens
+       it (optionsMenu.ts), and that button is `.active` while the menu is open - and
+       `.active:hover` with the pointer anywhere in the menu, since hovering a child hovers
+       its ancestors. Inherited, whatever colour those give the button reached every item. */
+    color: var(--color-component-text);
     border: 0.25em solid var(--color-document-background);
     box-shadow: 0 0 0 0.0625em var(--color-component-framing);
     margin-top:0.5em;
@@ -100,10 +105,12 @@ options-menu-item.separator::after {
 
 options-menu-item.danger {
     background-color: var(--color-button-danger-background);
+    color: var(--color-button-danger-text);
 }
 
 options-menu-item.active {
     background-color: var(--color-button-active-background);
+    color: var(--color-button-active-text);
 }
 
 /* A setting rather than a command: the box says what it is now. */
@@ -127,7 +134,8 @@ options-menu-item:last-child {
 }
 
 options-menu-item:hover {
-    color: var(--color-button-text-hover);
+    /*color: var(--color-button-text-hover);*/
+    color: #fff;
     background-color: var(--color-button-background-hover);
 }
 
@@ -137,6 +145,7 @@ options-menu-item.danger:hover {
 
 options-menu-item.active:hover {
     background-color: var(--color-button-active-background);
+    color: var(--color-button-active-text-hover);
 }
 
 options-menu-item.disabled,

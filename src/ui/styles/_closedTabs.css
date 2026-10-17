@@ -199,11 +199,12 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
 
 .closed-tabs__card[aria-pressed="true"] {
     background-color: var(--color-button-active-background);
-    color: var(--color-button-text-hover);
+    color: var(--color-button-active-text);
 }
 
 .closed-tabs__card[aria-pressed="true"]:hover {
     background-color: var(--color-button-active-background-hover);
+    color: var(--color-button-active-text-hover);
 }
 
 /* A window's name above its tabs, drawn only when there is more than one. */
