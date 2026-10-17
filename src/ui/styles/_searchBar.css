@@ -172,8 +172,10 @@ html.dark button.search-bar__engine-option.active {
 
 html.dark button.search-bar__submit {
     background-color: var(--color-button-active-background);
+    color: var(--color-button-active-text);
 }
 
 html.dark button.search-bar__submit:hover {
     background-color: var(--color-button-active-background-hover);
+    color: var(--color-button-active-text-hover);
 }
