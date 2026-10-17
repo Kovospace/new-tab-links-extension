@@ -46,7 +46,10 @@ header {
     grid-area: header;
     position: relative;
     box-shadow: 0 0.375em 0.5em -0.375em rgba(0, 0, 0, 0.4);
-    border-bottom: 0.25em solid var(--color-document-background);
+    /* A strip of page colour under the header in the dark theme only. In the light one it
+       is transparent - the header's own background shows through, so the header reads the
+       same height in both themes and nothing below it moves when the theme changes. */
+    border-bottom: 0.25em solid light-dark(transparent, var(--color-document-background));
 }
 main { grid-area: main; }
 footer { grid-area: footer; }
