@@ -30,7 +30,6 @@ dialog.profile-manager {
     padding: 0.4em 0.5em;
     border-radius: var(--radius-small);
     background-color: var(--color-button-background);
-    color: var(--color-button-text);
 }
 
 .profile-manager__row:hover {

@@ -4,10 +4,8 @@
    browser answer with the operating system's setting, and changes with it. The theme setting
    (DevicePreferencesRepository.theme) only narrows that, through data-theme on the root.
 
-   Buttons are the same in both themes: dark grey and saturated colours with light text,
-   which on the light theme's greys is what makes a control read as one. Anything else that
-   borrows a button colour as its background - a list row, a menu item, a dialog's title - says
-   `color: var(--color-button-text)` itself, because the text it would inherit is dark there.
+   The coloured backgrounds - active, add, danger - are paler in the light theme rather than
+   given a text colour of their own: the text on them is inherited, which is dark there.
 
    The light theme is the dark one inverted in structure as well as in colour: the page is the
    lightest thing on it and the panels, groups and controls are darker steps of grey on top.
@@ -30,22 +28,25 @@
     --color-component-background-hover: light-dark(#b8b8b8, #333);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
-    --color-button-background: #444;
-    --color-button-text: #eee;
-    --color-button-background-hover: #555;
-    --color-button-text-hover: #fff;
-    --color-button-active-background: #09F;
-    --color-button-active-background-hover: #0BF;
-    --color-button-add-background: #090;
-    --color-button-add-background-hover: #0B0;
-    --color-button-danger-background: #900;
-    --color-button-danger-background-hover: #B00;
+    --color-button-background: light-dark(#a8a8a8, #444);
+    --color-button-text: light-dark(#111, #eee);
+    --color-button-background-hover: light-dark(#989898, #555);
+    --color-button-text-hover: light-dark(#000, #fff);
+    /* Every coloured hover goes to a stronger shade in both themes - towards white would
+       read as the button fading at the moment it is about to be pressed. */
+    --color-button-active-background: light-dark(#6cc4ff, #09F);
+    --color-button-active-background-hover: light-dark(#2aa8ff, #0BF);
+    --color-button-add-background: light-dark(#7c7, #090);
+    --color-button-add-background-hover: light-dark(#4b4, #0B0);
+    --color-button-danger-background: light-dark(#f88, #900);
+    --color-button-danger-background-hover: light-dark(#e55, #B00);
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
     --color-danger-text: light-dark(#a00, #F66);
 
-    /* A link's action buttons while the link is hovered - on the button-grey row. */
-    --color-link-action-background: #111;
+    /* A link's action buttons while the link is hovered: a step away from the hovered
+       component in whichever direction the theme has room for. */
+    --color-link-action-background: light-dark(#bababa, #111);
 
     --color-textfield-background: light-dark(#dadada, #444);
     --color-textfield-text: light-dark(#111, #eee);

@@ -28,7 +28,6 @@ html.dark dialog.input-dialog {
     font-size: 1.25em;
     border-bottom: 0.0625em solid var(--color-component-framing);
     background-color: var(--color-button-active-background);
-    color: var(--color-button-text);
 }
 
 .input-dialog__form {
@@ -242,7 +241,6 @@ html.dark .color-picker__swatch {
     margin: 0;
     padding: 0.4em 0.5em;
     background-color: var(--color-button-background);
-    color: var(--color-button-text);
     border: none;
     border-radius: var(--radius-small);
     font-weight: normal;

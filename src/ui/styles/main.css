@@ -332,12 +332,6 @@ html.dark .danger {
   background-color: var(--color-button-danger-background);
 }
 
-/* Not every one of these is a button, and in the light theme the text anything else inherits
-   is dark - see __variables.css. */
-html.dark :is(.active, .highlight, .add, .danger) {
-    color: var(--color-button-text);
-}
-
 html.dark .active:hover {
   background-color: var(--color-button-active-background-hover);
 }
