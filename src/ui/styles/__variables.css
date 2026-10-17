@@ -37,7 +37,9 @@
     --color-button-add-background: light-dark(#7c7, #090);
     --color-button-add-background-hover: light-dark(#9d9, #0B0);
     --color-button-danger-background: light-dark(#f88, #900);
-    --color-button-danger-background-hover: light-dark(#faa, #B00);
+    /* Hover goes to a stronger red in both themes - towards white would read as the warning
+       fading at the moment it matters. */
+    --color-button-danger-background-hover: light-dark(#e55, #B00);
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
     --color-danger-text: light-dark(#a00, #F66);
