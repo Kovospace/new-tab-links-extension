@@ -297,6 +297,7 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
 
 .closed-tabs__row:hover {
     background-color: var(--color-button-background);
+    color: var(--color-button-text);
 }
 
 .closed-tabs__favicon {

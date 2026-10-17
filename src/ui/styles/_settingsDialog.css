@@ -108,6 +108,7 @@ html.dark .settings-dialog__category-head:active {
     padding: 0.5em;
     border-radius: var(--radius-small);
     background-color: var(--color-button-background);
+    color: var(--color-button-text);
     transition: background-color var(--time-transition-medium) ease-in-out;
     cursor: pointer;
 }

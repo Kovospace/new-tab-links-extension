@@ -100,10 +100,12 @@ options-menu-item.separator::after {
 
 options-menu-item.danger {
     background-color: var(--color-button-danger-background);
+    color: var(--color-button-text);
 }
 
 options-menu-item.active {
     background-color: var(--color-button-active-background);
+    color: var(--color-button-text);
 }
 
 /* A setting rather than a command: the box says what it is now. */
