@@ -268,7 +268,17 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     opacity: 0.7;
 }
 
+/*
+   A row out of the list's view is not laid out or painted at all. The panel opens and folds
+   by animating its width, and every frame of that re-laid out every row - a thousand of them
+   in a premium history, ellipsizing titles nobody could see - which is what made folding
+   crawl. Skipped, a row is held at its last measured height (`auto`), or 2.25em before it has
+   ever been on screen, so the scrollbar does not jump as rows come into view. Only the block
+   size is given: a row's width comes from the list, open or folded.
+*/
 .closed-tabs__row {
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 2.25em;
     display: flex;
     align-items: center;
     /* Centred while the rail is narrow, so the favicons make a tidy column;
