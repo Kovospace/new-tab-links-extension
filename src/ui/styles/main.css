@@ -46,11 +46,9 @@ header {
     grid-area: header;
     position: relative;
     box-shadow: 0 0.375em 0.5em -0.375em rgba(0, 0, 0, 0.4);
-    /* A gap under the header, the same in both themes: the border is transparent and the
-       header's background stops at its padding, so what shows there is whatever is behind -
-       the page's colour, or a premium user's picture - the same spacing as around the groups. */
-    border-bottom: 0.25em solid transparent;
-    background-clip: padding-box;
+    /* Space under the header rather than a border painted in the page's colour: the same
+       gap as between the other elements, whatever the theme or the picture behind. */
+    margin-bottom: 0.25em;
 }
 main { grid-area: main; }
 footer { grid-area: footer; }

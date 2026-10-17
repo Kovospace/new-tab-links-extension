@@ -50,7 +50,9 @@
 
     --color-textfield-background: light-dark(#dadada, #444);
     --color-textfield-text: light-dark(#111, #eee);
-    --color-textfield-background-hover: light-dark(#e6e6e6, #555);
+    /* Darker on hover in the light theme, as every other control there is; lighter would
+       be the page's own colour, and the search bar sits on the page. */
+    --color-textfield-background-hover: light-dark(#b8b8b8, #555);
     --color-textfield-text-hover: light-dark(#000, #fff);
     --color-textfield-border-active: #09f;
 
