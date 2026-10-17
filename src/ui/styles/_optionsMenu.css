@@ -95,7 +95,7 @@ options-menu-item.separator::after {
     width: 80%;
     height: 0;
     background-color: transparent;
-    border-top: 0.25em dotted #888;
+    border-top: 0.25em dotted var(--color-component-framing);
 }
 
 options-menu-item.danger {

@@ -74,6 +74,9 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // redraw the page a size larger in front of the user.
     await devicePreferencesRepository.init();
     devicePreferencesRepository.applyScale();
+    // Light or dark, before anything is drawn, and again whenever any page of this browser
+    // changes it.
+    devicePreferencesRepository.followTheme();
 
     // Which language this page is drawn in, settled before any component is constructed:
     // every string here is read once, while its element is being built.

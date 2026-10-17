@@ -1,31 +1,65 @@
+/*
+   Every colour is a light-dark() pair - light first, dark second - and color-scheme decides
+   which of the two is in force. Following the system needs no script: "light dark" lets the
+   browser answer with the operating system's setting, and changes with it. The theme setting
+   (DevicePreferencesRepository.theme) only narrows that, through data-theme on the root.
+
+   The coloured backgrounds - active, add, danger - are paler in the light theme rather than
+   given a text colour of their own: the text on them is inherited, which is dark there.
+
+   The light theme is the dark one inverted in structure as well as in colour: the page is the
+   lightest thing on it and the panels, groups and controls are darker steps of grey on top.
+   No value goes above #e6 and neighbouring steps are at least #10 apart, because a cheap dock
+   or HDMI adapter sends limited-range RGB (16-235): everything from about #ec up arrives as
+   the same white, and a panel of #fff on a page of #f2 is no panel at all.
+
+   `html.dark` throughout the stylesheets is not the dark theme. It is the class both pages
+   carry to say "themed", older than the light theme; every rule under it reads these
+   variables and so serves both.
+*/
 :root {
-    --color-document-background: #000;
-    --color-document-text: #eee;
+    color-scheme: light dark;
 
-    --color-component-background: #222;
-    --color-component-text: #eee;
-    --color-component-background-hover: #333;
-    --color-component-framing: #888;
+    --color-document-background: light-dark(#e6e6e6, #000);
+    --color-document-text: light-dark(#111, #eee);
 
-    --color-button-background: #444;
-    --color-button-text: #eee;
-    --color-button-background-hover: #555;
-    --color-button-text-hover: #fff;
-    --color-button-active-background: #09F;
-    --color-button-active-background-hover: #0BF;
-    --color-button-add-background: #090;
-    --color-button-add-background-hover: #0B0;
-    --color-button-danger-background: #900;
-    --color-button-danger-background-hover: #B00;
+    --color-component-background: light-dark(#c8c8c8, #222);
+    --color-component-text: light-dark(#111, #eee);
+    --color-component-background-hover: light-dark(#b8b8b8, #333);
+    --color-component-framing: light-dark(#6e6e6e, #888);
+
+    --color-button-background: light-dark(#a8a8a8, #444);
+    --color-button-text: light-dark(#111, #eee);
+    --color-button-background-hover: light-dark(#989898, #555);
+    --color-button-text-hover: light-dark(#000, #fff);
+    /* Every coloured hover goes to a stronger shade in both themes - towards white would
+       read as the button fading at the moment it is about to be pressed. */
+    --color-button-active-background: light-dark(#6cc4ff, #09F);
+    --color-button-active-background-hover: light-dark(#2aa8ff, #0BF);
+    --color-button-add-background: light-dark(#7c7, #090);
+    --color-button-add-background-hover: light-dark(#4b4, #0B0);
+    --color-button-danger-background: light-dark(#f88, #900);
+    --color-button-danger-background-hover: light-dark(#e55, #B00);
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
-    --color-danger-text: #F66;
+    --color-danger-text: light-dark(#a00, #F66);
 
-    --color-textfield-background: #444;
-    --color-textfield-text: #eee;
-    --color-textfield-background-hover: #555;
-    --color-textfield-text-hover: #fff;
+    /* A link's action buttons while the link is hovered: a step away from the hovered
+       component in whichever direction the theme has room for. */
+    --color-link-action-background: light-dark(#bababa, #111);
+
+    --color-textfield-background: light-dark(#dadada, #444);
+    --color-textfield-text: light-dark(#111, #eee);
+    /* Darker on hover in the light theme, as every other control there is; lighter would
+       be the page's own colour, and the search bar sits on the page. */
+    --color-textfield-background-hover: light-dark(#b8b8b8, #555);
+    --color-textfield-text-hover: light-dark(#000, #fff);
     --color-textfield-border-active: #09f;
+
+    /* The disc behind every favicon, the same in both themes: a mid grey, so that a white
+       icon and a black one both stand out from it - and so neither theme's background can
+       swallow an icon drawn in its own colour. */
+    --color-favicon-backdrop: #999;
 
     --time-transition-fast: 0.125s;
     --time-transition-medium: 0.25s;
@@ -34,4 +68,12 @@
     --radius-normal: 0.25em;
     --radius-circular: 100%;
 
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
 }

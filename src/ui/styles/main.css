@@ -46,7 +46,9 @@ header {
     grid-area: header;
     position: relative;
     box-shadow: 0 0.375em 0.5em -0.375em rgba(0, 0, 0, 0.4);
-    border-bottom: 0.25em solid var(--color-document-background);
+    /* Space under the header rather than a border painted in the page's colour: the same
+       gap as between the other elements, whatever the theme or the picture behind. */
+    margin-bottom: 0.25em;
 }
 main { grid-area: main; }
 footer { grid-area: footer; }
@@ -388,4 +390,35 @@ html.dark .editable:focus {
     text-decoration-thickness: 0.125em;
     opacity: 0.75;
     cursor: help;
+}
+
+/*
+   Every favicon sits on a mid-grey disc (--color-favicon-backdrop), so an icon drawn white -
+   or black - is never the colour of whatever it is on. The inset keeps a square icon's
+   corners inside the circle: at 15% of the icon on each side its diagonal is 0.7 x sqrt(2) =
+   0.99 of the disc, so border-radius has nothing of the icon to cut off. box-sizing is
+   border-box everywhere, so each icon keeps the size its own stylesheet gives it.
+
+   The inset is a length worked out from that size, never `padding: 15%`: a percentage
+   padding is a share of the containing block's width, not of the image's, so in a wide panel
+   row it came out bigger than the icon and blew the side panel's favicons up to many times
+   their size.
+*/
+link-container > div.cls-link-icon > img,
+.closed-tabs__favicon,
+.bookmark-panel__icon > img {
+    border-radius: 50%;
+    background-color: var(--color-favicon-backdrop);
+    object-fit: contain;
+}
+
+/* 15% of 2rem */
+link-container > div.cls-link-icon > img,
+.bookmark-panel__icon > img {
+    padding: 0.125rem;
+}
+
+/* 15% of 1.5rem */
+.closed-tabs__favicon {
+    padding: 0.125rem;
 }

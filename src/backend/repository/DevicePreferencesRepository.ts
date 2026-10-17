@@ -77,6 +77,25 @@ export interface DevicePreferences {
      *  laptop whose links should not leave it, while the same account synchronises at home.
      */
     syncEnabled: boolean;
+
+    /**
+     *  Whether the page is drawn light or dark, or "auto" to follow the operating system.
+     *  Per device for the reason the size is: the same person runs a light desktop at work
+     *  and a dark laptop at night, and the system setting each one follows is that machine's.
+     */
+    theme: ThemeId;
+}
+
+/** The themes on offer: following the system, or one of the two regardless of it. */
+export type ThemeId = "auto" | "light" | "dark";
+export const THEMES: ThemeId[] = ["auto", "light", "dark"];
+
+/** Following the system, which is what a page with no opinion of its own should do. */
+export const DEFAULT_THEME: ThemeId = "auto";
+
+/** The theme a stored value names, or the default for anything this version does not know. */
+export function normalizeTheme(value?: string | null): ThemeId {
+    return THEMES.includes(value as ThemeId) ? value as ThemeId : DEFAULT_THEME;
 }
 
 /** The cards the side panel can show, one at a time. */
@@ -124,7 +143,8 @@ const DEFAULTS: DevicePreferences = {
     searchEngine: DEFAULT_SEARCH_ENGINE,
     closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY,
     sidePanelCard: DEFAULT_SIDE_PANEL_CARD,
-    syncEnabled: true
+    syncEnabled: true,
+    theme: DEFAULT_THEME
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -367,6 +387,38 @@ export class DevicePreferencesRepository {
         this.publish();
     }
 
+    /** Which theme this browser is set to, which may be "auto". */
+    public getTheme(): ThemeId {
+        return this.preferences.theme;
+    }
+
+    /**
+     *  Chooses the theme this browser draws the page in, and puts it in force at once - unlike
+     *  the language there is nothing to rebuild, the stylesheet repaints itself. Other open
+     *  pages follow through `preferences$`, which `followTheme` keeps applied.
+     *
+     *  @param theme one of the themes on offer; anything else means following the system
+     */
+    public async setTheme(theme: string): Promise<void> {
+        const wanted = normalizeTheme(theme);
+        if (wanted === this.preferences.theme) {
+            return;
+        }
+        this.preferences = { ...this.preferences, theme: wanted };
+        this.LOG.debug("setTheme", wanted);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
+    /**
+     *  Draws the page in the stored theme, now and whenever it changes - here or in another
+     *  page of this browser. Called before anything is drawn, beside `applyScale()`.
+     */
+    public followTheme(): void {
+        this.preferences$.subscribe(preferences =>
+            applyThemeTo(document.documentElement, preferences.theme));
+    }
+
     /**
      *  Puts the stored language and date format in force.
      *
@@ -404,7 +456,8 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
             stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
         sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard),
         // Anything but an explicit false is on: a browser that never answered synchronised.
-        syncEnabled: stored?.syncEnabled !== false
+        syncEnabled: stored?.syncEnabled !== false,
+        theme: normalizeTheme(stored?.theme)
     };
 }
 
@@ -430,6 +483,15 @@ export function normalizeLanguagePreference(value?: string | null): string {
  */
 export function applyScaleTo(root: HTMLElement, scale: number): void {
     root.style.fontSize = `${normalizeScale(scale)}em`;
+}
+
+/**
+ *  Marks a root element with the theme it is drawn in. The stylesheet does the rest: every
+ *  colour is a `light-dark()` pair, and `data-theme` decides the element's `color-scheme`,
+ *  which is what picks one of the two - "auto" leaves it to the operating system.
+ */
+export function applyThemeTo(root: HTMLElement, theme: ThemeId): void {
+    root.dataset.theme = normalizeTheme(theme);
 }
 
 export const devicePreferencesRepository = new DevicePreferencesRepository();

@@ -186,6 +186,60 @@ describe("DevicePreferencesRepository, the search engine", () => {
 });
 
 /**
+ *  Light, dark or the system's. The stylesheet does the painting; what is tested here is that
+ *  the choice is kept, survives a record that predates it, and reaches the root element of
+ *  every page - including one where it was changed elsewhere.
+ */
+describe("DevicePreferencesRepository, the theme", () => {
+
+    let preferences: DevicePreferencesRepository;
+
+    beforeEach(async () => {
+        preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        delete document.documentElement.dataset.theme;
+    });
+
+    it("follows the system on a device nobody has set it on", () => {
+        expect(preferences.getTheme()).toBe("auto");
+    });
+
+    it("remembers a theme, for the next page to read", async () => {
+        await preferences.setTheme("light");
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getTheme()).toBe("light");
+    });
+
+    it("reads a record from before the theme existed as following the system", async () => {
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { scale: 0.75, language: "sk" });
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getTheme()).toBe("auto");
+    });
+
+    it("refuses a theme it does not offer", async () => {
+        await preferences.setTheme("dark");
+        await preferences.setTheme("sepia");
+
+        expect(preferences.getTheme()).toBe("auto");
+    });
+
+    it("marks the root element at once, and again when the theme changes", async () => {
+        preferences.followTheme();
+        expect(document.documentElement.dataset.theme).toBe("auto");
+
+        await preferences.setTheme("dark");
+
+        expect(document.documentElement.dataset.theme).toBe("dark");
+    });
+});
+
+/**
  *  How long the closed-tabs rail waits for the pointer before it opens. Clamped like the size,
  *  because storage the slider never wrote can say anything.
  */
