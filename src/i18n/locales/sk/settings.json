@@ -50,7 +50,6 @@
   "backgroundImage": {
     "title": "Pozadie",
     "explanation": "Dajte za stránku vlastný obrázok namiesto loga v rohu. Pokryje celé okno a uchováva sa len v tomto zariadení.",
-    "proOnly": "Pozadie môžu meniť iba používatelia Pro.",
     "choose": "Vybrať obrázok…",
     "change": "Zmeniť obrázok…",
     "remove": "Odstrániť",
@@ -101,7 +100,7 @@
   },
   "themeStyle": {
     "title": "Štýl témy",
-    "explanation": "Plochý vykresľuje skupiny a ponuky plné. Aero ich robí čiastočne priehľadné a rozmazáva to, čo je za nimi – najlepšie s obrázkom na pozadí. Len na tomto zariadení.",
+    "explanation": "Plochý vykresľuje skupiny a ponuky plné. Aero – predvolený – ich robí čiastočne priehľadné a rozmazáva to, čo je za nimi, najlepšie s obrázkom na pozadí. Len na tomto zariadení.",
     "options": {
       "flat": "Plochý",
       "aero": "Aero (priehľadný, rozmazaný)"

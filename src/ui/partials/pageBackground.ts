@@ -3,7 +3,7 @@ import { backgroundImageRepository } from '../../backend/repository/BackgroundIm
 import { ObservableValue } from '../../utils/observableValue';
 
 /**
- * What is behind the new tab page: the logo in the corner, or a premium user's own picture.
+ * What is behind the new tab page: the logo in the corner, or the user's own picture.
  *
  * **The logo is an element, not a background of main.** It carries a badge - FREE or PRO -
  * which is text, and text is not something a CSS background can hold. It sits in main's cell
@@ -13,9 +13,9 @@ import { ObservableValue } from '../../utils/observableValue';
  * **Free and premium put it at different heights**, because a free page has the ad slot along
  * its foot and a premium one does not; the stylesheet keys that off `data-tier`.
  *
- * **A premium user's own picture replaces the logo** rather than having the logo drawn over it.
- * It is painted on the root element, covering the whole window. A picture stored while premium
- * is kept but not shown once the account is not - see `BackgroundImageRepository`.
+ * **The user's own picture replaces the logo** rather than having the logo drawn over it, on any
+ * account - it was premium-only until the aero style made it the point of the page's look. It
+ * covers the whole window, on a fixed layer of its own (main.css).
  */
 export class PageBackground {
 
@@ -70,7 +70,7 @@ export class PageBackground {
     if (!this.watermark || !this.badge) return;
 
     const premium = this.premium$.get();
-    const picture = premium ? this.image$.get() : null;
+    const picture = this.image$.get();
 
     this.watermark.dataset.tier = premium ? 'pro' : 'free';
     // A brand name, the same in every language, which is why it is not translated.

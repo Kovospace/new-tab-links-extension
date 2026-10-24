@@ -253,33 +253,33 @@ describe("DevicePreferencesRepository, the theme style", () => {
         delete document.documentElement.dataset.themeStyle;
     });
 
-    it("is flat on a device nobody has set it on, and on a record from before it existed", async () => {
-        expect(preferences.getThemeStyle()).toBe("flat");
+    it("is aero on a device nobody has set it on, and on a record from before it existed", async () => {
+        expect(preferences.getThemeStyle()).toBe("aero");
 
         seedFakeStorage(DEVICE_PREFERENCES_KEY, { scale: 0.75, theme: "dark" });
         const reopened = new DevicePreferencesRepository();
         await reopened.init();
 
-        expect(reopened.getThemeStyle()).toBe("flat");
+        expect(reopened.getThemeStyle()).toBe("aero");
     });
 
-    it("remembers aero, and reads a style it does not offer as flat", async () => {
-        await preferences.setThemeStyle("aero");
+    it("remembers flat, and reads a style it does not offer as the default", async () => {
+        await preferences.setThemeStyle("flat");
         const reopened = new DevicePreferencesRepository();
         await reopened.init();
-        expect(reopened.getThemeStyle()).toBe("aero");
+        expect(reopened.getThemeStyle()).toBe("flat");
 
         await preferences.setThemeStyle("glass");
-        expect(preferences.getThemeStyle()).toBe("flat");
+        expect(preferences.getThemeStyle()).toBe("aero");
     });
 
     it("marks the root element at once, and again when the style changes", async () => {
         preferences.followTheme();
-        expect(document.documentElement.dataset.themeStyle).toBe("flat");
-
-        await preferences.setThemeStyle("aero");
-
         expect(document.documentElement.dataset.themeStyle).toBe("aero");
+
+        await preferences.setThemeStyle("flat");
+
+        expect(document.documentElement.dataset.themeStyle).toBe("flat");
     });
 });
 

@@ -204,19 +204,6 @@ html.dark .settings-dialog__category-head:active {
     margin: 0.25em 0;
 }
 
-/* The picture behind the page: a premium setting, marked as one. */
-.settings-dialog__pro-mark {
-    flex: 0 0 auto;
-    padding: 0.1em 0.4em;
-    border-radius: var(--radius-small);
-    font-size: 0.75em;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    color: #222222;
-    background-color: #f5b400;
-    cursor: help;
-}
-
 .settings-dialog__name[title] {
     cursor: help;
 }

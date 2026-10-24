@@ -104,8 +104,8 @@ export interface DevicePreferences {
     theme: ThemeId;
 
     /**
-     *  How surfaces are drawn, in either theme: "flat" - opaque, as the page always was - or
-     *  "aero", where groups and menus are translucent and blur what is behind them. Per device
+     *  How surfaces are drawn, in either theme: "aero" - the default - where groups, panels and
+     *  menus are translucent and blur what is behind them, or "flat", opaque. Per device
      *  with the theme, for the same reason: it is a matter of this screen and its background.
      */
     themeStyle: ThemeStyleId;
@@ -125,8 +125,8 @@ function logSyncOf(preferences: DevicePreferences): LogSync {
 export type ThemeStyleId = "flat" | "aero";
 export const THEME_STYLES: ThemeStyleId[] = ["flat", "aero"];
 
-/** Flat, which is how the page was drawn before there was a choice. */
-export const DEFAULT_THEME_STYLE: ThemeStyleId = "flat";
+/** Aero: what a page with no opinion of its own is drawn in. Flat is the opt-out. */
+export const DEFAULT_THEME_STYLE: ThemeStyleId = "aero";
 
 /** The style a stored value names, or the default for anything this version does not know. */
 export function normalizeThemeStyle(value?: string | null): ThemeStyleId {
@@ -525,7 +525,7 @@ export class DevicePreferencesRepository {
     /**
      *  Chooses how surfaces are drawn, in force at once like the theme.
      *
-     *  @param style one of the styles on offer; anything else means flat
+     *  @param style one of the styles on offer; anything else means the default, aero
      */
     public async setThemeStyle(style: string): Promise<void> {
         const wanted = normalizeThemeStyle(style);

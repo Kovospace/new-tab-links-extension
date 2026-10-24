@@ -398,10 +398,6 @@ export class SettingsDialog {
   /**
    * A setting that is a picture: its name, a button that opens a file picker, and - once there
    * is one - a button that takes it away.
-   *
-   * The tooltip is on the name for everybody, not only when the setting is greyed out: it is
-   * the sentence that says what the feature costs, and a premium user hovering over it learns
-   * why the free version of a friend's page has no such row to use.
    */
   private buildImage(setting: ImageSettingDTO): HTMLElement {
 
@@ -409,7 +405,7 @@ export class SettingsDialog {
     row.classList.add('settings-dialog__row', 'settings-dialog__row--image');
     if (setting.disabledReason) {
       row.classList.add('settings-dialog__row--disabled');
-      row.title = setting.tooltip;
+      row.title = setting.disabledReason;
     }
 
     const text = document.createElement('div');
@@ -421,15 +417,8 @@ export class SettingsDialog {
     const title = document.createElement('span');
     title.classList.add('settings-dialog__name');
     title.textContent = setting.title;
-    title.title = setting.tooltip;
-
-    const proMark = document.createElement('span');
-    proMark.classList.add('settings-dialog__pro-mark');
-    proMark.textContent = 'PRO';
-    proMark.title = setting.tooltip;
 
     heading.appendChild(title);
-    heading.appendChild(proMark);
 
     const picker = document.createElement('input');
     picker.type = 'file';
