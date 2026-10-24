@@ -22,7 +22,8 @@ const WORDING: LogRowWording = {
  * history is long and what is looked for is nearly always recent; a day opened or folded by
  * hand stays as it was left for as long as the page is open, across every redraw. Not stored:
  * which days somebody once unfolded is not worth a preference, and a key per day would grow
- * for ever.
+ * for ever. While a search is typed every day is open, or a match in a folded day would be
+ * found and then not shown.
  *
  * A card of its own rather than more of `ClosedTabsPanel`, which is the shell - the pointer,
  * the pin, the switcher - and was long enough already. The shell places the three parts this
@@ -39,6 +40,9 @@ export class HistoryCard {
 
   /** Days opened or folded by hand, by `VisitDayDTO.key`; true when open. */
   private readonly unfolded = new Map<string, boolean>();
+
+  /** What the panel's search field holds. */
+  private query: string = '';
 
   /**
    * @param viewModel  supplies the history and acts on it
@@ -82,19 +86,28 @@ export class HistoryCard {
     this.viewModel.dispose();
   }
 
+  /** Narrows the history to what matches the panel's search field. */
+  public setQuery(query: string): void {
+    this.query = query.trim();
+    this.viewModel.setQuery(this.query);
+  }
+
   private draw(days: VisitDayDTO[]): void {
     this.listEl.replaceChildren();
 
     if (days.length === 0) {
       const empty = document.createElement('p');
       empty.classList.add('closed-tabs__empty');
-      empty.textContent = t('history.empty');
+      empty.textContent = this.query
+        ? t('closedTabs.search.noMatch', { query: this.query })
+        : t('history.empty');
       this.listEl.appendChild(empty);
       return;
     }
 
-    days.forEach((day, index) =>
-      this.listEl.appendChild(this.buildDay(day, this.unfolded.get(day.key) ?? index === 0)));
+    const searching = this.query.length > 0;
+    days.forEach((day, index) => this.listEl.appendChild(
+      this.buildDay(day, searching || (this.unfolded.get(day.key) ?? index === 0))));
   }
 
   /** One day: a heading that folds it, and its visits under it. */

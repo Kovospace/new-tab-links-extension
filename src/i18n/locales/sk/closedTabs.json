@@ -24,5 +24,10 @@
   "off": {
     "message": "Zaznamenávanie zatvorených kariet je pre tento profil vypnuté. Zapnúť ho môžete v Nastaveniach → Súkromie.",
     "openSettings": "Otvoriť nastavenia súkromia"
+  },
+  "search": {
+    "label": "Hľadať",
+    "placeholder": "Hľadať v názvoch a adresách",
+    "noMatch": "Nič tu nezodpovedá „{query}“."
   }
 }

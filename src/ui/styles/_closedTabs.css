@@ -177,6 +177,25 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     display: none;
 }
 
+/* The search field: only at full width, only on the two cards that are logs, and
+   not over a notice saying nothing is recorded. */
+.closed-tabs__search {
+    display: none;
+}
+
+.closed-tabs--open:is([data-card="closed"], [data-card="history"]) .closed-tabs__search {
+    display: block;
+    align-self: stretch;
+    width: auto;
+    margin: 0.375em 0.75em 0;
+    font-size: 0.85em;
+}
+
+.closed-tabs--off[data-card="closed"] .closed-tabs__search,
+.closed-tabs--history-off[data-card="history"] .closed-tabs__search {
+    display: none;
+}
+
 /* The switcher only makes sense at full width, like the head's own buttons. */
 .closed-tabs__cards {
     display: none;

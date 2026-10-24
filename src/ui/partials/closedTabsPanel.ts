@@ -96,6 +96,9 @@ export class ClosedTabsPanel {
   private openListEl: HTMLElement | null = null;
   private offEl: HTMLElement | null = null;
   private cardButtons: Map<SidePanelCard, HTMLButtonElement> = new Map();
+
+  /** What the search field holds, trimmed; it narrows the closed tabs and the history alike. */
+  private query: string = '';
   private unsubscribe: (() => void) | null = null;
   private unsubscribeRecording: (() => void) | null = null;
   private unsubscribeOpenTabs: (() => void) | null = null;
@@ -385,6 +388,7 @@ export class ClosedTabsPanel {
     head.appendChild(pinBtn);
     panel.appendChild(head);
     panel.appendChild(this.buildCardSwitcher());
+    panel.appendChild(this.buildSearch());
 
     this.openListEl = document.createElement('div');
     this.openListEl.classList.add('closed-tabs__list', 'closed-tabs__list--open');
@@ -427,6 +431,29 @@ export class ClosedTabsPanel {
     return switcher;
   }
 
+  /**
+   * The field that narrows the closed tabs and the history, which are logs long enough to need
+   * it. One field for both, and it keeps what was typed when the card changes: somebody who
+   * did not find a page among the closed tabs looks next in the history, for the same words.
+   * The open tabs are as many as the tab strip holds and are not searched; the stylesheet hides
+   * the field on that card, and while the panel is folded.
+   */
+  private buildSearch(): HTMLElement {
+    const field = document.createElement('input');
+    field.type = 'search';
+    field.classList.add('closed-tabs__search', 'editable', 'input-dialog__input');
+    field.placeholder = t('closedTabs.search.placeholder');
+    field.setAttribute('aria-label', t('closedTabs.search.label'));
+    field.addEventListener('input', () => this.search(field.value));
+    return field;
+  }
+
+  private search(typed: string): void {
+    this.query = typed.trim();
+    this.viewModel.setQuery(this.query);
+    this.history.setQuery(this.query);
+  }
+
   /** Shows a card and remembers it for the next new tab on this device. */
   private chooseCard(card: SidePanelCard): void {
     this.showCard(card);
@@ -460,7 +487,9 @@ export class ClosedTabsPanel {
     if (tabs.length === 0) {
       const empty = document.createElement('p');
       empty.classList.add('closed-tabs__empty');
-      empty.textContent = t('closedTabs.empty');
+      empty.textContent = this.query
+        ? t('closedTabs.search.noMatch', { query: this.query })
+        : t('closedTabs.empty');
       this.listEl.appendChild(empty);
       return;
     }

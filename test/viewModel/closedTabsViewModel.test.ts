@@ -54,6 +54,19 @@ describe("ClosedTabsViewModel", () => {
         expect(rows().map(row => row.title)).toEqual(["Two", "One"]);
     });
 
+    it("narrows the list to what matches the search, and widens it again", async () => {
+        await recordClosedTab(profiles.getActiveProfileId(), {
+            url: "https://news.test/story", title: "Two", closedAt: Date.now()
+        });
+        await flushStorageNotifications();
+
+        panel.setQuery("news");
+        expect(rows().map(row => row.title)).toEqual(["Two"]);
+
+        panel.setQuery("");
+        expect(rows().map(row => row.title)).toEqual(["Two", "One"]);
+    });
+
     it("marks a closed tab this profile already keeps as a link", async () => {
         // The green folder of TODOS.md: the tab was still closed, and knowing it is already
         // saved is the useful half of seeing it in the list.

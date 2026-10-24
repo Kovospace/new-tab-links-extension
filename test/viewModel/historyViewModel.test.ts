@@ -63,6 +63,17 @@ describe("HistoryViewModel", () => {
         expect(days().map(day => day.visits.map(visit => visit.id))).toEqual([["a"], ["b"], ["c"]]);
     });
 
+    it("searches titles and addresses, leaving out the days with nothing that matches", () => {
+        history.setQuery("example");
+        expect(days().map(day => day.label)).toEqual(["Today", "2026-10-03"]);
+
+        history.setQuery("kept.test");
+        expect(days().map(day => day.visits.map(visit => visit.id))).toEqual([["b"]]);
+
+        history.setQuery("");
+        expect(days()).toHaveLength(3);
+    });
+
     it("marks what the profile already keeps and names another device", () => {
         expect(days()[1].visits[0].bookmarked).toBe(true);
         expect(days()[2].visits[0].elsewhere).toBe("Laptop");

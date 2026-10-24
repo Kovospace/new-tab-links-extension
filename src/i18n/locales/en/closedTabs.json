@@ -24,5 +24,10 @@
   "off": {
     "message": "Recording closed tabs is turned off for this profile. You can turn it on in Settings → Privacy.",
     "openSettings": "Open Privacy settings"
+  },
+  "search": {
+    "label": "Search",
+    "placeholder": "Search titles and addresses",
+    "noMatch": "Nothing here matches “{query}”."
   }
 }
