@@ -61,6 +61,7 @@ describe("the theme style in the stylesheets", () => {
 
     it.each([
         "header::before",
+        "workspace-plane-head::before",
         "footer",
         ".closed-tabs",
         ".tips-bar",
@@ -76,7 +77,7 @@ describe("the theme style in the stylesheets", () => {
      *  backdrop-filter makes an element a stacking context, and a menu inside one can rise no
      *  higher than it: under the next column, or under the overlay shown while a menu is open.
      */
-    it.each(["header", "workspace-plane-body > link-group", "link-subgroup"])(
+    it.each(["header", "workspace-plane-head", "workspace-plane-body > link-group", "link-subgroup"])(
         "never blurs %s itself, which holds menus", element => {
             const onItself = blurredSelectors().filter(selector =>
                 selector.startsWith(AERO) && !selector.includes("::")
