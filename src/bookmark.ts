@@ -67,21 +67,9 @@ import './ui/styles/_bookmarkPanel.css'
     await profileRepository.init();
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
-    const viewModel = new BookmarkViewModel();
-
-    if (!viewModel.canBookmark()) {
-        // The first workspace and its first group are decisions made on the new tab page, and
-        // creating them here - unasked, from a keyboard shortcut - would be a poor way to meet
-        // the extension.
-        await renderNotice(
-            host,
-            t("bookmark.nowhereToPut.title"),
-            t("bookmark.nowhereToPut.message"));
-        window.close();
-        return;
-    }
-
-    await new BookmarkForm(request, viewModel).render(host);
+    // A profile with no group yet is not turned away: the form offers to make one, and asks
+    // what to call it - see BookmarkForm.
+    await new BookmarkForm(request, new BookmarkViewModel()).render(host);
     window.close();
 
 })();

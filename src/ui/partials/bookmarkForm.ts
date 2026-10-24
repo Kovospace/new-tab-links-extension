@@ -1,8 +1,12 @@
 import { BookmarkRequest } from '../../utils/bookmarkRequest';
-import { BookmarkTargetDTO, BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
+import {
+  BookmarkDestination, BookmarkPlace, BookmarkTargetDTO, BookmarkViewModel
+} from '../../viewModel/bookmarkViewModel';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
 import { t } from '../../i18n/i18n';
 import { describeFairUseRefusal } from '../../viewModel/fairUseNoticeViewModel';
+import { validateField } from './fieldValidation';
+import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
 
 /** Shown until the page's own icon arrives, and when none can be found. */
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
@@ -26,6 +30,12 @@ const noSubgroupLabel = (): string => t('bookmark.noSubgroup');
  * without a field, because a question with one answer is not a question - see
  * BookmarkViewModel. Choosing another workspace refills the groups, and the groups refill the
  * subgroups.
+ *
+ * **Somewhere to put it is never missing.** The group dropdown ends with "New group…" and the
+ * subgroup dropdown with "New subgroup…"; either opens a field for the name, and the group one
+ * for a description too. A workspace with no group starts on "New group…", and a profile with
+ * no workspace at all asks for the workspace's name as well - so the first group and workspace
+ * are still the user's decision, only made where they are needed instead of somewhere else.
  */
 export class BookmarkForm {
 
@@ -40,7 +50,15 @@ export class BookmarkForm {
   private subgroupField!: HTMLElement;
   private saveBtn!: HTMLButtonElement;
 
-  /** Why the last save was refused under a fair use limit; hidden until one is. */
+  /** The new workspace's name; only drawn when the profile has no workspace. */
+  private newWorkspaceInput: HTMLInputElement | null = null;
+  private newGroupInput!: HTMLInputElement;
+  private newGroupDescriptionInput!: HTMLInputElement;
+  private newSubgroupInput!: HTMLInputElement;
+  private newGroupRows: HTMLElement[] = [];
+  private newSubgroupRow!: HTMLElement;
+
+  /** Why the last save was refused - a limit, or a name to make something under; hidden until one is. */
   private readonly refusalMessage: HTMLElement = buildRefusalMessage();
 
   private workspaces: BookmarkTargetDTO[] = [];
@@ -107,15 +125,26 @@ export class BookmarkForm {
     this.urlInput = this.buildTextInput('bookmark-url', this.request.url);
     this.groupSelect = this.buildSelect('bookmark-group');
     this.subgroupSelect = this.buildSelect('bookmark-subgroup');
+    this.newGroupInput = this.buildTextInput('bookmark-new-group', t('bookmark.newGroup.defaultName'));
+    this.newGroupDescriptionInput = this.buildTextInput('bookmark-new-group-description', '');
+    this.newGroupDescriptionInput.placeholder = t('bookmark.optional');
+    this.newSubgroupInput = this.buildTextInput('bookmark-new-subgroup', '');
 
     this.appendRow(fields, t('bookmark.fields.name'), this.nameInput);
     this.appendRow(fields, t('bookmark.fields.url'), this.urlInput);
     this.appendRow(fields, t('bookmark.fields.workspace'), this.buildWorkspaceField());
     this.appendRow(fields, t('bookmark.fields.group'), this.groupSelect);
+    this.newGroupRows = [
+      this.appendRow(fields, t('bookmark.fields.newGroup'), this.newGroupInput),
+      this.appendRow(fields, t('bookmark.fields.description'), this.newGroupDescriptionInput)
+    ];
     this.subgroupField =
       this.appendRow(fields, t('bookmark.fields.subgroup'), this.subgroupSelect);
+    this.newSubgroupRow =
+      this.appendRow(fields, t('bookmark.fields.newSubgroup'), this.newSubgroupInput);
 
     this.groupSelect.addEventListener('change', () => this.renderSubgroups());
+    this.subgroupSelect.addEventListener('change', () => this.renderNewSubgroup());
 
     // The actions before the groups, because filling the groups is what decides whether
     // there is anything to save into.
@@ -164,7 +193,15 @@ export class BookmarkForm {
    * profile has several, and only stated when it has one.
    */
   private buildWorkspaceField(): HTMLElement {
-    if (this.workspaces.length <= 1) {
+    if (this.workspaces.length === 0) {
+      // Nothing to choose and nothing to name: the profile's first workspace is made here, and
+      // what it is called is asked rather than decided.
+      this.workspaceSelect = null;
+      this.newWorkspaceInput =
+        this.buildTextInput('bookmark-new-workspace', t('bookmark.newWorkspace.defaultName'));
+      return this.newWorkspaceInput;
+    }
+    if (this.workspaces.length === 1) {
       this.workspaceSelect = null;
       const value = document.createElement('span');
       value.classList.add('bookmark-panel__value');
@@ -193,14 +230,19 @@ export class BookmarkForm {
 
   /**
    * Fills the group dropdown for the workspace now chosen, starting on its first group, and
-   * the subgroups after it. A workspace without groups leaves nothing to save into, so the
-   * save button is disabled rather than allowed to do nothing.
+   * the subgroups after it. "New group…" is always the last entry - and in a workspace without
+   * groups the only one, so the form opens on the field that names it.
    */
   private renderGroups(): void {
     this.groups = this.viewModel.getGroups(this.chosenWorkspaceId());
-    fillOptions(this.groupSelect, this.groups.map(group => group.title));
-    this.saveBtn.disabled = this.groups.length === 0;
+    fillOptions(this.groupSelect,
+      [...this.groups.map(group => group.title), t('bookmark.newGroup.option')]);
     this.renderSubgroups();
+  }
+
+  /** The group now chosen; undefined when it is the one "New group…" is about to make. */
+  private chosenGroup(): BookmarkTargetDTO | undefined {
+    return this.groups[Number(this.groupSelect.value)];
   }
 
   private buildTextInput(id: string, value: string): HTMLInputElement {
@@ -269,17 +311,34 @@ export class BookmarkForm {
   }
 
   /**
-   * Fills the subgroup dropdown for the group now chosen, and hides it when that group has
-   * no subgroups - a dropdown whose only entry is "none" is a question with one answer.
+   * Fills the subgroup dropdown for the group now chosen: "none", its subgroups, and "New
+   * subgroup…". A group still to be made has no subgroups to offer and asks for its own name
+   * and description instead, so the dropdown gives way to those.
    */
   private renderSubgroups(): void {
 
-    const group = this.groups[Number(this.groupSelect.value)];
+    const group = this.chosenGroup();
     this.subgroups = group ? this.viewModel.getSubgroups(group.id) : [];
 
-    this.subgroupField.hidden = this.subgroups.length === 0;
-    fillOptions(this.subgroupSelect,
-      [noSubgroupLabel(), ...this.subgroups.map(one => one.title)]);
+    this.newGroupRows.forEach(row => { row.hidden = group !== undefined; });
+    this.subgroupField.hidden = group === undefined;
+    fillOptions(this.subgroupSelect, [
+      noSubgroupLabel(),
+      ...this.subgroups.map(one => one.title),
+      t('bookmark.newSubgroup.option')
+    ]);
+    this.renderNewSubgroup();
+  }
+
+  /** Shows the new subgroup's name only while "New subgroup…" is what is chosen. */
+  private renderNewSubgroup(): void {
+    this.newSubgroupRow.hidden =
+      this.subgroupField.hidden || !this.isNewSubgroupChosen();
+  }
+
+  /** "New subgroup…" is the entry after "none" and every subgroup. */
+  private isNewSubgroupChosen(): boolean {
+    return Number(this.subgroupSelect.value) === this.subgroups.length + 1;
   }
 
   /**
@@ -300,28 +359,89 @@ export class BookmarkForm {
     // A hand-edited address may have lost its scheme; the input dialog assumes the same one.
     const url = typed.includes('://') ? typed : `https://${typed}`;
 
-    const group = this.groups[Number(this.groupSelect.value)];
-    if (!group) {
+    const destination = this.destination();
+    if (!destination) {
       return;
     }
 
-    // Index 0 of the subgroup dropdown is "none"; the subgroups start behind it.
-    const subgroup = this.subgroups[Number(this.subgroupSelect.value) - 1];
-
-    const refusal = await this.viewModel.save(
+    const refusal = await this.viewModel.saveInto(
       url,
       this.nameInput.value.trim() || url,
-      group.id,
-      subgroup?.id);
+      destination);
 
     if (refusal) {
       // The form stays open: another workspace may still have room.
-      this.refusalMessage.textContent = describeFairUseRefusal(refusal);
-      this.refusalMessage.hidden = false;
+      this.say(describeFairUseRefusal(refusal));
       return;
     }
 
     settle(true);
+  }
+
+  /**
+   * Where the link goes, as chosen - including anything the form was asked to make on the way.
+   *
+   * A name to make something under is held to the account's rules here, before anything is
+   * made: one over-long name would otherwise stop every later change from synchronising.
+   *
+   * @return null when a name is missing or too long; the form then says so on that field
+   */
+  private destination(): BookmarkDestination | null {
+
+    const workspace: BookmarkPlace | null = this.newWorkspaceInput
+      ? this.placeToMake(this.newWorkspaceInput, t('bookmark.fields.workspace'))
+      : this.idOf(this.chosenWorkspaceId());
+
+    const group = this.chosenGroup();
+    if (!group) {
+      const newGroup = this.placeToMake(this.newGroupInput, t('bookmark.fields.newGroup'));
+      const description = this.newGroupDescriptionInput.value.trim();
+      const problem = validateField(t('bookmark.fields.description'), description,
+        { type: 'string', maxLength: MAX_DESCRIPTION_LENGTH });
+      if (problem) {
+        this.say(problem, this.newGroupDescriptionInput);
+        return null;
+      }
+      return workspace && newGroup
+        ? { workspace, group: { ...newGroup, description: description || undefined } }
+        : null;
+    }
+
+    // Index 0 of the subgroup dropdown is "none"; the subgroups start behind it.
+    const subgroup: BookmarkPlace | null | undefined = this.isNewSubgroupChosen()
+      ? this.placeToMake(this.newSubgroupInput, t('bookmark.fields.newSubgroup'))
+      : this.idOf(this.subgroups[Number(this.subgroupSelect.value) - 1]?.id) ?? undefined;
+
+    return workspace && subgroup !== null
+      ? { workspace, group: { id: group.id }, subgroup }
+      : null;
+  }
+
+  /** A place that exists already, or null when there is no identifier to name it by. */
+  private idOf(id: string | null | undefined): BookmarkPlace | null {
+    return id ? { id } : null;
+  }
+
+  /**
+   * Something to make under the name typed into `input`; null, said on that field, when the
+   * name is one the account would not store.
+   */
+  private placeToMake(input: HTMLInputElement, label: string): BookmarkPlace | null {
+    const name = input.value.trim();
+    const problem = validateField(label, name,
+      { type: 'string', required: true, maxLength: MAX_NAME_LENGTH });
+    if (problem) {
+      this.say(problem, input);
+      return null;
+    }
+    return { create: name };
+  }
+
+  /** Says why the form did not save, in the line above its buttons, and points at the cause. */
+  private say(message: string, field?: HTMLInputElement): void {
+    this.refusalMessage.textContent = message;
+    this.refusalMessage.hidden = false;
+    field?.focus();
   }
 }
 
@@ -346,7 +466,7 @@ function fillOptions(select: HTMLSelectElement, labels: string[]): void {
 }
 
 /**
- * Says that there is nowhere to put a bookmark, and waits for that to be read.
+ * Says that there is nothing to bookmark, and waits for that to be read.
  *
  * A notice rather than a dialog, for the same reason the form is: this is the whole page.
  *

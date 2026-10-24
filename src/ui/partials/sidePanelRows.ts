@@ -1,6 +1,5 @@
 import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
-import { showNotice } from './confirmations';
 import { t } from '../../i18n/i18n';
 import { ICON, toggleOverlay } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
@@ -183,12 +182,6 @@ export function buildOffNotice(message: string, buttonLabel: string, onOpen: () 
 export async function saveAsLink(entry: { url: string; title: string; faviconUrl?: string }): Promise<void> {
 
   const viewModel = new BookmarkViewModel();
-  if (!viewModel.canBookmark()) {
-    await showNotice(
-      t('closedTabs.nowhereToPut.title'),
-      t('closedTabs.nowhereToPut.message'));
-    return;
-  }
 
   const dialog = document.createElement('dialog');
   dialog.classList.add('input-dialog', 'closed-tabs__dialog');

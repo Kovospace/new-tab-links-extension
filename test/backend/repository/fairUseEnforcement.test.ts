@@ -159,6 +159,17 @@ describe("fair use limits in the repositories", () => {
             expect(refused).toEqual([]);
             expect(await bookmarks.save("https://example.com/new", "New", "g-roomy")).toBeNull();
         });
+
+        it("makes no group for a bookmark the workspace has no room for", async () => {
+            const groupsBefore = Object.keys(appState.state$.get().groups);
+
+            const refusal = await new BookmarkViewModel(appState).saveInto(
+                "https://example.com/new", "New",
+                { workspace: { id: "full" }, group: { create: "Ungrouped" } });
+
+            expect(refusal).toEqual({ kind: "FAIR_USE", limit: "LINKS_PER_WORKSPACE", maximum: LINKS });
+            expect(Object.keys(appState.state$.get().groups)).toEqual(groupsBefore);
+        });
     });
 
     describe("workspaces", () => {

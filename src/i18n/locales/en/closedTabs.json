@@ -12,10 +12,6 @@
   "rowTooltip": "{url}\nOpen again",
   "closedOn": "Closed on {device}",
   "clear": "Clear",
-  "nowhereToPut": {
-    "title": "Nowhere to put it",
-    "message": "This profile has no group to keep a link in yet. Make a workspace and a group first."
-  },
   "forgetAllConfirmation": {
     "title": "Forget every closed tab?",
     "message": "The list is emptied on this profile, on every device you are signed in on. The tabs themselves are not affected, and anything you have already saved as a link stays.",

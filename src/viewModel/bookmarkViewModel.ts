@@ -1,6 +1,10 @@
+import { AppState } from "../backend/entity/AppStateEntity";
 import { AppStateRepository, appStateRepository } from "../backend/repository/AppStateRepository";
 import { Logger } from "../utils/logger";
-import { LimitRefusal, refusalOfMoreLinks } from "../backend/entity/PlanLimits";
+import {
+    LimitRefusal, PlanLimits, refusalOfAnotherWorkspace, refusalOfMoreGroups, refusalOfMoreLinks,
+    refusalOfMoreSubgroups
+} from "../backend/entity/PlanLimits";
 import { readStoredPlanLimits } from "../backend/repository/PremiumStanding";
 
 /** One place a bookmark can be put: a group, or a subgroup of one. */
@@ -8,6 +12,24 @@ export interface BookmarkTargetDTO {
     id: string;
     title: string;
 }
+
+/** A workspace, group or subgroup that already exists, or one to make under the name given. */
+export type BookmarkPlace = { id: string } | { create: string; description?: string };
+
+/**
+ *  Where a bookmark goes, any part of which may still have to be made.
+ *
+ *  A new group is always in a workspace that exists by then, and a new subgroup in a group that
+ *  does: the form offers "New subgroup…" only under a group it lists.
+ */
+export interface BookmarkDestination {
+    workspace: BookmarkPlace;
+    group: BookmarkPlace;
+    subgroup?: BookmarkPlace;
+}
+
+/** The kinds of record a destination can ask to be made, keyed as `AppState` keeps them. */
+type CreatedKind = "environments" | "groups" | "subgroups";
 
 /**
  *  View model behind the bookmarking window.
@@ -75,18 +97,6 @@ export class BookmarkViewModel {
     }
 
     /**
-     *  Whether there is anywhere to put a bookmark.
-     *
-     *  A profile with no workspace, or whose workspaces hold no group, has nowhere to keep a
-     *  link and nothing sensible to offer in the dropdown. The window says so rather than creating
-     *  a workspace behind the user's back - the first workspace is a decision, and it is made
-     *  on the new tab page.
-     */
-    public canBookmark(): boolean {
-        return this.getWorkspaces().some(workspace => this.getGroups(workspace.id).length > 0);
-    }
-
-    /**
      *  Stores the link.
      *
      *  Nothing is synchronised from here: this window holds no session and no baseline. The
@@ -124,5 +134,96 @@ export class BookmarkViewModel {
 
         await this.appState.createLink(url, title, groupId, subGroupId);
         return null;
+    }
+
+    /**
+     *  Stores the link, first making whatever part of its destination does not exist yet.
+     *
+     *  This is what a profile with no group - or no workspace at all - is offered instead of
+     *  being told there is nowhere to put the link: the user names the group, so making it is
+     *  their decision and not one taken behind their back. Every limit is asked before anything
+     *  is made, so a refusal never leaves behind an empty group that was made for nothing.
+     *
+     *  @param url         the address to keep
+     *  @param title       what to call it
+     *  @param destination where it goes, and what to make on the way
+     *  @return null when stored; the refusal when a limit stands in the way
+     */
+    public async saveInto(
+        url: string,
+        title: string,
+        destination: BookmarkDestination
+    ): Promise<LimitRefusal | null> {
+
+        const refusal = this.refusalOf(destination, await readStoredPlanLimits());
+        if (refusal) {
+            return refusal;
+        }
+
+        const { workspace, group, subgroup } = destination;
+
+        const workspaceId = "id" in workspace
+            ? workspace.id
+            : await this.created("environments",
+                () => this.appState.addWorkspace(workspace.create, workspace.description));
+
+        const groupId = "id" in group
+            ? group.id
+            : workspaceId && await this.created("groups",
+                () => this.appState.createGroup(group.create, workspaceId, group.description));
+
+        const subgroupId = !subgroup || "id" in subgroup
+            ? subgroup?.id
+            : groupId && await this.created("subgroups",
+                () => this.appState.createSubGroup(
+                    groupId, workspaceId, subgroup.create, subgroup.description));
+
+        if (!groupId || subgroupId === null) {
+            // The repository refused what was checked above as allowed - limits it reads
+            // differently from the stored ones. Nothing to save into, and nothing to say better.
+            this.LOG.warn("saveInto", "A place to save into could not be made");
+            return null;
+        }
+        return this.save(url, title, groupId, subgroupId);
+    }
+
+    /**
+     *  Why the destination cannot take one more link, or what cannot be made on the way to it.
+     *
+     *  The standing is taken as premium for the reason `save` gives: the popup publishes none
+     *  of its own, and only the workspace limit differs between plans - which a destination asks
+     *  to grow only when the profile has no workspace at all.
+     */
+    private refusalOf(
+        { workspace, group, subgroup }: BookmarkDestination,
+        limits: PlanLimits
+    ): LimitRefusal | null {
+        const state = this.appState.state$.get();
+        const premium = true;
+
+        if (!("id" in workspace)) {
+            return refusalOfAnotherWorkspace(state, limits, premium);
+        }
+        if (!("id" in group)) {
+            return refusalOfMoreGroups(state, workspace.id, 1, limits, premium)
+                ?? refusalOfMoreLinks(state, workspace.id, 1, limits, premium);
+        }
+        const workspaceId = state.groups[group.id]?.environmentId ?? workspace.id;
+        const subgroupRefusal = subgroup && !("id" in subgroup)
+            ? refusalOfMoreSubgroups(state, group.id, 1, limits, premium)
+            : null;
+        return subgroupRefusal ?? refusalOfMoreLinks(state, workspaceId, 1, limits, premium);
+    }
+
+    /**
+     *  Makes one record and answers its identifier, which the repository does not return: it is
+     *  the one key the state holds afterwards that it did not hold before.
+     *
+     *  @return the new identifier; null when the repository refused to make it
+     */
+    private async created(kind: CreatedKind, make: () => Promise<AppState>): Promise<string | null> {
+        const before = new Set(Object.keys(this.appState.state$.get()[kind]));
+        const after = await make();
+        return Object.keys(after[kind]).find(id => !before.has(id)) ?? null;
     }
 }

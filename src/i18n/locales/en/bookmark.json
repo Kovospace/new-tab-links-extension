@@ -6,7 +6,10 @@
     "url": "URL",
     "workspace": "Workspace",
     "group": "Group",
-    "subgroup": "Subgroup"
+    "subgroup": "Subgroup",
+    "newGroup": "Group name",
+    "description": "Description",
+    "newSubgroup": "Subgroup name"
   },
   "noSubgroup": "(none)",
   "contextMenu": {
@@ -19,8 +22,15 @@
     "title": "Nothing to bookmark",
     "message": "This page cannot be kept as a link. Only ordinary web pages can - not the browser's own pages, and not the new tab page."
   },
-  "nowhereToPut": {
-    "title": "Nowhere to put it",
-    "message": "This profile has no group to keep a link in yet. Open a new tab, make a workspace and a group, and this will have somewhere to save to."
-  }
+  "newGroup": {
+    "option": "New group…",
+    "defaultName": "Ungrouped"
+  },
+  "newSubgroup": {
+    "option": "New subgroup…"
+  },
+  "newWorkspace": {
+    "defaultName": "My workspace"
+  },
+  "optional": "optional"
 }
