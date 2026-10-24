@@ -793,8 +793,11 @@ default; #107), marked as `data-theme-style` on the root by `followTheme`. **The
 top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),
 `--aero-menu-opacity` (menus, search suggestions, dialogs), `--aero-blur`, and
 `--aero-border-opacity` for the dark frames round what sits on the background (0% hides them,
-100% is flat's frame). Every aero rule is in `_aero.css`, loaded last, and takes its amounts from
-those variables only. **What holds menus - the header, groups, subgroups - is blurred from a
+100% is flat's frame). Every aero rule is in `_aero.css` and takes its amounts from those variables
+only. **Its selectors start with `:root[data-theme-style="aero"]`, never `html[...]`**: both
+pages import it, so Vite makes it a shared chunk that the page links *before* its own
+stylesheet - order cannot be relied on, and `html[...]` only ties with the components'
+`html.dark ...`, which then wins. That is what kept the groups solid at first. **What holds menus - the header, groups, subgroups - is blurred from a
 `::before` at z-index -1, never on itself**: `backdrop-filter` makes an element a stacking
 context, and a menu inside one could rise no higher than it - under the next column, or under
 the overlay shown while a menu is open. `test/ui/styles/aeroStyle.test.ts` pins that, that flat

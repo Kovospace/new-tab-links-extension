@@ -9,7 +9,11 @@ import { describe, expect, it } from "vitest";
  *  itself.
  */
 const STYLES = resolve("src/ui/styles");
-const AERO = 'html[data-theme-style="aero"]';
+/**
+ *  `:root`, never `html`: the sheet is a shared chunk the page links before its own stylesheet,
+ *  so its rules have to outrank the components' `html.dark ...` by specificity, not by order.
+ */
+const AERO = ':root[data-theme-style="aero"]';
 
 /**
  *  What dims the page behind a modal dialog. Not a surface the style is about: it blurred the
@@ -39,6 +43,14 @@ const blurredSelectors = () => rules()
     .map(selector => selector.trim());
 
 describe("the theme style in the stylesheets", () => {
+
+    it("writes every aero rule against :root, so it wins whatever order the sheets load in", () => {
+        const aeroSelectors = css("_aero.css").match(/[^{}]+(?=\{)/g)!
+            .flatMap(selector => selector.split(","))
+            .map(selector => selector.trim());
+
+        expect(aeroSelectors.filter(selector => !selector.startsWith(AERO))).toEqual([]);
+    });
 
     it("blurs nothing in the flat style", () => {
         const unguarded = blurredSelectors()
