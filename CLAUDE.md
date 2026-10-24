@@ -788,7 +788,7 @@ Every colour in `__variables.css` is a `light-dark(light, dark)` pair and the ro
 page) narrows it. A new colour goes into `__variables.css` as a pair - one written out in a
 component stylesheet is a colour only one theme gets.
 
-**A premium user's own picture is a fixed layer of its own** (`html.has-custom-background::before`,
+**The user's own background picture - any account, not only premium - is a fixed layer of its own** (`html.has-custom-background::before`,
 z-index -2, fed `--page-background-image` by `pageBackground.ts`), never the root's background
 with `background-attachment: fixed`. Chrome cannot composite a fixed background: the picture
 behind every hover was repainted, at low quality while the transition ran and full quality when
@@ -804,12 +804,12 @@ and Chrome draws text one way while it keeps being repainted and another once it
 switch at the end of each hover flickered the text until Chrome had seen it often enough to stop
 (`test/ui/styles/textColorTransitions.test.ts`).
 
-**Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
-default; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
+**Flat or aero is a second, independent choice** (`themeStyle`, device preference, **aero by
+default**, flat the opt-out; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
 top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),
-`--aero-menu-opacity` (menus, search suggestions, dialogs), `--aero-blur`, and
-`--aero-border-opacity` for the dark frames round what sits on the background (0% hides them,
-100% is flat's frame). Every aero rule is in `_aero.css` and takes its amounts from those variables
+`--aero-menu-opacity` (menus, search suggestions, dialogs) and `--aero-blur`. (A fourth,
+`--aero-border-opacity` for the frames, is commented out for now along with the frame rule in
+`_aero.css`.) Every aero rule is in `_aero.css` and takes its amounts from those variables
 only. **Its selectors start with `:root[data-theme-style="aero"]`, never `html[...]`**: both
 pages import it, so Vite makes it a shared chunk that the page links *before* its own
 stylesheet - order cannot be relied on, and `html[...]` only ties with the components'

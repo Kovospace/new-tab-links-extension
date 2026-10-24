@@ -50,7 +50,6 @@
   "backgroundImage": {
     "title": "Background",
     "explanation": "Put a picture of your own behind the page, in place of the logo in the corner. It covers the whole window and is kept on this device only.",
-    "proOnly": "Only Pro users can change the background.",
     "choose": "Choose picture…",
     "change": "Change picture…",
     "remove": "Remove",
@@ -101,7 +100,7 @@
   },
   "themeStyle": {
     "title": "Theme style",
-    "explanation": "Flat draws groups and menus solid. Aero makes them partly transparent and blurs what is behind them - best with a background picture. Kept on this device only.",
+    "explanation": "Flat draws groups and menus solid. Aero - the default - makes them partly transparent and blurs what is behind them, best with a background picture. Kept on this device only.",
     "options": {
       "flat": "Flat",
       "aero": "Aero (transparent, blurred)"

@@ -4,16 +4,12 @@ import { Logger } from "../../utils/logger";
 import { ObservableValue } from "../../utils/observableValue";
 
 /**
- *  The picture a premium user has put behind the new tab page.
+ *  The picture the user has put behind the new tab page.
  *
  *  **Per device, like the size slider**, and for a reason of its own besides: it is a picture,
  *  and a picture on the profile record would be a backend column holding megabytes that every
  *  push and every pull carries. A desktop and a laptop wanting different wallpapers is the
  *  ordinary case anyway.
- *
- *  **Stored whatever the account's standing**, and only *shown* to a premium account - that is
- *  the page's decision (`PageBackground`), not this one's. A subscription that lapses and is
- *  renewed gets its picture back rather than being asked to find it again.
  *
  *  Held as a data URL, already shrunk (`utils/imageDownscale.ts`): `chrome.storage.local` gives
  *  an extension without `unlimitedStorage` ten megabytes in all, and a photograph straight off

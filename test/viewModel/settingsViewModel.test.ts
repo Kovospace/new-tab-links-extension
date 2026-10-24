@@ -273,7 +273,7 @@ describe("SettingsViewModel, the bookmarking shortcut", () => {
         await profiles.init();
         const devicePreferences = new DevicePreferencesRepository();
         await devicePreferences.init();
-        settings = new SettingsViewModel(profiles, devicePreferences, undefined, undefined,
+        settings = new SettingsViewModel(profiles, devicePreferences, undefined,
             async () => shortcut);
         settings.refresh();
     });
@@ -578,20 +578,44 @@ describe("SettingsViewModel, the theme style", () => {
     const themeStyle = () => settings.observables.settings.get().categories[0].settings
         .find(setting => setting.key === "themeStyle");
 
-    it("is offered right after the theme, flat or aero, on flat", () => {
+    it("is offered right after the theme, flat or aero, on aero", () => {
         const keys = settings.observables.settings.get().categories[0].settings.map(setting => setting.key);
         expect(keys.indexOf("themeStyle")).toBe(keys.indexOf("theme") + 1);
         expect(themeStyle()).toMatchObject({
-            kind: "choice", value: "flat",
+            kind: "choice", value: "aero",
             options: [{ value: "flat", label: "Flat" }, { value: "aero", label: "Aero (transparent, blurred)" }]
         });
     });
 
     it("stores a style chosen, without asking for a reload", async () => {
-        expect(await settings.setChoice("themeStyle", "aero")).toBe(false);
+        expect(await settings.setChoice("themeStyle", "flat")).toBe(false);
 
-        expect(devicePreferences.getThemeStyle()).toBe("aero");
-        expect(themeStyle()).toMatchObject({ value: "aero" });
+        expect(devicePreferences.getThemeStyle()).toBe("flat");
+        expect(themeStyle()).toMatchObject({ value: "flat" });
     });
 });
 
+
+/** The background picture is open to every account: no premium check, nothing greyed out. */
+describe("SettingsViewModel, the background picture", () => {
+
+    it("is offered and stored for an account that is not premium", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        const stored: string[] = [];
+        const images = {
+            getImage: () => stored[0] ?? null,
+            setImage: async (image: string) => { stored.push(image); },
+            clearImage: async () => undefined
+        };
+        const settings = new SettingsViewModel(profiles, devicePreferences, images as never);
+        settings.refresh();
+
+        const picture = settings.observables.settings.get().categories[0].settings
+            .find(setting => setting.kind === "image");
+        expect(picture).toMatchObject({ disabledReason: null });
+        expect(picture).not.toHaveProperty("tooltip");
+    });
+});

@@ -109,19 +109,12 @@ describe("the theme style in the stylesheets", () => {
 
     it("takes every amount from the knobs in __variables.css", () => {
         const knobs = css("__variables.css");
-        for (const knob of ["--aero-opacity", "--aero-menu-opacity", "--aero-blur", "--aero-border-opacity"]) {
+        for (const knob of ["--aero-opacity", "--aero-menu-opacity", "--aero-blur"]) {
             expect(knobs).toMatch(new RegExp(`${knob}:\\s*[^;]+;`));
         }
         // No number written into the rules themselves: a percentage or a blur radius there is
         // a knob somebody would look for in __variables.css and not find.
         const aero = css("_aero.css");
         expect(aero).not.toMatch(/\d+%|blur\(\d/);
-    });
-
-    it("draws the frames in the page's own colour, at the border opacity", () => {
-        const root = rules().find(([selector]) => selector === AERO)!;
-
-        expect(root[1]).toMatch(
-            /--aero-frame:\s*color-mix\(in srgb, var\(--color-document-background\) var\(--aero-border-opacity\), transparent\)/);
     });
 });

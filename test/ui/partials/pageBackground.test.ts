@@ -33,8 +33,17 @@ describe("PageBackground, the user's own picture", () => {
         expect(root.style.backgroundImage).toBe("");
     });
 
-    it("takes it away again for an account that is not premium", () => {
+    it("shows it on a free account too, keeping the FREE badge", () => {
         render(false, "data:image/png;base64,AAAA");
+
+        expect(root.classList.contains("has-custom-background")).toBe(true);
+        expect(root.style.getPropertyValue("--page-background-image"))
+            .toBe('url("data:image/png;base64,AAAA")');
+        expect(document.querySelector(".page-watermark")!.getAttribute("data-tier")).toBe("free");
+    });
+
+    it("has nothing to show once the picture is removed", () => {
+        render(true, null);
 
         expect(root.classList.contains("has-custom-background")).toBe(false);
         expect(root.style.getPropertyValue("--page-background-image")).toBe("");

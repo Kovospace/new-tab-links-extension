@@ -2,8 +2,8 @@
   {
     "id": "change-background",
     "text": {
-      "en": "Pro users can put a picture of their own behind the page: Settings → \"UI and behavior\" → \"Background\".",
-      "sk": "Používatelia Pro si môžu dať za stránku vlastný obrázok: Nastavenia → „Vzhľad a správanie“ → „Pozadie“."
+      "en": "Put a picture of your own behind the page: Settings → \"UI and behavior\" → \"Background\". Groups and menus blur it in the Aero style.",
+      "sk": "Dajte si za stránku vlastný obrázok: Nastavenia → „Vzhľad a správanie“ → „Pozadie“. V štýle Aero ho skupiny a ponuky rozmazávajú."
     },
     "url": {
       "en": "/tips/change-background",
@@ -24,8 +24,8 @@
   {
     "id": "discover-premium-features",
     "text": {
-      "en": "See what premium adds — no ad bar and a background of your own, among other things.",
-      "sk": "Pozrite sa, čo pridáva prémiová verzia — okrem iného žiadny reklamný pruh a vlastné pozadie."
+      "en": "See what premium adds — no ad bar and room for many more profiles and workspaces, among other things.",
+      "sk": "Pozrite sa, čo pridáva prémiová verzia — okrem iného žiadny reklamný pruh a miesto pre oveľa viac profilov a pracovných priestorov."
     },
     "url": {
       "en": "/tips/discover-premium-features",
