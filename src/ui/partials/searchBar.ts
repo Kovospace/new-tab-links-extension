@@ -1,9 +1,21 @@
 import { SearchBarDTO, SearchBarViewModel, SearchEngineDTO } from '../../viewModel/searchBarViewModel';
+import { SuggestionDTO, SuggestionKind } from '../../viewModel/searchSuggestions';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
 import { t } from '../../i18n/i18n';
 
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/** How long typing has to pause before the profile is searched for it. */
+export const SUGGEST_DELAY = 250;
+
+/** What each kind of suggestion is called beside it; a link says where it is kept instead. */
+const KIND_WORDING: Record<Exclude<SuggestionKind, 'link'>, string> = {
+  openTab: 'search.suggestion.openTab',
+  closedTab: 'search.suggestion.closedTab',
+  visit: 'search.suggestion.visit',
+  web: ''
+};
 
 /**
  * The search bar in the workspace heading:
@@ -18,6 +30,12 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  *
  * **Results replace this page**, as a link clicked on it does: a new tab is where a search
  * starts, so it is the tab the results belong in.
+ *
+ * **The profile is searched first** (#85). Typing pauses for `SUGGEST_DELAY` and a list opens
+ * under the field: the links of the loaded profile, then this browser's open tabs, the closed
+ * tabs and the history, and "search the web" last, always. The first entry is highlighted and
+ * is what Enter opens; the arrow keys move the highlight, Escape closes the list. Searching
+ * the web is now one of the things the bar does, not the only one.
  *
  * **The browser's own engine is first and the default** - the Chrome Web Store's rule; see
  * `SearchEngines`. Chrome does not say which engine that is, so it is drawn with a plain
@@ -34,6 +52,14 @@ export class SearchBar {
   private engineButton: HTMLButtonElement | null = null;
   private engineIcon: HTMLElement | null = null;
   private engineList: HTMLElement | null = null;
+  private suggestionList: HTMLElement | null = null;
+
+  /** What is offered now, and which of it Enter would open. */
+  private suggestions: SuggestionDTO[] = [];
+  private highlighted = 0;
+
+  /** The pending search of the profile, while typing has not paused long enough. */
+  private suggestTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Which engine the button's icon was last drawn for, so a late favicon cannot overwrite a newer choice. */
   private drawnEngineId: string | null = null;
@@ -54,6 +80,7 @@ export class SearchBar {
       this.form = this.build();
       this.viewModel.initialize();
       this.viewModel.observables.search.subscribe(search => this.draw(search));
+      this.viewModel.observables.suggestions.subscribe(found => this.drawSuggestions(found));
     }
     return this.form;
   }
@@ -64,7 +91,7 @@ export class SearchBar {
     form.setAttribute('role', 'search');
     form.addEventListener('submit', event => {
       event.preventDefault();
-      this.submit();
+      void this.submit();
     });
 
     const engine = document.createElement('div');
@@ -98,6 +125,17 @@ export class SearchBar {
     this.input.enterKeyHint = 'search';
     this.input.autocomplete = 'off';
     this.input.spellcheck = false;
+    this.input.placeholder = t('search.placeholderEverything');
+    this.input.setAttribute('aria-label', this.input.placeholder);
+    this.input.setAttribute('aria-autocomplete', 'list');
+    this.input.addEventListener('input', () => this.typed());
+    this.input.addEventListener('focus', () => this.typed());
+    this.input.addEventListener('keydown', event => this.steer(event));
+
+    this.suggestionList = document.createElement('ul');
+    this.suggestionList.classList.add('search-bar__suggestions');
+    this.suggestionList.setAttribute('role', 'listbox');
+    this.suggestionList.hidden = true;
 
     const submit = document.createElement('button');
     submit.type = 'submit';
@@ -106,12 +144,13 @@ export class SearchBar {
     submit.setAttribute('aria-label', t('search.submit'));
     submit.appendChild(magnifierGlyph());
 
-    form.append(engine, this.input, submit);
+    form.append(engine, this.input, submit, this.suggestionList);
 
-    // Closing the list: a click anywhere else, or Escape. Listened for on the document, and
+    // Closing the lists: a click anywhere else, or Escape. Listened for on the document, and
     // for the life of the page, because the bar lives that long too.
     document.addEventListener('click', event => {
       if (!engine.contains(event.target as Node)) this.closeEngineList();
+      if (!form.contains(event.target as Node)) this.viewModel.clearSuggestions();
     });
     form.addEventListener('keydown', event => {
       if (event.key === 'Escape' && this.isEngineListOpen()) {
@@ -127,11 +166,6 @@ export class SearchBar {
   /** Redraws everything that depends on which engine is in use. */
   private draw(search: SearchBarDTO): void {
     const { engine, engines } = search;
-
-    this.input!.placeholder = engine.homeUrl === null
-      ? t('search.placeholderBrowser')
-      : t('search.placeholder', { engine: engine.label });
-    this.input!.setAttribute('aria-label', this.input!.placeholder);
 
     const choose = t('search.chooseEngine', { engine: engine.label });
     this.engineButton!.title = choose;
@@ -170,10 +204,126 @@ export class SearchBar {
     return item;
   }
 
-  private submit(): void {
-    void this.viewModel.search(this.input?.value ?? '').then(searched => {
-      if (!searched) this.input?.focus();
+  /**
+   * Enter, or the magnifying glass: opens what is highlighted. Pressed before typing paused,
+   * the profile is searched there and then, so Enter never opens the answer to a shorter query.
+   */
+  private async submit(): Promise<void> {
+    const query = this.input?.value ?? '';
+    if (this.suggestTimer !== null || this.suggestions.length === 0) {
+      this.cancelPendingSuggest();
+      await this.viewModel.suggest(query);
+    }
+    const chosen = this.suggestions[this.highlighted];
+    if (!chosen) {
+      this.input?.focus();
+      return;
+    }
+    this.viewModel.clearSuggestions();
+    await this.viewModel.open(chosen, query);
+  }
+
+  /** Something was typed, or the field was focused: search the profile once typing pauses. */
+  private typed(): void {
+    this.cancelPendingSuggest();
+    const query = this.input?.value ?? '';
+    if (!query.trim()) {
+      this.viewModel.clearSuggestions();
+      return;
+    }
+    this.suggestTimer = setTimeout(() => {
+      this.suggestTimer = null;
+      void this.viewModel.suggest(query);
+    }, SUGGEST_DELAY);
+  }
+
+  private cancelPendingSuggest(): void {
+    if (this.suggestTimer !== null) {
+      clearTimeout(this.suggestTimer);
+      this.suggestTimer = null;
+    }
+  }
+
+  /** The arrow keys move the highlight; Escape closes the list. Enter is the form's. */
+  private steer(event: KeyboardEvent): void {
+    if (this.suggestions.length === 0) {
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      this.highlight((this.highlighted + step + this.suggestions.length) % this.suggestions.length);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelPendingSuggest();
+      this.viewModel.clearSuggestions();
+    }
+  }
+
+  private drawSuggestions(found: SuggestionDTO[]): void {
+    this.suggestions = found;
+    this.highlighted = 0;
+    this.suggestionList!.replaceChildren(...found.map((one, index) => this.suggestionRow(one, index)));
+    this.suggestionList!.hidden = found.length === 0;
+    this.input!.setAttribute('aria-expanded', String(found.length > 0));
+    this.highlight(0);
+  }
+
+  private highlight(index: number): void {
+    this.highlighted = index;
+    Array.from(this.suggestionList!.children).forEach((row, at) => {
+      row.classList.toggle('active', at === index);
+      row.setAttribute('aria-selected', String(at === index));
     });
+  }
+
+  /** One suggestion: its icon, its title, and where it is kept or what kind of thing it is. */
+  private suggestionRow(suggestion: SuggestionDTO, index: number): HTMLElement {
+    const row = document.createElement('li');
+    row.classList.add('search-bar__suggestion', `search-bar__suggestion--${suggestion.kind}`);
+    row.setAttribute('role', 'option');
+
+    const icon = suggestion.kind === 'web' ? magnifierGlyph() : this.pageIcon(suggestion);
+
+    const text = document.createElement('span');
+    text.classList.add('search-bar__suggestion-text');
+    const title = document.createElement('span');
+    title.classList.add('search-bar__suggestion-title');
+    title.textContent = suggestion.title;
+    const where = document.createElement('span');
+    where.classList.add('search-bar__suggestion-where');
+    where.textContent = suggestion.kind === 'link' || suggestion.kind === 'web'
+      ? suggestion.where
+      : t(KIND_WORDING[suggestion.kind]);
+    text.append(title, where);
+
+    row.append(icon, text);
+    row.title = suggestion.url ?? '';
+    row.addEventListener('mouseenter', () => this.highlight(index));
+    // Pressing a row must not take the focus out of the field first, or the list would close
+    // before the click arrived.
+    row.addEventListener('mousedown', event => event.preventDefault());
+    row.addEventListener('click', () => {
+      const query = this.input?.value ?? '';
+      this.viewModel.clearSuggestions();
+      void this.viewModel.open(suggestion, query);
+    });
+    return row;
+  }
+
+  /** A page's favicon: the one it came with, or the one the favicon worker finds. */
+  private pageIcon(suggestion: SuggestionDTO): HTMLImageElement {
+    const img = document.createElement('img');
+    img.width = 16;
+    img.height = 16;
+    img.alt = '';
+    img.draggable = false;
+    img.src = suggestion.faviconUrl ?? ICON_DEFAULT;
+    img.addEventListener('error', () => { img.src = ICON_DEFAULT; });
+    if (!suggestion.faviconUrl && suggestion.url) {
+      void this.iconOf(suggestion.url).then(src => { if (src) img.src = src; });
+    }
+    return img;
   }
 
   private toggleEngineList(): void {

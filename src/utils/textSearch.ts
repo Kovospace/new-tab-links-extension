@@ -18,6 +18,6 @@ export function matchesQuery(query: string, ...texts: Array<string | undefined>)
 }
 
 /** Lower case, with the accents taken off: what both sides of a comparison are reduced to. */
-function foldForSearch(text: string): string {
+export function foldForSearch(text: string): string {
     return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase();
 }

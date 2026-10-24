@@ -50,7 +50,7 @@ Keep it current: a new module or a new concern adds a row here.
 | View-models (one per component or dialog) | `viewModel/*ViewModel.ts`, base `viewModel/abstract/abstractViewModel.ts` |
 | Components | `ui/components/*Component.ts`, base `ui/abstract/abstractComponent.ts` |
 | Dialogs, menus, bars | `ui/partials/*` — field rules in `ui/partials/fieldValidation.ts` |
-| Search bar — engines, the bar, its view model | `backend/entity/SearchEngines.ts`, `ui/partials/searchBar.ts`, `viewModel/searchBarViewModel.ts` |
+| Search bar — engines, the bar, its view model; suggestions from the profile's links, open/closed tabs and history | `backend/entity/SearchEngines.ts`, `ui/partials/searchBar.ts`, `viewModel/searchBarViewModel.ts` (`suggest`, `open`), `viewModel/searchSuggestions.ts` (`gatherSuggestions`), `utils/textSearch.ts` |
 | The ads bar — an iframe of the website's slot page | `ui/partials/adsBar.ts` |
 | Anonymous new-tab counts, batched and reported | `backend/stats/NewTabUsageReporter.ts`, `backend/worker/module/usageStatsWorker.ts` |
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |
