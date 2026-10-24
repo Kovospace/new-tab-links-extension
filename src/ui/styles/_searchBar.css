@@ -134,11 +134,6 @@ ul.search-bar__suggestions {
     background-color: var(--color-component-background);
 }
 
-html[data-theme-style="aero"] ul.search-bar__suggestions {
-    background-color: color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity), transparent);
-    -webkit-backdrop-filter: blur(var(--aero-blur));
-    backdrop-filter: blur(var(--aero-blur));
-}
 
 ul.search-bar__suggestions[hidden] {
     display: none;

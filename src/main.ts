@@ -53,6 +53,8 @@ import './ui/styles/_adsBar.css'
 import './ui/styles/_searchBar.css'
 import './ui/styles/_dragAndDrop.css'
 import './ui/styles/_closedTabs.css'
+// Last: the aero theme style overrides the surfaces drawn by everything above.
+import './ui/styles/_aero.css'
 
 // define custom elements used BEFORE they are created/constructed
 // otherwise You are unable to call custom methods for example for

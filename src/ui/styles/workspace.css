@@ -119,29 +119,6 @@ html.dark workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover))
     background-color: var(--color-component-background-hover);
 }
 
-/*
-   Aero: a group is partly transparent and blurs what is behind it - its frame too, or an
-   opaque ring would be left round a glass pane.
-
-   backdrop-filter makes each group a stacking context of its own, and the group's menus are
-   drawn inside it - so a menu reaching over the next column would be painted underneath that
-   column. The group whose menu is open is lifted above its neighbours.
-*/
-html[data-theme-style="aero"] workspace-plane-body > link-group {
-    background-color: color-mix(in srgb, var(--color-component-background) var(--aero-group-opacity), transparent);
-    border-color: color-mix(in srgb, var(--color-document-background) var(--aero-group-opacity), transparent);
-    -webkit-backdrop-filter: blur(var(--aero-blur));
-    backdrop-filter: blur(var(--aero-blur));
-}
-
-html[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)) {
-    background-color: color-mix(in srgb, var(--color-component-background-hover) var(--aero-group-opacity), transparent);
-}
-
-html[data-theme-style="aero"] workspace-plane-body > link-group:has(options-menu.visible) {
-    z-index: 1;
-}
-
 
 
 /*

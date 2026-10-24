@@ -1,0 +1,125 @@
+/* ---------------------------------------------------------------------------
+   The aero theme style (#107)
+
+   data-theme-style="aero" on the root (DevicePreferencesRepository.themeStyle).
+   Everything the page draws as a surface - the header and footer, the groups
+   and a subgroup under the pointer, the side panel, the tips bar, every menu,
+   the search suggestions and the dialogs - is partly transparent and blurs
+   what is behind it. Flat needs no rule: it is the page as the other
+   stylesheets draw it.
+
+   All of it is here rather than beside each component, so the style is one
+   thing that can be read, tuned and switched as a whole; this file is loaded
+   last, so a rule here wins over the component's own at equal specificity.
+
+   **The frames keep their colour.** The thick rings round groups, menus and
+   the controls are the document's background colour; here they are that same
+   colour made translucent, so they read as the same frame and show the blur
+   behind them like the surface they surround. Controls - buttons, text
+   fields - stay solid: a see-through button is harder to hit and to read.
+
+   **Where menus live, the blur is a layer behind the element, not on it.**
+   backdrop-filter makes an element a stacking context of its own, and a menu
+   inside one can rise no higher than it: a group's menu would be painted under
+   the next column, and the header's under the overlay that dims the page while
+   it is open - unclickable (see the note on `header` in main.css). So the
+   header, the groups and a lit subgroup carry the blur on a ::before at
+   z-index -1, which sits behind their contents without making them anything.
+   (Lifting the element instead does not work: opening a menu shows the
+   overlay at z-index 100, so the lift would have to clear it and would leave
+   the whole element undimmed.)
+   --------------------------------------------------------------------------- */
+
+html[data-theme-style="aero"] {
+    --aero-surface: color-mix(in srgb, var(--color-component-background) var(--aero-group-opacity), transparent);
+    --aero-surface-hover: color-mix(in srgb, var(--color-component-background-hover) var(--aero-group-opacity), transparent);
+    --aero-menu-surface: color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity), transparent);
+    --aero-frame: color-mix(in srgb, var(--color-document-background) var(--aero-group-opacity), transparent);
+    --aero-filter: blur(var(--aero-blur));
+}
+
+/* ── Surfaces ───────────────────────────────────────────────────────────── */
+
+html[data-theme-style="aero"] header,
+html[data-theme-style="aero"] footer,
+html[data-theme-style="aero"] .closed-tabs,
+html[data-theme-style="aero"] workspace-plane-body > link-group,
+html[data-theme-style="aero"] .tips-bar {
+    background-color: var(--aero-surface);
+}
+
+/* Nothing in these holds a menu: blurred directly. */
+html[data-theme-style="aero"] footer,
+html[data-theme-style="aero"] .closed-tabs,
+html[data-theme-style="aero"] .tips-bar {
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+}
+
+/* These do: blurred from behind. The layer covers the frame as well (inset by
+   minus the border), so the frame shows the blur like the surface does. */
+html[data-theme-style="aero"] workspace-plane-body > link-group,
+html[data-theme-style="aero"] link-subgroup {
+    position: relative;
+}
+
+/* A subgroup only while it is lit, which is when it has a surface at all. */
+html[data-theme-style="aero"] header::before,
+html[data-theme-style="aero"] workspace-plane-body > link-group::before,
+html[data-theme-style="aero"] link-subgroup:hover::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--aero-frame-width, 0px));
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+}
+
+html[data-theme-style="aero"] workspace-plane-body > link-group::before {
+    --aero-frame-width: 0.25em;
+}
+
+html[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
+html[data-theme-style="aero"] link-subgroup:hover {
+    background-color: var(--aero-surface-hover);
+}
+
+/* Read over whatever they open on top of, so they keep more of themselves. */
+html[data-theme-style="aero"] options-menu,
+html[data-theme-style="aero"] ul.search-bar__suggestions,
+html[data-theme-style="aero"] dialog.input-dialog {
+    background-color: var(--aero-menu-surface);
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+}
+
+/* The workspace's name and description sit on pills of the document's colour. */
+html[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > h1,
+html[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > span {
+    background-color: var(--aero-frame);
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+}
+
+/* ── Frames ─────────────────────────────────────────────────────────────── */
+
+html[data-theme-style="aero"] workspace-plane-body > link-group,
+html[data-theme-style="aero"] .tips-bar,
+html[data-theme-style="aero"] options-menu,
+html[data-theme-style="aero"] ul.search-bar__engines,
+html[data-theme-style="aero"] button.search-bar__engine-button,
+html[data-theme-style="aero"] input.search-bar__input,
+html[data-theme-style="aero"] button.search-bar__submit,
+html[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,
+html[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group {
+    border-color: var(--aero-frame);
+}
+
+/* The engine list is a menu like the others. */
+html[data-theme-style="aero"] ul.search-bar__engines {
+    background-color: var(--aero-menu-surface);
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+}

@@ -789,13 +789,16 @@ page) narrows it. A new colour goes into `__variables.css` as a pair - one writt
 component stylesheet is a colour only one theme gets.
 
 **Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
-default; #107), marked as `data-theme-style` on the root by `followTheme`. Aero makes groups,
-every `<options-menu>` (application, group, link and right-click menus are one element) and the
-search suggestions partly transparent with a `backdrop-filter` blur; the amounts are the
-`--aero-*` variables. Every blur on a surface is written under
-`html[data-theme-style="aero"]`, so flat stays flat (`test/ui/styles/aeroStyle.test.ts`).
-`backdrop-filter` makes each group a stacking context, so a group's own menu would be painted
-under the next column - the group with an open menu is lifted with `z-index`. `html.dark` in the stylesheets is not the
+default; #107), marked as `data-theme-style` on the root by `followTheme`. Every aero rule is in
+one stylesheet, `_aero.css`, loaded last: the header and footer, the groups and a lit subgroup,
+the side panel, the tips bar, every `<options-menu>` (application, group, link and right-click
+menus are one element), the engine list, the search suggestions and the dialogs are partly
+transparent and blur what is behind them. The frames keep the document's colour, made
+see-through (`--aero-frame`); controls stay solid. Amounts are the `--aero-*` variables.
+**What holds menus - header, groups, subgroups - is blurred from a `::before` at z-index -1,
+never on itself**: `backdrop-filter` makes an element a stacking context, and a menu inside one
+could rise no higher than it - under the next column, or under the overlay shown while a menu
+is open. `test/ui/styles/aeroStyle.test.ts` pins that and that flat blurs nothing. `html.dark` in the stylesheets is not the
 dark theme; it is the older "themed" class both pages carry, and its rules serve both.
 
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to

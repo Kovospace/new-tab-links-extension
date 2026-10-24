@@ -30,29 +30,52 @@ const MODAL_BACKDROPS = ["dialog.input-dialog::backdrop", "div.overlay"];
 
 const blurring = () => rules().filter(([, body]) => /backdrop-filter\s*:/.test(body));
 
+/** Each selector of every blurring rule, one by one. */
+const blurredSelectors = () => blurring()
+    .flatMap(([selector]) => selector.split(","))
+    .map(selector => selector.trim());
+
 describe("the theme style in the stylesheets", () => {
 
     it("blurs nothing in the flat style", () => {
-        const unguarded = blurring()
-            .flatMap(([selector]) => selector.split(","))
-            .map(selector => selector.trim())
+        const unguarded = blurredSelectors()
             .filter(selector => !selector.startsWith(AERO) && !MODAL_BACKDROPS.includes(selector));
 
         expect(unguarded).toEqual([]);
     });
 
     it.each([
-        "workspace-plane-body > link-group",
+        "header::before",
+        "footer",
+        ".closed-tabs",
+        ".tips-bar",
+        "workspace-plane-body > link-group::before",
+        "link-subgroup:hover::before",
         "options-menu",
-        "ul.search-bar__suggestions"
+        "ul.search-bar__suggestions",
+        "ul.search-bar__engines",
+        "dialog.input-dialog"
     ])("blurs %s in aero", element => {
-        expect(blurring().map(([selector]) => selector)).toContain(`${AERO} ${element}`);
+        expect(blurredSelectors()).toContain(`${AERO} ${element}`);
     });
 
-    it("lifts the group whose menu is open above the next column", () => {
-        const lift = rules().find(([selector]) =>
-            selector === `${AERO} workspace-plane-body > link-group:has(options-menu.visible)`);
+    /**
+     *  backdrop-filter makes an element a stacking context, and a menu inside one can rise no
+     *  higher than it: under the next column, or under the overlay that is shown while a menu is
+     *  open. What holds menus is blurred from a layer behind it, never on itself.
+     */
+    it.each(["header", "workspace-plane-body > link-group", "link-subgroup"])(
+        "never blurs %s itself, which holds menus", element => {
+            const onItself = blurredSelectors().filter(selector =>
+                selector.startsWith(AERO) && !selector.includes("::")
+                && selector.replace(AERO, "").trim().replace(/:hover$/, "") === element);
 
-        expect(lift?.[1]).toMatch(/z-index\s*:\s*[1-9]/);
+            expect(onItself).toEqual([]);
+        });
+
+    it("keeps the frames the document's colour, only see-through", () => {
+        const root = rules().find(([selector]) => selector === AERO)!;
+
+        expect(root[1]).toMatch(/--aero-frame:\s*color-mix\(in srgb, var\(--color-document-background\)/);
     });
 });
