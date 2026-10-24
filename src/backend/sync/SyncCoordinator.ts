@@ -1593,6 +1593,13 @@ export class SyncCoordinator {
      *  user put in one while waiting was put there as this account, and is merged like any
      *  other local profile.
      *
+     *  A fresh install signing in straight from the first-run screen is the third case: a set
+     *  nobody owns whose every profile is empty brings nothing to merge. Its seeded "Default"
+     *  used to pair by name or not at all, and an account whose profile is called anything else
+     *  left it in place - the open profile, still empty, so the page stayed on the first-run
+     *  screen with the account's workspaces in a profile nobody had switched to, and the empty
+     *  profile was then pushed to the account as one more.
+     *
      *  @param snapshot what the account holds
      *  @return the identifiers of the placeholders to drop
      */
@@ -1600,20 +1607,27 @@ export class SyncCoordinator {
         if (snapshot.profiles.length === 0) {
             return new Set();
         }
-        const awaiting = this.profiles.isAwaitingAccount();
+        const local = this.profiles.getProfiles();
         const empty = new Set<string>();
-        for (const profile of this.profiles.getProfiles()) {
-            // The placeholder an account switch left, or the first-run example profile emptied
-            // of its examples at sign-in (`removeUntouchedExamples`).
-            if (!awaiting && profile.example !== true) {
-                continue;
-            }
-            const data = await this.readProfileData(profile.id);
-            if (!data || Object.keys(data.environments).length === 0) {
+        for (const profile of local) {
+            if (await this.isEmpty(profile.id)) {
                 empty.add(profile.id);
             }
         }
-        return empty;
+        if (this.profiles.getOwner() === null && empty.size === local.length) {
+            return empty;
+        }
+        // The placeholder an account switch left, or the first-run example profile emptied
+        // of its examples at sign-in (`removeUntouchedExamples`).
+        const awaiting = this.profiles.isAwaitingAccount();
+        return new Set(local
+            .filter(profile => empty.has(profile.id) && (awaiting || profile.example === true))
+            .map(profile => profile.id));
+    }
+
+    private async isEmpty(profileId: string): Promise<boolean> {
+        const data = await this.readProfileData(profileId);
+        return !data || Object.keys(data.environments).length === 0;
     }
 
     private async reloadActiveProfile(): Promise<void> {
