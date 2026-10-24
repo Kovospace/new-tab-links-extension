@@ -87,11 +87,31 @@ export interface DevicePreferences {
     syncEnabled: boolean;
 
     /**
+     *  Whether this browser synchronises the recently closed tabs, and the browsing history,
+     *  while it synchronises at all. On by default. Per device for the reason `syncEnabled` is,
+     *  and beside it rather than on the profile, where recording them is decided: whether the
+     *  profile keeps a log is one question, whether this machine shares it is another.
+     *  Off, the log is neither pushed nor pulled - see `SyncCoordinator`'s log opt-out.
+     */
+    syncClosedTabs: boolean;
+    syncBrowsingHistory: boolean;
+
+    /**
      *  Whether the page is drawn light or dark, or "auto" to follow the operating system.
      *  Per device for the reason the size is: the same person runs a light desktop at work
      *  and a dark laptop at night, and the system setting each one follows is that machine's.
      */
     theme: ThemeId;
+}
+
+/** Which logs this browser synchronises, as the synchronisation layer reads it. */
+export interface LogSync {
+    closedTabs: boolean;
+    visits: boolean;
+}
+
+function logSyncOf(preferences: DevicePreferences): LogSync {
+    return { closedTabs: preferences.syncClosedTabs, visits: preferences.syncBrowsingHistory };
 }
 
 /** The themes on offer: following the system, or one of the two regardless of it. */
@@ -153,6 +173,8 @@ const DEFAULTS: DevicePreferences = {
     sidePanelCard: DEFAULT_SIDE_PANEL_CARD,
     keepSidePanelOpen: false,
     syncEnabled: true,
+    syncClosedTabs: true,
+    syncBrowsingHistory: true,
     theme: DEFAULT_THEME
 };
 
@@ -197,6 +219,9 @@ export class DevicePreferencesRepository {
     /** Whether this browser synchronises, on its own so synchronisation follows nothing else. */
     public readonly syncEnabled$ = new ObservableValue<boolean>(DEFAULTS.syncEnabled);
 
+    /** Which of the logs this browser synchronises, for the synchronisation layer to follow. */
+    public readonly logSync$ = new ObservableValue<LogSync>(logSyncOf(DEFAULTS));
+
     /** Whether the storage listener is on; `init` runs once per page, but nothing forbids twice. */
     private watching: boolean = false;
 
@@ -217,6 +242,7 @@ export class DevicePreferencesRepository {
     private publish(): void {
         this.preferences$.set(this.preferences);
         this.syncEnabled$.set(this.preferences.syncEnabled);
+        this.logSync$.set(logSyncOf(this.preferences));
     }
 
     /**
@@ -321,6 +347,38 @@ export class DevicePreferencesRepository {
         }
         this.preferences = { ...this.preferences, sidePanelCard: wanted };
         this.LOG.debug("setSidePanelCard", wanted);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
+    public getSyncEnabled(): boolean {
+        return this.preferences.syncEnabled;
+    }
+
+    public getSyncClosedTabs(): boolean {
+        return this.preferences.syncClosedTabs;
+    }
+
+    public getSyncBrowsingHistory(): boolean {
+        return this.preferences.syncBrowsingHistory;
+    }
+
+    /** Shares this browser's closed tabs with the account, or stops sharing them. */
+    public setSyncClosedTabs(sync: boolean): Promise<void> {
+        return this.setFlag("syncClosedTabs", sync);
+    }
+
+    /** Shares this browser's browsing history with the account, or stops sharing it. */
+    public setSyncBrowsingHistory(sync: boolean): Promise<void> {
+        return this.setFlag("syncBrowsingHistory", sync);
+    }
+
+    private async setFlag(key: "syncClosedTabs" | "syncBrowsingHistory", value: boolean): Promise<void> {
+        if (value === this.preferences[key]) {
+            return;
+        }
+        this.preferences = { ...this.preferences, [key]: value };
+        this.LOG.debug("setFlag", `${key} -> ${value}`);
         await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
         this.publish();
     }
@@ -487,6 +545,8 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
         keepSidePanelOpen: stored?.keepSidePanelOpen === true,
         // Anything but an explicit false is on: a browser that never answered synchronised.
         syncEnabled: stored?.syncEnabled !== false,
+        syncClosedTabs: stored?.syncClosedTabs !== false,
+        syncBrowsingHistory: stored?.syncBrowsingHistory !== false,
         theme: normalizeTheme(stored?.theme)
     };
 }

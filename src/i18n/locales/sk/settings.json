@@ -5,7 +5,7 @@
   "categories": {
     "uiAndBehavior": "Vzhľad a správanie",
     "languageAndLocalCustoms": "Jazyk a miestne zvyklosti",
-    "privacy": "Súkromie",
+    "privacy": "Synchronizácia a súkromie",
     "search": "Vyhľadávanie"
   },
   "enableDragAndDrop": {
@@ -83,5 +83,20 @@
   "keepSidePanelOpen": {
     "title": "Nechať bočný panel otvorený",
     "explanation": "Panel otvorených a zatvorených kariet a histórie zostane otvorený vedľa stĺpcov namiesto rozbaľovania pod kurzorom. Len na tomto zariadení."
+  },
+  "syncEnabled": {
+    "title": "Synchronizovať tento prehliadač",
+    "explanation": "Kým ste prihlásení, odkazy, nastavenia a záznamy nižšie sa z tohto prehliadača synchronizujú s vaším účtom. Vypnuté – zostanete prihlásení a prémium platí, ale nič sa neodosiela ani neprijíma. Len na tomto zariadení.",
+    "offBlocksLogs": "Tento prehliadač sa nesynchronizuje. Najprv zapnite „Synchronizovať tento prehliadač“."
+  },
+  "syncClosedTabs": {
+    "title": "Synchronizovať zatvorené karty",
+    "explanation": "Zdieľať nedávno zatvorené karty tohto prehliadača s ostatnými zariadeniami a vidieť ich karty. Vypnuté – zoznam zostane len v tomto prehliadači. Len na tomto zariadení.",
+    "notRecorded": "Zatvorené karty sa pre tento profil nezaznamenávajú, takže nie je čo synchronizovať."
+  },
+  "syncBrowsingHistory": {
+    "title": "Synchronizovať históriu prehliadania",
+    "explanation": "Zdieľať históriu prehliadania tohto prehliadača s ostatnými zariadeniami a vidieť ich históriu. Vypnuté – história zostane len v tomto prehliadači. Len na tomto zariadení.",
+    "notRecorded": "História prehliadania sa pre tento profil nezaznamenáva, takže nie je čo synchronizovať."
   }
 }

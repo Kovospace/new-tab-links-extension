@@ -33,7 +33,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Sync — tokens, sign-in state | `backend/sync/SessionRepository.ts` |
 | Whose profiles are visible — ownership, hidden sets per account, the swap at sign-in | `backend/repository/ProfileRepository.ts` (`showAccount`, `claimFor`), `backend/sync/SyncCoordinator.ts` (`showProfilesOf`) |
 | Whether the account is premium (hides the ad slot and the upgrade offer); polled, and read as free when the check looks blocked | `backend/sync/AccountStandingRepository.ts`, `backend/sync/ReachabilityProbe.ts` |
-| Synchronisation switched off on this browser while signed in (`syncEnabled`), the sign-in dialogs' checkbox, the menu's status checkbox | `backend/repository/DevicePreferencesRepository.ts`, `SyncCoordinator.followSessionAndSwitch`, `ui/partials/signInFields.ts`, `viewModel/syncAccountViewModel.ts` (`setSyncEnabled`) |
+| Synchronisation switched off on this browser while signed in (`syncEnabled`), the sign-in dialogs' checkbox, the menu's status checkbox, Settings → Sync & privacy; closed tabs / history left out on their own (`syncClosedTabs`, `syncBrowsingHistory`, `logSync$`, `SyncCoordinator.asTakenIn` / `holdingLogsNotSynced`) | `backend/repository/DevicePreferencesRepository.ts`, `SyncCoordinator.followSessionAndSwitch`, `ui/partials/signInFields.ts`, `viewModel/syncAccountViewModel.ts` (`setSyncEnabled`) |
 | Sync — local vs account merge rules | `backend/sync/ProfileMergeEngine.ts` |
 | Sync — what to push, deletion order | `backend/sync/ChangeSetBuilder.ts`, `backend/sync/SyncBaselineRepository.ts` |
 | Sync — snapshot → local state, id rewriting | `backend/sync/SyncSnapshotMapper.ts`, `backend/sync/LocalIdentifierNormalizer.ts` |
@@ -50,7 +50,7 @@ Keep it current: a new module or a new concern adds a row here.
 | View-models (one per component or dialog) | `viewModel/*ViewModel.ts`, base `viewModel/abstract/abstractViewModel.ts` |
 | Components | `ui/components/*Component.ts`, base `ui/abstract/abstractComponent.ts` |
 | Dialogs, menus, bars | `ui/partials/*` — field rules in `ui/partials/fieldValidation.ts` |
-| Search bar — engines, the bar, its view model | `backend/entity/SearchEngines.ts`, `ui/partials/searchBar.ts`, `viewModel/searchBarViewModel.ts` |
+| Search bar — engines, the bar, its view model; suggestions from the profile's links, open/closed tabs and history | `backend/entity/SearchEngines.ts`, `ui/partials/searchBar.ts`, `viewModel/searchBarViewModel.ts` (`suggest`, `open`), `viewModel/searchSuggestions.ts` (`gatherSuggestions`), `utils/textSearch.ts` |
 | The ads bar — an iframe of the website's slot page | `ui/partials/adsBar.ts` |
 | Anonymous new-tab counts, batched and reported | `backend/stats/NewTabUsageReporter.ts`, `backend/worker/module/usageStatsWorker.ts` |
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |

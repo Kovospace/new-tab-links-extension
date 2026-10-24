@@ -158,6 +158,18 @@ Rules that are load-bearing, and easy to break by accident:
   while a synchronisation runs. On again is signing back in: the baseline was kept, so what
   changed meanwhile - deletions included - is pushed, then pulled. Every open page follows the
   switch, since `DevicePreferencesRepository` adopts other pages' writes.
+  It is also the first checkbox of Settings → Sync & privacy (a device toggle in
+  `SettingsViewModel`, routed to the device preferences rather than the profile).
+- **Each log can be left out on its own** (`syncClosedTabs`, `syncBrowsingHistory`, device
+  preferences, on by default, published to the coordinator as `logSync$`; #97). Off is offline
+  for that log alone: nothing of it is sent, nothing of the account's is merged into or written
+  over this device's list (`asTakenIn` reads it as a log the account does not keep), and the
+  baseline holds that log where it was at every store (`holdingLogsNotSynced`) - never moving
+  on to the account's list, or switching back on would delete what other devices recorded
+  meanwhile; never to this device's, or what was recorded meanwhile would never be sent.
+  Switching one on schedules a push and pull. `test/backend/sync/logSyncOptOut.test.ts` pins
+  all three. In Settings each sits under the profile's recording setting it depends on, greyed
+  out and unticked while that log is not recorded or the browser does not synchronise.
 - **`persisted$`, not `state$`, is what synchronization listens to.** `state$` is for redrawing
   and is deliberately not fired by `saveQuiet()`; subscribing to it would never synchronize a
   collapsed subgroup.
@@ -398,9 +410,9 @@ device preferences instead of the profile, so it is never pushed.
 - Nothing schedules a push when a tab closes. Closed tabs ride along with the next
   synchronisation something else causes - which on a new tab page is immediate anyway - so
   closing tabs does not make every other signed-in device re-fetch the account.
-- **Recording is a profile setting, `recordClosedTabs`, on by default** (Settings → Privacy).
+- **Recording is a profile setting, `recordClosedTabs`, on by default** (Settings → Sync & privacy).
   Off, the worker records nothing and empties its mirror of open tabs - read from storage on
-  every event - and the panel stays, showing a centred notice with a way to Settings → Privacy.
+  every event - and the panel stays, showing a centred notice with a way to Settings → Sync & privacy.
   Turning it off asks first and deletes the list (`SettingsViewModel.toggle`). Another device
   may still push a tab recorded before it heard; the pull stores it as the account holds it,
   and `SyncCoordinator.emptyClosedTabsNotRecorded` deletes it as a write before the next
@@ -416,10 +428,10 @@ first contact (`mergeVisits`), sent only to an account whose snapshot names a `v
 collection (`visitsSupported` - the same whole-batch hazard), and emptied as a write before a
 push when the profile does not record it (`emptyHistoryNotRecorded`).
 
-- **Off by default** (`recordBrowsingHistory`, Settings → Privacy) - unlike closed tabs, this is
+- **Off by default** (`recordBrowsingHistory`, Settings → Sync & privacy) - unlike closed tabs, this is
   new behaviour, and nothing about where somebody has been leaves the browser until they ask.
   Off, nothing is recorded, not even locally; the card shows a centred notice with a way to
-  Settings → Privacy; turning it off asks first and deletes the history here and on the account.
+  Settings → Sync & privacy; turning it off asks first and deletes the history here and on the account.
 - **One entry per page per local day.** The same address again that day moves the entry (same
   id, so the account gets an update, not a row more); tomorrow it is a new one. Reloads and
   in-page navigation would otherwise spend the free plan's fifty in minutes.
@@ -431,6 +443,12 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   folded or opened by hand stays so across redraws while the page is open - keyed by its local
   date (`VisitDayDTO.key`), never its label, which turns from "Today" to "Yesterday" at
   midnight. Not stored: it is not worth a preference.
+- **One search field serves the closed tabs and the history** (#92), under the card switcher,
+  shown only on those two cards and only while the panel is open. It keeps what was typed when
+  the card changes - not found among the closed tabs, the next place to look is the history.
+  Every word has to match the title or the address, in any order, ignoring case and accents
+  (`utils/textSearch.ts`); the view models filter (`setQuery`), and while a search is typed
+  every history day is open. Open tabs are not searched.
 - **No `history` permission.** Chrome's own history is never read; nothing from before
   recording was turned on is collected, and incognito is not seen.
 
@@ -469,6 +487,20 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   rest of the internet does (gstatic, 1.1.1.1), it gets a week, since that is also what our
   outage looks like. Nothing is removed by it - only growth is refused - and the next real
   answer restores it. A modified, unpacked build defeats all of this; that is accepted.
+
+### The search bar searches the profile first (`ui/partials/searchBar.ts`, `viewModel/searchSuggestions.ts`)
+
+Typing pauses for `SUGGEST_DELAY` (250 ms) and a list opens under the bar (#85): the loaded
+profile's links - every workspace, never another profile's - then this browser's open tabs, the
+closed tabs and the browsing history, and "search the web" last, always. Ranking and the order
+of kinds are `gatherSuggestions`, pure: an address is offered once, as the first kind that has
+it; a title starting with the query beats one only containing its words, which beats a match
+on the address or on where a link is kept ("Work › Music" finds the Music group's links). At
+most `MAX_SUGGESTIONS` (8) before the web. The first entry is highlighted and is what Enter
+opens; Enter pressed before the pause searches there and then, so it never opens the answer
+to a shorter query. A link, a closed tab or a visit replaces this page, as a link clicked on it
+does; an open tab is switched to; the web is searched with the chosen engine. The list is
+translucent with a backdrop blur.
 
 ### Tips on the workspace background (`ui/tips/`)
 

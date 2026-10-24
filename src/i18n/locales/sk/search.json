@@ -1,7 +1,13 @@
 {
-  "placeholder": "Hľadať cez {engine}",
   "submit": "Hľadať",
   "chooseEngine": "Vybrať vyhľadávač ({engine})",
   "browserDefault": "Predvolený vyhľadávač",
-  "placeholderBrowser": "Hľadať na webe"
+  "placeholderEverything": "Hľadať v mojich záložkách, zatvorených kartách, histórii alebo na webe",
+  "suggestion": {
+    "openTab": "Otvorená karta",
+    "closedTab": "Nedávno zatvorená",
+    "visit": "História",
+    "web": "Hľadať na webe",
+    "webWith": "Hľadať cez {engine}"
+  }
 }

@@ -486,3 +486,76 @@ describe("SettingsViewModel, keeping the side panel open", () => {
         expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
     });
 });
+
+/**
+ *  "Sync & privacy" (#97): whether this browser synchronises, and whether it shares each log.
+ *  The log switches are the device's, and are greyed out and unticked while the profile does
+ *  not record that log or the browser does not synchronise - the stored choice stays beneath.
+ */
+describe("SettingsViewModel, what is synchronised", () => {
+
+    let profiles: ProfileRepository;
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const privacy = () => settings.observables.settings.get().categories
+        .find(category => category.key === "privacy")!;
+    const toggle = (key: string) => {
+        const setting = privacy().settings.find(candidate => candidate.key === key);
+        if (!setting || setting.kind !== "toggle") {
+            throw new Error(`no toggle ${key}`);
+        }
+        return setting;
+    };
+
+    it("offers the switch for the whole browser and one per log, in Sync & privacy", () => {
+        expect(privacy().title).toBe("Sync & privacy");
+        expect(privacy().settings.map(setting => setting.key)).toEqual([
+            "syncEnabled", "recordClosedTabs", "syncClosedTabs",
+            "recordBrowsingHistory", "syncBrowsingHistory"
+        ]);
+        expect(toggle("syncEnabled").enabled).toBe(true);
+        expect(toggle("syncClosedTabs")).toMatchObject({ enabled: true, disabledReason: null });
+    });
+
+    it("greys out sharing a log the profile does not record", async () => {
+        // Browsing history is not recorded by default.
+        expect(toggle("syncBrowsingHistory").enabled).toBe(false);
+        expect(toggle("syncBrowsingHistory").disabledReason).toMatch(/not recorded/);
+
+        await profiles.updateSettings({ recordBrowsingHistory: true });
+        settings.refresh();
+
+        expect(toggle("syncBrowsingHistory")).toMatchObject({ enabled: true, disabledReason: null });
+    });
+
+    it("greys out both logs while the browser does not synchronise", async () => {
+        await settings.toggle("syncEnabled", false);
+
+        expect(devicePreferences.getSyncEnabled()).toBe(false);
+        expect(toggle("syncClosedTabs").enabled).toBe(false);
+        expect(toggle("syncClosedTabs").disabledReason).toMatch(/does not synchronise/);
+    });
+
+    it("stores a log's switch on this device, not on the profile", async () => {
+        let published = 0;
+        profiles.profiles$.subscribe(() => published++);
+        const before = published;
+
+        await settings.toggle("syncClosedTabs", false);
+
+        expect(devicePreferences.getSyncClosedTabs()).toBe(false);
+        expect(devicePreferences.logSync$.get()).toEqual({ closedTabs: false, visits: true });
+        expect(toggle("syncClosedTabs").enabled).toBe(false);
+        expect(published).toBe(before);
+    });
+});

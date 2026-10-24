@@ -9,6 +9,7 @@ import { settingsOf } from "../backend/entity/ProfileSettings";
 import { describeMoment } from "../i18n/dates";
 
 import { Logger } from "../utils/logger";
+import { matchesQuery } from "../utils/textSearch";
 import { ObservableValue } from "../utils/observableValue";
 
 /** One closed tab, as the panel draws it. */
@@ -51,6 +52,9 @@ export class ClosedTabsViewModel {
     private readonly profiles: ProfileRepository;
 
     private unsubscribes: Array<() => void> = [];
+
+    /** What the panel's search field holds; blank shows everything. */
+    private query: string = "";
 
     public readonly observables = {
         tabs: new ObservableValue<ClosedTabDTO[]>([]),
@@ -143,6 +147,12 @@ export class ClosedTabsViewModel {
         return this.closedTabs.getTabs().find(tab => tab.id === id);
     }
 
+    /** Narrows the list to the entries matching every word typed; blank shows them all. */
+    public setQuery(query: string): void {
+        this.query = query;
+        this.refresh();
+    }
+
     private refresh(): void {
         this.observables.tabs.set(this.describe());
     }
@@ -154,7 +164,9 @@ export class ClosedTabsViewModel {
         // somewhere else" is one string comparison and not a guess.
         const here = resolveDeviceName(installationIdentity.getName());
 
-        return this.readable(this.closedTabs.getTabs()).map(tab => ({
+        return this.readable(this.closedTabs.getTabs())
+            .filter(tab => matchesQuery(this.query, tab.title, tab.url))
+            .map(tab => ({
             id: tab.id,
             title: tab.title || tab.url,
             url: tab.url,
