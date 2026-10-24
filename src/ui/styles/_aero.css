@@ -41,7 +41,7 @@
     --aero-surface: color-mix(in srgb, var(--color-component-background) var(--aero-opacity), transparent);
     --aero-surface-hover: color-mix(in srgb, var(--color-component-background-hover) var(--aero-opacity), transparent);
     --aero-menu-surface: color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity), transparent);
-    --aero-frame: color-mix(in srgb, var(--color-document-background) var(--aero-border-opacity), transparent);
+    /*--aero-frame: color-mix(in srgb, var(--color-document-background) var(--aero-border-opacity), transparent);*/
     --aero-filter: blur(var(--aero-blur));
 }
 
@@ -120,17 +120,17 @@
 
 /* The thick rings in the page's own colour round what sits on the background.
    The same colour, at --aero-border-opacity. */
-:root[data-theme-style="aero"] workspace-plane-body > link-group,
-:root[data-theme-style="aero"] .tips-bar,
-:root[data-theme-style="aero"] options-menu,
-:root[data-theme-style="aero"] ul.search-bar__engines,
-:root[data-theme-style="aero"] button.search-bar__engine-button,
-:root[data-theme-style="aero"] input.search-bar__input,
-:root[data-theme-style="aero"] button.search-bar__submit,
-:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,
-:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group {
-    border-color: var(--aero-frame);
-}
+/*:root[data-theme-style="aero"] workspace-plane-body > link-group,*/
+/*:root[data-theme-style="aero"] .tips-bar,*/
+/*:root[data-theme-style="aero"] options-menu,*/
+/*:root[data-theme-style="aero"] ul.search-bar__engines,*/
+/*:root[data-theme-style="aero"] button.search-bar__engine-button,*/
+/*:root[data-theme-style="aero"] input.search-bar__input,*/
+/*:root[data-theme-style="aero"] button.search-bar__submit,*/
+/*:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,*/
+/*:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group {*/
+/*    border-color: var(--aero-frame);*/
+/*}*/
 
 /* The workspace's name and description sit on pills of the page's colour -
    on the background like the frames, but text has to stay readable on them,
