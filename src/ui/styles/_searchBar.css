@@ -218,6 +218,20 @@ html.dark input.search-bar__input:focus {
     box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
 }
 
+/* The engine chooser wears the same ring while its list is open - it is the part of the bar in
+   use then - and when reached by keyboard. */
+html.dark button.search-bar__engine-button[aria-expanded="true"],
+html.dark button.search-bar__engine-button:focus-visible {
+    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
+}
+
+/* No glow under a pressed button in the bar - the page-wide press shadow
+   (`html.dark button:active` in main.css) spills round its rounded buttons and
+   over the field beside them. Pressing the chooser keeps its ring, if it has one. */
+html.dark form.search-bar button:active:not([aria-expanded="true"]) {
+    box-shadow: none;
+}
+
 html.dark input.search-bar__input {
     background-color: var(--color-textfield-background);
     color: var(--color-textfield-text);
