@@ -431,6 +431,12 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   folded or opened by hand stays so across redraws while the page is open - keyed by its local
   date (`VisitDayDTO.key`), never its label, which turns from "Today" to "Yesterday" at
   midnight. Not stored: it is not worth a preference.
+- **One search field serves the closed tabs and the history** (#92), under the card switcher,
+  shown only on those two cards and only while the panel is open. It keeps what was typed when
+  the card changes - not found among the closed tabs, the next place to look is the history.
+  Every word has to match the title or the address, in any order, ignoring case and accents
+  (`utils/textSearch.ts`); the view models filter (`setQuery`), and while a search is typed
+  every history day is open. Open tabs are not searched.
 - **No `history` permission.** Chrome's own history is never read; nothing from before
   recording was turned on is collected, and incognito is not seen.
 

@@ -24,5 +24,10 @@
   "keepOpen": {
     "label": "Nechať otvorený",
     "tooltip": "Nechať tento panel na tomto zariadení otvorený, nech robí kurzor čokoľvek"
+  },
+  "search": {
+    "label": "Hľadať",
+    "placeholder": "Hľadať v názvoch a adresách",
+    "noMatch": "Nič tu nezodpovedá „{query}“."
   }
 }

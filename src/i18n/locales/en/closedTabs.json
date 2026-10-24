@@ -24,5 +24,10 @@
   "keepOpen": {
     "label": "Keep open",
     "tooltip": "Keep this panel open on this device, whatever the pointer does"
+  },
+  "search": {
+    "label": "Search",
+    "placeholder": "Search titles and addresses",
+    "noMatch": "Nothing here matches “{query}”."
   }
 }

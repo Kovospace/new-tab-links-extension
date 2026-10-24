@@ -21,6 +21,8 @@ function fakeViewModel(days: VisitDayDTO[]) {
             days: new ObservableValue<VisitDayDTO[]>(days),
             recording: new ObservableValue<boolean>(true)
         },
+        query: "",
+        setQuery(query: string) { this.query = query; },
         initialize: async () => undefined,
         dispose: () => undefined,
         reopen: () => undefined,
@@ -78,5 +80,26 @@ describe("HistoryCard, folding days", () => {
         ]);
 
         expect(openDays()).toEqual(["▾2026-10-031"]);
+    });
+
+    it("opens every day while a search is typed, and folds them back after", () => {
+        // What the view model would answer: the days holding a match.
+        card.setQuery("  a ");
+        viewModel.observables.days.set([DAYS[0], DAYS[2]]);
+
+        expect(viewModel.query).toBe("a");
+        expect(openDays()).toEqual(["▾Today2", "▾2026-10-031"]);
+
+        card.setQuery("");
+        viewModel.observables.days.set(DAYS);
+
+        expect(openDays()).toEqual(["▾Today2"]);
+    });
+
+    it("says that nothing matches, rather than that nothing was visited", () => {
+        card.setQuery("zzz");
+        viewModel.observables.days.set([]);
+
+        expect(card.listEl.textContent).toBe("Nothing here matches “zzz”.");
     });
 });

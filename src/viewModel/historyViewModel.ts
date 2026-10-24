@@ -10,6 +10,7 @@ import { describeMoment, formatDate } from "../i18n/dates";
 import { t } from "../i18n/i18n";
 
 import { Logger } from "../utils/logger";
+import { matchesQuery } from "../utils/textSearch";
 import { ObservableValue } from "../utils/observableValue";
 
 /** One visited page, as the history card draws it. */
@@ -65,6 +66,9 @@ export class HistoryViewModel {
     private readonly profiles: ProfileRepository;
 
     private unsubscribes: Array<() => void> = [];
+
+    /** What the panel's search field holds; blank shows everything. */
+    private query: string = "";
 
     public readonly observables = {
         days: new ObservableValue<VisitDayDTO[]>([]),
@@ -145,6 +149,12 @@ export class HistoryViewModel {
         this.observables.recording.set(settingsOf(profile).recordBrowsingHistory);
     }
 
+    /** Narrows the history to the visits matching every word typed; blank shows them all. */
+    public setQuery(query: string): void {
+        this.query = query;
+        this.refresh();
+    }
+
     private refresh(): void {
         this.observables.days.set(this.describe());
     }
@@ -158,7 +168,9 @@ export class HistoryViewModel {
         const days: VisitDayDTO[] = [];
         let dayOf: number | null = null;
 
-        for (const visit of this.readable(this.visits.getVisits())) {
+        const matching = this.readable(this.visits.getVisits())
+            .filter(visit => matchesQuery(this.query, visit.title, visit.url));
+        for (const visit of matching) {
             if (dayOf === null || !sameLocalDay(dayOf, visit.visitedAt)) {
                 dayOf = visit.visitedAt;
                 days.push({
