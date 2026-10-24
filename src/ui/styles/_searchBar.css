@@ -232,14 +232,16 @@ html.dark form.search-bar button:active:not([aria-expanded="true"]) {
     box-shadow: none;
 }
 
+/* The field is drawn as a group is - the same colours in both themes, and in the aero style the
+   same see-through, blurred surface (_aero.css) - rather than as a form field, so the bar reads
+   as one of the things on the page. */
 html.dark input.search-bar__input {
-    background-color: var(--color-textfield-background);
-    color: var(--color-textfield-text);
+    background-color: var(--color-component-background);
+    color: var(--color-component-text);
 }
 
 html.dark input.search-bar__input:hover {
-    background-color: var(--color-textfield-background-hover);
-    color: var(--color-textfield-text-hover);
+    background-color: var(--color-component-background-hover);
 }
 
 html.dark ul.search-bar__engines {

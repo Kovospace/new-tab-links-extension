@@ -51,7 +51,8 @@
 :root[data-theme-style="aero"] footer,
 :root[data-theme-style="aero"] .closed-tabs,
 :root[data-theme-style="aero"] workspace-plane-body > link-group,
-:root[data-theme-style="aero"] .tips-bar {
+:root[data-theme-style="aero"] .tips-bar,
+:root[data-theme-style="aero"] input.search-bar__input {
     background-color: var(--aero-surface);
 }
 
@@ -60,14 +61,16 @@
    its own existed only under the pointer, so Chrome built and dropped one on
    every hover - and a frame drawn before the layer is ready is a flicker. */
 :root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
-:root[data-theme-style="aero"] link-subgroup:hover {
+:root[data-theme-style="aero"] link-subgroup:hover,
+:root[data-theme-style="aero"] input.search-bar__input:hover {
     background-color: var(--aero-surface-hover);
 }
 
 /* Nothing in these holds a menu: blurred directly. */
 :root[data-theme-style="aero"] footer,
 :root[data-theme-style="aero"] .closed-tabs,
-:root[data-theme-style="aero"] .tips-bar {
+:root[data-theme-style="aero"] .tips-bar,
+:root[data-theme-style="aero"] input.search-bar__input {
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);
     /* A layer of its own, kept - see "Each blur keeps a layer" above. */
