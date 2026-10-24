@@ -1,0 +1,145 @@
+/* ---------------------------------------------------------------------------
+   The aero theme style (#107)
+
+   Applied while the root carries data-theme-style="aero" (Settings → Theme
+   style, DevicePreferencesRepository.themeStyle). Flat needs no rule: it is
+   the page as the other stylesheets draw it.
+
+   **The amounts are not here.** Opacity, blur and how much of the frames
+   shows are the --aero-* variables at the top of __variables.css - change
+   them there and every rule below follows.
+
+   All of it is in this one file, so the style can be read and tuned as a
+   whole.
+
+   **Every rule starts with :root, never html.** Both pages import this file,
+   so Vite splits it into a chunk of its own - and the page links that chunk
+   *before* its own stylesheet, whatever order the imports are written in.
+   Order cannot be relied on, so specificity has to do it: the components
+   paint in both themes through `html.dark ...` (one class, one element), and
+   `:root[...]` is two classes' worth, which outranks that wherever it loads.
+   Matching specificity with `html[...]` is what left the groups solid.
+
+   **What holds menus is blurred from behind, never on itself.** backdrop-filter
+   makes an element a stacking context, and a menu inside one can rise no
+   higher than that element: a group's menu would be painted under the next
+   column, and the header's under the overlay shown while a menu is open -
+   unclickable (see the note on `header` in main.css). So the header and the
+   groups carry the blur on a ::before at z-index -1,
+   which sits behind their contents without making them a stacking context.
+   Lifting the element instead does not work: the overlay is at z-index 100,
+   and a lift above it would leave the whole element undimmed.
+
+   **Each blur keeps a layer of its own** (transform: translateZ(0) beside
+   every backdrop-filter). Without one, Chrome rebuilt the layers round a
+   blurred menu or panel whenever a hover transition inside it ended - a menu
+   item, a history row - and drew that one frame unblurred: a flicker at the
+   end of every hover.
+   --------------------------------------------------------------------------- */
+
+:root[data-theme-style="aero"] {
+    --aero-surface: color-mix(in srgb, var(--color-component-background) var(--aero-opacity), transparent);
+    --aero-surface-hover: color-mix(in srgb, var(--color-component-background-hover) var(--aero-opacity), transparent);
+    --aero-menu-surface: color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity), transparent);
+    /*--aero-frame: color-mix(in srgb, var(--color-document-background) var(--aero-border-opacity), transparent);*/
+    --aero-filter: blur(var(--aero-blur));
+}
+
+/* ── Panels and groups ──────────────────────────────────────────────────── */
+
+:root[data-theme-style="aero"] header,
+:root[data-theme-style="aero"] footer,
+:root[data-theme-style="aero"] .closed-tabs,
+:root[data-theme-style="aero"] workspace-plane-body > link-group,
+:root[data-theme-style="aero"] .tips-bar,
+:root[data-theme-style="aero"] input.search-bar__input {
+    background-color: var(--aero-surface);
+}
+
+/* A hovered subgroup is tinted, not blurred on its own: its group already
+   blurs everything behind it, the subgroup's area included. A blur layer of
+   its own existed only under the pointer, so Chrome built and dropped one on
+   every hover - and a frame drawn before the layer is ready is a flicker. */
+:root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
+:root[data-theme-style="aero"] link-subgroup:hover,
+:root[data-theme-style="aero"] input.search-bar__input:hover {
+    background-color: var(--aero-surface-hover);
+}
+
+/* Nothing in these holds a menu: blurred directly. */
+:root[data-theme-style="aero"] footer,
+:root[data-theme-style="aero"] .closed-tabs,
+:root[data-theme-style="aero"] .tips-bar,
+:root[data-theme-style="aero"] input.search-bar__input {
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
+}
+
+/* These do: blurred from a layer behind them. A group's layer reaches under
+   its frame too (inset by minus the frame), so the frame shows the blur. */
+:root[data-theme-style="aero"] workspace-plane-body > link-group {
+    position: relative;
+}
+
+:root[data-theme-style="aero"] header::before,
+:root[data-theme-style="aero"] workspace-plane-body > link-group::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--aero-frame-width, 0px));
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
+}
+
+:root[data-theme-style="aero"] workspace-plane-body > link-group::before {
+    --aero-frame-width: 0.25em;
+}
+
+/* ── Menus, suggestions, dialogs ────────────────────────────────────────── */
+
+/* The application menu and every group's, subgroup's and link's menu, and the
+   right-click menu, are one element. */
+:root[data-theme-style="aero"] options-menu,
+:root[data-theme-style="aero"] ul.search-bar__engines,
+:root[data-theme-style="aero"] ul.search-bar__suggestions,
+:root[data-theme-style="aero"] dialog.input-dialog {
+    background-color: var(--aero-menu-surface);
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
+}
+
+/* ── Frames ─────────────────────────────────────────────────────────────── */
+
+/* The thick rings in the page's own colour round what sits on the background.
+   The same colour, at --aero-border-opacity. */
+/*:root[data-theme-style="aero"] workspace-plane-body > link-group,*/
+/*:root[data-theme-style="aero"] .tips-bar,*/
+/*:root[data-theme-style="aero"] options-menu,*/
+/*:root[data-theme-style="aero"] ul.search-bar__engines,*/
+/*:root[data-theme-style="aero"] button.search-bar__engine-button,*/
+/*:root[data-theme-style="aero"] input.search-bar__input,*/
+/*:root[data-theme-style="aero"] button.search-bar__submit,*/
+/*:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,*/
+/*:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group {*/
+/*    border-color: var(--aero-frame);*/
+/*}*/
+
+/* The workspace's name and description sit on pills of the page's colour -
+   on the background like the frames, but text has to stay readable on them,
+   so they are a surface: blurred, at the panels' opacity. */
+:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > h1,
+:root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > span {
+    background-color: color-mix(in srgb, var(--color-document-background) var(--aero-opacity), transparent);
+    -webkit-backdrop-filter: var(--aero-filter);
+    backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
+}

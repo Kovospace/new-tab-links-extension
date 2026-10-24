@@ -117,8 +117,8 @@ input.search-bar__input {
 
 /*
    The profile's own matches and "search the web", under the whole bar and above
-   the columns. Translucent and blurred, so the page shows through as a hint of
-   where the list is and the text on it stays readable.
+   the columns. Solid, as in the flat style; aero makes it translucent and
+   blurred (_aero.css).
 */
 ul.search-bar__suggestions {
     position: absolute;
@@ -131,9 +131,7 @@ ul.search-bar__suggestions {
     list-style: none;
     border-radius: var(--radius-normal);
     box-shadow: 0 0 0 0.0625em var(--color-component-framing), 0 0.5em 1.5em rgb(0 0 0 / 0.25);
-    background-color: color-mix(in srgb, var(--color-component-background) 75%, transparent);
-    -webkit-backdrop-filter: blur(0.75em);
-    backdrop-filter: blur(0.75em);
+    background-color: var(--color-component-background);
 }
 
 ul.search-bar__suggestions[hidden] {
@@ -214,18 +212,36 @@ button.search-bar__engine-option > svg {
 
 /* ── Dark theme colours ─────────────────────────────────────────────────── */
 
-html.dark form.search-bar:focus-within {
-    box-shadow: 0 0 0 0.125em var(--color-textfield-border-active);
+/* The field that is being typed into is what lights up, not the whole bar round it - the same
+   inset ring every other text field here wears when focused (.editable:focus in main.css). */
+html.dark input.search-bar__input:focus {
+    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
 }
 
+/* The engine chooser wears the same ring while its list is open - it is the part of the bar in
+   use then - and when reached by keyboard. */
+html.dark button.search-bar__engine-button[aria-expanded="true"],
+html.dark button.search-bar__engine-button:focus-visible {
+    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
+}
+
+/* No glow under a pressed button in the bar - the page-wide press shadow
+   (`html.dark button:active` in main.css) spills round its rounded buttons and
+   over the field beside them. Pressing the chooser keeps its ring, if it has one. */
+html.dark form.search-bar button:active:not([aria-expanded="true"]) {
+    box-shadow: none;
+}
+
+/* The field is drawn as a group is - the same colours in both themes, and in the aero style the
+   same see-through, blurred surface (_aero.css) - rather than as a form field, so the bar reads
+   as one of the things on the page. */
 html.dark input.search-bar__input {
-    background-color: var(--color-textfield-background);
-    color: var(--color-textfield-text);
+    background-color: var(--color-component-background);
+    color: var(--color-component-text);
 }
 
 html.dark input.search-bar__input:hover {
-    background-color: var(--color-textfield-background-hover);
-    color: var(--color-textfield-text-hover);
+    background-color: var(--color-component-background-hover);
 }
 
 html.dark ul.search-bar__engines {

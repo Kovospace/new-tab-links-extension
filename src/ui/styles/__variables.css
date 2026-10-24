@@ -20,20 +20,39 @@
 :root {
     color-scheme: light dark;
 
+    /* ── Aero theme style: the knobs ─────────────────────────────────────────
+       Used only while Settings → Theme style is Aero (data-theme-style="aero"
+       on the root); the rules themselves are in _aero.css. Opacities are how
+       much of the colour stays: 100% is as solid as flat, 0% is gone. */
+
+    /* Groups, a subgroup under the pointer, the header, footer and side panel. */
+    --aero-opacity: 80%;
+    /* Menus, the search suggestions and dialogs - read over anything, so more solid. */
+    --aero-menu-opacity: 55%;
+    /* How far what is behind a surface is blurred. 0 for none. */
+    --aero-blur: 0.75em;
+    /* The dark frames round groups, the search bar, menus and the other things that
+       sit on the background. 0% hides them, 100% is the frame as flat draws it. */
+    /*--aero-border-opacity: 25%;*/
+
+    /* Document base */
     --color-document-background: light-dark(#e6e6e6, #000);
     --color-document-text: light-dark(#111, #eee);
 
-    --color-component-background: light-dark(#c8c8c8, #222);
+    /* Group columns, panels, menus */
+    --color-component-background: light-dark(#c8c8c8, #111);
     --color-component-text: light-dark(#111, #eee);
-    --color-component-background-hover: light-dark(#b8b8b8, #333);
+    --color-component-background-hover: light-dark(#b8b8b8, #222);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
+    /* Items layered on background */
+
+
+    /* Buttons */
     --color-button-background: light-dark(#a8a8a8, #444);
     --color-button-text: light-dark(#111, #eee);
     --color-button-background-hover: light-dark(#989898, #555);
     --color-button-text-hover: light-dark(#000, #fff);
-    /* Every coloured hover goes to a stronger shade in both themes - towards white would
-       read as the button fading at the moment it is about to be pressed. */
     --color-button-active-background: light-dark(#0036ff, #09F);
     --color-button-active-background-hover: light-dark(#0072ff, #0BF);
     --color-button-active-text: light-dark(#eee, #eee);
@@ -46,6 +65,7 @@
     --color-button-danger-text: light-dark(#eee, #eee);
     --color-button-danger-background-hover: light-dark(#d00, #B00);
     --color-button-danger-text-hover: light-dark(#fff, #fff);
+
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
     --color-danger-text: light-dark(#a00, #F66);
@@ -65,7 +85,7 @@
     /* The disc behind every favicon, the same in both themes: a mid grey, so that a white
        icon and a black one both stand out from it - and so neither theme's background can
        swallow an icon drawn in its own colour. */
-    --color-favicon-backdrop: #999;
+    --color-favicon-backdrop: light-dark(#ccc, #555);
 
     --time-transition-fast: 0.125s;
     --time-transition-medium: 0.25s;

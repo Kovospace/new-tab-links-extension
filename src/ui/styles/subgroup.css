@@ -6,9 +6,7 @@ link-subgroup {
     display: flex;
     flex-direction: column;
     border-radius: var(--radius-normal);
-    transition:
-            background-color var(--time-transition-medium) ease-in-out,
-            color var(--time-transition-medium) ease-in-out;
+    transition: background-color var(--time-transition-medium) ease-in-out;
 }
 
 link-subgroup:hover {

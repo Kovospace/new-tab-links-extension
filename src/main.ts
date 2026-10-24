@@ -53,6 +53,8 @@ import './ui/styles/_adsBar.css'
 import './ui/styles/_searchBar.css'
 import './ui/styles/_dragAndDrop.css'
 import './ui/styles/_closedTabs.css'
+// The aero theme style. Not relied on to load last - see the note at the top of it.
+import './ui/styles/_aero.css'
 
 // define custom elements used BEFORE they are created/constructed
 // otherwise You are unable to call custom methods for example for

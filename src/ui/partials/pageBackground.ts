@@ -77,13 +77,15 @@ export class PageBackground {
     this.badge.textContent = premium ? 'PRO' : 'FREE';
     this.watermark.hidden = picture !== null;
 
+    // Handed to the stylesheet as a variable rather than set as the root's own background:
+    // main.css paints it on a fixed layer of its own - see `html.has-custom-background::before`.
     const root = document.documentElement;
     if (picture) {
       root.classList.add('has-custom-background');
-      root.style.backgroundImage = `url("${picture}")`;
+      root.style.setProperty('--page-background-image', `url("${picture}")`);
     } else {
       root.classList.remove('has-custom-background');
-      root.style.removeProperty('background-image');
+      root.style.removeProperty('--page-background-image');
     }
   }
 

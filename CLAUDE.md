@@ -786,7 +786,41 @@ Every colour in `__variables.css` is a `light-dark(light, dark)` pair and the ro
 `color-scheme` picks one: `light dark` by default, so following the system needs no script, and
 `data-theme` on `<html>` (`followTheme`, applied before drawing and on every change from any
 page) narrows it. A new colour goes into `__variables.css` as a pair - one written out in a
-component stylesheet is a colour only one theme gets. `html.dark` in the stylesheets is not the
+component stylesheet is a colour only one theme gets.
+
+**A premium user's own picture is a fixed layer of its own** (`html.has-custom-background::before`,
+z-index -2, fed `--page-background-image` by `pageBackground.ts`), never the root's background
+with `background-attachment: fixed`. Chrome cannot composite a fixed background: the picture
+behind every hover was repainted, at low quality while the transition ran and full quality when
+it ended - a flash at the end of every hover, in either style. `test/ui/partials/pageBackground.test.ts`.
+
+**The page-wide button hover weighs nothing extra**: `html.dark button:hover:where(:not(:disabled))`.
+A bare `:not(:disabled)` adds a class's worth and beat every component's own hover
+(`html.dark .x:hover`), painting those buttons grey (`test/ui/styles/buttonHover.test.ts`).
+
+**Text colour is never animated.** A hover may change it, at once, while the background fades;
+`transition` never names `color` (or `all`). A colour transition redraws the text every frame,
+and Chrome draws text one way while it keeps being repainted and another once it settles - the
+switch at the end of each hover flickered the text until Chrome had seen it often enough to stop
+(`test/ui/styles/textColorTransitions.test.ts`).
+
+**Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
+default; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
+top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),
+`--aero-menu-opacity` (menus, search suggestions, dialogs), `--aero-blur`, and
+`--aero-border-opacity` for the dark frames round what sits on the background (0% hides them,
+100% is flat's frame). Every aero rule is in `_aero.css` and takes its amounts from those variables
+only. **Its selectors start with `:root[data-theme-style="aero"]`, never `html[...]`**: both
+pages import it, so Vite makes it a shared chunk that the page links *before* its own
+stylesheet - order cannot be relied on, and `html[...]` only ties with the components'
+`html.dark ...`, which then wins. That is what kept the groups solid at first. **What holds menus - the header, the groups - is blurred from a
+`::before` at z-index -1, never on itself**: `backdrop-filter` makes an element a stacking
+context, and a menu inside one could rise no higher than it - under the next column, or under
+the overlay shown while a menu is open. **Hover may change a tint, never whether something is
+blurred**: a blur layer that exists only under the pointer is built and dropped by Chrome on
+every hover and flickers - a hovered subgroup is tinted over its group's blur instead.
+`test/ui/styles/aeroStyle.test.ts` pins all of that, that flat blurs nothing, and that no
+amount is written into the rules. `html.dark` in the stylesheets is not the
 dark theme; it is the older "themed" class both pages carry, and its rules serve both.
 
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to
