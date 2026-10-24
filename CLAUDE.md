@@ -788,6 +788,12 @@ Every colour in `__variables.css` is a `light-dark(light, dark)` pair and the ro
 page) narrows it. A new colour goes into `__variables.css` as a pair - one written out in a
 component stylesheet is a colour only one theme gets.
 
+**A premium user's own picture is a fixed layer of its own** (`html.has-custom-background::before`,
+z-index -2, fed `--page-background-image` by `pageBackground.ts`), never the root's background
+with `background-attachment: fixed`. Chrome cannot composite a fixed background: the picture
+behind every hover was repainted, at low quality while the transition ran and full quality when
+it ended - a flash at the end of every hover, in either style. `test/ui/partials/pageBackground.test.ts`.
+
 **Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
 default; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
 top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),

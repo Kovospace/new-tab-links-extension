@@ -195,13 +195,32 @@ main {
     background-color: #f5b400;
 }
 
-/* A premium user's own picture, set on the root by pageBackground.ts, covering the window:
-   cropped rather than stretched out of shape, so it fills whatever the window's proportions. */
-html.has-custom-background {
+/*
+   A premium user's own picture (pageBackground.ts hands it over as --page-background-image),
+   covering the window: cropped rather than stretched out of shape, so it fills whatever the
+   window's proportions.
+
+   **On a fixed layer of its own, not as the root's background.** It used to be the root's
+   background with background-attachment: fixed, which Chrome cannot put on a layer of its own:
+   the picture behind anything that changed was painted again - every hover - and painted at a
+   lower quality while the change was animating, then again at full quality once it stopped. That
+   swap was a flash at the end of every hover transition, in both theme styles. A fixed element
+   with a transform is drawn once and reused.
+
+   z-index -2: below the corner logo and the aero style's blur layers, which are at -1, so that
+   those blur this picture rather than being covered by it.
+*/
+html.has-custom-background::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-image: var(--page-background-image);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
+    transform: translateZ(0);
 }
 
 footer {
