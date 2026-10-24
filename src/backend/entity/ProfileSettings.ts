@@ -55,7 +55,7 @@ export interface ProfileSettings {
      *  one has: recording closed tabs is what every profile did before the setting existed, so
      *  a profile that has never said anything has to read as recording. Named for what it
      *  turns on rather than as a "disable" so that it reads the same way as the other switches
-     *  under Settings → Privacy, where a ticked box means "recording".
+     *  under Settings → Sync & privacy, where a ticked box means "recording".
      *
      *  Turning it off deletes the profile's closed tabs, here and on the account - see
      *  `SettingsViewModel.toggle` - and every device that hears of it stops recording

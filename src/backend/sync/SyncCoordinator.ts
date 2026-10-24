@@ -22,7 +22,7 @@ import { settingsOf } from "../entity/ProfileSettings";
 import { Logger } from "../../utils/logger";
 import { withExclusiveLock } from "../../utils/exclusiveLock";
 import { ObservableValue } from "../../utils/observableValue";
-import { devicePreferencesRepository } from "../repository/DevicePreferencesRepository";
+import { devicePreferencesRepository, LogSync } from "../repository/DevicePreferencesRepository";
 import { LimitRefusal } from "../entity/PlanLimits";
 import { fairUseRefusals, FairUseRefusals } from "../repository/FairUseRefusals";
 import { planLimits$, premiumStanding$ } from "../repository/PremiumStanding";
@@ -257,6 +257,9 @@ export class SyncCoordinator {
 
     /** Whether this browser synchronises at all; a device preference, on by default. */
     private readonly syncEnabled$: ObservableValue<boolean>;
+
+    /** Which logs - closed tabs, browsing history - this browser synchronises; see `asTakenIn`. */
+    private readonly logSync$: ObservableValue<LogSync>;
     private readonly inventoryReporter: InventoryReporter;
 
     constructor(
@@ -266,9 +269,11 @@ export class SyncCoordinator {
         baselines: SyncBaselineRepository = syncBaselineRepository,
         apiClient: BackendApiClient = backendApiClient,
         standing: StandingSource = SHARED_STANDING,
-        syncEnabled$: ObservableValue<boolean> = devicePreferencesRepository.syncEnabled$
+        syncEnabled$: ObservableValue<boolean> = devicePreferencesRepository.syncEnabled$,
+        logSync$: ObservableValue<LogSync> = devicePreferencesRepository.logSync$
     ) {
         this.syncEnabled$ = syncEnabled$;
+        this.logSync$ = logSync$;
         this.appState = appState;
         this.profiles = profiles;
         this.sessions = sessions;
@@ -317,6 +322,14 @@ export class SyncCoordinator {
         // session: the session stays - premium still needs it - but nothing is pushed or pulled.
         this.sessions.session$.subscribe(() => this.followSessionAndSwitch());
         this.syncEnabled$.subscribe(() => this.followSessionAndSwitch());
+
+        // A log switched back on has a backlog to send and the account's list to fetch, which
+        // is what a push and a pull are. Switched off, there is nothing to do.
+        this.logSync$.subscribe(() => {
+            if (this.running) {
+                this.schedulePull();
+            }
+        });
     }
 
     /** Pushes and pulls right now, whatever the timers were about to do. */
@@ -463,6 +476,8 @@ export class SyncCoordinator {
         // deletions - this device simply never had them.
         this.accountInventory = inventoryFromSnapshot(snapshot);
         this.inventoryCycle = this.cycle;
+        // What is merged and written; the baseline below is still told what the account holds.
+        const taken = this.asTakenIn(snapshot);
         const holders = slotHolders(this.accountInventory, this.standing.rules().limits);
         const slotProfileIds = new Set(holders.profiles.map(profile => profile.id));
         const slotWorkspaceIds = new Set(
@@ -498,7 +513,7 @@ export class SyncCoordinator {
             if (!remote) {
                 continue;   // The account has never seen it; the push below creates it if it fits.
             }
-            heldApart.push(...await this.mergeOneProfile(local, remote, snapshot, slotWorkspaceIds));
+            heldApart.push(...await this.mergeOneProfile(local, remote, taken, slotWorkspaceIds));
         }
 
         // Whatever is left is a profile this device has never had; take it as it stands -
@@ -508,11 +523,11 @@ export class SyncCoordinator {
         for (const remote of unpairedRemoteProfiles.values()) {
             await this.profiles.upsertProfile(remote);
             // A profile this device has never held: nothing of its own to join.
-            if (snapshot.closedTabsSupported) {
+            if (taken.closedTabsSupported) {
                 await writeClosedTabs(
                     remote.id, snapshot.closedTabsByProfileId[remote.id] ?? {});
             }
-            if (snapshot.visitsSupported) {
+            if (taken.visitsSupported) {
                 await writeVisits(remote.id, snapshot.visitsByProfileId[remote.id] ?? {});
             }
             await this.appState.saveProfileData(
@@ -539,14 +554,15 @@ export class SyncCoordinator {
         // The baseline is what the account holds within the slots - not what this device now
         // holds, so the push that follows carries exactly the local additions the merge kept,
         // and not what it never received, so that can never be read as a deletion.
-        await this.baselines.store(session.userId, restrictToScope({
+        await this.baselines.store(session.userId, this.holdingLogsNotSynced(restrictToScope({
             profiles: snapshot.profiles,
             dataByProfileId: snapshot.dataByProfileId,
             closedTabsByProfileId: snapshot.closedTabsByProfileId,
             closedTabsSupported: snapshot.closedTabsSupported,
             visitsByProfileId: snapshot.visitsByProfileId,
             visitsSupported: snapshot.visitsSupported
-        }, id => slotProfileIds.has(id), id => slotWorkspaceIds.has(id)));
+        }, id => slotProfileIds.has(id), id => slotWorkspaceIds.has(id)),
+            this.baselines.getFor(session.userId)));
 
         // From here the visible profiles are this account's.
         await this.profiles.markAccountArrived();
@@ -953,7 +969,7 @@ export class SyncCoordinator {
         const inWorkspace: InScope = id => workspaceInScope(scope, id);
         const scopedCurrent = restrictToScope(current, inProfile, inWorkspace);
         const everything = ChangeSetBuilder.build(
-            restrictToScope(baseline, inProfile, inWorkspace),
+            this.withholdingLogsNotSynced(restrictToScope(baseline, inProfile, inWorkspace)),
             scopedCurrent.profiles, scopedCurrent.dataByProfileId,
             scopedCurrent.closedTabsByProfileId ?? {},
             scopedCurrent.visitsByProfileId ?? {});
@@ -1073,8 +1089,8 @@ export class SyncCoordinator {
             return "done";
         }
 
-        await this.baselines.store(session.userId, baselineAfter(
-            baseline, prepared.scopedCurrent, prepared.inProfile, prepared.inWorkspace));
+        await this.baselines.store(session.userId, this.holdingLogsNotSynced(baselineAfter(
+            baseline, prepared.scopedCurrent, prepared.inProfile, prepared.inWorkspace), baseline));
         this.activity$.set("idle");
         return "done";
     }
@@ -1175,13 +1191,13 @@ export class SyncCoordinator {
         const inWorkspace: InScope = id => scope.slotWorkspaceIds.has(id)
             && (scope.workspaces[id]?.state ?? "SYNCHRONISED") === "SYNCHRONISED";
 
-        await this.applySnapshot(snapshot, previous, inProfile, inWorkspace);
+        await this.applySnapshot(this.asTakenIn(snapshot), previous, inProfile, inWorkspace);
 
         const onAccount = new Set([
             ...account.profiles.map(profile => profile.id),
             ...account.workspaces.map(workspace => workspace.id)
         ]);
-        await this.baselines.store(session.userId, baselineAfter(
+        await this.baselines.store(session.userId, this.holdingLogsNotSynced(baselineAfter(
             previous,
             restrictToScope({
                 profiles: snapshot.profiles,
@@ -1194,7 +1210,7 @@ export class SyncCoordinator {
             inProfile, inWorkspace,
             // Kept from before only while the account still has it; what was deleted there is
             // gone here too (applySnapshot), and must not linger as a deletion to send.
-            id => onAccount.has(id)));
+            id => onAccount.has(id)), previous));
         this.remappedIds.clear();
         this.publishScope(decideSyncScope(
             account, this.localProfilesOf(await this.readEverythingLocally()), this.standing.rules()));
@@ -1362,6 +1378,68 @@ export class SyncCoordinator {
     }
 
     // ------------------------------------------------------------------- helpers
+
+    // ---------------------------------------------------------------- logs not synchronised
+
+    /*
+     *  A log - the closed tabs, the browsing history - can be left out of synchronisation on
+     *  this browser (`syncClosedTabs`, `syncBrowsingHistory`) while everything else goes on.
+     *  Off is the same as being offline for that log alone, which takes three things:
+     *
+     *  - nothing of it is sent (`withholdingLogsNotSynced`);
+     *  - nothing of the account's is merged into or written over this device's own list
+     *    (`asTakenIn`) - the same as an account that does not keep that log at all;
+     *  - the baseline holds that log where it was (`holdingLogsNotSynced`), never moving on to
+     *    the account's list or this device's. That is what makes switching it back on safe:
+     *    the push sends what was recorded meanwhile and deletes only what was deleted here, and
+     *    the pull then brings what other devices recorded. A baseline that had followed the
+     *    account would read everything this device missed as a deletion to send; one that had
+     *    followed this device would never send what was recorded while it was off.
+     *
+     *  Whether the account keeps the log at all is still recorded truthfully in the baseline;
+     *  only the opt-out is laid over it, at the moment it is used.
+     */
+
+    /** The snapshot as this device takes it in: a log it does not synchronise reads as not kept. */
+    private asTakenIn(snapshot: MappedSnapshot): MappedSnapshot {
+        const logs = this.logSync$.get();
+        return {
+            ...snapshot,
+            closedTabsSupported: snapshot.closedTabsSupported && logs.closedTabs,
+            visitsSupported: snapshot.visitsSupported && logs.visits
+        };
+    }
+
+    /** A baseline to compute a change set from, sending nothing of a log not synchronised. */
+    private withholdingLogsNotSynced(baseline: SyncBaseline): SyncBaseline {
+        const logs = this.logSync$.get();
+        return {
+            ...baseline,
+            closedTabsSupported: baseline.closedTabsSupported === true && logs.closedTabs,
+            visitsSupported: baseline.visitsSupported === true && logs.visits
+        };
+    }
+
+    /**
+     *  A baseline about to be stored, with a log not synchronised held where it was.
+     *
+     *  @param next     what would be stored otherwise
+     *  @param previous what was stored before; none leaves the log as "the account has none
+     *                  that this device knows of", so switching it on sends this device's
+     *                  whole list and deletes nothing
+     */
+    private holdingLogsNotSynced(next: SyncBaseline, previous: SyncBaseline | null): SyncBaseline {
+        const logs = this.logSync$.get();
+        return {
+            ...next,
+            closedTabsByProfileId: logs.closedTabs
+                ? next.closedTabsByProfileId
+                : previous?.closedTabsByProfileId ?? {},
+            visitsByProfileId: logs.visits
+                ? next.visitsByProfileId
+                : previous?.visitsByProfileId ?? {}
+        };
+    }
 
     private async fetchSnapshot(): Promise<MappedSnapshot | null> {
         this.activity$.set("working");

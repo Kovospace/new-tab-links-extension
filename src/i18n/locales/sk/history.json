@@ -18,7 +18,7 @@
     "confirm": "Zabudnúť"
   },
   "off": {
-    "message": "História prehliadania je pre tento profil vypnutá. Zapnite ju v Nastaveniach → Súkromie a zoznam navštívených stránok sa bude ukladať sem.",
-    "openSettings": "Otvoriť nastavenia súkromia"
+    "message": "História prehliadania je pre tento profil vypnutá. Zapnite ju v Nastaveniach → Synchronizácia a súkromie a zoznam navštívených stránok sa bude ukladať sem.",
+    "openSettings": "Otvoriť nastavenia synchronizácie a súkromia"
   }
 }

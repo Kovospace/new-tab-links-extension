@@ -5,7 +5,7 @@
   "categories": {
     "uiAndBehavior": "UI and behavior",
     "languageAndLocalCustoms": "Language & local customs",
-    "privacy": "Privacy",
+    "privacy": "Sync & privacy",
     "search": "Search"
   },
   "enableDragAndDrop": {
@@ -83,5 +83,20 @@
   "keepSidePanelOpen": {
     "title": "Keep the side panel open",
     "explanation": "The panel of open tabs, closed tabs and history stays open beside the columns instead of widening under the pointer. On this device only."
+  },
+  "syncEnabled": {
+    "title": "Synchronise this browser",
+    "explanation": "While you are signed in, this browser's links, settings and the logs below are synchronised with your account. Off, you stay signed in and keep premium, but nothing is sent or received. On this device only.",
+    "offBlocksLogs": "This browser does not synchronise. Turn on \"Synchronise this browser\" first."
+  },
+  "syncClosedTabs": {
+    "title": "Synchronise closed tabs",
+    "explanation": "Share this browser's recently closed tabs with your other devices, and see theirs. Off, the list stays on this browser alone. On this device only.",
+    "notRecorded": "Closed tabs are not recorded for this profile, so there is nothing to synchronise."
+  },
+  "syncBrowsingHistory": {
+    "title": "Synchronise browsing history",
+    "explanation": "Share this browser's browsing history with your other devices, and see theirs. Off, the history stays on this browser alone. On this device only.",
+    "notRecorded": "Browsing history is not recorded for this profile, so there is nothing to synchronise."
   }
 }
