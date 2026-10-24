@@ -212,8 +212,10 @@ button.search-bar__engine-option > svg {
 
 /* ── Dark theme colours ─────────────────────────────────────────────────── */
 
-html.dark form.search-bar:focus-within {
-    box-shadow: 0 0 0 0.125em var(--color-textfield-border-active);
+/* The field that is being typed into is what lights up, not the whole bar round it - the same
+   inset ring every other text field here wears when focused (.editable:focus in main.css). */
+html.dark input.search-bar__input:focus {
+    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
 }
 
 html.dark input.search-bar__input {
