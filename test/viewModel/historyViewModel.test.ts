@@ -58,6 +58,8 @@ describe("HistoryViewModel", () => {
 
     it("groups by day, newest first, and names today and yesterday", () => {
         expect(days().map(day => day.label)).toEqual(["Today", "Yesterday", "2026-10-03"]);
+        // What the card folds a day by: a local date, which "Today" stops being at midnight.
+        expect(days().map(day => day.key)).toEqual(["2026-10-11", "2026-10-10", "2026-10-03"]);
         expect(days().map(day => day.visits.map(visit => visit.id))).toEqual([["a"], ["b"], ["c"]]);
     });
 

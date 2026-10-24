@@ -419,6 +419,10 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   reports from that tab - the title arriving, a favicon, an in-page address change. A visit
   refreshed within a minute with nothing changed is not written again. Writes are queued: a
   burst of navigations reaches the worker at once.
+- **Each day folds under its heading** (#93): the newest open, earlier days folded, and a day
+  folded or opened by hand stays so across redraws while the page is open - keyed by its local
+  date (`VisitDayDTO.key`), never its label, which turns from "Today" to "Yesterday" at
+  midnight. Not stored: it is not worth a preference.
 - **No `history` permission.** Chrome's own history is never read; nothing from before
   recording was turned on is collected, and incognito is not seen.
 

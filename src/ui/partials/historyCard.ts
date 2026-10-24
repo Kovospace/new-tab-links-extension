@@ -5,6 +5,7 @@ import { confirmDestructiveAction } from './confirmations';
 import { buildLogRow, buildOffNotice, LogRowWording } from './sidePanelRows';
 import { t } from '../../i18n/i18n';
 import { CLASS_ACTION_DANGER } from '../../constants';
+import { ICON } from './wrappedHtmlElements';
 
 const WORDING: LogRowWording = {
   rowTooltip: 'history.rowTooltip',
@@ -16,6 +17,12 @@ const WORDING: LogRowWording = {
 
 /**
  * The browsing history card of the side panel: the pages visited, grouped by day.
+ *
+ * **Each day folds.** The newest day starts open and every earlier one folded, because the
+ * history is long and what is looked for is nearly always recent; a day opened or folded by
+ * hand stays as it was left for as long as the page is open, across every redraw. Not stored:
+ * which days somebody once unfolded is not worth a preference, and a key per day would grow
+ * for ever.
  *
  * A card of its own rather than more of `ClosedTabsPanel`, which is the shell - the pointer,
  * the pin, the switcher - and was long enough already. The shell places the three parts this
@@ -29,6 +36,9 @@ export class HistoryCard {
   public readonly clearEl: HTMLButtonElement;
 
   private unsubscribes: Array<() => void> = [];
+
+  /** Days opened or folded by hand, by `VisitDayDTO.key`; true when open. */
+  private readonly unfolded = new Map<string, boolean>();
 
   /**
    * @param viewModel  supplies the history and acts on it
@@ -83,23 +93,63 @@ export class HistoryCard {
       return;
     }
 
-    for (const day of days) {
-      // The same heading the open tabs card puts over a window, and folded away like it.
-      const heading = document.createElement('h3');
-      heading.classList.add('closed-tabs__window');
-      heading.textContent = day.label;
-      this.listEl.appendChild(heading);
+    days.forEach((day, index) =>
+      this.listEl.appendChild(this.buildDay(day, this.unfolded.get(day.key) ?? index === 0)));
+  }
 
-      for (const visit of day.visits) {
-        this.listEl.appendChild(buildLogRow(visit, WORDING, {
-          open: () => {
-            this.viewModel.reopen(visit.id);
-            this.onFinished();
-          },
-          forget: () => void this.viewModel.forget(visit.id)
-        }));
-      }
+  /** One day: a heading that folds it, and its visits under it. */
+  private buildDay(day: VisitDayDTO, open: boolean): HTMLElement {
+    const section = document.createElement('section');
+    section.classList.add('closed-tabs__day');
+
+    // The same heading the open tabs card puts over a window, and hidden with it while the
+    // rail is narrow - folded, the rail shows the open days' favicons and nothing else.
+    const heading = document.createElement('h3');
+    heading.classList.add('closed-tabs__window');
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.classList.add('closed-tabs__day-toggle');
+
+    const chevron = document.createElement('span');
+    chevron.classList.add('closed-tabs__day-chevron');
+
+    const label = document.createElement('span');
+    label.textContent = day.label;
+
+    const count = document.createElement('span');
+    count.classList.add('closed-tabs__day-count');
+    count.textContent = String(day.visits.length);
+
+    toggle.append(chevron, label, count);
+    heading.appendChild(toggle);
+
+    const body = document.createElement('div');
+    body.classList.add('closed-tabs__day-body');
+    for (const visit of day.visits) {
+      body.appendChild(buildLogRow(visit, WORDING, {
+        open: () => {
+          this.viewModel.reopen(visit.id);
+          this.onFinished();
+        },
+        forget: () => void this.viewModel.forget(visit.id)
+      }));
     }
+
+    const show = (opened: boolean): void => {
+      body.hidden = !opened;
+      toggle.setAttribute('aria-expanded', String(opened));
+      chevron.textContent = opened ? ICON.COLLAPSE : ICON.EXPAND;
+    };
+    show(open);
+    toggle.addEventListener('click', () => {
+      const opened = body.hidden;
+      this.unfolded.set(day.key, opened);
+      show(opened);
+    });
+
+    section.append(heading, body);
+    return section;
   }
 
   /** Forgets the whole history, once, after asking. */

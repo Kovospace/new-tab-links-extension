@@ -226,6 +226,56 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     display: block;
 }
 
+/* A day of the history: its heading is the button that folds it. Each heading is
+   the first child of its own day, so the rule above would close every gap. */
+.closed-tabs__day + .closed-tabs__day > .closed-tabs__window {
+    margin-top: 0.75em;
+}
+
+.closed-tabs__day-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    margin: 0;
+    text-align: left;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+/* main.css paints every button in the dark theme with a heavier selector than a
+   class, as the settings dialog's category heads found out. */
+html.dark .closed-tabs__day-toggle,
+html.dark .closed-tabs__day-toggle:hover,
+html.dark .closed-tabs__day-toggle:active {
+    background-color: transparent;
+    color: inherit;
+    box-shadow: none;
+}
+
+.closed-tabs__day-chevron {
+    /* Fixed width so the label does not shift as the chevron changes shape. */
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+}
+
+.closed-tabs__day-count {
+    margin-left: auto;
+    font-weight: normal;
+}
+
+.closed-tabs__day-body[hidden] {
+    display: none;
+}
+
 .closed-tabs__empty {
     margin: 0;
     padding: 1em 0.75em;
