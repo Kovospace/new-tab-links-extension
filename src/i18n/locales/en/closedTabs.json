@@ -20,5 +20,9 @@
   "off": {
     "message": "Recording closed tabs is turned off for this profile. You can turn it on in Settings → Privacy.",
     "openSettings": "Open Privacy settings"
+  },
+  "keepOpen": {
+    "label": "Keep open",
+    "tooltip": "Keep this panel open on this device, whatever the pointer does"
   }
 }

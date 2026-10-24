@@ -71,6 +71,14 @@ export interface DevicePreferences {
     sidePanelCard: SidePanelCard;
 
     /**
+     *  Whether the side panel stays open at full width whatever the pointer does. Off by
+     *  default, which is the rail that widens under the pointer. Per device because it is a
+     *  question of screen width: a wide desktop has room for the panel beside the columns,
+     *  and a laptop does not.
+     */
+    keepSidePanelOpen: boolean;
+
+    /**
      *  Whether this browser synchronises with the account it is signed in to. On by default;
      *  off, the browser stays signed in - premium still lifts its limits - but nothing is
      *  pushed or pulled. Per device because the reason to turn it off is this machine: a work
@@ -143,6 +151,7 @@ const DEFAULTS: DevicePreferences = {
     searchEngine: DEFAULT_SEARCH_ENGINE,
     closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY,
     sidePanelCard: DEFAULT_SIDE_PANEL_CARD,
+    keepSidePanelOpen: false,
     syncEnabled: true,
     theme: DEFAULT_THEME
 };
@@ -316,6 +325,26 @@ export class DevicePreferencesRepository {
         this.publish();
     }
 
+    public getKeepSidePanelOpen(): boolean {
+        return this.preferences.keepSidePanelOpen;
+    }
+
+    /**
+     *  Keeps the side panel open on this device, or hands it back to the pointer. Every open
+     *  page follows, through `preferences$`.
+     *
+     *  @param keep whether the panel stays open
+     */
+    public async setKeepSidePanelOpen(keep: boolean): Promise<void> {
+        if (keep === this.preferences.keepSidePanelOpen) {
+            return;
+        }
+        this.preferences = { ...this.preferences, keepSidePanelOpen: keep };
+        this.LOG.debug("setKeepSidePanelOpen", keep);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
     /** Which language this browser is set to, which may be "auto". */
     public getLanguage(): string {
         return this.preferences.language;
@@ -455,6 +484,7 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
         closedTabsOpenDelay: normalizeClosedTabsOpenDelay(
             stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
         sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard),
+        keepSidePanelOpen: stored?.keepSidePanelOpen === true,
         // Anything but an explicit false is on: a browser that never answered synchronised.
         syncEnabled: stored?.syncEnabled !== false,
         theme: normalizeTheme(stored?.theme)

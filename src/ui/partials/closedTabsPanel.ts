@@ -41,6 +41,22 @@ const deviceCardPreference: CardPreference = {
 };
 
 /**
+ * Where the panel learns whether it is kept open; this device's preferences in normal use.
+ * Followed rather than read once, because Settings and other pages change it too.
+ */
+export interface KeepOpenPreference {
+  set(keep: boolean): Promise<void>;
+  /** Called at once with the current answer, then with every change; returns the way out. */
+  follow(listener: (keep: boolean) => void): () => void;
+}
+
+const deviceKeepOpenPreference: KeepOpenPreference = {
+  set: keep => devicePreferencesRepository.setKeepSidePanelOpen(keep),
+  follow: listener => devicePreferencesRepository.preferences$
+    .subscribe(preferences => listener(preferences.keepSidePanelOpen))
+};
+
+/**
  * The side panel: recently closed tabs, and the tabs open in this browser.
  *
  * **Three cards, one shown at a time** - open tabs, closed tabs and the browsing history -
@@ -104,6 +120,14 @@ export class ClosedTabsPanel {
   private pinned: boolean = false;
 
   /**
+   * Kept open by the "Keep open" checkbox, for good: neither the pointer, nor a click
+   * elsewhere, nor opening a row folds it. Outranks the pin, which is for one errand.
+   */
+  private keptOpen: boolean = false;
+  private keepOpenBox: HTMLInputElement | null = null;
+  private unsubscribeKeepOpen: (() => void) | null = null;
+
+  /**
    * Whether the panel is being held open, for anything that has to show it.
    *
    * Published rather than asked for, because the panel lets go of itself: a click outside it
@@ -130,13 +154,15 @@ export class ClosedTabsPanel {
    * @param openTabs  supplies the open tabs card and acts on it; injectable for testing
    * @param cardPreference where the chosen card is remembered; injectable for testing
    * @param history   supplies the browsing history card; injectable for testing
+   * @param keepOpenPreference whether the panel is kept open; injectable for testing
    */
   constructor(
       viewModel: ClosedTabsViewModel = new ClosedTabsViewModel(),
       openDelay: () => number = () => devicePreferencesRepository.getClosedTabsOpenDelay(),
       openTabs: OpenTabsViewModel = new OpenTabsViewModel(),
       cardPreference: CardPreference = deviceCardPreference,
-      history: HistoryViewModel = new HistoryViewModel()
+      history: HistoryViewModel = new HistoryViewModel(),
+      private readonly keepOpenPreference: KeepOpenPreference = deviceKeepOpenPreference
   ) {
     this.viewModel = viewModel;
     this.openDelay = openDelay;
@@ -164,6 +190,7 @@ export class ClosedTabsPanel {
     this.unsubscribeOpenTabs = this.openTabs.observables.windows
       .subscribe(windows => this.drawOpenTabs(windows));
     this.showCard(this.cardPreference.get());
+    this.unsubscribeKeepOpen = this.keepOpenPreference.follow(keep => this.keepOpen(keep));
 
     // On the document rather than on the panel: the rule is about where the pointer is on the
     // screen, including where the panel is not, which an element's own events cannot report.
@@ -176,9 +203,9 @@ export class ClosedTabsPanel {
     await this.history.initialize();
   }
 
-  /** Whether the panel is being held open by the button. */
+  /** Whether the panel is being held open, by the button or by "Keep open". */
   public isPinned(): boolean {
-    return this.pinned;
+    return this.pinned || this.keptOpen;
   }
 
   /** Whether the panel is showing its full width, however that came about. */
@@ -192,11 +219,40 @@ export class ClosedTabsPanel {
    * Letting go closes it rather than handing it back to the pointer where it stands: the
    * button was pressed to say "done", and a panel that stayed open until the pointer happened
    * to move would look like the button had not worked.
+   *
+   * A panel kept open is let go of the same way - the button is pressed to close it, and a
+   * button that did nothing while "Keep open" was ticked would look broken - and that unticks
+   * "Keep open", on this device, for good.
    */
   public togglePinned(): void {
     this.cancelPendingOpen();
+    if (this.keptOpen) {
+      void this.keepOpenPreference.set(false);
+      this.keepOpen(false);
+      this.setPinned(false);
+      this.setOpen(false);
+      return;
+    }
     this.setPinned(!this.pinned);
     this.setOpen(this.pinned);
+  }
+
+  /**
+   * Keeps the panel open, or hands it back to the pointer.
+   *
+   * Handed back, it stays open where it is and the pointer's next move decides - the
+   * checkbox that was just unticked is inside the panel, so the pointer is on it.
+   */
+  private keepOpen(keep: boolean): void {
+    this.keptOpen = keep;
+    if (this.keepOpenBox) {
+      this.keepOpenBox.checked = keep;
+    }
+    if (keep) {
+      this.cancelPendingOpen();
+      this.setOpen(true);
+    }
+    this.publishPinned();
   }
 
   /**
@@ -234,7 +290,7 @@ export class ClosedTabsPanel {
   }
 
   private followPointerAt(clientX: number, clientY: number): void {
-    if (this.pinned || !this.panelEl) {
+    if (this.pinned || this.keptOpen || !this.panelEl) {
       return;
     }
     // Measured now rather than remembered: the edge moves with the panel, and that is what
@@ -278,7 +334,7 @@ export class ClosedTabsPanel {
    * button's own business, or pinning would undo itself in the same gesture.
    */
   private clickedSomewhere(event: MouseEvent): void {
-    if (!this.pinned) {
+    if (!this.pinned || this.keptOpen) {
       return;
     }
     const target = event.target as HTMLElement | null;
@@ -320,11 +376,18 @@ export class ClosedTabsPanel {
 
   private setPinned(pinned: boolean): void {
     this.pinned = pinned;
-    this.pinned$.set(pinned);
+    this.publishPinned();
+  }
+
+  /** The header's button looks pressed while the panel is held open either way. */
+  private publishPinned(): void {
+    this.pinned$.set(this.pinned || this.keptOpen);
   }
 
   public dispose(): void {
     this.cancelPendingOpen();
+    this.unsubscribeKeepOpen?.();
+    this.unsubscribeKeepOpen = null;
     document.removeEventListener("mousemove", this.pointerMoved);
     document.removeEventListener("mouseout", this.pointerLeft);
     document.removeEventListener("click", this.clicked);
@@ -380,6 +443,7 @@ export class ClosedTabsPanel {
     pinBtn.addEventListener('click', () => this.togglePinned());
 
     head.appendChild(title);
+    head.appendChild(this.buildKeepOpen());
     head.appendChild(clearBtn);
     head.appendChild(this.history.clearEl);
     head.appendChild(pinBtn);
@@ -406,6 +470,31 @@ export class ClosedTabsPanel {
     panel.appendChild(this.history.offEl);
 
     return panel;
+  }
+
+  /**
+   * The "Keep open" checkbox. A checkbox rather than a button, because it is a state that
+   * lasts - on this device, across new tabs - where the pin is one errand's worth.
+   */
+  private buildKeepOpen(): HTMLElement {
+    const label = document.createElement('label');
+    label.classList.add('closed-tabs__keep-open');
+    label.title = t('closedTabs.keepOpen.tooltip');
+
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = this.keptOpen;
+    box.addEventListener('change', () => {
+      this.keepOpen(box.checked);
+      void this.keepOpenPreference.set(box.checked);
+    });
+    this.keepOpenBox = box;
+
+    const text = document.createElement('span');
+    text.textContent = t('closedTabs.keepOpen.label');
+
+    label.append(box, text);
+    return label;
   }
 
   /** The buttons that choose between the cards, open tabs first as the browser has them. */
@@ -547,9 +636,13 @@ export class ClosedTabsPanel {
 
   /**
    * Opening something from the panel is the end of the errand it was opened for. Deleting one
-   * or saving one is not, so those leave the panel where it is.
+   * or saving one is not, so those leave the panel where it is - and so does everything while
+   * the panel is kept open.
    */
   private finishErrand(): void {
+    if (this.keptOpen) {
+      return;
+    }
     this.setPinned(false);
     this.setOpen(false);
   }

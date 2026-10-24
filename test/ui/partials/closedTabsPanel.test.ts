@@ -6,7 +6,8 @@ import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit"
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
 import { HistoryViewModel } from "../../../src/viewModel/historyViewModel";
 import { VisitsRepository } from "../../../src/backend/repository/VisitsRepository";
-import { CardPreference, ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
+import { CardPreference, ClosedTabsPanel, KeepOpenPreference } from "../../../src/ui/partials/closedTabsPanel";
+import { ObservableValue } from "../../../src/utils/observableValue";
 import { OpenTabsViewModel, TabsSource } from "../../../src/viewModel/openTabsViewModel";
 import { SidePanelCard } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
@@ -458,5 +459,105 @@ describe("ClosedTabsPanel, cards", () => {
 
         expect(closed).toEqual([41]);
         expect(activated).toEqual([]);
+    });
+});
+
+/**
+ *  "Keep open": a lasting state of this device rather than one errand's pin. Nothing folds a
+ *  panel kept open - not the pointer, not a click elsewhere, not opening a row - except the
+ *  button that closes it, which unticks it.
+ */
+describe("ClosedTabsPanel, kept open", () => {
+    let appState: AppStateRepository;
+    let panel: ClosedTabsPanel;
+    let profiles: ProfileRepository;
+    let kept: ObservableValue<boolean>;
+
+    const preference: KeepOpenPreference = {
+        set: async keep => kept.set(keep),
+        follow: listener => kept.subscribe(listener)
+    };
+    const checkbox = () => document.querySelector('.closed-tabs__keep-open > input') as HTMLInputElement;
+
+    async function renderWith(keepOpen: boolean): Promise<void> {
+        kept = new ObservableValue<boolean>(keepOpen);
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
+            () => 0, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles),
+            preference);
+        await panel.render(document.body);
+        await flushStorageNotifications();
+        edgeAt(600);
+    }
+
+    beforeEach(async () => {
+        document.body.innerHTML = '<div class="overlay hidden"></div><main></main><button class="action-closed-tabs"></button>';
+        profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment("e", "W")], groups: [group("g", "R", "e")], activeEnvironmentId: "e"
+        }));
+        await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
+    });
+
+    afterEach(() => panel.dispose());
+
+    it("opens on a new tab already open, ticked, with the header's button pressed", async () => {
+        await renderWith(true);
+
+        expect(isOpen()).toBe(true);
+        expect(checkbox().checked).toBe(true);
+        expect(panel.pinned$.get()).toBe(true);
+    });
+
+    it("is folded by nothing: not the pointer, a click elsewhere, or opening a row", async () => {
+        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
+            .chrome.tabs.create = vi.fn();
+        await renderWith(true);
+
+        pass(100);
+        document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        (document.querySelector('.closed-tabs__text') as HTMLButtonElement).click();
+
+        expect(isOpen()).toBe(true);
+    });
+
+    it("is kept open from its checkbox, and handed back to the pointer when unticked", async () => {
+        await renderWith(false);
+        expect(isOpen()).toBe(false);
+
+        checkbox().checked = true;
+        checkbox().dispatchEvent(new Event('change'));
+        expect(kept.get()).toBe(true);
+        expect(isOpen()).toBe(true);
+
+        checkbox().checked = false;
+        checkbox().dispatchEvent(new Event('change'));
+        expect(kept.get()).toBe(false);
+        expect(isOpen()).toBe(true);      // the pointer is on the checkbox, inside the panel
+
+        pass(100);
+        expect(isOpen()).toBe(false);
+    });
+
+    it("follows a change made in Settings or another page", async () => {
+        await renderWith(false);
+
+        kept.set(true);
+
+        expect(isOpen()).toBe(true);
+        expect(checkbox().checked).toBe(true);
+    });
+
+    it("closes from the header's button, and that unticks it", async () => {
+        await renderWith(true);
+
+        panel.togglePinned();
+
+        expect(isOpen()).toBe(false);
+        expect(kept.get()).toBe(false);
+        expect(checkbox().checked).toBe(false);
+        expect(panel.pinned$.get()).toBe(false);
     });
 });

@@ -79,5 +79,9 @@
       "message": "História prehliadania sa z tohto profilu vymaže na všetkých zariadeniach, na ktorých ste prihlásení, a ďalšie stránky sa nezaznamenajú, kým to znova nezapnete. Už uložené odkazy zostanú.",
       "confirm": "Prestať a vymazať"
     }
+  },
+  "keepSidePanelOpen": {
+    "title": "Nechať bočný panel otvorený",
+    "explanation": "Panel otvorených a zatvorených kariet a histórie zostane otvorený vedľa stĺpcov namiesto rozbaľovania pod kurzorom. Len na tomto zariadení."
   }
 }

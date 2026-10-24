@@ -337,6 +337,14 @@ the rail - a pointer that has stopped sends no more events, so the timer finishe
 unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
 errand, while deleting or saving one is working through the list and leaves it alone.
 
+**"Keep open" outranks both** (#98): a checkbox in the panel's head, and the same setting in
+Settings → UI and behavior (`keepSidePanelOpen`, a device preference - it is a matter of screen
+width). Ticked, the panel is open on every new tab and nothing folds it - not the pointer, a
+click elsewhere or opening a row. The header's button still closes it, and that unticks it.
+Unticked from inside the panel, it is handed back to the pointer where it stands. Settings
+draws it as an ordinary checkbox: `SettingsViewModel` routes a `DeviceToggleKey` to the
+device preferences instead of the profile, so it is never pushed.
+
 - **`chrome.tabs.onRemoved` does not say what was closed** - it carries a tab id, and the tab
   is already gone from the API. So the worker keeps a mirror of the open tabs in
   `chrome.storage.session` (updated on every `onUpdated`) and reads the closure out of it.
