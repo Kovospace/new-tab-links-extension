@@ -421,8 +421,11 @@ html.dark .closed-tabs__text {
     cursor: pointer;
 }
 
+/* :not(:disabled) because the page-wide `html.dark button:hover:not(:disabled)` carries it, and
+   without it outranks this - the row's text button then lit up and faded a background of its own
+   inside the row's, two hovers at once. */
 .closed-tabs__text:hover,
-html.dark .closed-tabs__text:hover {
+html.dark .closed-tabs__text:hover:not(:disabled) {
     background: none;
 }
 

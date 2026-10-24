@@ -794,6 +794,12 @@ with `background-attachment: fixed`. Chrome cannot composite a fixed background:
 behind every hover was repainted, at low quality while the transition ran and full quality when
 it ended - a flash at the end of every hover, in either style. `test/ui/partials/pageBackground.test.ts`.
 
+**Text colour is never animated.** A hover may change it, at once, while the background fades;
+`transition` never names `color` (or `all`). A colour transition redraws the text every frame,
+and Chrome draws text one way while it keeps being repainted and another once it settles - the
+switch at the end of each hover flickered the text until Chrome had seen it often enough to stop
+(`test/ui/styles/textColorTransitions.test.ts`).
+
 **Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
 default; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
 top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),
