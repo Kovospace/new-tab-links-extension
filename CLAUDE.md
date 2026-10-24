@@ -461,6 +461,20 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   outage looks like. Nothing is removed by it - only growth is refused - and the next real
   answer restores it. A modified, unpacked build defeats all of this; that is accepted.
 
+### The search bar searches the profile first (`ui/partials/searchBar.ts`, `viewModel/searchSuggestions.ts`)
+
+Typing pauses for `SUGGEST_DELAY` (250 ms) and a list opens under the bar (#85): the loaded
+profile's links - every workspace, never another profile's - then this browser's open tabs, the
+closed tabs and the browsing history, and "search the web" last, always. Ranking and the order
+of kinds are `gatherSuggestions`, pure: an address is offered once, as the first kind that has
+it; a title starting with the query beats one only containing its words, which beats a match
+on the address or on where a link is kept ("Work › Music" finds the Music group's links). At
+most `MAX_SUGGESTIONS` (8) before the web. The first entry is highlighted and is what Enter
+opens; Enter pressed before the pause searches there and then, so it never opens the answer
+to a shorter query. A link, a closed tab or a visit replaces this page, as a link clicked on it
+does; an open tab is switched to; the web is searched with the chosen engine. The list is
+translucent with a backdrop blur.
+
 ### Tips on the workspace background (`ui/tips/`)
 
 A card at the bottom of the workspace plane, drawn by `TipsBar` into the `<workspace-plane>`

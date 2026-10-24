@@ -24,6 +24,8 @@ form.search-bar {
     gap: 0.5em;
     border-radius: 1.5em;
     transition: box-shadow var(--time-transition-medium) ease-in-out;
+    /* What the suggestions are placed against. */
+    position: relative;
 }
 
 /* ── Engine chooser ─────────────────────────────────────────────────────── */
@@ -109,6 +111,78 @@ input.search-bar__input {
             box-shadow var(--time-transition-medium) ease-in-out,
             background-color var(--time-transition-medium) ease-in-out;
     border: 0.25em solid var(--color-document-background);
+}
+
+/* ── Suggestions ────────────────────────────────────────────────────────── */
+
+/*
+   The profile's own matches and "search the web", under the whole bar and above
+   the columns. Translucent and blurred, so the page shows through as a hint of
+   where the list is and the text on it stays readable.
+*/
+ul.search-bar__suggestions {
+    position: absolute;
+    z-index: 101; /* more than overlay, as options-menu */
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5em;
+    padding: 0.25em;
+    list-style: none;
+    border-radius: var(--radius-normal);
+    box-shadow: 0 0 0 0.0625em var(--color-component-framing), 0 0.5em 1.5em rgb(0 0 0 / 0.25);
+    background-color: color-mix(in srgb, var(--color-component-background) 75%, transparent);
+    -webkit-backdrop-filter: blur(0.75em);
+    backdrop-filter: blur(0.75em);
+}
+
+ul.search-bar__suggestions[hidden] {
+    display: none;
+}
+
+li.search-bar__suggestion {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    padding: 0.4em 0.75em;
+    border-radius: var(--radius-small);
+    cursor: pointer;
+}
+
+li.search-bar__suggestion.active {
+    background-color: var(--color-component-background-hover);
+}
+
+li.search-bar__suggestion > img,
+li.search-bar__suggestion > svg {
+    flex: 0 0 auto;
+    width: 1em;
+    height: 1em;
+}
+
+li.search-bar__suggestion > svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+span.search-bar__suggestion-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+span.search-bar__suggestion-title,
+span.search-bar__suggestion-where {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+span.search-bar__suggestion-where {
+    font-size: 0.8em;
+    opacity: 0.7;
 }
 
 /* ── Submit ─────────────────────────────────────────────────────────────── */
