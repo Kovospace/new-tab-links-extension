@@ -269,9 +269,16 @@ feature needs no permission beyond `contextMenus`.
   neither shows the new link nor keeps it - its next save puts its own older copy back over
   the stored one. A write the repository made itself is deep-equal to what it holds and is
   ignored, which also stops a pull from being pushed straight back.
+- **There is always somewhere to put it** (#83). The group dropdown ends with "New group…"
+  and the subgroup dropdown with "New subgroup…", each opening a name field; a workspace with
+  no group opens on "New group…" (named "Ungrouped" unless changed), and a profile with no
+  workspace asks for the workspace's name too. `BookmarkViewModel.saveInto` checks every limit
+  before making anything, so a refused save leaves no empty group behind. The side panel's "+"
+  uses the same form, so it gets this as well. A group made here is an ordinary group - no
+  "ungrouped links" exist in the data model, which keeps the backend and its schema untouched.
 - The workspace is a dropdown only when the active profile has more than one, starting on
   the one open on this device; with one it is only named. Choosing a workspace refills the
-  groups, and the subgroup dropdown appears only when the chosen group has subgroups. A link
+  groups, and the subgroup dropdown is hidden only while a new group is being named. A link
   takes its `environmentId` from its group in `createLink`, never from the open workspace,
   or a link saved into another workspace would claim the wrong one.
 

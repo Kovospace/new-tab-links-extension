@@ -6,7 +6,10 @@
     "url": "URL",
     "workspace": "Pracovný priestor",
     "group": "Skupina",
-    "subgroup": "Podskupina"
+    "subgroup": "Podskupina",
+    "newGroup": "Názov skupiny",
+    "description": "Popis",
+    "newSubgroup": "Názov podskupiny"
   },
   "noSubgroup": "(žiadna)",
   "contextMenu": {
@@ -19,8 +22,15 @@
     "title": "Nie je čo uložiť",
     "message": "Túto stránku sa nedá uložiť ako odkaz. Uložiť sa dajú len bežné webové stránky — nie vlastné stránky prehliadača a nie stránka novej karty."
   },
-  "nowhereToPut": {
-    "title": "Nie je kam to uložiť",
-    "message": "Tento profil zatiaľ nemá skupinu, do ktorej by sa dal odkaz uložiť. Otvorte novú kartu, vytvorte pracovný priestor a skupinu a toto bude mať kam ukladať."
-  }
+  "newGroup": {
+    "option": "Nová skupina…",
+    "defaultName": "Nezaradené"
+  },
+  "newSubgroup": {
+    "option": "Nová podskupina…"
+  },
+  "newWorkspace": {
+    "defaultName": "Môj pracovný priestor"
+  },
+  "optional": "nepovinné"
 }
