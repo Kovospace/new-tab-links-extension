@@ -65,7 +65,6 @@ describe("the theme style in the stylesheets", () => {
         ".closed-tabs",
         ".tips-bar",
         "workspace-plane-body > link-group::before",
-        "link-subgroup:hover::before",
         "options-menu",
         "ul.search-bar__suggestions",
         "dialog.input-dialog"
@@ -85,6 +84,15 @@ describe("the theme style in the stylesheets", () => {
 
             expect(onItself).toEqual([]);
         });
+
+    /**
+     *  A blur that exists only under the pointer is built and dropped by Chrome on every hover,
+     *  and a frame drawn before the layer is ready flickers. Hover may change a tint, never
+     *  whether something is blurred.
+     */
+    it("never turns a blur on or off with the pointer", () => {
+        expect(blurredSelectors().filter(selector => selector.includes(":hover"))).toEqual([]);
+    });
 
     it("takes every amount from the knobs in __variables.css", () => {
         const knobs = css("__variables.css");

@@ -24,8 +24,8 @@
    makes an element a stacking context, and a menu inside one can rise no
    higher than that element: a group's menu would be painted under the next
    column, and the header's under the overlay shown while a menu is open -
-   unclickable (see the note on `header` in main.css). So the header, the
-   groups and a lit subgroup carry the blur on a ::before at z-index -1,
+   unclickable (see the note on `header` in main.css). So the header and the
+   groups carry the blur on a ::before at z-index -1,
    which sits behind their contents without making them a stacking context.
    Lifting the element instead does not work: the overlay is at z-index 100,
    and a lift above it would leave the whole element undimmed.
@@ -49,6 +49,10 @@
     background-color: var(--aero-surface);
 }
 
+/* A hovered subgroup is tinted, not blurred on its own: its group already
+   blurs everything behind it, the subgroup's area included. A blur layer of
+   its own existed only under the pointer, so Chrome built and dropped one on
+   every hover - and a frame drawn before the layer is ready is a flicker. */
 :root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
 :root[data-theme-style="aero"] link-subgroup:hover {
     background-color: var(--aero-surface-hover);
@@ -64,14 +68,12 @@
 
 /* These do: blurred from a layer behind them. A group's layer reaches under
    its frame too (inset by minus the frame), so the frame shows the blur. */
-:root[data-theme-style="aero"] workspace-plane-body > link-group,
-:root[data-theme-style="aero"] link-subgroup {
+:root[data-theme-style="aero"] workspace-plane-body > link-group {
     position: relative;
 }
 
 :root[data-theme-style="aero"] header::before,
-:root[data-theme-style="aero"] workspace-plane-body > link-group::before,
-:root[data-theme-style="aero"] link-subgroup:hover::before {
+:root[data-theme-style="aero"] workspace-plane-body > link-group::before {
     content: "";
     position: absolute;
     inset: calc(-1 * var(--aero-frame-width, 0px));
