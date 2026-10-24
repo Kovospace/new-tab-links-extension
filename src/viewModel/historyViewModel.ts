@@ -33,6 +33,12 @@ export interface VisitDTO {
 /** One day of the history, newest first. */
 export interface VisitDayDTO {
 
+    /**
+     *  The local date, as YYYY-MM-DD - what the card remembers a day's folding by. The label
+     *  will not do: at midnight "Today" becomes "Yesterday" and names another day.
+     */
+    key: string;
+
     /** "Today", "Yesterday", or the date. */
     label: string;
 
@@ -155,7 +161,11 @@ export class HistoryViewModel {
         for (const visit of this.readable(this.visits.getVisits())) {
             if (dayOf === null || !sameLocalDay(dayOf, visit.visitedAt)) {
                 dayOf = visit.visitedAt;
-                days.push({ label: this.dayLabel(visit.visitedAt, now), visits: [] });
+                days.push({
+                    key: localDateKey(visit.visitedAt),
+                    label: this.dayLabel(visit.visitedAt, now),
+                    visits: []
+                });
             }
             days[days.length - 1].visits.push({
                 id: visit.id,
@@ -216,4 +226,11 @@ export class HistoryViewModel {
         const normalized = normalizeUrl(url);
         return normalized !== null && kept.has(normalized);
     }
+}
+
+/** A moment's local date as YYYY-MM-DD, which sorts and compares as the days do. */
+function localDateKey(when: number): string {
+    const date = new Date(when);
+    const twoDigits = (value: number): string => String(value).padStart(2, "0");
+    return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}`;
 }
