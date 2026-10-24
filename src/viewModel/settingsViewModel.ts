@@ -50,12 +50,20 @@ interface SettingCommonDTO {
  *  The on/off settings that belong to this browser rather than to the profile - stored in the
  *  device preferences and never synchronised, but drawn as any other checkbox.
  */
-export type DeviceToggleKey = "keepSidePanelOpen";
+export type DeviceToggleKey =
+    "keepSidePanelOpen" | "syncEnabled" | "syncClosedTabs" | "syncBrowsingHistory";
 
 /** Every on/off setting: the profile's, and this device's. */
 export type ToggleSettingKey = ToggleableSetting | DeviceToggleKey;
 
-const DEVICE_TOGGLES: ReadonlySet<ToggleSettingKey> = new Set<DeviceToggleKey>(["keepSidePanelOpen"]);
+const DEVICE_TOGGLES: ReadonlySet<ToggleSettingKey> = new Set<DeviceToggleKey>(
+    ["keepSidePanelOpen", "syncEnabled", "syncClosedTabs", "syncBrowsingHistory"]);
+
+/** The device toggles that share a log, with the profile setting that decides it is recorded. */
+const LOG_SYNC_TOGGLES: Partial<Record<DeviceToggleKey, ToggleableSetting>> = {
+    syncClosedTabs: "recordClosedTabs",
+    syncBrowsingHistory: "recordBrowsingHistory"
+};
 
 function isDeviceToggle(key: ToggleSettingKey): key is DeviceToggleKey {
     return DEVICE_TOGGLES.has(key);
@@ -249,8 +257,13 @@ const CATEGORIES: CategoryDefinition[] = [
         key: PRIVACY_CATEGORY,
         wording: "privacy",
         settings: [
+            // Synchronising first: it is the switch the two below hang from. All three are this
+            // browser's, beside the profile's recording settings they are about.
+            { kind: "toggle", key: "syncEnabled", wording: "syncEnabled" },
             { kind: "toggle", key: "recordClosedTabs", wording: "recordClosedTabs", confirmOff: true },
-            { kind: "toggle", key: "recordBrowsingHistory", wording: "recordBrowsingHistory", confirmOff: true }
+            { kind: "toggle", key: "syncClosedTabs", wording: "syncClosedTabs" },
+            { kind: "toggle", key: "recordBrowsingHistory", wording: "recordBrowsingHistory", confirmOff: true },
+            { kind: "toggle", key: "syncBrowsingHistory", wording: "syncBrowsingHistory" }
         ]
     },
     {
@@ -358,7 +371,7 @@ export class SettingsViewModel {
     public async toggle(key: ToggleSettingKey, enabled: boolean): Promise<void> {
         this.LOG.debug("toggle", `${key} -> ${enabled}`);
         if (isDeviceToggle(key)) {
-            await this.devicePreferences.setKeepSidePanelOpen(enabled);
+            await this.setDeviceToggle(key, enabled);
             this.refresh();
             return;
         }
@@ -373,6 +386,44 @@ export class SettingsViewModel {
         }
         await this.profiles.updateSettings({ [key]: enabled });
         this.refresh();
+    }
+
+    private deviceToggleValue(key: DeviceToggleKey): boolean {
+        switch (key) {
+            case "keepSidePanelOpen": return this.devicePreferences.getKeepSidePanelOpen();
+            case "syncEnabled": return this.devicePreferences.getSyncEnabled();
+            case "syncClosedTabs": return this.devicePreferences.getSyncClosedTabs();
+            case "syncBrowsingHistory": return this.devicePreferences.getSyncBrowsingHistory();
+        }
+    }
+
+    private setDeviceToggle(key: DeviceToggleKey, enabled: boolean): Promise<void> {
+        switch (key) {
+            case "keepSidePanelOpen": return this.devicePreferences.setKeepSidePanelOpen(enabled);
+            case "syncEnabled": return this.devicePreferences.setSyncEnabled(enabled);
+            case "syncClosedTabs": return this.devicePreferences.setSyncClosedTabs(enabled);
+            case "syncBrowsingHistory": return this.devicePreferences.setSyncBrowsingHistory(enabled);
+        }
+    }
+
+    /**
+     *  Why a log's synchronisation cannot be changed right now, or null when it can: a log the
+     *  profile does not record has nothing to share, and a browser that does not synchronise
+     *  shares nothing. Drawn unticked and greyed out, saying which - the stored choice is kept
+     *  underneath and comes back with whatever was blocking it.
+     */
+    private logSyncBlocked(key: DeviceToggleKey, settings: ProfileSettings): string | null {
+        const recordedBy = LOG_SYNC_TOGGLES[key];
+        if (!recordedBy) {
+            return null;
+        }
+        if (!settings[recordedBy]) {
+            return t(`settings.${key}.notRecorded`);
+        }
+        if (!this.devicePreferences.getSyncEnabled()) {
+            return t("settings.syncEnabled.offBlocksLogs");
+        }
+        return null;
     }
 
     /**
@@ -511,7 +562,7 @@ export class SettingsViewModel {
                 title,
                 explanation,
                 enabled: isDeviceToggle(definition.key)
-                    ? this.devicePreferences.getKeepSidePanelOpen()
+                    ? this.deviceToggleValue(definition.key) && !this.logSyncBlocked(definition.key, settings)
                     : settings[definition.key],
                 confirmOff: definition.confirmOff
                     ? {
@@ -520,7 +571,9 @@ export class SettingsViewModel {
                         confirm: t(`settings.${definition.wording}.confirmOff.confirm`)
                     }
                     : null,
-                disabledReason: null
+                disabledReason: isDeviceToggle(definition.key)
+                    ? this.logSyncBlocked(definition.key, settings)
+                    : null
             };
         }
 

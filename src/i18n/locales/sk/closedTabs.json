@@ -22,8 +22,8 @@
     "confirm": "Zabudnúť ich"
   },
   "off": {
-    "message": "Zaznamenávanie zatvorených kariet je pre tento profil vypnuté. Zapnúť ho môžete v Nastaveniach → Súkromie.",
-    "openSettings": "Otvoriť nastavenia súkromia"
+    "message": "Zaznamenávanie zatvorených kariet je pre tento profil vypnuté. Zapnúť ho môžete v Nastaveniach → Synchronizácia a súkromie.",
+    "openSettings": "Otvoriť nastavenia synchronizácie a súkromia"
   },
   "keepOpen": {
     "label": "Nechať otvorený",

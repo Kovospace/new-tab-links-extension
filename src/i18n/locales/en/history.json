@@ -18,7 +18,7 @@
     "confirm": "Forget it"
   },
   "off": {
-    "message": "Browsing history is turned off for this profile. Turn it on in Settings → Privacy to keep a list of the pages you visit here.",
-    "openSettings": "Open Privacy settings"
+    "message": "Browsing history is turned off for this profile. Turn it on in Settings → Sync & privacy to keep a list of the pages you visit here.",
+    "openSettings": "Open Sync & privacy settings"
   }
 }
