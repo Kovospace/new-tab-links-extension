@@ -24,5 +24,9 @@
   "off": {
     "message": "Zaznamenávanie zatvorených kariet je pre tento profil vypnuté. Zapnúť ho môžete v Nastaveniach → Súkromie.",
     "openSettings": "Otvoriť nastavenia súkromia"
+  },
+  "keepOpen": {
+    "label": "Nechať otvorený",
+    "tooltip": "Nechať tento panel na tomto zariadení otvorený, nech robí kurzor čokoľvek"
   }
 }

@@ -444,3 +444,45 @@ describe("SettingsViewModel, the search engine", () => {
         expect(engine().value).toBe("bing");
     });
 });
+
+/**
+ *  "Keep the side panel open": a checkbox like the profile's, but the device's - stored with
+ *  the size and the delay, never on the profile and so never pushed to the account.
+ */
+describe("SettingsViewModel, keeping the side panel open", () => {
+
+    let profiles: ProfileRepository;
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const keepOpen = () => settings.observables.settings.get().categories
+        .flatMap(category => category.settings)
+        .find(one => one.kind === "toggle" && one.key === "keepSidePanelOpen");
+
+    it("is offered under UI and behavior, off", () => {
+        expect(settings.observables.settings.get().categories[0].settings).toContain(keepOpen());
+        expect(keepOpen()).toMatchObject({ enabled: false });
+    });
+
+    it("is stored on this device and not on the profile", async () => {
+        let published = 0;
+        profiles.profiles$.subscribe(() => published++);
+        const before = published;
+
+        await settings.toggle("keepSidePanelOpen", true);
+
+        expect(devicePreferences.getKeepSidePanelOpen()).toBe(true);
+        expect(keepOpen()).toMatchObject({ enabled: true });
+        expect(published).toBe(before);
+        expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
+    });
+});

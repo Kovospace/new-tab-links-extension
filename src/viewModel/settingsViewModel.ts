@@ -46,10 +46,25 @@ interface SettingCommonDTO {
 }
 
 /** A setting that is on or off. */
+/**
+ *  The on/off settings that belong to this browser rather than to the profile - stored in the
+ *  device preferences and never synchronised, but drawn as any other checkbox.
+ */
+export type DeviceToggleKey = "keepSidePanelOpen";
+
+/** Every on/off setting: the profile's, and this device's. */
+export type ToggleSettingKey = ToggleableSetting | DeviceToggleKey;
+
+const DEVICE_TOGGLES: ReadonlySet<ToggleSettingKey> = new Set<DeviceToggleKey>(["keepSidePanelOpen"]);
+
+function isDeviceToggle(key: ToggleSettingKey): key is DeviceToggleKey {
+    return DEVICE_TOGGLES.has(key);
+}
+
 export interface ToggleSettingDTO extends SettingCommonDTO {
     kind: "toggle";
     /** Which setting this is; what `toggle` is called with. */
-    key: ToggleableSetting;
+    key: ToggleSettingKey;
     enabled: boolean;
     /**
      *  What to ask before turning it off, already worded, or null when turning it off needs no
@@ -178,7 +193,7 @@ export interface SettingsDTO {
  *  the moment the dialog is described.
  */
 type SettingDefinition =
-    | { kind: "toggle"; key: ToggleableSetting; wording: string; confirmOff?: boolean }
+    | { kind: "toggle"; key: ToggleSettingKey; wording: string; confirmOff?: boolean }
     | { kind: "range"; key: RangeSettingKey; wording: string }
     | { kind: "choice"; key: ChoiceSettingKey; wording: string }
     | { kind: "image"; key: ImageSettingKey; wording: string }
@@ -212,6 +227,7 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "choice", key: "theme", wording: "theme" },
             { kind: "range", key: "uiScale", wording: "uiScale" },
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
+            { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
             { kind: "image", key: "backgroundImage", wording: "backgroundImage" },
             { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" }
         ]
@@ -339,8 +355,13 @@ export class SettingsViewModel {
      *  @param key     which setting
      *  @param enabled what to set it to
      */
-    public async toggle(key: ToggleableSetting, enabled: boolean): Promise<void> {
+    public async toggle(key: ToggleSettingKey, enabled: boolean): Promise<void> {
         this.LOG.debug("toggle", `${key} -> ${enabled}`);
+        if (isDeviceToggle(key)) {
+            await this.devicePreferences.setKeepSidePanelOpen(enabled);
+            this.refresh();
+            return;
+        }
         if (key === "recordClosedTabs" && !enabled) {
             // Deleted before the setting moves, so the push the setting change causes carries
             // the deletions with it. The user was asked first - see `confirmOff`.
@@ -489,7 +510,9 @@ export class SettingsViewModel {
                 key: definition.key,
                 title,
                 explanation,
-                enabled: settings[definition.key],
+                enabled: isDeviceToggle(definition.key)
+                    ? this.devicePreferences.getKeepSidePanelOpen()
+                    : settings[definition.key],
                 confirmOff: definition.confirmOff
                     ? {
                         title: t(`settings.${definition.wording}.confirmOff.title`),

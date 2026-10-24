@@ -79,5 +79,9 @@
       "message": "The browsing history is deleted from this profile, on every device you are signed in on, and no more pages are recorded until you turn it back on. Links you have already saved stay.",
       "confirm": "Stop and delete"
     }
+  },
+  "keepSidePanelOpen": {
+    "title": "Keep the side panel open",
+    "explanation": "The panel of open tabs, closed tabs and history stays open beside the columns instead of widening under the pointer. On this device only."
   }
 }

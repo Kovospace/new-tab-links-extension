@@ -113,6 +113,30 @@ html.dark .closed-tabs__head-action {
     margin: 0;
 }
 
+/* "Keep open": a checkbox with its words, shown only at full width like the
+   head's buttons. */
+.closed-tabs__keep-open {
+    display: none;
+}
+
+.closed-tabs--open .closed-tabs__keep-open {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: 0.85em;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.closed-tabs__keep-open > input {
+    margin: 0;
+    cursor: pointer;
+}
+
+.closed-tabs__keep-open > span {
+    display: inline;
+}
+
 /*
    Nothing scrolls while the rail is folded, in either direction: a scrollbar in
    a column two and a half characters wide is most of the column, and it is a
