@@ -98,5 +98,13 @@
     "title": "Synchronizovať históriu prehliadania",
     "explanation": "Zdieľať históriu prehliadania tohto prehliadača s ostatnými zariadeniami a vidieť ich históriu. Vypnuté – história zostane len v tomto prehliadači. Len na tomto zariadení.",
     "notRecorded": "História prehliadania sa pre tento profil nezaznamenáva, takže nie je čo synchronizovať."
+  },
+  "themeStyle": {
+    "title": "Štýl témy",
+    "explanation": "Plochý vykresľuje skupiny a ponuky plné. Aero ich robí čiastočne priehľadné a rozmazáva to, čo je za nimi – najlepšie s obrázkom na pozadí. Len na tomto zariadení.",
+    "options": {
+      "flat": "Plochý",
+      "aero": "Aero (priehľadný, rozmazaný)"
+    }
   }
 }

@@ -175,3 +175,12 @@ options-menu-item > span.options-menu__swatch {
     box-shadow: 0 0 0 0.0625em var(--color-component-framing);
     vertical-align: baseline;
 }
+
+/* Aero: the application menu, every group's and link's menu, and the right-click menu - one
+   element, so one rule - are partly transparent and blur what is behind them. */
+html[data-theme-style="aero"] options-menu {
+    background-color: color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity), transparent);
+    border-color: color-mix(in srgb, var(--color-document-background) var(--aero-menu-opacity), transparent);
+    -webkit-backdrop-filter: blur(var(--aero-blur));
+    backdrop-filter: blur(var(--aero-blur));
+}

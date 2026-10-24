@@ -102,6 +102,13 @@ export interface DevicePreferences {
      *  and a dark laptop at night, and the system setting each one follows is that machine's.
      */
     theme: ThemeId;
+
+    /**
+     *  How surfaces are drawn, in either theme: "flat" - opaque, as the page always was - or
+     *  "aero", where groups and menus are translucent and blur what is behind them. Per device
+     *  with the theme, for the same reason: it is a matter of this screen and its background.
+     */
+    themeStyle: ThemeStyleId;
 }
 
 /** Which logs this browser synchronises, as the synchronisation layer reads it. */
@@ -112,6 +119,18 @@ export interface LogSync {
 
 function logSyncOf(preferences: DevicePreferences): LogSync {
     return { closedTabs: preferences.syncClosedTabs, visits: preferences.syncBrowsingHistory };
+}
+
+/** The surface styles on offer: opaque, or translucent and blurred. */
+export type ThemeStyleId = "flat" | "aero";
+export const THEME_STYLES: ThemeStyleId[] = ["flat", "aero"];
+
+/** Flat, which is how the page was drawn before there was a choice. */
+export const DEFAULT_THEME_STYLE: ThemeStyleId = "flat";
+
+/** The style a stored value names, or the default for anything this version does not know. */
+export function normalizeThemeStyle(value?: string | null): ThemeStyleId {
+    return THEME_STYLES.includes(value as ThemeStyleId) ? value as ThemeStyleId : DEFAULT_THEME_STYLE;
 }
 
 /** The themes on offer: following the system, or one of the two regardless of it. */
@@ -175,7 +194,8 @@ const DEFAULTS: DevicePreferences = {
     syncEnabled: true,
     syncClosedTabs: true,
     syncBrowsingHistory: true,
-    theme: DEFAULT_THEME
+    theme: DEFAULT_THEME,
+    themeStyle: DEFAULT_THEME_STYLE
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -497,13 +517,36 @@ export class DevicePreferencesRepository {
         this.publish();
     }
 
+    /** How surfaces are drawn on this browser: flat or aero. */
+    public getThemeStyle(): ThemeStyleId {
+        return this.preferences.themeStyle;
+    }
+
     /**
-     *  Draws the page in the stored theme, now and whenever it changes - here or in another
-     *  page of this browser. Called before anything is drawn, beside `applyScale()`.
+     *  Chooses how surfaces are drawn, in force at once like the theme.
+     *
+     *  @param style one of the styles on offer; anything else means flat
+     */
+    public async setThemeStyle(style: string): Promise<void> {
+        const wanted = normalizeThemeStyle(style);
+        if (wanted === this.preferences.themeStyle) {
+            return;
+        }
+        this.preferences = { ...this.preferences, themeStyle: wanted };
+        this.LOG.debug("setThemeStyle", wanted);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
+    /**
+     *  Draws the page in the stored theme and style, now and whenever they change - here or in
+     *  another page of this browser. Called before anything is drawn, beside `applyScale()`.
      */
     public followTheme(): void {
-        this.preferences$.subscribe(preferences =>
-            applyThemeTo(document.documentElement, preferences.theme));
+        this.preferences$.subscribe(preferences => {
+            applyThemeTo(document.documentElement, preferences.theme);
+            applyThemeStyleTo(document.documentElement, preferences.themeStyle);
+        });
     }
 
     /**
@@ -547,7 +590,8 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
         syncEnabled: stored?.syncEnabled !== false,
         syncClosedTabs: stored?.syncClosedTabs !== false,
         syncBrowsingHistory: stored?.syncBrowsingHistory !== false,
-        theme: normalizeTheme(stored?.theme)
+        theme: normalizeTheme(stored?.theme),
+        themeStyle: normalizeThemeStyle(stored?.themeStyle)
     };
 }
 
@@ -582,6 +626,14 @@ export function applyScaleTo(root: HTMLElement, scale: number): void {
  */
 export function applyThemeTo(root: HTMLElement, theme: ThemeId): void {
     root.dataset.theme = normalizeTheme(theme);
+}
+
+/**
+ *  Marks a root element with how its surfaces are drawn. `data-theme-style="aero"` is what the
+ *  stylesheets key the translucent, blurred surfaces off; flat needs no rule of its own.
+ */
+export function applyThemeStyleTo(root: HTMLElement, style: ThemeStyleId): void {
+    root.dataset.themeStyle = normalizeThemeStyle(style);
 }
 
 export const devicePreferencesRepository = new DevicePreferencesRepository();

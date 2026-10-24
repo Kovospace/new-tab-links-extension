@@ -240,6 +240,50 @@ describe("DevicePreferencesRepository, the theme", () => {
 });
 
 /**
+ *  Flat or aero (#107): how surfaces are drawn, kept per device with the theme and marked on
+ *  the root element for the stylesheets to key off.
+ */
+describe("DevicePreferencesRepository, the theme style", () => {
+
+    let preferences: DevicePreferencesRepository;
+
+    beforeEach(async () => {
+        preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        delete document.documentElement.dataset.themeStyle;
+    });
+
+    it("is flat on a device nobody has set it on, and on a record from before it existed", async () => {
+        expect(preferences.getThemeStyle()).toBe("flat");
+
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { scale: 0.75, theme: "dark" });
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+
+        expect(reopened.getThemeStyle()).toBe("flat");
+    });
+
+    it("remembers aero, and reads a style it does not offer as flat", async () => {
+        await preferences.setThemeStyle("aero");
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getThemeStyle()).toBe("aero");
+
+        await preferences.setThemeStyle("glass");
+        expect(preferences.getThemeStyle()).toBe("flat");
+    });
+
+    it("marks the root element at once, and again when the style changes", async () => {
+        preferences.followTheme();
+        expect(document.documentElement.dataset.themeStyle).toBe("flat");
+
+        await preferences.setThemeStyle("aero");
+
+        expect(document.documentElement.dataset.themeStyle).toBe("aero");
+    });
+});
+
+/**
  *  How long the closed-tabs rail waits for the pointer before it opens. Clamped like the size,
  *  because storage the slider never wrote can say anything.
  */

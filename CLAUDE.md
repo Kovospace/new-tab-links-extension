@@ -499,8 +499,8 @@ on the address or on where a link is kept ("Work › Music" finds the Music grou
 most `MAX_SUGGESTIONS` (8) before the web. The first entry is highlighted and is what Enter
 opens; Enter pressed before the pause searches there and then, so it never opens the answer
 to a shorter query. A link, a closed tab or a visit replaces this page, as a link clicked on it
-does; an open tab is switched to; the web is searched with the chosen engine. The list is
-translucent with a backdrop blur.
+does; an open tab is switched to; the web is searched with the chosen engine. The list is solid
+in the flat style and blurred in aero.
 
 ### Tips on the workspace background (`ui/tips/`)
 
@@ -786,7 +786,16 @@ Every colour in `__variables.css` is a `light-dark(light, dark)` pair and the ro
 `color-scheme` picks one: `light dark` by default, so following the system needs no script, and
 `data-theme` on `<html>` (`followTheme`, applied before drawing and on every change from any
 page) narrows it. A new colour goes into `__variables.css` as a pair - one written out in a
-component stylesheet is a colour only one theme gets. `html.dark` in the stylesheets is not the
+component stylesheet is a colour only one theme gets.
+
+**Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
+default; #107), marked as `data-theme-style` on the root by `followTheme`. Aero makes groups,
+every `<options-menu>` (application, group, link and right-click menus are one element) and the
+search suggestions partly transparent with a `backdrop-filter` blur; the amounts are the
+`--aero-*` variables. Every blur on a surface is written under
+`html[data-theme-style="aero"]`, so flat stays flat (`test/ui/styles/aeroStyle.test.ts`).
+`backdrop-filter` makes each group a stacking context, so a group's own menu would be painted
+under the next column - the group with an open menu is lifted with `z-index`. `html.dark` in the stylesheets is not the
 dark theme; it is the older "themed" class both pages carry, and its rules serve both.
 
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to

@@ -20,6 +20,13 @@
 :root {
     color-scheme: light dark;
 
+    /* The aero style (data-theme-style="aero", DevicePreferencesRepository.themeStyle): how
+       much of a surface stays opaque, and how far what is behind it is blurred. Menus keep
+       more of themselves than groups do - they are read over whatever they open on top of. */
+    --aero-group-opacity: 55%;
+    --aero-menu-opacity: 80%;
+    --aero-blur: 0.75em;
+
     --color-document-background: light-dark(#e6e6e6, #000);
     --color-document-text: light-dark(#111, #eee);
 

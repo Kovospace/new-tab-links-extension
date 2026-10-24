@@ -559,3 +559,39 @@ describe("SettingsViewModel, what is synchronised", () => {
         expect(published).toBe(before);
     });
 });
+
+/** The theme style (#107), a choice beside the theme, applied without a reload. */
+describe("SettingsViewModel, the theme style", () => {
+
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const themeStyle = () => settings.observables.settings.get().categories[0].settings
+        .find(setting => setting.key === "themeStyle");
+
+    it("is offered right after the theme, flat or aero, on flat", () => {
+        const keys = settings.observables.settings.get().categories[0].settings.map(setting => setting.key);
+        expect(keys.indexOf("themeStyle")).toBe(keys.indexOf("theme") + 1);
+        expect(themeStyle()).toMatchObject({
+            kind: "choice", value: "flat",
+            options: [{ value: "flat", label: "Flat" }, { value: "aero", label: "Aero (transparent, blurred)" }]
+        });
+    });
+
+    it("stores a style chosen, without asking for a reload", async () => {
+        expect(await settings.setChoice("themeStyle", "aero")).toBe(false);
+
+        expect(devicePreferences.getThemeStyle()).toBe("aero");
+        expect(themeStyle()).toMatchObject({ value: "aero" });
+    });
+});
+
