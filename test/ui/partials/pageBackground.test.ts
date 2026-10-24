@@ -6,7 +6,7 @@ import { PageBackground } from "../../../src/ui/partials/pageBackground";
 import { ObservableValue } from "../../../src/utils/observableValue";
 
 /**
- *  A premium user's own picture is painted on a fixed layer of its own, never as the root's
+ *  The user's own picture is painted on a fixed layer of its own, never as the root's
  *  background with background-attachment: fixed. Chrome cannot give that a layer: the picture
  *  behind every hover was painted again, at a lower quality while the hover animated and at full
  *  quality once it stopped - a flash at the end of every hover, in either theme style.
@@ -18,14 +18,13 @@ describe("PageBackground, the user's own picture", () => {
 
     afterEach(() => background.dispose());
 
-    function render(premium: boolean, picture: string | null): void {
-        background = new PageBackground(
-            new ObservableValue<boolean>(premium), new ObservableValue<string | null>(picture));
-        background.render(document.body);
+    function render(picture: string | null): void {
+        background = new PageBackground(new ObservableValue<string | null>(picture));
+        background.render();
     }
 
     it("hands the picture to the stylesheet, not to the root's own background", () => {
-        render(true, "data:image/png;base64,AAAA");
+        render("data:image/png;base64,AAAA");
 
         expect(root.classList.contains("has-custom-background")).toBe(true);
         expect(root.style.getPropertyValue("--page-background-image"))
@@ -33,17 +32,8 @@ describe("PageBackground, the user's own picture", () => {
         expect(root.style.backgroundImage).toBe("");
     });
 
-    it("shows it on a free account too, keeping the FREE badge", () => {
-        render(false, "data:image/png;base64,AAAA");
-
-        expect(root.classList.contains("has-custom-background")).toBe(true);
-        expect(root.style.getPropertyValue("--page-background-image"))
-            .toBe('url("data:image/png;base64,AAAA")');
-        expect(document.querySelector(".page-watermark")!.getAttribute("data-tier")).toBe("free");
-    });
-
     it("has nothing to show once the picture is removed", () => {
-        render(true, null);
+        render(null);
 
         expect(root.classList.contains("has-custom-background")).toBe(false);
         expect(root.style.getPropertyValue("--page-background-image")).toBe("");
