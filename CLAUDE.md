@@ -794,6 +794,10 @@ with `background-attachment: fixed`. Chrome cannot composite a fixed background:
 behind every hover was repainted, at low quality while the transition ran and full quality when
 it ended - a flash at the end of every hover, in either style. `test/ui/partials/pageBackground.test.ts`.
 
+**The page-wide button hover weighs nothing extra**: `html.dark button:hover:where(:not(:disabled))`.
+A bare `:not(:disabled)` adds a class's worth and beat every component's own hover
+(`html.dark .x:hover`), painting those buttons grey (`test/ui/styles/buttonHover.test.ts`).
+
 **Text colour is never animated.** A hover may change it, at once, while the background fades;
 `transition` never names `color` (or `all`). A colour transition redraws the text every frame,
 and Chrome draws text one way while it keeps being repainted and another once it settles - the

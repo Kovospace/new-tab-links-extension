@@ -335,13 +335,20 @@ html.dark button {
 
 /* A disabled button answers neither the pointer nor a press: it is drawn as it is at rest,
    faded by whoever disabled it. Without :not(:disabled) it lit up under the pointer like any
-   other, and so looked clickable. */
-html.dark button:hover:not(:disabled) {
+   other, and so looked clickable.
+
+   **Inside :where(), so it weighs nothing.** As a bare :not(:disabled) it added a class's worth
+   (0,3,2), which beat nearly every component's own hover - `html.dark .x:hover` is 0,3,1 - and
+   painted those buttons grey: the active history card lost its blue, the history day headings
+   and the settings section headings turned into grey slabs. At 0,2,2 it still beats the resting
+   `html.dark button` above and loses to anything that styles its own hover
+   (test/ui/styles/buttonHover.test.ts). */
+html.dark button:hover:where(:not(:disabled)) {
   color: var(--color-button-text-hover);
   background-color: var(--color-button-background-hover);
 }
 
-html.dark button:active:not(:disabled) {
+html.dark button:active:where(:not(:disabled)) {
   box-shadow: 0 0 0.25em 0.25em var(--color-button-background);
 }
 
