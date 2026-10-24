@@ -19,6 +19,7 @@ import './ui/styles/main.css'
 
 import './ui/styles/_inputDialog.css'
 import './ui/styles/_bookmarkPanel.css'
+import './ui/styles/_aero.css'
 
 /**
  *  The popup that keeps the page the user is looking at.

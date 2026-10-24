@@ -20,6 +20,21 @@
 :root {
     color-scheme: light dark;
 
+    /* ── Aero theme style: the knobs ─────────────────────────────────────────
+       Used only while Settings → Theme style is Aero (data-theme-style="aero"
+       on the root); the rules themselves are in _aero.css. Opacities are how
+       much of the colour stays: 100% is as solid as flat, 0% is gone. */
+
+    /* Groups, a subgroup under the pointer, the header, footer and side panel. */
+    --aero-opacity: 55%;
+    /* Menus, the search suggestions and dialogs - read over anything, so more solid. */
+    --aero-menu-opacity: 80%;
+    /* How far what is behind a surface is blurred. 0 for none. */
+    --aero-blur: 0.75em;
+    /* The dark frames round groups, the search bar, menus and the other things that
+       sit on the background. 0% hides them, 100% is the frame as flat draws it. */
+    --aero-border-opacity: 0%;
+
     --color-document-background: light-dark(#e6e6e6, #000);
     --color-document-text: light-dark(#111, #eee);
 

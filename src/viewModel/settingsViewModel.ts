@@ -5,7 +5,7 @@ import { writeVisits } from "../backend/repository/VisitsRepository";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
-    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP, THEMES
+    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP, THEME_STYLES, THEMES
 } from "../backend/repository/DevicePreferencesRepository";
 
 import {
@@ -167,7 +167,7 @@ export type ImageSettingKey = "backgroundImage";
 export type RangeSettingKey = "uiScale" | "closedTabsOpenDelay";
 
 /** The settings that are a choice out of a list. */
-export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine" | "theme";
+export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine" | "theme" | "themeStyle";
 
 /** A named group of settings, which the dialog draws as one collapsible section. */
 export interface SettingCategoryDTO {
@@ -233,6 +233,7 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "toggle", key: "enableDragAndDrop", wording: "enableDragAndDrop" },
             { kind: "toggle", key: "hideTips", wording: "hideTips" },
             { kind: "choice", key: "theme", wording: "theme" },
+            { kind: "choice", key: "themeStyle", wording: "themeStyle" },
             { kind: "range", key: "uiScale", wording: "uiScale" },
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
             { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
@@ -485,6 +486,13 @@ export class SettingsViewModel {
             return false;
         }
 
+        if (key === "themeStyle") {
+            // The same: the stylesheet repaints the surfaces.
+            await this.devicePreferences.setThemeStyle(value);
+            this.refresh();
+            return false;
+        }
+
         await this.devicePreferences.setDateFormat(value);
         this.refresh();
         return false;
@@ -657,6 +665,8 @@ export class SettingsViewModel {
                 return this.devicePreferences.getSearchEngine();
             case "theme":
                 return this.devicePreferences.getTheme();
+            case "themeStyle":
+                return this.devicePreferences.getThemeStyle();
             default:
                 return this.devicePreferences.getDateFormat();
         }
@@ -725,6 +735,9 @@ function choiceOptionsOf(key: ChoiceSettingKey): SettingOptionDTO[] {
                 .map(engine => ({ value: engine.id, label: engine.label }));
         case "theme":
             return THEMES.map(theme => ({ value: theme, label: t(`settings.theme.options.${theme}`) }));
+        case "themeStyle":
+            return THEME_STYLES.map(style =>
+                ({ value: style, label: t(`settings.themeStyle.options.${style}`) }));
         default:
             return dateFormatOptions();
     }

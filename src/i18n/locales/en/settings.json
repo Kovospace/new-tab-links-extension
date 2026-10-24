@@ -98,5 +98,13 @@
     "title": "Synchronise browsing history",
     "explanation": "Share this browser's browsing history with your other devices, and see theirs. Off, the history stays on this browser alone. On this device only.",
     "notRecorded": "Browsing history is not recorded for this profile, so there is nothing to synchronise."
+  },
+  "themeStyle": {
+    "title": "Theme style",
+    "explanation": "Flat draws groups and menus solid. Aero makes them partly transparent and blurs what is behind them - best with a background picture. Kept on this device only.",
+    "options": {
+      "flat": "Flat",
+      "aero": "Aero (transparent, blurred)"
+    }
   }
 }

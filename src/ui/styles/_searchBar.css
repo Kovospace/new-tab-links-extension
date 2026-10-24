@@ -117,8 +117,8 @@ input.search-bar__input {
 
 /*
    The profile's own matches and "search the web", under the whole bar and above
-   the columns. Translucent and blurred, so the page shows through as a hint of
-   where the list is and the text on it stays readable.
+   the columns. Solid, as in the flat style; aero makes it translucent and
+   blurred (_aero.css).
 */
 ul.search-bar__suggestions {
     position: absolute;
@@ -131,9 +131,7 @@ ul.search-bar__suggestions {
     list-style: none;
     border-radius: var(--radius-normal);
     box-shadow: 0 0 0 0.0625em var(--color-component-framing), 0 0.5em 1.5em rgb(0 0 0 / 0.25);
-    background-color: color-mix(in srgb, var(--color-component-background) 75%, transparent);
-    -webkit-backdrop-filter: blur(0.75em);
-    backdrop-filter: blur(0.75em);
+    background-color: var(--color-component-background);
 }
 
 ul.search-bar__suggestions[hidden] {

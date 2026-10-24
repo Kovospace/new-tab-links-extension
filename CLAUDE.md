@@ -786,7 +786,19 @@ Every colour in `__variables.css` is a `light-dark(light, dark)` pair and the ro
 `color-scheme` picks one: `light dark` by default, so following the system needs no script, and
 `data-theme` on `<html>` (`followTheme`, applied before drawing and on every change from any
 page) narrows it. A new colour goes into `__variables.css` as a pair - one written out in a
-component stylesheet is a colour only one theme gets. `html.dark` in the stylesheets is not the
+component stylesheet is a colour only one theme gets.
+
+**Flat or aero is a second, independent choice** (`themeStyle`, device preference, flat by
+default; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
+top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),
+`--aero-menu-opacity` (menus, search suggestions, dialogs), `--aero-blur`, and
+`--aero-border-opacity` for the dark frames round what sits on the background (0% hides them,
+100% is flat's frame). Every aero rule is in `_aero.css`, loaded last, and takes its amounts from
+those variables only. **What holds menus - the header, groups, subgroups - is blurred from a
+`::before` at z-index -1, never on itself**: `backdrop-filter` makes an element a stacking
+context, and a menu inside one could rise no higher than it - under the next column, or under
+the overlay shown while a menu is open. `test/ui/styles/aeroStyle.test.ts` pins that, that flat
+blurs nothing, and that no amount is written into the rules. `html.dark` in the stylesheets is not the
 dark theme; it is the older "themed" class both pages carry, and its rules serve both.
 
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to
