@@ -94,6 +94,19 @@ describe("the theme style in the stylesheets", () => {
         expect(blurredSelectors().filter(selector => selector.includes(":hover"))).toEqual([]);
     });
 
+    /**
+     *  Without a layer of its own, a blurred menu or panel was drawn unblurred for one frame
+     *  whenever a hover transition inside it ended - a flicker after every hover.
+     */
+    it("gives every blur in aero a layer of its own", () => {
+        const withoutLayer = rules()
+            .filter(([selector, body]) => selector.startsWith(AERO) && /backdrop-filter\s*:/.test(body))
+            .filter(([, body]) => !/transform:\s*translateZ\(0\)/.test(body))
+            .map(([selector]) => selector);
+
+        expect(withoutLayer).toEqual([]);
+    });
+
     it("takes every amount from the knobs in __variables.css", () => {
         const knobs = css("__variables.css");
         for (const knob of ["--aero-opacity", "--aero-menu-opacity", "--aero-blur", "--aero-border-opacity"]) {

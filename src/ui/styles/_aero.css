@@ -29,6 +29,12 @@
    which sits behind their contents without making them a stacking context.
    Lifting the element instead does not work: the overlay is at z-index 100,
    and a lift above it would leave the whole element undimmed.
+
+   **Each blur keeps a layer of its own** (transform: translateZ(0) beside
+   every backdrop-filter). Without one, Chrome rebuilt the layers round a
+   blurred menu or panel whenever a hover transition inside it ended - a menu
+   item, a history row - and drew that one frame unblurred: a flicker at the
+   end of every hover.
    --------------------------------------------------------------------------- */
 
 :root[data-theme-style="aero"] {
@@ -64,6 +70,8 @@
 :root[data-theme-style="aero"] .tips-bar {
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
 }
 
 /* These do: blurred from a layer behind them. A group's layer reaches under
@@ -82,6 +90,8 @@
     pointer-events: none;
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
 }
 
 :root[data-theme-style="aero"] workspace-plane-body > link-group::before {
@@ -99,6 +109,8 @@
     background-color: var(--aero-menu-surface);
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
 }
 
 /* ── Frames ─────────────────────────────────────────────────────────────── */
@@ -125,4 +137,6 @@
     background-color: color-mix(in srgb, var(--color-document-background) var(--aero-opacity), transparent);
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);
+    /* A layer of its own, kept - see "Each blur keeps a layer" above. */
+    transform: translateZ(0);
 }
