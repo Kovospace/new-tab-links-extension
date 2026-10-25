@@ -103,6 +103,7 @@ export const CLASS_SUBGROUP_HEAD_ACTIONS_TOGGLED = "cls-subgroup-head-actions-to
 export const CLASS_SUBGROUP_LINK_COUNT = "cls-subgroup-link-count";
 
 // Link component
+export const CLASS_LINK_WRAPPER = "cls-link-wrapper";
 export const CLASS_LINK_ACTIONS_CONTAINER = "cls-link-actions-container";
 export const CLASS_LINK_TEXT = "cls-link-text";
 export const CLASS_LINK_ICON= "cls-link-icon";

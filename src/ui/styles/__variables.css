@@ -21,8 +21,10 @@
     color-scheme: light dark;
 
     /* Base theme accent color which will be chosen by the user */
-    --color-theme-accent-background: light-dark(#0036ff, #09F);
-    --color-theme-accent-background-hover: light-dark(#0072ff, #0BF);
+    /*--color-theme-accent-background: light-dark(#0036ff, #09F);*/
+    /*--color-theme-accent-background-hover: light-dark(#0072ff, #0BF);*/
+    --color-theme-accent-background: light-dark(#0036ff, #0036ff);
+    --color-theme-accent-background-hover: light-dark(#0072ff, #0072ff);
     --color-theme-accent-text-hover: light-dark(#fff, #fff);
 
     /* AERO Theme setup */
@@ -79,6 +81,13 @@
     --color-textfield-text-hover: light-dark(#000, #fff);
     --color-textfield-border-active: var(--color-theme-accent-background-hover);
 
+    /* Menus */
+    --color-menu-lining: light-dark(#000, #fff);
+    --color-menu-shadow: light-dark(#000, #666);
+
+    /* Spacing of widgets on desktop */
+    --widgets-spacing: 0.5em;
+
     /* Other widgets */
     --color-favicon-backdrop: light-dark(#aaa, #555);
     /* Danger as text rather than as a button: #900 is sized to be read as white
@@ -91,26 +100,28 @@
     /* Generic global constants */
     --time-transition-fast: 0.125s;
     --time-transition-medium: 0.25s;
+    --transition-easing-default: ease-in-out;
 
     --radius-small: 0.125em;
     --radius-normal: 0.25em;
+    --radius-bigger: 0.375em;
     --radius-circular: 100%;
 
     /* Transitions */
-    --transition-item-hover:
-            background-color var(--time-transition-medium) ease;
-            /*color var(--time-transition-medium) ease;*/
-    --transition-overlay:
-            opacity var(--time-transition-medium) ease,
-            display var(--time-transition-medium) allow-discrete;
-    --transition-shadow:
-            box-shadow var(--time-transition-medium) ease-in-out,
-            background-color var(--time-transition-medium) ease-in-out;
-    --transition-width:
-            width var(--time-transition-medium) ease-in-out;
-    --transition-opacity:
-            opacity var(--time-transition-medium) ease,
-            display var(--time-transition-medium) allow-discrete;
+    /*--transition-item-hover:*/
+    /*        background-color var(--time-transition-medium) ease-in-out;*/
+    /*        !*color var(--time-transition-medium) ease;*!*/
+    /*--transition-overlay:*/
+    /*        opacity var(--time-transition-medium) ease,*/
+    /*        display var(--time-transition-medium) allow-discrete;*/
+    /*--transition-shadow:*/
+    /*        box-shadow var(--time-transition-medium) ease-in-out,*/
+    /*        background-color var(--time-transition-medium) ease-in-out;*/
+    /*--transition-width:*/
+    /*        width var(--time-transition-medium) ease-in-out;*/
+    /*--transition-opacity:*/
+    /*        opacity var(--time-transition-medium) ease,*/
+    /*        display var(--time-transition-medium) allow-discrete;*/
 
 
 }
@@ -122,3 +133,8 @@
 :root[data-theme="dark"] {
     color-scheme: dark;
 }
+
+* {
+    transition: none !important;
+}
+

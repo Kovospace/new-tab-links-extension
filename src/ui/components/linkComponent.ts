@@ -6,9 +6,11 @@ import { LinkViewModel } from "../../viewModel/linkViewModel";
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent"
 import { ICON, renderContainer, renderButton } from "../partials/wrappedHtmlElements"
-import { ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
+import {
+    ACT_LINK_DELETE, ACT_LINK_EDIT, ACT_LINK_MOVE_UP, ACT_LINK_MOVE_DOWN,
     CLASS_LINK_ACTIONS_CONTAINER, CLASS_LINK_TEXT, CLASS_LINK_ICON, CLASS_ACTION_ADD,
-    CLASS_ACTION_DANGER } from "../../constants";
+    CLASS_ACTION_DANGER, CLASS_LINK_WRAPPER
+} from "../../constants";
 
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
@@ -60,14 +62,17 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
     private renderLink(linkDto: LinkDTO, parentElem: HTMLElement) {
 
         // containers
+        const wrapper: HTMLElement = renderContainer([CLASS_LINK_WRAPPER]);
+        parentElem.appendChild(wrapper);
+
         const faviconDiv: HTMLElement = renderContainer([CLASS_LINK_ICON]);
-        parentElem.appendChild(faviconDiv);
+        wrapper.appendChild(faviconDiv);
 
         const linkContentDiv: HTMLElement = renderContainer([CLASS_LINK_TEXT]);
-        parentElem.appendChild(linkContentDiv);
+        wrapper.appendChild(linkContentDiv);
 
         const linkActionsDiv: HTMLElement = renderContainer([CLASS_LINK_ACTIONS_CONTAINER]);
-        parentElem.appendChild(linkActionsDiv);
+        wrapper.appendChild(linkActionsDiv);
 
         // link
         const anchor: HTMLAnchorElement = document.createElement("a");
@@ -81,9 +86,9 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         linkContentDiv.appendChild(anchor);
 
         // description
-        const span: HTMLSpanElement = document.createElement("span");
-        span.textContent = linkDto.description ? linkDto.description : "";
-        linkContentDiv.appendChild(span);
+        // const span: HTMLSpanElement = document.createElement("span");
+        // span.textContent = linkDto.description ? linkDto.description : "";
+        // linkContentDiv.appendChild(span);
 
         // icon — worker resolves to a base64 data URI or a fallback asset path
         const img: HTMLImageElement = document.createElement("img");
