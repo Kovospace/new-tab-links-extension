@@ -14,7 +14,7 @@
 */
 options-menu {
     position: absolute;
-    z-index: 101; /* more than overlay */
+    z-index: 101; /* above the columns and panels */
     top: 100%;
     left: 0;
     right: auto;

@@ -4,7 +4,6 @@ import { t } from "../../i18n/i18n";
 
 import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
 import { ICON, renderButton, renderUnsyncedMark } from "../partials/wrappedHtmlElements"
-import { toggleOverlay } from "../partials/wrappedHtmlElements";
 import { confirmDestructiveAction } from "./confirmations";
 
 /**
@@ -198,7 +197,6 @@ export class OptionsMenu {
             }
             this.LOG.debug(`Menu item clicked: ${option.actionTitle}`);
             this.LOG.debug("Metadata: " + this.metadata);
-            toggleOverlay(false);
             if (option.dangerous) {
                 // The item's own wording heads the dialog and names the button that goes ahead,
                 // so "Delete workspace" is answered by a button saying the same, never "OK".
@@ -223,9 +221,11 @@ export class OptionsMenu {
                 !this.menuElement.contains(event.target as Node) &&
                 !this.openingElement.contains(event.target as Node)
             ) {
+                if (this.menuElement.classList.contains("visible")) {
+                    swallowTheClickOfThisPress();
+                }
                 this.menuElement.classList.remove("visible");
                 this.openingElement.classList.remove("active");
-                toggleOverlay(false);
             }
         });
     }
@@ -239,6 +239,26 @@ export class OptionsMenu {
             this.menuElement.classList.toggle('align-right', isRightHalf);
         }
         this.menuElement.classList.toggle('visible');
-        toggleOverlay(this.menuElement.classList.contains('visible'));
     }
+}
+
+/**
+ *  Keeps the click that belongs to the press which closed a menu from reaching whatever is
+ *  under the pointer.
+ *
+ *  Pressing outside an open menu means "close it", not "and open the link I happened to land
+ *  on". That used to be the overlay's doing - it covered the page while a menu was open, so the
+ *  click landed on it - and the overlay is gone. The click of this press is dropped on its way
+ *  down; if the press ends without one (dragged away), the listener is taken off right after
+ *  the mouseup, so no later click is ever eaten.
+ */
+function swallowTheClickOfThisPress(): void {
+    const swallow = (event: MouseEvent): void => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+    document.addEventListener('click', swallow, { capture: true, once: true });
+    document.addEventListener('mouseup', () => {
+        setTimeout(() => document.removeEventListener('click', swallow, { capture: true }), 0);
+    }, { capture: true, once: true });
 }

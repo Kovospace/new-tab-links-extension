@@ -9,12 +9,10 @@ dialog.input-dialog {
     box-shadow: 0 0 0 0.0625em var(--color-component-framing);
 }
 
-/* The overlay div darkens the page (and fades); the blur is here, because the
-   backdrop is drawn by the browser for every modal dialog, with nothing to
-   toggle - and it sits above the overlay, so it blurs that too. */
+/* Nothing behind a dialog: no dimming and no blur. The page stays as it is;
+   the dialog is modal (showModal) and that alone keeps it from being used. */
 dialog.input-dialog::backdrop {
     background: transparent;
-    backdrop-filter: blur(3px);
 }
 
 html.dark dialog.input-dialog {

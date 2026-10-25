@@ -102,7 +102,7 @@
             color var(--time-transition-medium) ease-in-out;
     --transition-overlay:
             opacity var(--time-transition-medium) ease,
-            visibility var(--time-transition-medium) ease;
+            display var(--time-transition-medium) allow-discrete;
     --transition-shadow:
             box-shadow var(--time-transition-medium) ease-in-out,
             background-color var(--time-transition-medium) ease-in-out;

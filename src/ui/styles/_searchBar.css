@@ -69,7 +69,7 @@ span.search-bar__caret {
 /* The list opens under the chooser, above the columns, as the menus in this heading do. */
 ul.search-bar__engines {
     position: absolute;
-    z-index: 101; /* more than overlay, as options-menu */
+    z-index: 101; /* as options-menu */
     top: 100%;
     left: 0;
     margin-top: 0.5em;
@@ -120,7 +120,7 @@ input.search-bar__input {
 */
 ul.search-bar__suggestions {
     position: absolute;
-    z-index: 101; /* more than overlay, as options-menu */
+    z-index: 101; /* as options-menu */
     top: 100%;
     left: 0;
     right: 0;
