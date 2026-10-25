@@ -806,8 +806,12 @@ switch at the end of each hover flickered the text until Chrome had seen it ofte
 
 **Flat or aero is a second, independent choice** (`themeStyle`, device preference, **aero by
 default**, flat the opt-out; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
-top of `__variables.css`** - `--aero-opacity` (panels, groups, a hovered subgroup),
-`--aero-menu-opacity` (menus, search suggestions, dialogs) and `--aero-blur`. (A fourth,
+top of `__variables.css`** - `--aero-opacity-light`/`-dark` (panels, groups, a hovered
+subgroup), `--aero-menu-opacity-light`/`-dark` (menus, search suggestions, dialogs) and
+`--aero-blur`. **One knob per scheme, never `light-dark()` around a percentage**: that function
+takes colours only, and the invalid value would silently strip every aero surface of its
+background. `_aero.css` pairs the finished `color-mix()` colours in `light-dark()` instead, so
+they follow the same `color-scheme` switch as every other colour. (A fourth,
 `--aero-border-opacity` for the frames, is commented out for now along with the frame rule in
 `_aero.css`.) Every aero rule is in `_aero.css` and takes its amounts from those variables
 only. **Its selectors start with `:root[data-theme-style="aero"]`, never `html[...]`**: both
