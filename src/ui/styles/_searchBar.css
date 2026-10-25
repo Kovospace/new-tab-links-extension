@@ -19,7 +19,7 @@ form.search-bar {
     flex: 1 1 20em;
     min-width: 16em;
     max-width: 40em;
-    margin: 0 2em;
+    margin-left: 2em;
     padding: 0.25em;
     gap: 0.5em;
     border-radius: 1.5em;
@@ -46,7 +46,7 @@ button.search-bar__engine-button {
     height: 2.5em;
     padding: 0 0.5em;
     border-radius: 1.25em;
-    border: 0.25em solid var(--color-document-background);
+    border: var(--border-lining-width) solid var(--border-lining-color);
 }
 
 span.search-bar__engine-icon {
@@ -100,7 +100,7 @@ button.search-bar__engine-option {
 
 input.search-bar__input {
     flex: 1 1 auto;
-    min-width: 0;
+    min-width: 32em;
     height: 2.5em;
     padding: 0 0.75em;
     font: inherit;
@@ -110,7 +110,7 @@ input.search-bar__input {
     transition:
             box-shadow var(--time-transition-medium) ease-in-out,
             background-color var(--time-transition-medium) ease-in-out;
-    border: 0.25em solid var(--color-document-background);
+    border: var(--border-lining-width) solid var(--color-document-background);
 }
 
 /* ── Suggestions ────────────────────────────────────────────────────────── */
@@ -130,7 +130,7 @@ ul.search-bar__suggestions {
     padding: 0.25em;
     list-style: none;
     border-radius: var(--radius-normal);
-    box-shadow: 0 0 0 0.0625em var(--color-component-framing), 0 0.5em 1.5em rgb(0 0 0 / 0.25);
+    box-shadow: 0 0 0 var(--border-lining-width-inset) var(--color-component-framing), 0 0.5em 1.5em rgb(0 0 0 / 0.25);
     background-color: var(--color-component-background);
 }
 
@@ -149,13 +149,15 @@ li.search-bar__suggestion {
 
 li.search-bar__suggestion.active {
     background-color: var(--color-component-background-hover);
+    color: var(--color-component-text);
 }
 
 li.search-bar__suggestion > img,
 li.search-bar__suggestion > svg {
-    flex: 0 0 auto;
-    width: 1em;
-    height: 1em;
+    flex: 1 0 auto;
+    width: 2em;
+    max-width: 2em;
+    max-height: 2em;
 }
 
 li.search-bar__suggestion > svg {
@@ -187,11 +189,11 @@ span.search-bar__suggestion-where {
 
 button.search-bar__submit {
     flex: 0 0 auto;
-    width: 2.5em;
-    height: 2.5em;
+    width: 2.25em;
+    height: 2.25em;
     padding: 0.375em;
     border-radius: var(--radius-circular);
-    border: 0.25em solid var(--color-document-background);
+    border: var(--border-lining-width) solid var(--border-lining-color);
 }
 
 button.search-bar__submit > svg {
@@ -212,17 +214,21 @@ button.search-bar__engine-option > svg {
 
 /* ── Dark theme colours ─────────────────────────────────────────────────── */
 
+html.dark input.search-bar__input {
+    box-shadow: inset 0 0 0 var(--border-lining-width) var(--border-lining-color-inset);
+}
+
 /* The field that is being typed into is what lights up, not the whole bar round it - the same
    inset ring every other text field here wears when focused (.editable:focus in main.css). */
 html.dark input.search-bar__input:focus {
-    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
+    box-shadow: inset 0 0 0 var(--border-lining-width) var(--border-lining-color-inset-active);
 }
 
 /* The engine chooser wears the same ring while its list is open - it is the part of the bar in
    use then - and when reached by keyboard. */
 html.dark button.search-bar__engine-button[aria-expanded="true"],
 html.dark button.search-bar__engine-button:focus-visible {
-    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
+    box-shadow: inset 0 0 0 var(--border-lining-width) var(--color-textfield-border-active);
 }
 
 /* No glow under a pressed button in the bar - the page-wide press shadow
@@ -236,12 +242,13 @@ html.dark form.search-bar button:active:not([aria-expanded="true"]) {
    same see-through, blurred surface (_aero.css) - rather than as a form field, so the bar reads
    as one of the things on the page. */
 html.dark input.search-bar__input {
-    background-color: var(--color-component-background);
-    color: var(--color-component-text);
+    background-color: var(--color-textfield-background);
+    color: var(--color-textfield-text);
 }
 
 html.dark input.search-bar__input:hover {
-    background-color: var(--color-component-background-hover);
+    background-color: var(--color-textfield-background-hover);
+    color: var(--color-textfield-text-hover);
 }
 
 html.dark ul.search-bar__engines {

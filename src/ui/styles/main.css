@@ -127,7 +127,7 @@ header > div > span {
 */
 main {
     display: flex;
-    padding: 0 1em;
+    /*padding: 0 1em;*/
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: auto;
@@ -137,7 +137,7 @@ main {
 }
 
 /*
-   A premium user's own picture (pageBackground.ts hands it over as --page-background-image),
+   The user's own picture (pageBackground.ts hands it over as --page-background-image),
    covering the window: cropped rather than stretched out of shape, so it fills whatever the
    window's proportions.
 
@@ -148,8 +148,8 @@ main {
    swap was a flash at the end of every hover transition, in both theme styles. A fixed element
    with a transform is drawn once and reused.
 
-   z-index -2: below the corner logo and the aero style's blur layers, which are at -1, so that
-   those blur this picture rather than being covered by it.
+   z-index -2: below the aero style's blur layers, which are at -1, so that those blur this
+   picture rather than being covered by it.
 */
 html.has-custom-background::before {
     content: "";
