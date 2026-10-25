@@ -83,3 +83,7 @@
 :root[data-theme="dark"] {
     color-scheme: dark;
 }
+
+* {
+    transition: none !important;
+}
