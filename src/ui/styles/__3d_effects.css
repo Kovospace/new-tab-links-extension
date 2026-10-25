@@ -1,11 +1,19 @@
 options-menu {
+    z-index: var(--z-index-menus);
     box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
 }
 
 workspace-plane-head > form.search-bar > ul.search-bar__suggestions {
+    var(--z-index-menus);
     box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
 }
 
 aside.closed-tabs {
+    z-index: var(--z-index-left-panel);
+    box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
+}
+
+header {
+    z-index: var(--z-index-top-panel);
     box-shadow: 0 0 0.5em var(--color-menu-shadow);
 }

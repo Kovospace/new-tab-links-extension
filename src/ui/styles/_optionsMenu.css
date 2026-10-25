@@ -25,7 +25,7 @@ options-menu {
        `.active:hover` with the pointer anywhere in the menu, since hovering a child hovers
        its ancestors. Inherited, whatever colour those give the button reached every item. */
     color: var(--color-component-text);
-    border: 0.0625em solid var(--color-menu-lining);
+    border: var(--border-lining-width-inset) solid var(--color-menu-lining);
     margin-top: 0.5em;
     display: none;
     opacity: 0;

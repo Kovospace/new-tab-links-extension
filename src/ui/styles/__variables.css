@@ -84,7 +84,9 @@
     /* Menus */
     --color-menu-lining: light-dark(#000, #fff);
     --color-menu-shadow: light-dark(#000, #666);
-    --z-index-menus: 101;
+    --z-index-menus: 103;
+    --z-index-top-panel: 101;
+    --z-index-left-panel: 102;
     --closed-tabs-rail: 2.5em;
     --closed-tabs-open: 22em;
 
