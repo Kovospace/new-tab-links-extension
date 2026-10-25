@@ -30,9 +30,7 @@ options-menu {
     margin-top:0.5em;
     display: none;
     opacity: 0;
-    transition:
-            opacity var(--time-transition-medium) ease,
-            display var(--time-transition-medium) allow-discrete;
+    /*transition: var(--transition-opacity);*/
 }
 
 options-menu.visible {
@@ -58,7 +56,7 @@ options-menu-item {
     padding: 0.5em;
     text-align: left;
     display: block;
-    transition: background-color var(--time-transition-medium) ease-in-out;
+    /*transition: var(--transition-item-hover);*/
 }
 
 options-menu-item::after {

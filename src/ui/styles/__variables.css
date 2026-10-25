@@ -96,6 +96,23 @@
     --radius-normal: 0.25em;
     --radius-circular: 100%;
 
+    /* Transitions */
+    --transition-item-hover:
+            background-color var(--time-transition-medium) ease-in-out,
+            color var(--time-transition-medium) ease-in-out;
+    --transition-overlay:
+            opacity var(--time-transition-medium) ease,
+            visibility var(--time-transition-medium) ease;
+    --transition-shadow:
+            box-shadow var(--time-transition-medium) ease-in-out,
+            background-color var(--time-transition-medium) ease-in-out;
+    --transition-width:
+            width var(--time-transition-medium) ease-in-out;
+    --transition-opacity:
+            opacity var(--time-transition-medium) ease,
+            display var(--time-transition-medium) allow-discrete;
+
+
 }
 
 :root[data-theme="light"] {

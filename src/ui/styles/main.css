@@ -63,9 +63,7 @@ div.overlay {
     -webkit-backdrop-filter: blur(1px); /* Safari */
     z-index: 100;
     opacity: 1;
-    transition:
-            opacity var(--time-transition-medium) ease,
-            visibility var(--time-transition-medium) ease;
+    /*transition: var(--transition-overlay);*/
 }
 
 div.overlay.hidden {
@@ -186,9 +184,10 @@ button {
        picture, until Chrome had seen the same element repainted often enough to stop switching.
        test/ui/styles/textColorTransitions.test.ts keeps it out.
     */
-    transition:
-      box-shadow var(--time-transition-fast) ease,
-      background-color var(--time-transition-medium) ease-in-out;
+    /*transition: var(--transition-item-hover);*/
+    /*transition:*/
+    /*  box-shadow var(--time-transition-fast) ease,*/
+    /*  background-color var(--time-transition-medium) ease-in-out;*/
 }
 
 button:last-child {
@@ -352,9 +351,7 @@ html.dark .danger:active:not(:disabled) {
 html.dark .editable {
     background-color: var(--color-textfield-background);
     color: var(--color-textfield-text);
-    transition:
-            box-shadow var(--time-transition-medium) ease-in-out,
-            background-color var(--time-transition-medium) ease-in-out;
+    /*transition: var(--transition-shadow);*/
 }
 
 html.dark .editable:hover {

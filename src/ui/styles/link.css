@@ -4,6 +4,7 @@ link-container {
   align-items: center;
   padding: 0.25em 0em;
   cursor: pointer;
+  /*transition: var(--transition-item-hover);*/
 }
 
 /* The text colour changes at once and only the background fades - see "Text colour is never
@@ -12,8 +13,6 @@ link-container:hover {
   background-color: var(--color-button-background-hover);
   color: var(--color-button-text-hover);
   border-radius: 0.25em;
-  transition:
-    background-color var(--time-transition-medium) ease-in-out
 }
 
 link-container > div {
@@ -85,8 +84,8 @@ link-group-body > link-container > div.cls-link-actions-container,
 link-group-body > link-subgroup > link-subgroup-body > link-container > div.cls-link-actions-container {
   max-width: 0em;
   overflow: hidden;
-  transition:
-    max-width 0.25s ease-in-out;
+  /*transition:*/
+  /*  max-width 0.25s ease-in-out;*/
 }
 
 link-group-body.managed > link-container > div.cls-link-actions-container,

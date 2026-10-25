@@ -73,12 +73,12 @@
    blurs everything behind it, the subgroup's area included. A blur layer of
    its own existed only under the pointer, so Chrome built and dropped one on
    every hover - and a frame drawn before the layer is ready is a flicker. */
-:root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
-:root[data-theme-style="aero"] link-subgroup:hover
+/*:root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),*/
+/*:root[data-theme-style="aero"] link-subgroup:hover*/
 /*:root[data-theme-style="aero"] input.search-bar__input:hover */
-{
-    background-color: var(--aero-surface-hover);
-}
+/*{*/
+/*    background-color: var(--aero-surface-hover);*/
+/*}*/
 
 /* Nothing in these holds a menu: blurred directly. */
 :root[data-theme-style="aero"] footer,

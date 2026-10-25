@@ -66,7 +66,7 @@ html.dark .settings-dialog__list {
     letter-spacing: 0.03em;
     /*opacity: 0.85;*/
     cursor: pointer;
-    transition: background-color var(--time-transition-medium) ease-in-out;
+    /*transition: var(--transition-item-hover);*/
 }
 
 /* main.css paints every button in the dark theme, and does it with a selector
@@ -108,7 +108,7 @@ html.dark .settings-dialog__category-head:active {
     padding: 0.5em;
     border-radius: var(--radius-small);
     background-color: var(--color-button-background);
-    transition: background-color var(--time-transition-medium) ease-in-out;
+    /*transition: var(--transition-item-hover);*/
     cursor: pointer;
 }
 

@@ -6,7 +6,7 @@ link-subgroup {
     display: flex;
     flex-direction: column;
     border-radius: var(--radius-normal);
-    transition: background-color var(--time-transition-medium) ease-in-out;
+    /*transition: var(--transition-item-hover);*/
 }
 
 link-subgroup:hover {
@@ -96,8 +96,8 @@ link-subgroup-body {
     overflow: hidden;
     height: auto;
     max-height: 100vh;
-    transition:
-        max-height var(--time-transition-medium) ease;
+    /*transition:*/
+    /*    max-height var(--time-transition-medium) ease;*/
 }
 
 link-subgroup-body.rolled {
@@ -127,7 +127,7 @@ link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-act
     flex-direction: row;
     max-width: 0;
     overflow: hidden;
-    transition: max-width 0.25s ease-in-out;
+    /*transition: max-width 0.25s ease-in-out;*/
     margin-right: 0.25em;
     margin-left: auto;
 }
