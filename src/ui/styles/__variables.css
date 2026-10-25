@@ -85,6 +85,8 @@
     --color-menu-lining: light-dark(#000, #fff);
     --color-menu-shadow: light-dark(#000, #666);
     --z-index-menus: 101;
+    --closed-tabs-rail: 2.5em;
+    --closed-tabs-open: 22em;
 
     /* Spacing of widgets on desktop */
     --widgets-spacing: 0.75em;

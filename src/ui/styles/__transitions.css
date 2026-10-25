@@ -94,3 +94,44 @@ options-menu-item {
             color var(--time-transition-fast) var(--transition-easing-default),
             background-color var(--time-transition-fast) var(--transition-easing-default) !important;
 }
+
+
+
+aside.closed-tabs {
+    transition: width var(--time-transition-medium) var(--transition-easing-default) !important;
+}
+
+aside.closed-tabs .closed-tabs__row {
+    transition: background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+aside.closed-tabs .closed-tabs__row > button > span {
+    transition: color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+aside.closed-tabs > div.closed-tabs__head button,
+aside.closed-tabs > div.closed-tabs__head input
+{
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+aside.closed-tabs > div.closed-tabs__cards button {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+/* Search */
+aside.closed-tabs > input {
+    transition:
+            border-color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+aside.closed-tabs .closed-tabs__row .closed-tabs__row-action {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}

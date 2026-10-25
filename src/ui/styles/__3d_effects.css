@@ -5,3 +5,7 @@ options-menu {
 workspace-plane-head > form.search-bar > ul.search-bar__suggestions {
     box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
 }
+
+aside.closed-tabs {
+    box-shadow: 0 0 0.5em var(--color-menu-shadow);
+}
