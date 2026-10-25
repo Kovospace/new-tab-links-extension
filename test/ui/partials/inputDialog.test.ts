@@ -14,7 +14,7 @@ import { MAX_NAME_LENGTH } from "../../../src/backend/sync/SyncContracts";
  */
 describe("InputDialog", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div class="overlay hidden"></div>';
+        document.body.innerHTML = '';
         (HTMLDialogElement.prototype as any).showModal = function () { this.open = true; };
         (HTMLDialogElement.prototype as any).close = function () {
             this.open = false; this.dispatchEvent(new Event('close'));
@@ -121,7 +121,7 @@ describe("InputDialog", () => {
 describe("InputDialog field keys", () => {
 
     beforeEach(() => {
-        document.body.innerHTML = '<div class="overlay hidden"></div>';
+        document.body.innerHTML = '';
         (HTMLDialogElement.prototype as any).showModal = function () { this.open = true; };
         (HTMLDialogElement.prototype as any).close = function () {
             this.open = false; this.dispatchEvent(new Event('close'));

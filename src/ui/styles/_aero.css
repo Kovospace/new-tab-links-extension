@@ -23,12 +23,9 @@
    **What holds menus is blurred from behind, never on itself.** backdrop-filter
    makes an element a stacking context, and a menu inside one can rise no
    higher than that element: a group's menu would be painted under the next
-   column, and the header's under the overlay shown while a menu is open -
-   unclickable (see the note on `header` in main.css). So the header and the
+   column (see also the note on `header` in main.css). So the header and the
    groups carry the blur on a ::before at z-index -1,
    which sits behind their contents without making them a stacking context.
-   Lifting the element instead does not work: the overlay is at z-index 100,
-   and a lift above it would leave the whole element undimmed.
 
    **Each blur keeps a layer of its own** (transform: translateZ(0) beside
    every backdrop-filter). Without one, Chrome rebuilt the layers round a

@@ -3,7 +3,7 @@ import {
   SettingsViewModel, ShortcutSettingDTO, ToggleSettingDTO
 } from '../../viewModel/settingsViewModel';
 import { t } from '../../i18n/i18n';
-import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { ICON } from './wrappedHtmlElements';
 import { confirmDestructiveAction } from './confirmations';
 
 /**
@@ -102,7 +102,6 @@ export class SettingsDialog {
 
     this.dialogEl.addEventListener('close', () => this.dispose());
     this.dialogEl.showModal();
-    toggleOverlay(true);
 
     if (category) {
       this.viewModel.expandOnly(category);
@@ -122,7 +121,6 @@ export class SettingsDialog {
     window.removeEventListener('focus', this.regainedFocus);
     this.unsubscribe?.();
     this.unsubscribe = null;
-    toggleOverlay(false);
     this.dialogEl?.remove();
     this.dialogEl = null;
     this.listEl = null;

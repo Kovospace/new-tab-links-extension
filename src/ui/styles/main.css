@@ -40,8 +40,7 @@ html > body {
    pulls it in from the sides by as much as the offset pushes it down.
    position: relative is what lifts the shadow over main, which comes after it.
    No z-index: that would make the header a stacking context of its own, and the
-   menus inside it (z-index 101, above the overlay) could rise no higher than
-   the header itself - under the overlay, and unclickable. */
+   menus inside it (z-index 101) could rise no higher than the header itself. */
 header {
     grid-area: header;
     position: relative;
@@ -52,26 +51,6 @@ header {
 }
 main { grid-area: main; }
 footer { grid-area: footer; }
-
-div.overlay {
-    position: fixed;
-    /* inset rather than 100vw/100vh: those units count the scrollbar's width as part of the
-       viewport, so the overlay came out wider than the space it covers. */
-    inset: 0;
-    background: rgba(0, 0, 0, 0.33);
-    backdrop-filter: blur(1px);
-    -webkit-backdrop-filter: blur(1px); /* Safari */
-    z-index: 100;
-    opacity: 1;
-    transition:
-            opacity var(--time-transition-medium) ease,
-            visibility var(--time-transition-medium) ease;
-}
-
-div.overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
 
 /*
    Both bars size to their own content and never shrink, so main gets whatever is left.

@@ -27,7 +27,7 @@ describe("rail pointer logic", () => {
     let panel: ClosedTabsPanel;
 
     beforeEach(async () => {
-        document.body.innerHTML = '<div class="overlay hidden"></div><main></main><button class="action-closed-tabs"></button>';
+        document.body.innerHTML = '<main></main><button class="action-closed-tabs"></button>';
         const profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();

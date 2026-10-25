@@ -12,7 +12,7 @@ import { ELEM_OPTIONS_MENU_ITEM } from "../../../src/constants";
  */
 describe("OptionsMenu", () => {
     beforeEach(() => {
-        document.body.innerHTML = '<div class="overlay hidden"></div>';
+        document.body.innerHTML = '';
         (HTMLDialogElement.prototype as any).showModal = function () { this.open = true; };
         (HTMLDialogElement.prototype as any).close = function () {
             this.open = false; this.dispatchEvent(new Event('close'));
@@ -63,5 +63,67 @@ describe("OptionsMenu", () => {
 
         expect(onClick).not.toHaveBeenCalled();
         expect(document.querySelector('dialog')).toBeNull();
+    });
+});
+
+/**
+ *  Pressing outside an open menu closes it, and that is all it does. The overlay that used to
+ *  cover the page while a menu was open caught the click; it is gone, so the menu drops the click
+ *  of the press that closed it - and only that one.
+ */
+describe("OptionsMenu, pressing outside it", () => {
+
+    let opened: number;
+
+    beforeEach(() => {
+        document.body.innerHTML = '<button id="behind">behind</button><div id="host"></div>';
+        opened = 0;
+        document.getElementById("behind")!.addEventListener("click", () => opened++);
+        new OptionsMenu(document.getElementById("host")!, { openMenuButtonId: "menu" },
+            [{ actionTitle: "Rename", onClick: () => undefined }]);
+    });
+
+    const menu = () => document.querySelector("options-menu")!;
+    const behind = () => document.getElementById("behind")!;
+    /** A real press: mousedown, mouseup, click - in that order, as the browser sends them. */
+    const press = (target: Element) => {
+        target.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+        target.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+        target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    };
+    const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    it("closes the menu without the click reaching what was under the pointer", async () => {
+        (document.getElementById("menu") as HTMLButtonElement).click();
+        expect(menu().classList.contains("visible")).toBe(true);
+
+        press(behind());
+        await tick();
+
+        expect(menu().classList.contains("visible")).toBe(false);
+        expect(opened).toBe(0);
+    });
+
+    it("lets the next click through, and every click while no menu is open", async () => {
+        (document.getElementById("menu") as HTMLButtonElement).click();
+        press(behind());
+        await tick();
+
+        press(behind());
+        await tick();
+        press(behind());
+
+        expect(opened).toBe(2);
+    });
+
+    it("eats no later click when the press that closed the menu ended without one", async () => {
+        (document.getElementById("menu") as HTMLButtonElement).click();
+        behind().dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+        behind().dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));   // dragged away: no click
+        await tick();
+
+        press(behind());
+
+        expect(opened).toBe(1);
     });
 });

@@ -1,7 +1,7 @@
 import { BookmarkForm } from './bookmarkForm';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { t } from '../../i18n/i18n';
-import { ICON, toggleOverlay } from './wrappedHtmlElements';
+import { ICON } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
 
 /**
@@ -187,7 +187,6 @@ export async function saveAsLink(entry: { url: string; title: string; faviconUrl
   dialog.classList.add('input-dialog', 'closed-tabs__dialog');
   document.body.appendChild(dialog);
   dialog.showModal();
-  toggleOverlay(true);
 
   const form = new BookmarkForm(
     { url: entry.url, title: entry.title, favIconUrl: entry.faviconUrl },
@@ -195,7 +194,6 @@ export async function saveAsLink(entry: { url: string; title: string; faviconUrl
 
   await form.render(dialog);
 
-  toggleOverlay(false);
   dialog.close();
   dialog.remove();
 }
