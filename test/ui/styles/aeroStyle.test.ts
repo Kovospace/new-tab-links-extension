@@ -61,6 +61,7 @@ describe("the theme style in the stylesheets", () => {
 
     it.each([
         "header::before",
+        "workspace-plane-head::before",
         "footer",
         ".closed-tabs",
         ".tips-bar",
@@ -76,7 +77,7 @@ describe("the theme style in the stylesheets", () => {
      *  backdrop-filter makes an element a stacking context, and a menu inside one can rise no
      *  higher than it: under the next column, or under the overlay shown while a menu is open.
      */
-    it.each(["header", "workspace-plane-body > link-group", "link-subgroup"])(
+    it.each(["header", "workspace-plane-head", "workspace-plane-body > link-group", "link-subgroup"])(
         "never blurs %s itself, which holds menus", element => {
             const onItself = blurredSelectors().filter(selector =>
                 selector.startsWith(AERO) && !selector.includes("::")
@@ -107,9 +108,21 @@ describe("the theme style in the stylesheets", () => {
         expect(withoutLayer).toEqual([]);
     });
 
+    /**
+     *  light-dark() takes colours only. Around a percentage it is invalid where the knob is used,
+     *  and every aero surface silently loses its background - so each scheme has its own knob,
+     *  and the finished colours are what get paired (_aero.css).
+     */
+    it("never wraps a knob in light-dark()", () => {
+        expect(css("__variables.css")).not.toMatch(/--aero-[\w-]+\s*:\s*light-dark\(/);
+    });
+
     it("takes every amount from the knobs in __variables.css", () => {
         const knobs = css("__variables.css");
-        for (const knob of ["--aero-opacity", "--aero-menu-opacity", "--aero-blur"]) {
+        for (const knob of [
+            "--aero-opacity-light", "--aero-opacity-dark",
+            "--aero-menu-opacity-light", "--aero-menu-opacity-dark", "--aero-blur"
+        ]) {
             expect(knobs).toMatch(new RegExp(`${knob}:\\s*[^;]+;`));
         }
         // No number written into the rules themselves: a percentage or a blur radius there is

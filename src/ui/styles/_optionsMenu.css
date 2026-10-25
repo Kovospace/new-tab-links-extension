@@ -132,8 +132,7 @@ options-menu-item:last-child {
 }
 
 options-menu-item:hover {
-    /*color: var(--color-button-text-hover);*/
-    color: #fff;
+    color: var(--color-button-text-hover);
     background-color: var(--color-button-background-hover);
 }
 

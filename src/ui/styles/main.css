@@ -127,7 +127,7 @@ header > div > span {
 */
 main {
     display: flex;
-    padding: 0 1em;
+    /*padding: 0 1em;*/
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: auto;
