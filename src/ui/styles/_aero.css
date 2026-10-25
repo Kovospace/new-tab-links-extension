@@ -38,9 +38,20 @@
    --------------------------------------------------------------------------- */
 
 :root[data-theme-style="aero"] {
-    --aero-surface: color-mix(in srgb, var(--color-component-background) var(--aero-opacity), transparent);
-    --aero-surface-hover: color-mix(in srgb, var(--color-component-background-hover) var(--aero-opacity), transparent);
-    --aero-menu-surface: color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity), transparent);
+    /* Each surface is a light-dark() pair of finished colours, one per scheme, at that scheme's
+       opacity - so it follows the same color-scheme switch as every other colour here. */
+    --aero-surface: light-dark(
+        color-mix(in srgb, var(--color-component-background) var(--aero-opacity-light), transparent),
+        color-mix(in srgb, var(--color-component-background) var(--aero-opacity-dark), transparent));
+    --aero-surface-hover: light-dark(
+        color-mix(in srgb, var(--color-component-background-hover) var(--aero-opacity-light), transparent),
+        color-mix(in srgb, var(--color-component-background-hover) var(--aero-opacity-dark), transparent));
+    --aero-menu-surface: light-dark(
+        color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity-light), transparent),
+        color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity-dark), transparent));
+    --aero-pill: light-dark(
+        color-mix(in srgb, var(--color-document-background) var(--aero-opacity-light), transparent),
+        color-mix(in srgb, var(--color-document-background) var(--aero-opacity-dark), transparent));
     /*--aero-frame: color-mix(in srgb, var(--color-document-background) var(--aero-border-opacity), transparent);*/
     --aero-filter: blur(var(--aero-blur));
 }
@@ -137,7 +148,7 @@
    so they are a surface: blurred, at the panels' opacity. */
 :root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > h1,
 :root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > span {
-    background-color: color-mix(in srgb, var(--color-document-background) var(--aero-opacity), transparent);
+    background-color: var(--aero-pill);
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);
     /* A layer of its own, kept - see "Each blur keeps a layer" above. */

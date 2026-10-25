@@ -25,10 +25,16 @@
        on the root); the rules themselves are in _aero.css. Opacities are how
        much of the colour stays: 100% is as solid as flat, 0% is gone. */
 
+    /* One value per scheme, because light-dark() takes colours only: written around a
+       percentage it is invalid, and every aero surface silently loses its background.
+       _aero.css wraps the finished colours in light-dark() instead. */
+
     /* Groups, a subgroup under the pointer, the header, footer and side panel. */
-    --aero-opacity: 80%;
-    /* Menus, the search suggestions and dialogs - read over anything, so more solid. */
-    --aero-menu-opacity: 55%;
+    --aero-opacity-light: 80%;
+    --aero-opacity-dark: 80%;
+    /* Menus, the search suggestions and dialogs - read over anything. */
+    --aero-menu-opacity-light: 55%;
+    --aero-menu-opacity-dark: 55%;
     /* How far what is behind a surface is blurred. 0 for none. */
     --aero-blur: 0.75em;
     /* The dark frames round groups, the search bar, menus and the other things that
