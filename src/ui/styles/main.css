@@ -179,16 +179,18 @@ button {
     font-weight: bold;
     cursor: pointer;
     /*
-       Text colour is never animated, here or anywhere: it changes at once, and the background
-       carries the fade. A colour transition redraws the text on every frame, and Chrome draws
-       text one way while it keeps being repainted and another once it settles - the switch at
-       the end of the transition was a visible flicker of the text, worst over the background
-       picture, until Chrome had seen the same element repainted often enough to stop switching.
-       test/ui/styles/textColorTransitions.test.ts keeps it out.
+       Text colour is never animated, here or anywhere: it is switched in one step, halfway
+       through the background's fade (a 0s transition with a delay). A colour transition redraws
+       the text on every frame, and Chrome draws text one way while it keeps being repainted and
+       another once it settles - the switch at the end of the transition was a visible flicker
+       of the text, worst over the background picture. Switched at once instead, the new text
+       colour sat on a background that had barely begun to change; halfway, it never runs ahead
+       of it. test/ui/styles/textColorTransitions.test.ts allows only that step.
     */
     transition:
       box-shadow var(--time-transition-fast) ease,
-      background-color var(--time-transition-medium) ease-in-out;
+      background-color var(--time-transition-medium) ease-in-out,
+      color 0s linear calc(var(--time-transition-medium) / 2);
 }
 
 button:last-child {
@@ -354,7 +356,8 @@ html.dark .editable {
     color: var(--color-textfield-text);
     transition:
             box-shadow var(--time-transition-medium) ease-in-out,
-            background-color var(--time-transition-medium) ease-in-out;
+            background-color var(--time-transition-medium) ease-in-out,
+            color 0s linear calc(var(--time-transition-medium) / 2);
 }
 
 html.dark .editable:hover {

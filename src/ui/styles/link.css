@@ -6,14 +6,15 @@ link-container {
   cursor: pointer;
 }
 
-/* The text colour changes at once and only the background fades - see "Text colour is never
+/* The text colour switches halfway through the background's fade - see "Text colour is never
    animated" in main.css. */
 link-container:hover {
   background-color: var(--color-button-background-hover);
   color: var(--color-button-text-hover);
   border-radius: 0.25em;
   transition:
-    background-color var(--time-transition-medium) ease-in-out
+    background-color var(--time-transition-medium) ease-in-out,
+    color 0s linear calc(var(--time-transition-medium) / 2)
 }
 
 link-container > div {
