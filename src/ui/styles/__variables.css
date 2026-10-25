@@ -98,8 +98,8 @@
 
     /* Transitions */
     --transition-item-hover:
-            background-color var(--time-transition-medium) ease-in-out,
-            color var(--time-transition-medium) ease-in-out;
+            background-color var(--time-transition-medium) ease,
+            color var(--time-transition-medium) ease;
     --transition-overlay:
             opacity var(--time-transition-medium) ease,
             display var(--time-transition-medium) allow-discrete;

@@ -1,10 +1,14 @@
+* {
+    transition: none !important;
+}
+
 link-group {
-    backdrop-filter: blur(16px);
-    background-color: rgb(0 0 0 / 0.3) !important;  /* see-through, so the blur is visible */
-    transform: translateZ(0);
+    /*backdrop-filter: blur(16px);*/
+    /*background-color: rgb(0 0 0 / 0.3) !important;  !* see-through, so the blur is visible *!*/
+    /*transform: translateZ(0);*/
 }
 
 link-container {
-    transition: var(--transition-item-hover);
-    transform: translateZ(0);
+    transition: var(--transition-item-hover) !important;
+    /*transform: translateZ(0);*/
 }

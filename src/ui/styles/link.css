@@ -2,7 +2,8 @@ link-container {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 0.25em 0em;
+  padding: 0.125em 0;
+  margin: 0.125em 0;
   cursor: pointer;
   /*transition: var(--transition-item-hover);*/
 }
@@ -36,8 +37,9 @@ link-container > div.cls-link-text {
 }
 
 link-container > div.cls-link-actions-container {
+  display: none;
   margin-left: auto;
-  display: flex;
+  /*display: flex;*/
   flex-direction: row;
 }
 

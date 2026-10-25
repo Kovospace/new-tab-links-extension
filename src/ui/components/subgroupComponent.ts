@@ -18,10 +18,9 @@ import {
     CLASS_SUBGROUP_HEAD_ACTIONS,
     CLASS_SUBGROUP_LINK_COUNT,
     ACT_OPEN_ALL_SUBGROUP_LINKS,
-    ELEM_SUBGROUP,
     ACT_SUBGROUP_MOVE_UP,
     ACT_SUBGROUP_MOVE_DOWN,
-    CLASS_SUBGROUP_MOVE_ACTIONS
+    CLASS_SUBGROUP_HEAD_ACTIONS_COMMON, CLASS_SUBGROUP_HEAD_ACTIONS_TOGGLED
 } from "../../constants";
 import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
@@ -93,12 +92,15 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     private renderSubGroup(parentElem: HTMLElement, subgroupDto: SubgroupDTO) {
 
+        const wrapperElement: HTMLElement = renderContainer([]);
+        this.appendChild(wrapperElement);
+
         // The subgroup's colour, handed to the stylesheet rather than applied here: the
         // heading, and anything else that comes to want it, then reads one custom property.
         this.style.setProperty("--subgroup-color", swatchOf(subgroupDto.color).hex);
 
         const headElem: HTMLElement = document.createElement(ELEM_SUBGROUP_HEAD);
-        this.appendChild(headElem);
+        wrapperElement.appendChild(headElem);
 
         // The heading and description are where somebody aims when they mean "in this
         // subgroup", so the head takes the drop itself rather than leaving it to bubble out
@@ -109,7 +111,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
         const bodyElem: HTMLElement = document.createElement(ELEM_SUBGROUP_BODY);
         if (subgroupDto.collapsed) bodyElem.classList.add("rolled");
-        this.appendChild(bodyElem);
+        wrapperElement.appendChild(bodyElem);
 
         // Subgroup head
         // subgroup heading texts
@@ -129,25 +131,31 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
         subgroupInfoContainer.appendChild(subgroupDescription);
         subgroupInfoContainer.appendChild(linkCount);
 
-        // Move-up / Move-down buttons — visible only when the parent group is in "managed" mode
-        const moveActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_MOVE_ACTIONS]);
-        headElem.appendChild(moveActionsContainer);
-        moveActionsContainer.appendChild(renderButton(
-            ICON.MOVE_UP, this.DTO.id, [ACT_SUBGROUP_MOVE_UP], t("subgroup.moveUp"),
-            (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupUp(); }
-        ));
-        moveActionsContainer.appendChild(renderButton(
-            ICON.MOVE_DOWN, this.DTO.id, [ACT_SUBGROUP_MOVE_DOWN], t("subgroup.moveDown"),
-            (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupDown(); }
-        ));
-
         // subgroup actions
         const subgroupActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_ACTIONS]);
         headElem.appendChild(subgroupActionsContainer);
 
-        // subgroup actions - open menu button
+        // subgroup actions - toggled group - visible only when the parent group is in "managed" mode
+        const moveActionsContainer: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_ACTIONS_TOGGLED]);
+        subgroupActionsContainer.appendChild(moveActionsContainer);
+
+        // Move-up / Move-down buttons
+        moveActionsContainer.appendChild(renderButton(
+          ICON.MOVE_UP, this.DTO.id, [ACT_SUBGROUP_MOVE_UP], t("subgroup.moveUp"),
+          (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupUp(); }
+        ));
+        moveActionsContainer.appendChild(renderButton(
+          ICON.MOVE_DOWN, this.DTO.id, [ACT_SUBGROUP_MOVE_DOWN], t("subgroup.moveDown"),
+          (e) => { e.stopPropagation(); this.VIEW_MODEL.moveSubgroupDown(); }
+        ));
+
+        // subgroup actions - permanent group (always visible)
+        const subgroupActionsCommonContanier: HTMLElement = renderContainer([CLASS_SUBGROUP_HEAD_ACTIONS_COMMON]);
+        subgroupActionsContainer.appendChild(subgroupActionsCommonContanier);
+
+        // subgroup actions - open menu button (permanent)
         new OptionsMenu(
-            subgroupActionsContainer,
+          subgroupActionsCommonContanier,
             {
                 openMenuButtonId: `subgroup-${this.id}-menu`,
                 openMenuButtonClass: ACT_EDIT_GROUP,
@@ -213,8 +221,8 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             ]
         );
 
-        // subgroup actions - open all subgroup links in new tabs button
-        subgroupActionsContainer.appendChild(renderButton(
+        // subgroup actions - open all subgroup links in new tabs button (permanent)
+        subgroupActionsCommonContanier.appendChild(renderButton(
             ICON.OPEN_GROUPED,
             this.DTO.id,
             [ACT_OPEN_ALL_SUBGROUP_LINKS],

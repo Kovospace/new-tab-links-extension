@@ -1,15 +1,17 @@
 link-subgroup {
-    margin-left: 0.25em;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    padding:0.25em;
+    display: block;
+    padding: 0.25em 0;
+}
+
+link-subgroup > div {
+    padding: 0.25em;
     display: flex;
     flex-direction: column;
     border-radius: var(--radius-normal);
     /*transition: var(--transition-item-hover);*/
 }
 
-link-subgroup:hover {
+link-subgroup:hover > div {
     background-color: var(--color-component-background-hover);
 }
 
@@ -26,24 +28,16 @@ link-subgroup:hover {
    keep the two in step - and a collapsed subgroup shortens it for free, because
    the body it runs past is the thing that rolls up.
 */
-link-subgroup {
+link-subgroup > div {
     border-left: 0.25em solid var(--subgroup-color, transparent);
-}
-
-link-subgroup > hr {
-    display: block;
-    height: 0.125em;
-    background-color: var(--color-component-text);
-    margin-top: 0.375em;
-    margin-bottom: 0.375em;
-    margin-left: 5%;
-    margin-right: 5%;
 }
 
 link-subgroup-head,
 link-subgroup-body {
     display: block;
 }
+
+
 
 link-subgroup-head {
     display: flex;
@@ -76,21 +70,33 @@ link-subgroup-head > div.cls-subgroup-head-title > span {
 
 link-subgroup-head > div.cls-subgroup-head-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 0.35em;
+    margin-left: auto;
 }
 
-link-subgroup-head > div.cls-subgroup-head-actions > button {
+link-subgroup-head > div.cls-subgroup-head-actions > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+link-subgroup-head > div.cls-subgroup-head-actions button {
     margin-left: 0;
     margin-right: 0;
 }
 
-link-subgroup-head > div.cls-subgroup-head-actions > button:first-child {
-    margin-bottom: 0.175em;
+/* These action are inly displayed if user performs maintenance operations over parent group */
+link-group-body > link-subgroup div.cls-subgroup-head-actions-toggled {
+    display: none;
+    /*TODO animovat*/
 }
 
-link-subgroup-head > div.cls-subgroup-head-actions > button:last-child {
-    margin-top: 0.175em;
+link-group-body.managed div.cls-subgroup-head-actions-toggled {
+    display: flex;
 }
+
+
 
 link-subgroup-body {
     overflow: hidden;
@@ -119,24 +125,5 @@ link-subgroup-body > link-container:first-child {
 link-subgroup:has(link-subgroup-body.rolled) .cls-subgroup-link-count,
 .cls-subgroup-link-count.empty {
     display: inline;
-}
-
-/* Move buttons — hidden by default, revealed when parent group is in managed mode */
-link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions {
-    display: flex;
-    flex-direction: row;
-    max-width: 0;
-    overflow: hidden;
-    /*transition: max-width 0.25s ease-in-out;*/
-    margin-right: 0.25em;
-    margin-left: auto;
-}
-
-link-group-body > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions > button {
-  margin: 0 0.175em;
-}
-
-link-group-body.managed > link-subgroup > link-subgroup-head > div.cls-subgroup-move-actions {
-    max-width: 4em;
 }
 
