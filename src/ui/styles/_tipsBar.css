@@ -21,10 +21,10 @@
     justify-content: center;
     gap: 0.5em;
     padding: 1em 1em;
-    margin-bottom: 0.25em;
+    margin-bottom: var(--widgets-spacing);
     border-radius: 0.75em;
     background-color: var(--color-component-background);
-    border: 0.25em solid var(--color-document-background);
+    border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: fit-content;

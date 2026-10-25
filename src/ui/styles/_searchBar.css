@@ -1,17 +1,3 @@
-/*
-   The search bar in the workspace heading: [engine ▾] [query] [search].
-
-   It takes the room the heading had spare - growing into it, centred in it by its auto
-   margins, and capped so that on a wide screen it stays a field and not a stripe. The title
-   and the workspace's own buttons keep their place on the left.
-
-   The heading wraps rather than squeezing: on a narrow window the bar drops to a line of its
-   own instead of being crushed to the width of its buttons.
-*/
-workspace-plane-head {
-    flex-wrap: wrap;
-    row-gap: 0.5em;
-}
 
 form.search-bar {
     display: flex;
@@ -120,16 +106,16 @@ input.search-bar__input {
 */
 ul.search-bar__suggestions {
     position: absolute;
-    z-index: 101; /* as options-menu */
+    z-index: var(--z-index-menus);
     top: 100%;
     left: 0;
     right: 0;
-    margin-top: 0.5em;
+    margin-top: 0.375em;
     padding: 0.25em;
     list-style: none;
     border-radius: var(--radius-normal);
-    box-shadow: 0 0 0 var(--border-lining-width-inset) var(--color-component-framing), 0 0.5em 1.5em rgb(0 0 0 / 0.25);
     background-color: var(--color-component-background);
+    border: var(--border-lining-width-inset) solid var(--color-menu-lining);
 }
 
 ul.search-bar__suggestions[hidden] {

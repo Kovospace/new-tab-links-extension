@@ -1,8 +1,8 @@
 
 link-group {
-    margin-bottom: 0.5em;
-    margin-left: 0.25em;
-    margin-right:0.25em;
+    margin-bottom: var(--widgets-spacing);
+    margin-left: calc(var(--widgets-spacing) / 2);
+    margin-right: calc(var(--widgets-spacing) / 2);
     border-radius: 0.75em;
     background-color: var(--color-component-background);
     /*border: var(--border-lining-width) solid var(--border-lining-color);*/
@@ -52,12 +52,13 @@ link-group-head > div.cls-group-head-title > span {
 
 link-group-head > div.cls-group-head-title > h2 {
     padding: 0em 0.25em;
-    border-radius: 0.175em;
+    /*border-radius: 0.175em;*/
+    border-top-left-radius: var(--radius-bigger);
 }
 
 link-group-head > div.cls-group-head-title > span {
     padding: 0em 0.375em;
-    border-radius: var(--radius-normal);
+    border-bottom-right-radius: var(--radius-normal);
 }
 
 link-group-head > div.cls-group-head-actions {

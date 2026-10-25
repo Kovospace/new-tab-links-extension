@@ -84,9 +84,10 @@
     /* Menus */
     --color-menu-lining: light-dark(#000, #fff);
     --color-menu-shadow: light-dark(#000, #666);
+    --z-index-menus: 101;
 
     /* Spacing of widgets on desktop */
-    --widgets-spacing: 0.5em;
+    --widgets-spacing: 0.75em;
 
     /* Other widgets */
     --color-favicon-backdrop: light-dark(#aaa, #555);

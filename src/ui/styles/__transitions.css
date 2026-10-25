@@ -1,9 +1,53 @@
 
+workspace-plane-head > div.cls-workspace-head-title > h1 {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,
+workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group
+{
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+workspace-plane-head > form.search-bar button {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+workspace-plane-head > form.search-bar > input {
+    transition:
+            box-shadow var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+workspace-plane-head > form.search-bar > ul.search-bar__suggestions > li {
+    transition: background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+workspace-plane-head > form.search-bar > ul.search-bar__suggestions > li > span > span {
+    transition: color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+
+
 link-group {
     transition: background-color var(--time-transition-medium) var(--transition-easing-default) !important;
 }
 
 link-group-head > div.cls-group-head-actions > button {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default) !important;
+}
+
+linkk-group-head > div.cls-group-head-title > h2,
+linkk-group-head > div.cls-group-head-title > span
+{
     transition:
             color var(--time-transition-fast) var(--transition-easing-default),
             background-color var(--time-transition-fast) var(--transition-easing-default) !important;
