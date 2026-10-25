@@ -95,7 +95,7 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // A premium user's own background, read before drawing for the same reason: the logo
     // should not flash in the corner of a page that is about to be covered by a picture.
     await backgroundImageRepository.init();
-    new PageBackground().render(document.body);
+    new PageBackground().render();
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();

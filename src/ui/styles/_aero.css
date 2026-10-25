@@ -61,9 +61,11 @@
 :root[data-theme-style="aero"] header,
 :root[data-theme-style="aero"] footer,
 :root[data-theme-style="aero"] .closed-tabs,
+:root[data-theme-style="aero"] workspace-plane-head,
 :root[data-theme-style="aero"] workspace-plane-body > link-group,
-:root[data-theme-style="aero"] .tips-bar,
-:root[data-theme-style="aero"] input.search-bar__input {
+:root[data-theme-style="aero"] .tips-bar
+/*:root[data-theme-style="aero"] input.search-bar__input*/
+{
     background-color: var(--aero-surface);
 }
 
@@ -72,8 +74,9 @@
    its own existed only under the pointer, so Chrome built and dropped one on
    every hover - and a frame drawn before the layer is ready is a flicker. */
 :root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
-:root[data-theme-style="aero"] link-subgroup:hover,
-:root[data-theme-style="aero"] input.search-bar__input:hover {
+:root[data-theme-style="aero"] link-subgroup:hover
+/*:root[data-theme-style="aero"] input.search-bar__input:hover */
+{
     background-color: var(--aero-surface-hover);
 }
 
@@ -89,12 +92,15 @@
 }
 
 /* These do: blurred from a layer behind them. A group's layer reaches under
-   its frame too (inset by minus the frame), so the frame shows the blur. */
+   its frame too (inset by minus the frame), so the frame shows the blur. The
+   workspace head holds the workspace menu and the search bar's lists. */
+:root[data-theme-style="aero"] workspace-plane-head,
 :root[data-theme-style="aero"] workspace-plane-body > link-group {
     position: relative;
 }
 
 :root[data-theme-style="aero"] header::before,
+:root[data-theme-style="aero"] workspace-plane-head::before,
 :root[data-theme-style="aero"] workspace-plane-body > link-group::before {
     content: "";
     position: absolute;

@@ -20,44 +20,37 @@
 :root {
     color-scheme: light dark;
 
-    /* ── Aero theme style: the knobs ─────────────────────────────────────────
-       Used only while Settings → Theme style is Aero (data-theme-style="aero"
-       on the root); the rules themselves are in _aero.css. Opacities are how
-       much of the colour stays: 100% is as solid as flat, 0% is gone. */
-
-    /* One value per scheme, because light-dark() takes colours only: written around a
-       percentage it is invalid, and every aero surface silently loses its background.
-       _aero.css wraps the finished colours in light-dark() instead. */
-
+    /* AERO Theme setup */
     /* Groups, a subgroup under the pointer, the header, footer and side panel. */
-    --aero-opacity-light: 80%;
+    --aero-opacity-light: 55%;
     --aero-opacity-dark: 80%;
     /* Menus, the search suggestions and dialogs - read over anything. */
-    --aero-menu-opacity-light: 55%;
+    --aero-menu-opacity-light: 80%;
     --aero-menu-opacity-dark: 55%;
     /* How far what is behind a surface is blurred. 0 for none. */
     --aero-blur: 0.75em;
-    /* The dark frames round groups, the search bar, menus and the other things that
-       sit on the background. 0% hides them, 100% is the frame as flat draws it. */
-    /*--aero-border-opacity: 25%;*/
 
     /* Document base */
     --color-document-background: light-dark(#e6e6e6, #000);
     --color-document-text: light-dark(#111, #eee);
 
     /* Group columns, panels, menus */
-    --color-component-background: light-dark(#c8c8c8, #111);
+    --color-component-background: light-dark(#eee, #111);
     --color-component-text: light-dark(#111, #eee);
-    --color-component-background-hover: light-dark(#b8b8b8, #222);
+    --color-component-background-hover: light-dark(#ccc, #222);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
     /* Items layered on background */
-
+    --border-lining-width: 0.125em;
+    --border-lining-color: var(--color-document-background);
+    --border-lining-width-inset: 0.0625em;
+    --border-lining-color-inset: light-dark(#aaa, #666);
+    --border-lining-color-inset-active: light-dark(#0072ff, #0BF);
 
     /* Buttons */
-    --color-button-background: light-dark(#a8a8a8, #444);
+    --color-button-background: light-dark(#999, #444);
     --color-button-text: light-dark(#111, #eee);
-    --color-button-background-hover: light-dark(#989898, #555);
+    --color-button-background-hover: light-dark(#bbb, #555);
     --color-button-text-hover: light-dark(#000, #fff);
     --color-button-active-background: light-dark(#0036ff, #09F);
     --color-button-active-background-hover: light-dark(#0072ff, #0BF);
@@ -72,27 +65,23 @@
     --color-button-danger-background-hover: light-dark(#d00, #B00);
     --color-button-danger-text-hover: light-dark(#fff, #fff);
 
+    /* Text, Select inputs */
+    --color-textfield-background: light-dark(#ddd, #444);
+    --color-textfield-text: light-dark(#111, #eee);
+    --color-textfield-background-hover: light-dark(#eee, #555);
+    --color-textfield-text-hover: light-dark(#000, #fff);
+    --color-textfield-border-active: light-dark(#0072ff, #0BF);
+
+    /* Other widgets */
+    --color-favicon-backdrop: light-dark(#aaa, #555);
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
     --color-danger-text: light-dark(#a00, #F66);
-
     /* A link's action buttons while the link is hovered: a step away from the hovered
        component in whichever direction the theme has room for. */
     --color-link-action-background: light-dark(#bababa, #111);
 
-    --color-textfield-background: light-dark(#dadada, #444);
-    --color-textfield-text: light-dark(#111, #eee);
-    /* Darker on hover in the light theme, as every other control there is; lighter would
-       be the page's own colour, and the search bar sits on the page. */
-    --color-textfield-background-hover: light-dark(#b8b8b8, #555);
-    --color-textfield-text-hover: light-dark(#000, #fff);
-    --color-textfield-border-active: #09f;
-
-    /* The disc behind every favicon, the same in both themes: a mid grey, so that a white
-       icon and a black one both stand out from it - and so neither theme's background can
-       swallow an icon drawn in its own colour. */
-    --color-favicon-backdrop: light-dark(#ccc, #555);
-
+    /* Generic global constants */
     --time-transition-fast: 0.125s;
     --time-transition-medium: 0.25s;
 
