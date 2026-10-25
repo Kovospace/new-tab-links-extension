@@ -12,3 +12,7 @@ link-container {
     transition: var(--transition-item-hover) !important;
     /*transform: translateZ(0);*/
 }
+
+link-container > div.cls-link-text > a {
+    transition: color var(--time-transition-fast) ease !important;
+}
