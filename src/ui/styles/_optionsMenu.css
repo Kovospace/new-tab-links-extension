@@ -26,7 +26,7 @@ options-menu {
        its ancestors. Inherited, whatever colour those give the button reached every item. */
     color: var(--color-component-text);
     border: 0.25em solid var(--color-document-background);
-    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+    box-shadow: 0 0 0 var(--border-lining-width-inset) var(--color-component-framing);
     margin-top:0.5em;
     display: none;
     opacity: 0;

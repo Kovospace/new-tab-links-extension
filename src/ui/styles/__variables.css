@@ -20,6 +20,11 @@
 :root {
     color-scheme: light dark;
 
+    /* Base theme accent color which will be chosen by the user */
+    --color-theme-accent-background: light-dark(#0036ff, #09F);
+    --color-theme-accent-background-hover: light-dark(#0072ff, #0BF);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
+
     /* AERO Theme setup */
     /* Groups, a subgroup under the pointer, the header, footer and side panel. */
     --aero-opacity-light: 55%;
@@ -45,15 +50,17 @@
     --border-lining-color: var(--color-document-background);
     --border-lining-width-inset: 0.0625em;
     --border-lining-color-inset: light-dark(#aaa, #666);
-    --border-lining-color-inset-active: light-dark(#0072ff, #0BF);
+    --border-lining-color-inset-active: var(--color-theme-accent-background-hover);
 
     /* Buttons */
     --color-button-background: light-dark(#999, #444);
     --color-button-text: light-dark(#111, #eee);
-    --color-button-background-hover: light-dark(#bbb, #555);
-    --color-button-text-hover: light-dark(#000, #fff);
-    --color-button-active-background: light-dark(#0036ff, #09F);
-    --color-button-active-background-hover: light-dark(#0072ff, #0BF);
+    /*--color-button-background-hover: light-dark(#bbb, #555);*/
+    --color-button-background-hover: var(--color-theme-accent-background-hover);
+    /*--color-button-text-hover: light-dark(#000, #fff);*/
+    --color-button-text-hover: var(--color-theme-accent-text-hover);
+    --color-button-active-background: var(--color-theme-accent-background);
+    --color-button-active-background-hover: var(--color-theme-accent-background-hover);
     --color-button-active-text: light-dark(#eee, #eee);
     --color-button-active-text-hover: light-dark(#fff, #fff);
     --color-button-add-background: light-dark(#090, #090);
@@ -70,7 +77,7 @@
     --color-textfield-text: light-dark(#111, #eee);
     --color-textfield-background-hover: light-dark(#eee, #555);
     --color-textfield-text-hover: light-dark(#000, #fff);
-    --color-textfield-border-active: light-dark(#0072ff, #0BF);
+    --color-textfield-border-active: var(--color-theme-accent-background-hover);
 
     /* Other widgets */
     --color-favicon-backdrop: light-dark(#aaa, #555);
