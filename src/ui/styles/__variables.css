@@ -79,7 +79,7 @@
     --color-danger-text: light-dark(#a00, #F66);
     /* A link's action buttons while the link is hovered: a step away from the hovered
        component in whichever direction the theme has room for. */
-    --color-link-action-background: light-dark(#bababa, #111);
+    --color-link-action-background: light-dark(#aaa, #111);
 
     /* Generic global constants */
     --time-transition-fast: 0.125s;
