@@ -65,12 +65,27 @@ div.overlay {
     opacity: 1;
     transition:
             opacity var(--time-transition-medium) ease,
-            visibility var(--time-transition-medium) ease;
+            display var(--time-transition-medium) allow-discrete;
 }
 
+/*
+   Hidden is display: none, not opacity: 0 and visibility: hidden. The overlay is a fixed layer
+   over the whole window with a backdrop-filter, and merely invisible it stayed composited on top
+   of everything: every hover beneath it meant blurring the page behind it again, a frame late -
+   artefacts all over the page, from something nobody could see. The fade survives: display is
+   transitioned as a discrete property (allow-discrete), so it flips to none only after the
+   opacity has run, and @starting-style gives the appearing overlay an opacity to fade up from -
+   as options-menu does.
+*/
 div.overlay.hidden {
+    display: none;
     opacity: 0;
-    visibility: hidden;
+}
+
+@starting-style {
+    div.overlay {
+        opacity: 0;
+    }
 }
 
 /*
