@@ -47,6 +47,10 @@
     --color-component-background-hover: light-dark(#ccc, #222);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
+    /* Dialogs */
+    --color-dialog-background: light-dark(#ccc, #333);
+    --color-dialog-text: light-dark(#111, #eee);
+
     /* Items layered on background */
     --border-lining-width: 0.125em;
     --border-lining-color: var(--color-document-background);
@@ -55,12 +59,12 @@
     --border-lining-color-inset-active: var(--color-theme-accent-background-hover);
 
     /* Buttons */
-    --color-button-background: light-dark(#999, #444);
+    --color-button-background: light-dark(#aaa, #444);
     --color-button-text: light-dark(#111, #eee);
-    /*--color-button-background-hover: light-dark(#bbb, #555);*/
     --color-button-background-hover: var(--color-theme-accent-background-hover);
-    /*--color-button-text-hover: light-dark(#000, #fff);*/
+    --color-button-background-hover-noaccent: light-dark(#888, #555);
     --color-button-text-hover: var(--color-theme-accent-text-hover);
+    --color-button-text-hover-noaccent: light-dark(#fff, #fff);
     --color-button-active-background: var(--color-theme-accent-background);
     --color-button-active-background-hover: var(--color-theme-accent-background-hover);
     --color-button-active-text: light-dark(#eee, #eee);
@@ -87,6 +91,7 @@
     --z-index-menus: 103;
     --z-index-top-panel: 101;
     --z-index-left-panel: 102;
+    --z-index-dialogs: 104;
     --closed-tabs-rail: 2.5em;
     --closed-tabs-open: 22em;
 
@@ -138,8 +143,3 @@
 :root[data-theme="dark"] {
     color-scheme: dark;
 }
-
-* {
-    transition: none !important;
-}
-

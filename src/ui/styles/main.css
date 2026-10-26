@@ -156,18 +156,6 @@ button {
     border-radius: var(--radius-normal);
     font-weight: bold;
     cursor: pointer;
-    /*
-       Text colour is never animated, here or anywhere: it changes at once, and the background
-       carries the fade. A colour transition redraws the text on every frame, and Chrome draws
-       text one way while it keeps being repainted and another once it settles - the switch at
-       the end of the transition was a visible flicker of the text, worst over the background
-       picture, until Chrome had seen the same element repainted often enough to stop switching.
-       test/ui/styles/textColorTransitions.test.ts keeps it out.
-    */
-    /*transition: var(--transition-item-hover);*/
-    /*transition:*/
-    /*  box-shadow var(--time-transition-fast) ease,*/
-    /*  background-color var(--time-transition-medium) ease-in-out;*/
 }
 
 button:last-child {
@@ -268,9 +256,9 @@ html.dark button:hover:where(:not(:disabled)) {
   background-color: var(--color-button-background-hover);
 }
 
-html.dark button:active:where(:not(:disabled)) {
-  box-shadow: 0 0 0.25em 0.25em var(--color-button-background);
-}
+/*html.dark button:active:where(:not(:disabled)) {*/
+/*  box-shadow: 0 0 0.25em 0.25em var(--color-button-background);*/
+/*}*/
 
 html.dark .active {
     background-color: var(--color-button-active-background);
@@ -312,26 +300,25 @@ html.dark .danger:hover:not(:disabled) {
   color: var(--color-button-danger-text-hover);
 }
 
-html.dark .active:active:not(:disabled) {
-  box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
-}
+/*html.dark .active:active:not(:disabled) {*/
+/*  box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);*/
+/*}*/
 
-html.dark .highlight:active:not(:disabled) {
-  box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);
-}
+/*html.dark .highlight:active:not(:disabled) {*/
+/*  box-shadow: 0 0 0.25em 0.25em var(--color-button-active-background);*/
+/*}*/
 
-html.dark .add:active:not(:disabled) {
-  box-shadow: 0 0 0.25em 0.25em var(--color-button-add-background);
-}
+/*html.dark .add:active:not(:disabled) {*/
+/*  box-shadow: 0 0 0.25em 0.25em var(--color-button-add-background);*/
+/*}*/
 
-html.dark .danger:active:not(:disabled) {
-  box-shadow: 0 0 0.25em 0.25em var(--color-button-danger-background);
-}
+/*html.dark .danger:active:not(:disabled) {*/
+/*  box-shadow: 0 0 0.25em 0.25em var(--color-button-danger-background);*/
+/*}*/
 
 html.dark .editable {
     background-color: var(--color-textfield-background);
     color: var(--color-textfield-text);
-    /*transition: var(--transition-shadow);*/
 }
 
 html.dark .editable:hover {
@@ -339,9 +326,10 @@ html.dark .editable:hover {
     color: var(--color-textfield-text-hover);
 }
 
-html.dark .editable:focus {
-    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
-}
+/*html.dark .editable:focus {*/
+/*    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);*/
+/*}*/
+
 /* The crossed-out sync mark beside a profile that does not synchronise - in the profiles menu
    and in the profile manager. The glyph is the sync arrow; the strike is what says "not". */
 .cls-unsynced-mark {

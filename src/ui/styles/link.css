@@ -83,10 +83,6 @@ link-container > div > div.cls-link-actions-container > button {
   min-width: 1.25em;
   padding: 0.125em;
   height: 1.25em;
-  /*transition:*/
-  /*  background-color 0.25s ease-in-out,*/
-  /*  color 0.25s ease-in-out,*/
-  /*  transform 0.25s ease-in-out;*/
 }
 
 link-container > div > div.cls-link-actions-container > button:last-child {
@@ -121,8 +117,6 @@ link-group-body > link-container > div > div.cls-link-actions-container,
 link-group-body > link-subgroup > div > link-subgroup-body > link-container > div > div.cls-link-actions-container {
   max-width: 0em;
   overflow: hidden;
-  /*transition:*/
-  /*  max-width 0.25s ease-in-out;*/
 }
 
 link-group-body.managed > link-container > div > div.cls-link-actions-container,

@@ -17,3 +17,8 @@ header {
     z-index: var(--z-index-top-panel);
     box-shadow: 0 0 0.5em var(--color-menu-shadow);
 }
+
+dialog.input-dialog {
+    z-index: var(--z-index-dialogs);
+    box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
+}

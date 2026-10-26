@@ -26,6 +26,7 @@ body.popup > main {
     display: block;
     padding: 0;
     overflow: visible;
+    background-color: var(--color-dialog-background);
 }
 
 .bookmark-panel {
@@ -101,4 +102,10 @@ body.popup > main {
 
 .bookmark-panel__message + .bookmark-panel__actions {
     padding: 0 1em 1em;
+}
+
+.bookmark-panel input, .bookmark-panel button, .bookmark-panel select {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
 }

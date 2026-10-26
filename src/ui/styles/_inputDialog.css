@@ -1,12 +1,11 @@
 dialog.input-dialog {
-    border: none;
     border-radius: var(--radius-normal);
     padding: 0;
     min-width: 22em;
     max-width: 90vw;
     /* browser centers <dialog> by default; clamp so it never overflows on small screens */
     margin: auto;
-    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+    border: var(--border-lining-width-inset) solid var(--color-menu-lining);
 }
 
 /* Nothing behind a dialog: no dimming and no blur. The page stays as it is;
@@ -16,8 +15,8 @@ dialog.input-dialog::backdrop {
 }
 
 html.dark dialog.input-dialog {
-    background-color: var(--color-component-background);
-    color: var(--color-component-text);
+    background-color: var(--color-dialog-background);
+    color: var(--color-dialog-text);
 }
 
 .input-dialog__title {
@@ -39,7 +38,6 @@ html.dark dialog.input-dialog {
 .input-dialog__field {
     display: flex;
     flex-direction: column;
-    gap: 0.25em;
 }
 
 /* A checkbox and its sentence on one line, the box first. */
@@ -71,8 +69,9 @@ html.dark dialog.input-dialog {
 }
 
 .input-dialog__label {
-    font-size: 0.85em;
-    opacity: 0.75;
+    font-size: 0.875em;
+    opacity: 0.80;
+    padding-bottom: 0.25em;
 }
 
 .input-dialog__input {
@@ -92,9 +91,10 @@ html.dark dialog.input-dialog {
    broken rather than as helpful.
 */
 .input-dialog__error {
-    font-size: 0.85em;
+    font-size: 0.875em;
     line-height: 1.35;
     color: var(--color-danger-text);
+    padding-top: 0.25em;
 }
 
 /* What a submit check refused - a wrong password - about the form as a whole. The message

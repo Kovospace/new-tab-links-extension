@@ -19,7 +19,6 @@ link-subgroup > div {
     display: flex;
     flex-direction: column;
     border-radius: var(--radius-bigger);
-    /*transition: var(--transition-item-hover);*/
 }
 
 link-subgroup:hover > div {
@@ -120,8 +119,6 @@ link-subgroup-body {
     overflow: hidden;
     height: auto;
     max-height: 100vh;
-    /*transition:*/
-    /*    max-height var(--time-transition-medium) ease;*/
 }
 
 link-subgroup-body.rolled {
