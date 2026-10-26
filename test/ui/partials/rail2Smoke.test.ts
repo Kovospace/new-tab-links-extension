@@ -27,7 +27,7 @@ describe("rail pointer logic", () => {
     let panel: ClosedTabsPanel;
 
     beforeEach(async () => {
-        document.body.innerHTML = '<main></main><button class="action-closed-tabs"></button>';
+        document.body.innerHTML = '<main></main>';
         const profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();
@@ -86,9 +86,6 @@ describe("rail pointer logic", () => {
 
         document.querySelector('.closed-tabs__list')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(panel.isPinned()).toBe(true);
-
-        document.querySelector('.action-closed-tabs')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(panel.isPinned()).toBe(true);      // the button's own business
 
         document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(panel.isPinned()).toBe(false);

@@ -87,6 +87,10 @@
     "title": "Nechať bočný panel otvorený",
     "explanation": "Panel otvorených a zatvorených kariet a histórie zostane otvorený vedľa stĺpcov namiesto rozbaľovania pod kurzorom. Len na tomto zariadení."
   },
+  "closeSidePanelOnClick": {
+    "title": "Bočný panel sa zatvára kliknutím",
+    "explanation": "Keď panel otvorí kurzor, zostane otvorený aj po odchode kurzora, kým v ňom niečo neotvoríte alebo nekliknete mimo neho. Len na tomto zariadení."
+  },
   "syncEnabled": {
     "title": "Synchronizovať tento prehliadač",
     "explanation": "Kým ste prihlásení, odkazy, nastavenia a záznamy nižšie sa z tohto prehliadača synchronizujú s vaším účtom. Vypnuté – zostanete prihlásení a prémium platí, ale nič sa neodosiela ani neprijíma. Len na tomto zariadení.",

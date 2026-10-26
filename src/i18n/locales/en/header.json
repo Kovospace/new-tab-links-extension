@@ -1,7 +1,6 @@
 {
   "workspaces": "Workspaces",
   "addWorkspace": "Add new workspace",
-  "closedTabs": "Keep the recently closed panel open",
   "profilesMenu": "User profiles list",
   "applicationMenu": "Application menu",
   "profileButton": "Profile: {name}",

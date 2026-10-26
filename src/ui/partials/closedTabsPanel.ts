@@ -11,7 +11,6 @@ import { confirmDestructiveAction } from './confirmations';
 import { t } from '../../i18n/i18n';
 import { ICON } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
-import { ObservableValue } from '../../utils/observableValue';
 import {
   devicePreferencesRepository, SidePanelCard
 } from '../../backend/repository/DevicePreferencesRepository';
@@ -90,9 +89,10 @@ const deviceKeepOpenPreference: KeepOpenPreference = {
  * the settings button, and a pointer on its way there crossed it and pulled the panel open
  * underneath - somebody heading for the list stops on it, somebody passing through does not.
  *
- * **The button takes precedence over all of that.** Pinned, the panel ignores the pointer and
- * stays open until it is unpinned, something outside it is clicked, or a row is opened - the
- * three ways of saying "done with this".
+ * **Pinned, the panel ignores the pointer** and stays open until it is closed by its "x",
+ * something outside it is clicked, or a row is opened - the three ways of saying "done with
+ * this". It is pinned by the pointer opening it, when this device's settings say closing it
+ * takes a click (`closeSidePanelOnClick`) - there is no button in the header for it any more.
  *
  * **Where the list comes from matters to what this can promise.** The service worker records
  * a closure as it happens, so the panel fills whether or not a new tab page was open at the
@@ -119,7 +119,7 @@ export class ClosedTabsPanel {
   private unsubscribeRecording: (() => void) | null = null;
   private unsubscribeOpenTabs: (() => void) | null = null;
 
-  /** Held open by the button, which the pointer is not allowed to overrule. */
+  /** Held open until a click says otherwise, which the pointer is not allowed to overrule. */
   private pinned: boolean = false;
 
   /**
@@ -129,15 +129,6 @@ export class ClosedTabsPanel {
   private keptOpen: boolean = false;
   private keepOpenBox: HTMLInputElement | null = null;
   private unsubscribeKeepOpen: (() => void) | null = null;
-
-  /**
-   * Whether the panel is being held open, for anything that has to show it.
-   *
-   * Published rather than asked for, because the panel lets go of itself: a click outside it
-   * or a row being opened unpins it without the button that pinned it being involved. A
-   * button that only listened to its own clicks would go on looking pressed afterwards.
-   */
-  public readonly pinned$ = new ObservableValue<boolean>(false);
 
   /** The pending open, while the pointer is resting on the rail but has not stayed long enough. */
   private openTimer: ReturnType<typeof setTimeout> | null = null;
@@ -150,6 +141,9 @@ export class ClosedTabsPanel {
   /** How long the pointer has to rest on the rail, read each time it arrives. */
   private readonly openDelay: () => number;
 
+  /** Whether a panel the pointer opens waits for a click to close, read each time it opens. */
+  private readonly closeOnClick: () => boolean;
+
   /**
    * @param viewModel supplies the rows and acts on them; injectable for testing
    * @param openDelay how long the pointer has to rest before the panel opens, in milliseconds;
@@ -158,6 +152,8 @@ export class ClosedTabsPanel {
    * @param cardPreference where the chosen card is remembered; injectable for testing
    * @param history   supplies the browsing history card; injectable for testing
    * @param keepOpenPreference whether the panel is kept open; injectable for testing
+   * @param closeOnClick whether a panel the pointer opens stays open until a click; asked each
+   *                     time it opens, so a changed setting needs no reload
    */
   constructor(
       viewModel: ClosedTabsViewModel = new ClosedTabsViewModel(),
@@ -165,10 +161,12 @@ export class ClosedTabsPanel {
       openTabs: OpenTabsViewModel = new OpenTabsViewModel(),
       cardPreference: CardPreference = deviceCardPreference,
       history: HistoryViewModel = new HistoryViewModel(),
-      private readonly keepOpenPreference: KeepOpenPreference = deviceKeepOpenPreference
+      private readonly keepOpenPreference: KeepOpenPreference = deviceKeepOpenPreference,
+      closeOnClick: () => boolean = () => devicePreferencesRepository.getCloseSidePanelOnClick()
   ) {
     this.viewModel = viewModel;
     this.openDelay = openDelay;
+    this.closeOnClick = closeOnClick;
     this.openTabs = openTabs;
     this.cardPreference = cardPreference;
     this.history = new HistoryCard(
@@ -206,7 +204,7 @@ export class ClosedTabsPanel {
     await this.history.initialize();
   }
 
-  /** Whether the panel is being held open, by the button or by "Keep open". */
+  /** Whether the panel is being held open, until a click or by "Keep open". */
   public isPinned(): boolean {
     return this.pinned || this.keptOpen;
   }
@@ -255,7 +253,6 @@ export class ClosedTabsPanel {
       this.cancelPendingOpen();
       this.setOpen(true);
     }
-    this.publishPinned();
   }
 
   /**
@@ -310,16 +307,27 @@ export class ClosedTabsPanel {
     } else if (!this.isOpen() && this.openTimer === null) {
       const delay = this.openDelay();
       if (delay <= 0) {
-        this.setOpen(true);
+        this.openForPointer();
         return;
       }
       // Started once and left running while the pointer moves within the rail: a pointer
       // stopping there sends no more events, so the timer is what has to finish the job.
       this.openTimer = setTimeout(() => {
         this.openTimer = null;
-        this.setOpen(true);
+        this.openForPointer();
       }, delay);
     }
+  }
+
+  /**
+   * Opens the panel because the pointer stayed on the rail - and, when closing it takes a
+   * click on this device, pins it there, so the pointer moving off no longer folds it.
+   */
+  private openForPointer(): void {
+    if (this.closeOnClick()) {
+      this.setPinned(true);
+    }
+    this.setOpen(true);
   }
 
   private cancelPendingOpen(): void {
@@ -333,15 +341,14 @@ export class ClosedTabsPanel {
    * Ends a pinned panel when the user's attention plainly went elsewhere.
    *
    * A click inside the panel is the panel being used, and does not count - except for opening
-   * a row, which is handled where that happens. A click on the button that pinned it is that
-   * button's own business, or pinning would undo itself in the same gesture.
+   * a row, which is handled where that happens.
    */
   private clickedSomewhere(event: MouseEvent): void {
     if (!this.pinned || this.keptOpen) {
       return;
     }
     const target = event.target as HTMLElement | null;
-    if (target?.closest('.closed-tabs') || target?.closest('.action-closed-tabs')) {
+    if (target?.closest('.closed-tabs')) {
       return;
     }
     this.setPinned(false);
@@ -379,12 +386,6 @@ export class ClosedTabsPanel {
 
   private setPinned(pinned: boolean): void {
     this.pinned = pinned;
-    this.publishPinned();
-  }
-
-  /** The header's button looks pressed while the panel is held open either way. */
-  private publishPinned(): void {
-    this.pinned$.set(this.pinned || this.keptOpen);
   }
 
   public dispose(): void {

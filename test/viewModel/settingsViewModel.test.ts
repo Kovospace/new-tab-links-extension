@@ -489,6 +489,25 @@ describe("SettingsViewModel, keeping the side panel open", () => {
         expect(published).toBe(before);
         expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
     });
+
+    const closeOnClick = () => settings.observables.settings.get().categories
+        .flatMap(category => category.settings)
+        .find(one => one.kind === "toggle" && one.key === "closeSidePanelOnClick");
+
+    it("offers closing the panel by a click under UI and behavior, off, stored on this device", async () => {
+        expect(settings.observables.settings.get().categories[0].settings).toContain(closeOnClick());
+        expect(closeOnClick()).toMatchObject({ enabled: false });
+        let published = 0;
+        profiles.profiles$.subscribe(() => published++);
+        const before = published;
+
+        await settings.toggle("closeSidePanelOnClick", true);
+
+        expect(devicePreferences.getCloseSidePanelOnClick()).toBe(true);
+        expect(closeOnClick()).toMatchObject({ enabled: true });
+        expect(published).toBe(before);
+        expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
+    });
 });
 
 /**

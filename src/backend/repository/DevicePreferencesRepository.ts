@@ -79,6 +79,14 @@ export interface DevicePreferences {
     keepSidePanelOpen: boolean;
 
     /**
+     *  Whether a side panel the pointer opened stays open until something is clicked - a row
+     *  in it, or anything outside it - instead of folding as soon as the pointer moves off.
+     *  Off by default, which is the panel following the pointer. Per device beside the rest
+     *  of the panel's behaviour.
+     */
+    closeSidePanelOnClick: boolean;
+
+    /**
      *  Whether this browser synchronises with the account it is signed in to. On by default;
      *  off, the browser stays signed in - premium still lifts its limits - but nothing is
      *  pushed or pulled. Per device because the reason to turn it off is this machine: a work
@@ -191,6 +199,7 @@ const DEFAULTS: DevicePreferences = {
     closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY,
     sidePanelCard: DEFAULT_SIDE_PANEL_CARD,
     keepSidePanelOpen: false,
+    closeSidePanelOnClick: false,
     syncEnabled: true,
     syncClosedTabs: true,
     syncBrowsingHistory: true,
@@ -403,6 +412,26 @@ export class DevicePreferencesRepository {
         this.publish();
     }
 
+    public getCloseSidePanelOnClick(): boolean {
+        return this.preferences.closeSidePanelOnClick;
+    }
+
+    /**
+     *  Makes a side panel opened by the pointer wait for a click before it folds, or not.
+     *  Read by the panel each time it opens, so a change needs no reload.
+     *
+     *  @param onClick whether closing the panel takes a click
+     */
+    public async setCloseSidePanelOnClick(onClick: boolean): Promise<void> {
+        if (onClick === this.preferences.closeSidePanelOnClick) {
+            return;
+        }
+        this.preferences = { ...this.preferences, closeSidePanelOnClick: onClick };
+        this.LOG.debug("setCloseSidePanelOnClick", onClick);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
     public getKeepSidePanelOpen(): boolean {
         return this.preferences.keepSidePanelOpen;
     }
@@ -586,6 +615,7 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
             stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
         sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard),
         keepSidePanelOpen: stored?.keepSidePanelOpen === true,
+        closeSidePanelOnClick: stored?.closeSidePanelOnClick === true,
         // Anything but an explicit false is on: a browser that never answered synchronised.
         syncEnabled: stored?.syncEnabled !== false,
         syncClosedTabs: stored?.syncClosedTabs !== false,

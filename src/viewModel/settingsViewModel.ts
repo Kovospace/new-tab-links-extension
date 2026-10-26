@@ -57,13 +57,13 @@ interface SettingCommonDTO {
  *  device preferences and never synchronised, but drawn as any other checkbox.
  */
 export type DeviceToggleKey =
-    "keepSidePanelOpen" | "syncEnabled" | "syncClosedTabs" | "syncBrowsingHistory";
+    "keepSidePanelOpen" | "closeSidePanelOnClick" | "syncEnabled" | "syncClosedTabs" | "syncBrowsingHistory";
 
 /** Every on/off setting: the profile's, and this device's. */
 export type ToggleSettingKey = ToggleableSetting | DeviceToggleKey;
 
 const DEVICE_TOGGLES: ReadonlySet<ToggleSettingKey> = new Set<DeviceToggleKey>(
-    ["keepSidePanelOpen", "syncEnabled", "syncClosedTabs", "syncBrowsingHistory"]);
+    ["keepSidePanelOpen", "closeSidePanelOnClick", "syncEnabled", "syncClosedTabs", "syncBrowsingHistory"]);
 
 /** The device toggles that share a log, with the profile setting that decides it is recorded. */
 const LOG_SYNC_TOGGLES: Partial<Record<DeviceToggleKey, ToggleableSetting>> = {
@@ -250,6 +250,7 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "range", key: "uiScale", wording: "uiScale" },
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
             { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
+            { kind: "toggle", key: "closeSidePanelOnClick", wording: "closeSidePanelOnClick" },
             { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" }
         ]
     },
@@ -417,6 +418,7 @@ export class SettingsViewModel {
     private deviceToggleValue(key: DeviceToggleKey): boolean {
         switch (key) {
             case "keepSidePanelOpen": return this.devicePreferences.getKeepSidePanelOpen();
+            case "closeSidePanelOnClick": return this.devicePreferences.getCloseSidePanelOnClick();
             case "syncEnabled": return this.devicePreferences.getSyncEnabled();
             case "syncClosedTabs": return this.devicePreferences.getSyncClosedTabs();
             case "syncBrowsingHistory": return this.devicePreferences.getSyncBrowsingHistory();
@@ -426,6 +428,7 @@ export class SettingsViewModel {
     private setDeviceToggle(key: DeviceToggleKey, enabled: boolean): Promise<void> {
         switch (key) {
             case "keepSidePanelOpen": return this.devicePreferences.setKeepSidePanelOpen(enabled);
+            case "closeSidePanelOnClick": return this.devicePreferences.setCloseSidePanelOnClick(enabled);
             case "syncEnabled": return this.devicePreferences.setSyncEnabled(enabled);
             case "syncClosedTabs": return this.devicePreferences.setSyncClosedTabs(enabled);
             case "syncBrowsingHistory": return this.devicePreferences.setSyncBrowsingHistory(enabled);
