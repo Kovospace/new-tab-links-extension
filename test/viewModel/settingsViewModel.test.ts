@@ -621,7 +621,7 @@ describe("SettingsViewModel, the background library", () => {
             expect(picture.tiles).toHaveLength(BUILT_IN_BACKGROUNDS.length);
         }
 
-        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[2].id)).toBe(true);
+        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[2].id)).toBe("done");
         const chosen = settings.observables.settings.get().categories
             .find(category => category.key === "background")!.settings[0];
         expect(chosen).toMatchObject({ noneSelected: false });
@@ -639,7 +639,26 @@ describe("SettingsViewModel, the background library", () => {
         const settings = new SettingsViewModel(profiles, devicePreferences, offline);
         await settings.loadBackgrounds();
 
-        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[0].id)).toBe(false);
+        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[0].id)).toBe("unavailable");
         expect(images.getImage()).toBeNull();
+    });
+
+    /**
+     *  A picture the browser refused to store was reported as a failed download - the message
+     *  sent people to check a connection that was fine, while their storage was full.
+     */
+    it("says the picture could not be kept when storage refuses it, not that the download failed", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        const images = new BackgroundImageRepository();
+        await images.init();
+        images.setImage = async () => { throw new Error("QUOTA_BYTES quota exceeded"); };
+        const library = new BackgroundLibraryRepository(images, memoryBackgroundUploads(), async () => "data:4k");
+        const settings = new SettingsViewModel(profiles, devicePreferences, library);
+        await settings.loadBackgrounds();
+
+        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[0].id)).toBe("noRoom");
     });
 });

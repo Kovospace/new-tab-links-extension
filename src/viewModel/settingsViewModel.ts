@@ -15,8 +15,15 @@ import { t } from "../i18n/i18n";
 import { openShortcutsPage, readBookmarkShortcut, SHORTCUTS_PAGE } from "../utils/extensionShortcuts";
 import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
 import {
-    BackgroundLibraryRepository, backgroundLibraryRepository
+    BackgroundLibraryRepository, backgroundLibraryRepository, BackgroundStorageError, BackgroundUnavailableError
 } from "../backend/repository/BackgroundLibraryRepository";
+
+/**
+ *  How putting a picture behind the page went, so the dialog can say which thing went wrong:
+ *  a picture that could not be downloaded, one that could not be kept, or a file that is not a
+ *  picture. They used to share one message, which blamed the download for a full storage.
+ */
+export type BackgroundOutcome = "done" | "unavailable" | "noRoom" | "unreadable";
 import { downscaleImage, THUMBNAIL_SIDE } from "../utils/imageDownscale";
 import { engineDTO } from "./searchBarViewModel";
 import { AUTOMATIC_LANGUAGE, baseLanguageOf, browserLanguageTag, SUPPORTED_LANGUAGES }
@@ -521,17 +528,22 @@ export class SettingsViewModel {
      *  page. Any account may.
      *
      *  @param file the picture the user chose
-     *  @return whether it was stored; false when it could not be read
+     *  @return "done", or why not: a file that is not a picture, or one that could not be kept
      */
-    public async setBackgroundImage(file: Blob): Promise<boolean> {
+    public async setBackgroundImage(file: Blob): Promise<BackgroundOutcome> {
+        let image: string;
+        let thumbnail: string;
         try {
-            const [image, thumbnail] = await Promise.all([
-                downscaleImage(file), downscaleImage(file, THUMBNAIL_SIDE)]);
-            await this.backgrounds.add(image, thumbnail);
-            return true;
+            [image, thumbnail] = await Promise.all([downscaleImage(file), downscaleImage(file, THUMBNAIL_SIDE)]);
         } catch (error) {
-            this.LOG.warn("setBackgroundImage", `could not use the picture: ${error}`);
-            return false;
+            this.LOG.warn("setBackgroundImage", `not a picture this browser can read: ${error}`);
+            return "unreadable";
+        }
+        try {
+            await this.backgrounds.add(image, thumbnail);
+            return "done";
+        } catch (error) {
+            return this.outcomeOf("setBackgroundImage", error);
         }
     }
 
@@ -539,20 +551,32 @@ export class SettingsViewModel {
      *  Puts a tile's picture behind the page.
      *
      *  @param id the tile; null for no picture at all
-     *  @return false when it could not be had - a built-in one is downloaded, and needs a connection
+     *  @return "done", or why not: a built-in picture that could not be downloaded, or a picture
+     *          that could not be kept
      */
-    public async chooseBackground(id: string | null): Promise<boolean> {
+    public async chooseBackground(id: string | null): Promise<BackgroundOutcome> {
         try {
             if (id === null) {
                 await this.backgrounds.chooseNone();
             } else {
                 await this.backgrounds.choose(id);
             }
-            return true;
+            return "done";
         } catch (error) {
-            this.LOG.warn("chooseBackground", `could not use ${id}: ${error}`);
-            return false;
+            return this.outcomeOf(`chooseBackground ${id}`, error);
         }
+    }
+
+    /** Which message a failed background deserves; logged with its cause either way. */
+    private outcomeOf(where: string, error: unknown): BackgroundOutcome {
+        this.LOG.warn(where, `${error}`);
+        if (error instanceof BackgroundUnavailableError) {
+            return "unavailable";
+        }
+        if (error instanceof BackgroundStorageError) {
+            return "noRoom";
+        }
+        return "unavailable";
     }
 
     /** Takes a tile out of the library - and its picture from behind the page, if it is there. */

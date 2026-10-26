@@ -19,7 +19,8 @@
     "tabGroups",
     "contextMenus",
     "favicon",
-    "search"
+    "search",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "<all_urls>"

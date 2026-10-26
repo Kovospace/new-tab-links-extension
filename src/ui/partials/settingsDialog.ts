@@ -1,6 +1,6 @@
 import {
   ChoiceSettingDTO, ImageSettingDTO, RangeSettingDTO, SettingCategoryDTO, SettingDTO, SettingsDTO,
-  SettingsViewModel, ShortcutSettingDTO, ToggleSettingDTO
+  BackgroundOutcome, SettingsViewModel, ShortcutSettingDTO, ToggleSettingDTO
 } from '../../viewModel/settingsViewModel';
 import { t } from '../../i18n/i18n';
 import { ICON } from './wrappedHtmlElements';
@@ -504,17 +504,16 @@ export class SettingsDialog {
   private chooseBackground(id: string | null): (element: HTMLElement) => Promise<void> {
     return async element => {
       element.classList.add('background-library__tile--loading');
-      const done = await this.viewModel.chooseBackground(id);
+      const outcome = await this.viewModel.chooseBackground(id);
       element.classList.remove('background-library__tile--loading');
-      this.backgroundProblem = done ? null : t('settings.backgroundImage.downloadFailed');
+      this.backgroundProblem = backgroundProblemOf(outcome);
       this.viewModel.refresh();
     };
   }
 
   /** Adds the chosen picture to the library, and says so under the setting if it could not be used. */
   private async answerImage(file: File): Promise<void> {
-    const done = await this.viewModel.setBackgroundImage(file);
-    this.backgroundProblem = done ? null : t('settings.backgroundImage.failed');
+    this.backgroundProblem = backgroundProblemOf(await this.viewModel.setBackgroundImage(file));
     this.viewModel.refresh();
   }
 
@@ -577,5 +576,15 @@ export class SettingsDialog {
     note.classList.add('settings-dialog__note');
     note.textContent = text;
     return note;
+  }
+}
+
+/** What to say under the background library after an attempt; nothing when it worked. */
+function backgroundProblemOf(outcome: BackgroundOutcome): string | null {
+  switch (outcome) {
+    case 'done': return null;
+    case 'unreadable': return t('settings.backgroundImage.failed');
+    case 'noRoom': return t('settings.backgroundImage.noRoom');
+    default: return t('settings.backgroundImage.downloadFailed');
   }
 }

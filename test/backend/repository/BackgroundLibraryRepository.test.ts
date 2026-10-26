@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BackgroundImageRepository } from "../../../src/backend/repository/BackgroundImageRepository";
-import { BackgroundLibraryRepository } from "../../../src/backend/repository/BackgroundLibraryRepository";
+import {
+    BackgroundLibraryRepository, BackgroundStorageError, BackgroundUnavailableError
+} from "../../../src/backend/repository/BackgroundLibraryRepository";
 import { BUILT_IN_BACKGROUNDS } from "../../../src/backend/entity/BuiltInBackgrounds";
 import { BACKGROUND_IMAGE_KEY, BACKGROUND_SELECTED_KEY } from "../../../src/backend/datasource/chromeStorage/storageKeys";
 import { readFakeStorage, seedFakeStorage } from "../../support/chromeStorageStub";
@@ -90,6 +92,17 @@ describe("BackgroundLibraryRepository", () => {
 
         expect(images.getImage()).toBeNull();
         expect(tiles()).toHaveLength(BUILT_IN_BACKGROUNDS.length);
+    });
+
+    it("tells a picture that could not be downloaded from one that could not be kept", async () => {
+        const offline = new BackgroundLibraryRepository(images, uploads,
+            async () => { throw new Error("Failed to fetch"); });
+        await offline.init();
+        await expect(offline.choose(firstBuiltIn.id)).rejects.toBeInstanceOf(BackgroundUnavailableError);
+
+        images.setImage = async () => { throw new Error("QUOTA_BYTES quota exceeded"); };
+        await expect(library.choose(firstBuiltIn.id)).rejects.toBeInstanceOf(BackgroundStorageError);
+        expect(tiles().some(tile => tile.selected)).toBe(false);
     });
 
     it("adopts a picture put behind the page before the library existed, so it stays in the list", async () => {

@@ -19,6 +19,12 @@ export interface BackgroundTile {
     selected: boolean;
 }
 
+/** A built-in picture could not be downloaded: offline, or the website did not have it. */
+export class BackgroundUnavailableError extends Error {}
+
+/** A picture could not be kept: the browser refused to store it. */
+export class BackgroundStorageError extends Error {}
+
 /** Reads a picture from the network into a data URL: the website's copy of a built-in one. */
 export type PictureFetcher = (url: string) => Promise<string>;
 
@@ -103,11 +109,18 @@ export class BackgroundLibraryRepository {
     /**
      *  Puts a tile's picture behind the page. A built-in one is downloaded first - a few
      *  megabytes, once - and fails without a connection; the caller says so.
+     *
+     *  @throws BackgroundUnavailableError when a built-in picture could not be downloaded
+     *  @throws BackgroundStorageError when the picture could not be stored
      */
     public async choose(id: string): Promise<void> {
         let picture: string;
         if (isBuiltInBackground(id)) {
-            picture = await this.fetchPicture(BUILT_IN_BACKGROUNDS.find(one => one.id === id)!.fullUrl);
+            try {
+                picture = await this.fetchPicture(BUILT_IN_BACKGROUNDS.find(one => one.id === id)!.fullUrl);
+            } catch (error) {
+                throw new BackgroundUnavailableError(String(error));
+            }
         } else {
             const upload = this.uploadsCache.find(one => one.id === id);
             if (!upload) {
@@ -115,7 +128,11 @@ export class BackgroundLibraryRepository {
             }
             picture = upload.image;
         }
-        await this.images.setImage(picture);
+        try {
+            await this.images.setImage(picture);
+        } catch (error) {
+            throw new BackgroundStorageError(String(error));
+        }
         await this.select(id);
         this.publish();
     }
@@ -135,7 +152,11 @@ export class BackgroundLibraryRepository {
      */
     public async add(image: string, thumbnail: string): Promise<void> {
         const added: StoredBackground = { id: uid(), createdAt: this.now(), thumbnail, image };
-        await this.uploads.put(added);
+        try {
+            await this.uploads.put(added);
+        } catch (error) {
+            throw new BackgroundStorageError(String(error));
+        }
         this.uploadsCache.push(added);
         await this.choose(added.id);
     }

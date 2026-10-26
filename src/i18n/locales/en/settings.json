@@ -56,7 +56,8 @@
     "add": "Add your own picture…",
     "remove": "Remove from the list",
     "failed": "That file could not be used as a background. Try another picture.",
-    "downloadFailed": "That picture could not be downloaded. Check the connection and try again."
+    "downloadFailed": "That picture could not be downloaded. Check the connection and try again.",
+    "noRoom": "This picture could not be kept: the browser has no more room for it. Remove some of your own pictures from the list and try again."
   },
   "bookmarkShortcut": {
     "title": "Shortcut to save a page",

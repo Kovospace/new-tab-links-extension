@@ -56,7 +56,8 @@
     "add": "Pridať vlastný obrázok…",
     "remove": "Odstrániť zo zoznamu",
     "failed": "Tento súbor sa nedá použiť ako pozadie. Skúste iný obrázok.",
-    "downloadFailed": "Obrázok sa nepodarilo stiahnuť. Skontrolujte pripojenie a skúste to znova."
+    "downloadFailed": "Obrázok sa nepodarilo stiahnuť. Skontrolujte pripojenie a skúste to znova.",
+    "noRoom": "Tento obrázok sa nepodarilo uložiť: prehliadač preň nemá miesto. Odstráňte zo zoznamu niektoré vlastné obrázky a skúste to znova."
   },
   "bookmarkShortcut": {
     "title": "Skratka na uloženie stránky",
