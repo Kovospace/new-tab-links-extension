@@ -102,6 +102,30 @@ workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group
     border-radius: 0.5em;
 }
 
+/* Why the open workspace does not synchronise: where the signed-out notice sits, and shown
+   instead of it while somebody is signed in. Buttons lead to the website's account page
+   (upgrade) and devices page (audit). */
+workspace-plane-head > div.cls-workspace-sync-notice {
+    display: inline-flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: end;
+    gap: 0.5em;
+    margin-right: 1em;
+    padding: 0.25em 0.25em 0.25em 0.75em;
+    color: var(--color-component-text);
+}
+
+workspace-plane-head > div.cls-workspace-sync-notice > span {
+    white-space: normal;
+    text-align: end;
+}
+
+workspace-plane-head > div.cls-workspace-sync-notice[hidden] {
+    display: none;
+}
+
 
 
 workspace-plane-body {
@@ -128,26 +152,16 @@ workspace-plane-footer {
     justify-content: end;
 }
 
-/* Why the open workspace does not synchronise: where the signed-out notice sits, and shown
-   instead of it while somebody is signed in. Buttons lead to the website's account page
-   (upgrade) and devices page (audit). */
-workspace-plane-head > div.cls-workspace-sync-notice {
-    display: inline-flex;
-    flex-grow: 1;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: end;
-    gap: 0.5em;
-    margin-right: 1em;
-    padding: 0.25em 0.25em 0.25em 0.75em;
-    color: var(--color-component-text);
+workspace-plane-footer > div {
+    margin-bottom: var(--widgets-spacing);
 }
 
-workspace-plane-head > div.cls-workspace-sync-notice > span {
-    white-space: normal;
-    text-align: end;
+workspace-plane-footer > div:first-child {
+    margin-top: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-workspace-plane-head > div.cls-workspace-sync-notice[hidden] {
-    display: none;
+workspace-plane-footer > div:last-child {
+    margin-bottom: 0;
 }
