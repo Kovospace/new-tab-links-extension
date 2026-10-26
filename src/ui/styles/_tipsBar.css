@@ -170,6 +170,7 @@ html.dark .tips-bar__more {
     font-weight: normal;
     line-height: 1;
     color: var(--color-button-active-text);
+    background: var(--color-button-active-background);
     text-decoration: underline;
     cursor: pointer;
     padding: 0.125em 0.25em;
