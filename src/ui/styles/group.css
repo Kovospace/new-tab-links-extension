@@ -1,3 +1,28 @@
+
+link-group {
+    margin-bottom: var(--widgets-spacing);
+    margin-left: calc(var(--widgets-spacing) / 2);
+    margin-right: calc(var(--widgets-spacing) / 2);
+    border-radius: 0.75em;
+    background-color: var(--color-component-background);
+    /*border: var(--border-lining-width) solid var(--border-lining-color);*/
+    box-shadow: inset 0 0 0 var(--border-lining-width-inset) var(--border-lining-color-inset);
+}
+
+link-group:first-child {
+    margin-left: 0;
+}
+
+link-group:last-child {
+    margin-right: 0;
+}
+
+link-group:hover:not(:has(link-subgroup:hover)) {
+    background-color: var(--color-component-background-hover);
+}
+
+
+
 link-group-head {
     display: flex;
     direction: row;
@@ -16,7 +41,6 @@ link-group-head {
 link-group-head > div.cls-group-head-title {
     display: flex;
     flex-direction: column;
-    gap: 0.25em;
     margin-right: 0.5em;
 }
 
@@ -28,12 +52,13 @@ link-group-head > div.cls-group-head-title > span {
 
 link-group-head > div.cls-group-head-title > h2 {
     padding: 0em 0.25em;
-    border-radius: 0.175em;
+    /*border-radius: 0.175em;*/
+    border-top-left-radius: var(--radius-bigger);
 }
 
 link-group-head > div.cls-group-head-title > span {
     padding: 0em 0.375em;
-    border-radius: var(--radius-normal);
+    border-bottom-right-radius: var(--radius-normal);
 }
 
 link-group-head > div.cls-group-head-actions {
@@ -52,13 +77,34 @@ link-group-head > div.cls-group-head-actions > button {
 
 link-group-head > div.cls-group-head-actions > button:first-child {
     margin-top: 0;
+    border-radius: 0;
+    border-bottom-left-radius: var(--radius-normal);
+    border-top-right-radius: var(--radius-bigger);
 }
 
 link-group-head > div.cls-group-head-actions > button:last-child {
-   margin-bottom: 0;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-bottom-left-radius: var(--radius-normal);
+    border-top-left-radius: var(--radius-normal);
 }
+
+
 
 link-group-body {
     display: block;
     margin-top: 0.25em;
 }
+
+/*link-group-body > link-subgroup {*/
+/*    padding-left: 0.375em;*/
+/*    padding-right: 0.375em;*/
+/*}*/
+
+/*link-group-body > *:first-child {*/
+
+/*}*/
+
+/*link-group-body > *:last-child {*/
+/*    padding-bottom: 0.375em;*/
+/*}*/

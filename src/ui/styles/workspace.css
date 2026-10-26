@@ -30,13 +30,25 @@ workspace-plane:has(> .tips-bar:not([hidden])) {
 workspace-plane-head {
     display: flex;
     align-items: center;
-    margin: 0.5em 0;
+    margin: var(--widgets-spacing) 0;
     padding-left:0;
     padding-right:0.25em;
     margin-left: 1em;
-    background-color: red;
+    background-color: var(--color-component-background);
     border-radius: 3em;
     width: fit-content;
+    /*
+       The search bar in the workspace heading: [engine ▾] [query] [search].
+
+       It takes the room the heading had spare - growing into it, centred in it by its auto
+       margins, and capped so that on a wide screen it stays a field and not a stripe. The title
+       and the workspace's own buttons keep their place on the left.
+
+       The heading wraps rather than squeezing: on a narrow window the bar drops to a line of its
+       own instead of being crushed to the width of its buttons.
+    */
+    flex-wrap: wrap;
+    row-gap: 0.5em;
 }
 
 workspace-plane-head > div {
@@ -84,65 +96,10 @@ workspace-plane-head > div.cls-workspace-head-title > span {
 workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,
 workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group
 {
-    border: var(--border-lining-width) solid var(--color-document-background);
+    border: var(--border-lining-width) solid var(--color-component-background);
     min-width: 2em;
     margin-right: 0;
     border-radius: 0.5em;
-}
-
-
-
-workspace-plane-body {
-    display: flex;
-    flex-direction: row;
-    align-items: start;
-    padding: 0 1em;
-}
-
-workspace-plane-body > link-group {
-    margin-bottom: 0.5em;
-    margin-left: 0.25em;
-    margin-right:0.25em;
-    padding: 0.5em;
-    border-radius: 0.75em;
-    transition: background-color var(--time-transition-medium) ease-in-out;
-    border: var(--border-lining-width) solid var(--border-lining-color);
-    box-shadow: inset 0 0 0 var(--border-lining-width-inset) var(--border-lining-color-inset);
-}
-
-workspace-plane-body > link-group:first-child {
-    margin-left: 0;
-}
-
-workspace-plane-body > link-group:last-child {
-    margin-right: 0;
-}
-
-
-
-html.dark workspace-plane-body > link-group {
-    background-color: var(--color-component-background);
-}
-
-html.dark workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)) {
-    background-color: var(--color-component-background-hover);
-}
-
-
-
-/*
-   A column, so that what is declared after the tips is drawn after them rather
-   than beside them. In a row the tips' own auto margins centre them and push
-   everything else out to the edge, which is where the ads bar ended up.
-*/
-workspace-plane-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    flex-grow: 1;
-    flex-shrink: 0;
-    flex-basis: auto;
-    justify-content: end;
 }
 
 /* Why the open workspace does not synchronise: where the signed-out notice sits, and shown
@@ -167,4 +124,44 @@ workspace-plane-head > div.cls-workspace-sync-notice > span {
 
 workspace-plane-head > div.cls-workspace-sync-notice[hidden] {
     display: none;
+}
+
+
+
+workspace-plane-body {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    padding: 0 1em;
+}
+
+
+
+/*
+   A column, so that what is declared after the tips is drawn after them rather
+   than beside them. In a row the tips' own auto margins centre them and push
+   everything else out to the edge, which is where the ads bar ended up.
+*/
+workspace-plane-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto;
+    justify-content: end;
+}
+
+workspace-plane-footer > div {
+    margin-bottom: var(--widgets-spacing);
+}
+
+workspace-plane-footer > div:first-child {
+    margin-top: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+workspace-plane-footer > div:last-child {
+    margin-bottom: 0;
 }

@@ -63,29 +63,29 @@
 :root[data-theme-style="aero"] .tips-bar
 /*:root[data-theme-style="aero"] input.search-bar__input*/
 {
-    background-color: var(--aero-surface);
+    /*background-color: var(--aero-surface);*/
 }
 
 /* A hovered subgroup is tinted, not blurred on its own: its group already
    blurs everything behind it, the subgroup's area included. A blur layer of
    its own existed only under the pointer, so Chrome built and dropped one on
    every hover - and a frame drawn before the layer is ready is a flicker. */
-:root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),
-:root[data-theme-style="aero"] link-subgroup:hover
+/*:root[data-theme-style="aero"] workspace-plane-body > link-group:hover:not(:has(link-subgroup:hover)),*/
+/*:root[data-theme-style="aero"] link-subgroup:hover*/
 /*:root[data-theme-style="aero"] input.search-bar__input:hover */
-{
-    background-color: var(--aero-surface-hover);
-}
+/*{*/
+/*    background-color: var(--aero-surface-hover);*/
+/*}*/
 
 /* Nothing in these holds a menu: blurred directly. */
 :root[data-theme-style="aero"] footer,
 :root[data-theme-style="aero"] .closed-tabs,
 :root[data-theme-style="aero"] .tips-bar,
 :root[data-theme-style="aero"] input.search-bar__input {
-    -webkit-backdrop-filter: var(--aero-filter);
-    backdrop-filter: var(--aero-filter);
+    /*-webkit-backdrop-filter: var(--aero-filter);*/
+    /*backdrop-filter: var(--aero-filter);*/
     /* A layer of its own, kept - see "Each blur keeps a layer" above. */
-    transform: translateZ(0);
+    /*transform: translateZ(0);*/
 }
 
 /* These do: blurred from a layer behind them. A group's layer reaches under
@@ -93,26 +93,26 @@
    workspace head holds the workspace menu and the search bar's lists. */
 :root[data-theme-style="aero"] workspace-plane-head,
 :root[data-theme-style="aero"] workspace-plane-body > link-group {
-    position: relative;
+    /*position: relative;*/
 }
 
 :root[data-theme-style="aero"] header::before,
 :root[data-theme-style="aero"] workspace-plane-head::before,
 :root[data-theme-style="aero"] workspace-plane-body > link-group::before {
-    content: "";
-    position: absolute;
-    inset: calc(-1 * var(--aero-frame-width, 0px));
-    z-index: -1;
-    border-radius: inherit;
-    pointer-events: none;
-    -webkit-backdrop-filter: var(--aero-filter);
-    backdrop-filter: var(--aero-filter);
+    /*content: "";*/
+    /*position: absolute;*/
+    /*inset: calc(-1 * var(--aero-frame-width, 0px));*/
+    /*z-index: -1;*/
+    /*border-radius: inherit;*/
+    /*pointer-events: none;*/
+    /*-webkit-backdrop-filter: var(--aero-filter);*/
+    /*backdrop-filter: var(--aero-filter);*/
     /* A layer of its own, kept - see "Each blur keeps a layer" above. */
-    transform: translateZ(0);
+    /*transform: translateZ(0);*/
 }
 
 :root[data-theme-style="aero"] workspace-plane-body > link-group::before {
-    --aero-frame-width: 0.25em;
+    /*--aero-frame-width: 0.25em;*/
 }
 
 /* ── Menus, suggestions, dialogs ────────────────────────────────────────── */
@@ -123,11 +123,11 @@
 :root[data-theme-style="aero"] ul.search-bar__engines,
 :root[data-theme-style="aero"] ul.search-bar__suggestions,
 :root[data-theme-style="aero"] dialog.input-dialog {
-    background-color: var(--aero-menu-surface);
-    -webkit-backdrop-filter: var(--aero-filter);
-    backdrop-filter: var(--aero-filter);
+    /*background-color: var(--aero-menu-surface);*/
+    /*-webkit-backdrop-filter: var(--aero-filter);*/
+    /*backdrop-filter: var(--aero-filter);*/
     /* A layer of its own, kept - see "Each blur keeps a layer" above. */
-    transform: translateZ(0);
+    /*transform: translateZ(0);*/
 }
 
 /* ── Frames ─────────────────────────────────────────────────────────────── */
@@ -151,9 +151,9 @@
    so they are a surface: blurred, at the panels' opacity. */
 :root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > h1,
 :root[data-theme-style="aero"] workspace-plane-head > div.cls-workspace-head-title > span {
-    background-color: var(--aero-pill);
-    -webkit-backdrop-filter: var(--aero-filter);
-    backdrop-filter: var(--aero-filter);
+    /*background-color: var(--aero-pill);*/
+    /*-webkit-backdrop-filter: var(--aero-filter);*/
+    /*backdrop-filter: var(--aero-filter);*/
     /* A layer of its own, kept - see "Each blur keeps a layer" above. */
-    transform: translateZ(0);
+    /*transform: translateZ(0);*/
 }

@@ -1,0 +1,181 @@
+
+button {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+workspace-plane-head > div.cls-workspace-head-title > h1 {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+/*workspace-plane-head > div.cls-workspace-head-actions > button.action-edit-workspace,*/
+/*workspace-plane-head > div.cls-workspace-head-actions > button.action-add-group*/
+/*{*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+/*workspace-plane-head > form.search-bar button {*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+workspace-plane-head > form.search-bar > input {
+    transition:
+            box-shadow var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+workspace-plane-head > form.search-bar > ul.search-bar__suggestions > li {
+    transition: background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+workspace-plane-head > form.search-bar > ul.search-bar__suggestions > li > span > span {
+    transition: color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+
+
+link-group {
+    transition: background-color var(--time-transition-medium) var(--transition-easing-default);
+}
+
+/*link-group-head > div.cls-group-head-actions > button {*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+linkk-group-head > div.cls-group-head-title > h2,
+linkk-group-head > div.cls-group-head-title > span
+{
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+
+
+link-subgroup > div {
+    transition: background-color var(--time-transition-medium) var(--transition-easing-default);
+}
+
+/*link-subgroup-head > div.cls-subgroup-head-actions button {*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+link-subgroup-body {
+    transition: max-height var(--time-transition-medium) var(--transition-easing-default);
+}
+
+
+
+link-container > div {
+    transition: background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+link-container > div > div.cls-link-text > a {
+    transition: color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+/*link-container > div > div.cls-link-actions-container > button {*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+link-container > div > div.cls-link-actions-container {
+    transition: max-height var(--time-transition-medium) var(--transition-easing-default);
+    /*TODO FIXME*/
+}
+
+
+
+options-menu {
+    transition: opacity var(--time-transition-fast) var(--transition-easing-default);
+}
+
+options-menu-item {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+
+
+aside.closed-tabs {
+    transition: width var(--time-transition-medium) var(--transition-easing-default);
+}
+
+aside.closed-tabs .closed-tabs__row {
+    transition: background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+aside.closed-tabs .closed-tabs__row > button > span {
+    transition: color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+aside.closed-tabs > div.closed-tabs__head button,
+aside.closed-tabs > div.closed-tabs__head input
+{
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+/*aside.closed-tabs > div.closed-tabs__cards button {*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+/* Search */
+aside.closed-tabs > input {
+    transition:
+            border-color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+/*aside.closed-tabs .closed-tabs__row .closed-tabs__row-action {*/
+/*    transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+
+
+.input-dialog__input {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+
+
+/*.settings-dialog__category-head {*/
+/*   transition:*/
+/*            color var(--time-transition-fast) var(--transition-easing-default),*/
+/*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
+/*}*/
+
+.settings-dialog__row {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+
+
+workspace-plane-footer > div.tips-bar {
+    transition:
+            color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+

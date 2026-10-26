@@ -15,29 +15,18 @@
    :hover - see closedTabsPanel.ts. CSS only draws the two widths.
    --------------------------------------------------------------------------- */
 
-:root {
-    --closed-tabs-rail: 2.5em;
-    --closed-tabs-open: 22em;
-}
-
 .closed-tabs {
     grid-area: aside;
-
     width: var(--closed-tabs-rail);
     max-width: 90vw;
     /* The grid row is already the height between header and footer; this keeps
        the panel from growing past it and taking the page's scrollbar with it. */
     min-height: 0;
-
     display: flex;
     flex-direction: column;
     overflow: hidden;
     align-items: flex-start;
-
     background-color: var(--color-component-background);
-    box-shadow: -0.125em 0 0.5em rgba(0, 0, 0, 0.4);
-
-    transition: width var(--time-transition-medium) ease-in-out;
 }
 
 .closed-tabs--open {
@@ -205,6 +194,10 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
    not over a notice saying nothing is recorded. */
 .closed-tabs__search {
     display: none;
+    border-radius: 2em;
+    border-style: solid;
+    border-width: var(--border-lining-width);
+    border-color: var(--border-lining-color-inset);
 }
 
 .closed-tabs--open:is([data-card="closed"], [data-card="history"]) .closed-tabs__search {
@@ -218,6 +211,11 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
 .closed-tabs--off[data-card="closed"] .closed-tabs__search,
 .closed-tabs--history-off[data-card="history"] .closed-tabs__search {
     display: none;
+}
+
+html.dark .closed-tabs__search.editable:focus {
+    box-shadow: none;
+    border-color: var(--color-button-active-background-hover);
 }
 
 /* The switcher only makes sense at full width, like the head's own buttons. */
@@ -381,8 +379,8 @@ html.dark .closed-tabs__day-toggle:active {
     gap: 0.5em;
     padding: 0.25em 0.375em;
     border-radius: var(--radius-small);
-    transition: background-color var(--time-transition-fast) ease-in-out;
     min-height: 2.5em;
+    background-color: var(--color-component-background);
 }
 
 .closed-tabs--open .closed-tabs__row {
@@ -390,7 +388,17 @@ html.dark .closed-tabs__day-toggle:active {
 }
 
 .closed-tabs__row:hover {
-    background-color: var(--color-button-background);
+    background-color: var(--color-button-background-hover);
+}
+
+/* supress default colors for button element */
+.closed-tabs__text:hover,
+html.dark .closed-tabs__text:hover {
+    background: none;
+}
+
+.closed-tabs__row:hover > button > span {
+    color: var(--color-button-text-hover);
 }
 
 .closed-tabs__favicon {
@@ -419,11 +427,6 @@ html.dark .closed-tabs__text {
     text-align: left;
     color: inherit;
     cursor: pointer;
-}
-
-.closed-tabs__text:hover,
-html.dark .closed-tabs__text:hover {
-    background: none;
 }
 
 .closed-tabs__row-title,
@@ -498,6 +501,7 @@ html.dark .closed-tabs__row-action {
 .closed-tabs__kept {
     flex: 0 0 auto;
     background-color: var(--color-button-add-background);
+    color: var(--color-button-add-text);
     border-radius: 50%;
     min-width: 1em;
     height: 1em;

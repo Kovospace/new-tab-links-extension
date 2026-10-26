@@ -35,6 +35,8 @@ import {
  */
 
 import './ui/styles/__variables.css'
+import './ui/styles/__transitions.css'
+import './ui/styles/__3d_effects.css'
 
 import './ui/styles/reset.css'
 import './ui/styles/main.css'

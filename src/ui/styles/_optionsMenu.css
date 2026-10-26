@@ -14,7 +14,7 @@
 */
 options-menu {
     position: absolute;
-    z-index: 101; /* above the columns and panels */
+    z-index: var(--z-index-menus);
     top: 100%;
     left: 0;
     right: auto;
@@ -25,14 +25,10 @@ options-menu {
        `.active:hover` with the pointer anywhere in the menu, since hovering a child hovers
        its ancestors. Inherited, whatever colour those give the button reached every item. */
     color: var(--color-component-text);
-    border: 0.25em solid var(--color-document-background);
-    box-shadow: 0 0 0 var(--border-lining-width-inset) var(--color-component-framing);
-    margin-top:0.5em;
+    border: var(--border-lining-width-inset) solid var(--color-menu-lining);
+    margin-top: 0.5em;
     display: none;
     opacity: 0;
-    transition:
-            opacity var(--time-transition-medium) ease,
-            display var(--time-transition-medium) allow-discrete;
 }
 
 options-menu.visible {
@@ -56,12 +52,17 @@ options-menu-item {
     white-space: nowrap;
     cursor: pointer;
     padding: 0.5em;
+    margin: 0 0.25em;
     text-align: left;
     display: block;
-    /* The text switches halfway through the fade - see "Text colour is never animated" in main.css. */
-    transition:
-            background-color var(--time-transition-medium) ease-in-out,
-            color 0s linear calc(var(--time-transition-medium) / 2);
+}
+
+options-menu-item:first-child {
+    margin-top: 0.25em;
+}
+
+options-menu-item:last-child {
+    margin-bottom: 0.25em;
 }
 
 options-menu-item::after {
@@ -172,6 +173,7 @@ options-menu-item > span.options-menu__swatch {
     height: 0.75em;
     margin-right: 0.5em;
     border-radius: var(--radius-circular);
-    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+    /*box-shadow: 0 0 0 0.0625em var(--color-component-framing);*/
     vertical-align: baseline;
+    border: 0.125em solid var(--color-component-background);
 }

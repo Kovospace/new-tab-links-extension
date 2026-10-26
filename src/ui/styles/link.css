@@ -1,101 +1,130 @@
+
 link-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 0.25em 0em;
-  cursor: pointer;
+  display: block;
+  padding: 0 0.375em;
 }
 
-/* The text colour switches halfway through the background's fade - see "Text colour is never
-   animated" in main.css. */
-link-container:hover {
-  background-color: var(--color-button-background-hover);
-  color: var(--color-button-text-hover);
-  border-radius: 0.25em;
-  transition:
-    background-color var(--time-transition-medium) ease-in-out,
-    color 0s linear calc(var(--time-transition-medium) / 2)
+link-container:last-child {
+  padding-bottom: 0.375em;
 }
 
 link-container > div {
-  margin: 0 0.25em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.1785em;
+  cursor: pointer;
+  border-radius: var(--radius-bigger);
 }
 
-link-container > div.cls-link-icon {
+link-container:first-child > div {
+
+}
+
+link-container:last-child > div {
+
+}
+
+link-container:hover > div {
+  background-color: var(--color-button-background-hover);
+}
+
+link-container:hover > div > div.cls-link-text > a {
+  color: var(--color-button-text-hover);
+}
+
+/*link-container > div {*/
+/*  margin: 0 0.25em;*/
+/*}*/
+
+link-container > div > div.cls-link-icon {
   flex-grow: 0;
   flex-shrink: 0;
 }
 
 /* In rem, so the icon follows the size setting with everything else. The img's own width and
    height attributes are pixels, and on their own they kept it at 32px whatever the size was. */
-link-container > div.cls-link-icon > img {
+link-container > div > div.cls-link-icon > img {
   width: 2rem;
   height: 2rem;
 }
 
-link-container > div.cls-link-text {
-  margin-right: 0.5em;
+/* min-width: 0 is what keeps the wrapper inside its parent. A flex item will not shrink below
+   its own content by default (min-width: auto), so a long title made this column as wide as
+   the whole title and pushed the wrapper - and the actions after it - past the link's edge. */
+link-container > div > div.cls-link-text {
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
-link-container > div.cls-link-actions-container {
+/* An ellipsis needs all three: one line, the rest clipped, and the dots. */
+link-container > div > div.cls-link-text > a {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+link-container > div > div.cls-link-actions-container {
+  /*display: none;*/
   margin-left: auto;
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
-link-container > div.cls-link-actions-container > button {
+link-container > div > div.cls-link-actions-container > button {
   border-radius: 2em;
   min-width: 1.25em;
   padding: 0.125em;
   height: 1.25em;
-  /*transition:*/
-  /*  background-color 0.25s ease-in-out,*/
-  /*  color 0.25s ease-in-out,*/
-  /*  transform 0.25s ease-in-out;*/
 }
 
-link-container > div.cls-link-actions-container > button:last-child {
+link-container > div > div.cls-link-actions-container > button:last-child {
   margin-right: 0;
 }
 
-link-container:hover > div.cls-link-actions-container > button {
+link-container:hover > div > div.cls-link-actions-container > button {
   background-color: var(--color-link-action-background);
 }
 
-link-container:hover > div.cls-link-actions-container > button.act-link-move-up:hover,
-link-container:hover > div.cls-link-actions-container > button.act-link-move-down:hover
+link-container:hover > div > div.cls-link-actions-container > button.act-link-move-up:hover,
+link-container:hover > div > div.cls-link-actions-container > button.act-link-move-down:hover
 {
   background-color: var(--color-button-add-background-hover);
 }
 
-link-container:hover > div.cls-link-actions-container > button.act-link-edit:hover {
+link-container:hover > div > div.cls-link-actions-container > button.act-link-edit:hover {
   background-color: var(--color-button-active-background-hover);
 }
 
-link-container:hover > div.cls-link-actions-container > button.danger {
+link-container:hover > div > div.cls-link-actions-container > button.danger {
   background-color: var(--color-button-danger-background);
 }
 
-link-container:hover > div.cls-link-actions-container > button.danger:hover {
+link-container:hover > div > div.cls-link-actions-container > button.danger:hover {
   background-color: var(--color-button-danger-background-hover);
 }
 
 
 
-link-group-body > link-container > div.cls-link-actions-container,
-link-group-body > link-subgroup > link-subgroup-body > link-container > div.cls-link-actions-container {
+link-group-body > link-container > div > div.cls-link-actions-container,
+link-group-body > link-subgroup > div > link-subgroup-body > link-container > div > div.cls-link-actions-container {
   max-width: 0em;
   overflow: hidden;
-  transition:
-    max-width 0.25s ease-in-out;
 }
 
-link-group-body.managed > link-container > div.cls-link-actions-container,
-link-group-body.managed > link-subgroup > link-subgroup-body > link-container > div.cls-link-actions-container {
+link-group-body.managed > link-container > div > div.cls-link-actions-container,
+link-group-body.managed > link-subgroup > div > link-subgroup-body > link-container > div > div.cls-link-actions-container {
   max-width: 32em;
 }
 
-link-subgroup-body.managed > link-container > div.cls-link-actions-container {
+link-subgroup-body.managed > div > link-container > div > div.cls-link-actions-container {
   max-width: 32em;
 }
 

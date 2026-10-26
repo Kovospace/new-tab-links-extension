@@ -21,7 +21,6 @@
        still carrying the 1em of its own that was asked for. */
     align-self: center;
     flex: 0 0 auto;
-    margin: 0.5em 1em 1em;
 
     width: 100%;
     max-width: 100%;

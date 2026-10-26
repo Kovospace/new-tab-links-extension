@@ -21,20 +21,12 @@
     justify-content: center;
     gap: 0.5em;
     padding: 1em 1em;
-    margin-bottom: 0.25em;
     border-radius: 0.75em;
     background-color: var(--color-component-background);
-    border: 0.25em solid var(--color-document-background);
+    border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: fit-content;
-    margin-top: auto;
-    margin-left: auto;
-    margin-right: auto;
-
-    /* Both ways round: red as the link is picked up, and back to the panel
-       colour when it is put down or the drag is abandoned. */
-    transition: background-color var(--time-transition-medium) ease-in-out;
 }
 
 /* The two faces. Each is laid out like the bar used to be, since each is now
@@ -168,19 +160,19 @@ html.dark .tips-bar__control:hover {
 html.dark .tips-bar__more {
     min-width: 0;
     margin: 0;
-    padding: 0 0.25em;
     background: none;
     border: none;
     font-size: 1em;
     font-weight: normal;
     line-height: 1;
-    color: var(--color-button-active-background);
+    color: var(--color-button-active-text);
+    background: var(--color-button-active-background);
     text-decoration: underline;
     cursor: pointer;
+    padding: 0.125em 0.25em;
 }
 
 .tips-bar__more:hover,
 html.dark .tips-bar__more:hover {
-    background: none;
-    color: var(--color-button-active-background-hover);
+    background: var(--color-button-active-background-hover);
 }

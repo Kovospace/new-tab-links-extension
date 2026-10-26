@@ -49,33 +49,31 @@ html.dark .settings-dialog__list {
 /* A real button: the whole heading is the target, and it is reachable by
    keyboard. It gives up the button styling from main.css, which is sized for
    the small square buttons in the group headers. */
-.settings-dialog__category-head {
+html.dark .settings-dialog__category-head {
     display: flex;
     align-items: center;
     gap: 0.4em;
     width: 100%;
     margin: 0;
-    padding: 0.35em 0.25em;
-    background: none;
+    padding: 0.5em;
     border: none;
     border-radius: var(--radius-small);
-    font-size: 0.875em;
     font-weight: bold;
     text-align: left;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    /*opacity: 0.85;*/
+    letter-spacing: 0.05em;
+    background-color: var(--color-button-add-background);
+    color: var(--color-button-add-text);
     cursor: pointer;
-    transition: background-color var(--time-transition-medium) ease-in-out;
 }
 
 /* main.css paints every button in the dark theme, and does it with a selector
    heavier than a single class - so the heading has to say so at least as
    loudly, or it comes out as a grey slab across the dialog. */
-html.dark .settings-dialog__category-head,
 html.dark .settings-dialog__category-head:hover,
 html.dark .settings-dialog__category-head:active {
-    background-color: transparent;
+    background-color: var(--color-button-add-background-hover);
+    color: var(--color-button-add-text-hover);
     box-shadow: none;
 }
 
@@ -107,13 +105,14 @@ html.dark .settings-dialog__category-head:active {
     gap: 0.75em;
     padding: 0.5em;
     border-radius: var(--radius-small);
-    background-color: var(--color-button-background);
-    transition: background-color var(--time-transition-medium) ease-in-out;
+    background-color: var(--color-dialog-background);
+    color: var(--color-dialog-text);
     cursor: pointer;
 }
 
 .settings-dialog__row:hover {
-    background-color: var(--color-button-background-hover);
+    background-color: var(--color-button-background-hover-noaccent);
+    color: var(--color-button-text-hover-noaccent);
 }
 
 /* A setting another setting contradicts. The row still says what it is and why
@@ -179,9 +178,13 @@ html.dark .settings-dialog__category-head:active {
 .settings-dialog__slider {
     width: 100%;
     margin: 0.375em 0 0.25em;
-    accent-color: var(--color-button-active-background);
+    accent-color: var(--color-button-add-background);
     cursor: pointer;
 }
+
+/*.settings-dialog__slider:hover {*/
+/*    accent-color: var(--color-button-add-background-hover);*/
+/*}*/
 
 .settings-dialog__slider:disabled {
     opacity: 0.4;

@@ -21,8 +21,10 @@
     color-scheme: light dark;
 
     /* Base theme accent color which will be chosen by the user */
-    --color-theme-accent-background: light-dark(#0036ff, #09F);
-    --color-theme-accent-background-hover: light-dark(#0072ff, #0BF);
+    /*--color-theme-accent-background: light-dark(#0036ff, #09F);*/
+    /*--color-theme-accent-background-hover: light-dark(#0072ff, #0BF);*/
+    --color-theme-accent-background: light-dark(#0036ff, #0036ff);
+    --color-theme-accent-background-hover: light-dark(#0072ff, #0072ff);
     --color-theme-accent-text-hover: light-dark(#fff, #fff);
 
     /* AERO Theme setup */
@@ -45,6 +47,10 @@
     --color-component-background-hover: light-dark(#ccc, #222);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
+    /* Dialogs */
+    --color-dialog-background: light-dark(#bbb, #000);
+    --color-dialog-text: light-dark(#111, #eee);
+
     /* Items layered on background */
     --border-lining-width: 0.125em;
     --border-lining-color: var(--color-document-background);
@@ -53,12 +59,12 @@
     --border-lining-color-inset-active: var(--color-theme-accent-background-hover);
 
     /* Buttons */
-    --color-button-background: light-dark(#999, #444);
+    --color-button-background: light-dark(#aaa, #444);
     --color-button-text: light-dark(#111, #eee);
-    /*--color-button-background-hover: light-dark(#bbb, #555);*/
     --color-button-background-hover: var(--color-theme-accent-background-hover);
-    /*--color-button-text-hover: light-dark(#000, #fff);*/
+    --color-button-background-hover-noaccent: light-dark(#888, #555);
     --color-button-text-hover: var(--color-theme-accent-text-hover);
+    --color-button-text-hover-noaccent: light-dark(#fff, #fff);
     --color-button-active-background: var(--color-theme-accent-background);
     --color-button-active-background-hover: var(--color-theme-accent-background-hover);
     --color-button-active-text: light-dark(#eee, #eee);
@@ -73,11 +79,24 @@
     --color-button-danger-text-hover: light-dark(#fff, #fff);
 
     /* Text, Select inputs */
-    --color-textfield-background: light-dark(#ddd, #444);
+    --color-textfield-background: light-dark(#ddd, #555);
     --color-textfield-text: light-dark(#111, #eee);
     --color-textfield-background-hover: light-dark(#eee, #555);
     --color-textfield-text-hover: light-dark(#000, #fff);
     --color-textfield-border-active: var(--color-theme-accent-background-hover);
+
+    /* Menus */
+    --color-menu-lining: light-dark(#000, #666);
+    --color-menu-shadow: light-dark(#000, #666);
+    --z-index-menus: 103;
+    --z-index-top-panel: 101;
+    --z-index-left-panel: 102;
+    --z-index-dialogs: 104;
+    --closed-tabs-rail: 2.5em;
+    --closed-tabs-open: 22em;
+
+    /* Spacing of widgets on desktop */
+    --widgets-spacing: 0.75em;
 
     /* Other widgets */
     --color-favicon-backdrop: light-dark(#aaa, #555);
@@ -91,10 +110,29 @@
     /* Generic global constants */
     --time-transition-fast: 0.125s;
     --time-transition-medium: 0.25s;
+    --transition-easing-default: ease-in-out;
 
     --radius-small: 0.125em;
     --radius-normal: 0.25em;
+    --radius-bigger: 0.375em;
     --radius-circular: 100%;
+
+    /* Transitions */
+    /*--transition-item-hover:*/
+    /*        background-color var(--time-transition-medium) ease-in-out;*/
+    /*        !*color var(--time-transition-medium) ease;*!*/
+    /*--transition-overlay:*/
+    /*        opacity var(--time-transition-medium) ease,*/
+    /*        display var(--time-transition-medium) allow-discrete;*/
+    /*--transition-shadow:*/
+    /*        box-shadow var(--time-transition-medium) ease-in-out,*/
+    /*        background-color var(--time-transition-medium) ease-in-out;*/
+    /*--transition-width:*/
+    /*        width var(--time-transition-medium) ease-in-out;*/
+    /*--transition-opacity:*/
+    /*        opacity var(--time-transition-medium) ease,*/
+    /*        display var(--time-transition-medium) allow-discrete;*/
+
 
 }
 

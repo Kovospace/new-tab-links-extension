@@ -62,11 +62,9 @@ export const ACT_EDIT_GROUP: string = "action-edit-group";
 export const ACT_ADD_LINK: string = "action-add-link";
 
 // Sub-group component
-export const ACT_EDIT_SUBGROUP: string = "action-edit-subgroup";
 export const ACT_OPEN_ALL_SUBGROUP_LINKS = "action-open-all-subgroup-links"
 export const ACT_SUBGROUP_MOVE_UP: string = "act-subgroup-move-up";
 export const ACT_SUBGROUP_MOVE_DOWN: string = "act-subgroup-move-down";
-export const CLASS_SUBGROUP_MOVE_ACTIONS: string = "cls-subgroup-move-actions";
 
 // Link component
 export const ACT_LINK_MOVE_UP: string = "act-link-move-up";
@@ -100,9 +98,12 @@ export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
 // Subgroup component
 export const CLASS_SUBGROUP_HEAD_TITLE = "cls-subgroup-head-title";
 export const CLASS_SUBGROUP_HEAD_ACTIONS = "cls-subgroup-head-actions";
+export const CLASS_SUBGROUP_HEAD_ACTIONS_COMMON = "cls-subgroup-head-actions-common";
+export const CLASS_SUBGROUP_HEAD_ACTIONS_TOGGLED = "cls-subgroup-head-actions-toggled";
 export const CLASS_SUBGROUP_LINK_COUNT = "cls-subgroup-link-count";
 
 // Link component
+export const CLASS_LINK_WRAPPER = "cls-link-wrapper";
 export const CLASS_LINK_ACTIONS_CONTAINER = "cls-link-actions-container";
 export const CLASS_LINK_TEXT = "cls-link-text";
 export const CLASS_LINK_ICON= "cls-link-icon";
