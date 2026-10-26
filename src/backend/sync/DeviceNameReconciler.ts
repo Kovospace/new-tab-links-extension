@@ -9,16 +9,25 @@ export type DeviceNameVerdict =
     | { kind: "settled" }
 
     /**
-     *  Another device already carries this name and is still signed in. Only the user can say
-     *  what that means, so this is the one case that has to ask.
+     *  Another device already carries this name, and only the user can say what that means: it
+     *  is signed in, or it is signed out while this installation already had a row of its own -
+     *  a sign-in *again*, so the namesake is somebody else, not this place reinstalled (#131).
      */
     | { kind: "taken"; by: UserDeviceDto }
 
     /**
-     *  Another device carries this name but has been signed out. Treated as the same place
-     *  coming back rather than as a clash, so it is adopted without asking and merely reported.
+     *  Another device carries this name, has been signed out, and this installation's row was
+     *  created by this very sign-in. That is what a reinstall looks like, so it is adopted
+     *  without asking and merely reported.
      */
     | { kind: "returning"; to: UserDeviceDto };
+
+/**
+ *  How close a row's first and last use have to be for the row to count as created by the
+ *  sign-in that just happened. Both are stamped by the server in one request, so this is
+ *  slack for nothing but rounding.
+ */
+const JUST_CREATED_MS = 60_000;
 
 /**
  *  Works out what a chosen device name means, and carries out what the user decides.
@@ -85,9 +94,30 @@ export class DeviceNameReconciler {
         if (!namesake) {
             return { kind: "settled" };
         }
-        return namesake.signedIn
-            ? { kind: "taken", by: namesake }
-            : { kind: "returning", to: namesake };
+        if (namesake.signedIn) {
+            return { kind: "taken", by: namesake };
+        }
+        // Signed out. A reinstall only when this installation is new to the account; signing in
+        // again keeps the row it had, and then a signed-out namesake is another device - taking
+        // it over silently would move this installation onto somebody else's row.
+        const ownRow = result.data.find(device => device.id === session.deviceId);
+        return this.isNewlyCreated(ownRow)
+            ? { kind: "returning", to: namesake }
+            : { kind: "taken", by: namesake };
+    }
+
+    /**
+     *  Whether this installation's row was created by the sign-in that just happened. An older
+     *  backend does not say when a row was first seen; it is then taken as new, which is how
+     *  every signed-out namesake was treated before this could be told.
+     */
+    private isNewlyCreated(ownRow: UserDeviceDto | undefined): boolean {
+        if (!ownRow?.firstSeenAt) {
+            return true;
+        }
+        const firstSeen = Date.parse(ownRow.firstSeenAt);
+        const lastUsed = Date.parse(ownRow.lastUsedAt);
+        return Number.isNaN(firstSeen) || Number.isNaN(lastUsed) || lastUsed - firstSeen < JUST_CREATED_MS;
     }
 
     /**

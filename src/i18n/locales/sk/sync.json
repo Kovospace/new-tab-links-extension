@@ -41,7 +41,8 @@
     "message": "„{name}“ je iné zariadenie vo vašom účte a je práve prihlásené. Ak je to toto zariadenie po preinštalovaní, prevezmite ho — zostane vám jeho história a stará inštalácia sa odhlási. Inak zvoľte iný názov alebo nechajte oba: dve zariadenia sa môžu volať rovnako.",
     "takeOver": "Toto je to zariadenie",
     "rename": "Použiť iný názov",
-    "keep": "Nechať oba"
+    "keep": "Nechať oba",
+    "messageSignedOut": "„{name}“ je iné zariadenie vo vašom účte; momentálne je odhlásené. Ak je to toto zariadenie, prevezmite ho – zachováte jeho históriu. Inak zvoľte iný názov alebo si nechajte oba: dve zariadenia môžu mať rovnaký názov."
   },
   "deviceTakenOver": "Toto zariadenie sa teraz volá „{name}“ a inštalácia, ktorá názov držala, bola odhlásená.",
   "renameDeviceDialog": {

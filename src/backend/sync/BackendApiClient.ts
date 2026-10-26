@@ -83,7 +83,14 @@ export interface UserDeviceDto {
     browserName: string;
     lastUsedAt: string;
 
-    /** Whether that device still holds a usable session. A clash only matters when it does. */
+    /**
+     *  When the account first saw this device. Beside `lastUsedAt` it says whether a row was
+     *  created by the sign-in that just happened - both are the server's own clock, set together.
+     *  Absent from an older backend.
+     */
+    firstSeenAt?: string;
+
+    /** Whether that device still holds a usable session. */
     signedIn: boolean;
 }
 

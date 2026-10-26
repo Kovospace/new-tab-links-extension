@@ -39,7 +39,8 @@
     "message": "\"{name}\" is another device on your account, and it is signed in right now. If that device is this one, reinstalled, take it over - you keep its history and the old installation is signed out. Otherwise pick a different name, or keep both: two devices are allowed to share a name.",
     "takeOver": "This is that device",
     "rename": "Use another name",
-    "keep": "Keep both"
+    "keep": "Keep both",
+    "messageSignedOut": "\"{name}\" is another device on your account; it is signed out at the moment. If that device is this one, take it over - you keep its history. Otherwise pick a different name, or keep both: two devices are allowed to share a name."
   },
   "deviceTakenOver": "This device is now \"{name}\", and the installation that held it has been signed out.",
   "renameDeviceDialog": {
