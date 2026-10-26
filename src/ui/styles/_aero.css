@@ -123,10 +123,6 @@
     transform: translateZ(0);
 }
 
-:root[data-theme-style="aero"] workspace-plane-body > link-group::before {
-    /*--aero-frame-width: 0.25em;*/
-}
-
 /* ── Menus, suggestions, dialogs ────────────────────────────────────────── */
 
 /* The application menu and every group's, subgroup's and link's menu, and the

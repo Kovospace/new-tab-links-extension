@@ -36,7 +36,7 @@ workspace-plane-head {
     margin-left: 1em;
     background-color: var(--color-component-background);
     border-radius: 3em;
-    width: fit-content;
+    width: max-content;
     /*
        The search bar in the workspace heading: [engine ▾] [query] [search].
 
@@ -150,6 +150,7 @@ workspace-plane-footer {
     flex-shrink: 0;
     flex-basis: auto;
     justify-content: end;
+    padding: 0 1em;
 }
 
 workspace-plane-footer > div {
