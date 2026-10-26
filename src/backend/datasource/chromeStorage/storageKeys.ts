@@ -94,12 +94,19 @@ export const NEW_TAB_USAGE_KEY = "new_tab_usage";
 export const ACCOUNT_STANDING_KEY = "account_standing";
 
 /**
- *  The picture a premium user put behind the new tab page, as a data URL, or nothing. A key of
- *  its own rather than a field of the device preferences: it is the one thing here measured in
- *  hundreds of kilobytes, and every read of the preferences would otherwise carry it.
- *  Per device and never synchronised - see `BackgroundImageRepository`.
+ *  The picture behind the new tab page, as a data URL, or nothing. A key of its own rather than
+ *  a field of the device preferences: it is the one thing here measured in hundreds of kilobytes,
+ *  and every read of the preferences would otherwise carry it. Per device and never synchronised
+ *  - see `BackgroundImageRepository`. Only the picture in use is here; the library of pictures to
+ *  choose from is in IndexedDB (`BackgroundLibraryRepository`).
  */
 export const BACKGROUND_IMAGE_KEY = "background_image";
+
+/** Which tile of the background library is the picture in use - its id - or nothing. */
+export const BACKGROUND_SELECTED_KEY = "background_selected";
+
+/** The built-in pictures removed from the library on this device, by id. */
+export const BACKGROUND_HIDDEN_BUILT_INS_KEY = "background_hidden_built_ins";
 
 /**
  * What this installation last reported to the account about what it holds - the account and a

@@ -6,7 +6,8 @@
     "uiAndBehavior": "Vzhľad a správanie",
     "languageAndLocalCustoms": "Jazyk a miestne zvyklosti",
     "privacy": "Synchronizácia a súkromie",
-    "search": "Vyhľadávanie"
+    "search": "Vyhľadávanie",
+    "background": "Pozadie"
   },
   "enableDragAndDrop": {
     "title": "Zapnúť ťahanie myšou",
@@ -49,11 +50,14 @@
   },
   "backgroundImage": {
     "title": "Pozadie",
-    "explanation": "Dajte za stránku vlastný obrázok namiesto loga v rohu. Pokryje celé okno a uchováva sa len v tomto zariadení.",
-    "choose": "Vybrať obrázok…",
-    "change": "Zmeniť obrázok…",
-    "remove": "Odstrániť",
-    "failed": "Tento súbor sa nedá použiť ako pozadie. Skúste iný obrázok."
+    "explanation": "Vyberte obrázok za stránku alebo pridajte vlastný. Obrázky sa uchovávajú len v tomto zariadení a × ho odstráni zo zoznamu.",
+    "none": "Žiadne",
+    "tile": "Pozadie {number}",
+    "add": "Pridať vlastný obrázok…",
+    "remove": "Odstrániť zo zoznamu",
+    "failed": "Tento súbor sa nedá použiť ako pozadie. Skúste iný obrázok.",
+    "downloadFailed": "Obrázok sa nepodarilo stiahnuť. Skontrolujte pripojenie a skúste to znova.",
+    "noRoom": "Tento obrázok sa nepodarilo uložiť: prehliadač preň nemá miesto. Odstráňte zo zoznamu niektoré vlastné obrázky a skúste to znova."
   },
   "bookmarkShortcut": {
     "title": "Skratka na uloženie stránky",

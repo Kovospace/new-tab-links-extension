@@ -61,6 +61,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Manifest, host permissions | `../public/manifest.json` |
 | The extension's icon (toolbar, context menu, tab) | `../public/icons/` - rendered from the logo SVG |
 | What is behind the page - the user's own picture (any account), on a fixed layer of its own | `ui/partials/pageBackground.ts`, `backend/repository/BackgroundImageRepository.ts`, `utils/imageDownscale.ts` |
+| Background library - built-in pictures (thumbnails bundled, full size on the website), the user's uploads in IndexedDB, Settings' tile grid | `backend/entity/BuiltInBackgrounds.ts`, `backend/repository/BackgroundLibraryRepository.ts`, `backend/repository/BackgroundUploadStore.ts`, `public/backgrounds/`, `ui/partials/settingsDialog.ts` (`buildImage`) |
 
 ## Files big enough to read by range
 
