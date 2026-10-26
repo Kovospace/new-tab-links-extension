@@ -211,12 +211,79 @@ html.dark .settings-dialog__category-head:active {
     cursor: help;
 }
 
-.settings-dialog__image-actions {
-    display: flex;
-    gap: 0.5em;
-    margin: 0.25em 0;
-}
-
 .settings-dialog__row--image {
     cursor: default;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5em;
+}
+
+/*
+   The background library (#127): tiles of the window's own proportions, as many to a row as fit.
+   A tile is its picture and nothing else - they are offered unnamed.
+*/
+.background-library {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8em, 1fr));
+    gap: 0.5em;
+}
+
+.background-library__tile {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-normal);
+    background-color: var(--color-component-background-hover);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    box-shadow: 0 0 0 0.0625em var(--color-component-framing);
+    transition: box-shadow var(--time-transition-fast) ease-in-out;
+}
+
+.background-library__tile:hover,
+.background-library__tile:focus-visible {
+    box-shadow: 0 0 0 0.125em var(--color-component-framing);
+    outline: none;
+}
+
+.background-library__tile--selected,
+.background-library__tile--selected:hover {
+    box-shadow: 0 0 0 0.1875em var(--color-button-active-background);
+}
+
+/* Downloading a built-in picture: a few megabytes, so the tile says it is on its way. */
+.background-library__tile--loading {
+    opacity: 0.5;
+    cursor: progress;
+}
+
+button.background-library__tile--add {
+    margin: 0;
+    font-size: 1.75em;
+    font-weight: normal;
+}
+
+/* The x: in the corner, and only when the tile is pointed at or focused, so the pictures read
+   as pictures rather than as a column of delete buttons. */
+button.background-library__remove {
+    position: absolute;
+    top: 0.25em;
+    right: 0.25em;
+    margin: 0;
+    min-width: 1.5em;
+    height: 1.5em;
+    padding: 0;
+    border-radius: var(--radius-circular);
+    line-height: 1;
+    opacity: 0;
+    transition: opacity var(--time-transition-fast) ease-in-out;
+}
+
+.background-library__tile:hover > button.background-library__remove,
+.background-library__tile:focus-within > button.background-library__remove {
+    opacity: 1;
 }

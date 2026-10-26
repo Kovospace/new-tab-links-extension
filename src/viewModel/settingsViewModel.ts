@@ -15,9 +15,9 @@ import { t } from "../i18n/i18n";
 import { openShortcutsPage, readBookmarkShortcut, SHORTCUTS_PAGE } from "../utils/extensionShortcuts";
 import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
 import {
-    BackgroundImageRepository, backgroundImageRepository
-} from "../backend/repository/BackgroundImageRepository";
-import { downscaleImage } from "../utils/imageDownscale";
+    BackgroundLibraryRepository, backgroundLibraryRepository
+} from "../backend/repository/BackgroundLibraryRepository";
+import { downscaleImage, THUMBNAIL_SIDE } from "../utils/imageDownscale";
 import { engineDTO } from "./searchBarViewModel";
 import { AUTOMATIC_LANGUAGE, baseLanguageOf, browserLanguageTag, SUPPORTED_LANGUAGES }
     from "../i18n/languages";
@@ -120,13 +120,27 @@ export interface SettingOptionDTO {
     label: string;
 }
 
-/** A setting that is a picture: chosen from a file, or taken away again. Open to every account. */
+/** One tile of the background library. */
+export interface BackgroundTileDTO {
+    id: string;
+    /** What the tile shows: an extension path or a data URL. */
+    thumbnail: string;
+    /** Whether it is the picture behind the page now. */
+    selected: boolean;
+}
+
+/**
+ *  The background: a library of pictures to choose from as tiles - the built-in ones and the
+ *  user's own - with "none" and "add your own" beside them (#127). Open to every account.
+ */
 export interface ImageSettingDTO extends SettingCommonDTO {
     kind: "image";
     /** Which setting this is. One so far. */
     key: ImageSettingKey;
-    /** Whether a picture is stored, which is what offers "remove". */
-    hasImage: boolean;
+    /** The user's own pictures first, newest first, then the built-in ones not removed. */
+    tiles: BackgroundTileDTO[];
+    /** Whether no picture is behind the page. */
+    noneSelected: boolean;
 }
 
 /**
@@ -229,8 +243,15 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "range", key: "uiScale", wording: "uiScale" },
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
             { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
-            { kind: "image", key: "backgroundImage", wording: "backgroundImage" },
             { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" }
+        ]
+    },
+    {
+        // A section of its own: the library of pictures is a grid of tiles, not a row.
+        key: "background",
+        wording: "background",
+        settings: [
+            { kind: "image", key: "backgroundImage", wording: "backgroundImage" }
         ]
     },
     {
@@ -296,7 +317,7 @@ export class SettingsViewModel {
 
     private readonly profiles: ProfileRepository;
     private readonly devicePreferences: DevicePreferencesRepository;
-    private readonly backgroundImages: BackgroundImageRepository;
+    private readonly backgrounds: BackgroundLibraryRepository;
     private readonly shortcutReader: () => Promise<string | null>;
 
     /** What saving a page is bound to, as last read; Chrome answers asynchronously. */
@@ -313,19 +334,28 @@ export class SettingsViewModel {
     /**
      *  @param profiles          the profile registry; the singleton in normal use
      *  @param devicePreferences what this browser prefers, which the profile has no say in
-     *  @param backgroundImages  the picture behind the page, kept on this device
+     *  @param backgrounds       the library of pictures behind the page, kept on this device
      *  @param shortcutReader    reads the bookmarking shortcut; injectable for testing
      */
     constructor(
         profiles: ProfileRepository = profileRepository,
         devicePreferences: DevicePreferencesRepository = devicePreferencesRepository,
-        backgroundImages: BackgroundImageRepository = backgroundImageRepository,
+        backgrounds: BackgroundLibraryRepository = backgroundLibraryRepository,
         shortcutReader: () => Promise<string | null> = readBookmarkShortcut
     ) {
         this.shortcutReader = shortcutReader;
         this.profiles = profiles;
         this.devicePreferences = devicePreferences;
-        this.backgroundImages = backgroundImages;
+        this.backgrounds = backgrounds;
+        this.backgrounds.tiles$.subscribe(() => this.refresh());
+    }
+
+    /**
+     *  Reads the background library. Done when Settings opens rather than with every new tab:
+     *  nothing else shows it, and it is a database to open.
+     */
+    public async loadBackgrounds(): Promise<void> {
+        await this.backgrounds.init();
     }
 
     /** Loads the active profile's settings into the observable. */
@@ -487,28 +517,47 @@ export class SettingsViewModel {
     }
 
     /**
-     *  Puts a picture behind the page, shrunk first so that storage can hold it. Any account
-     *  may; it was premium-only until the aero style made it the point of the page's look.
+     *  Adds a picture of the user's own to the library, shrunk first, and puts it behind the
+     *  page. Any account may.
      *
      *  @param file the picture the user chose
      *  @return whether it was stored; false when it could not be read
      */
     public async setBackgroundImage(file: Blob): Promise<boolean> {
         try {
-            await this.backgroundImages.setImage(await downscaleImage(file));
+            const [image, thumbnail] = await Promise.all([
+                downscaleImage(file), downscaleImage(file, THUMBNAIL_SIDE)]);
+            await this.backgrounds.add(image, thumbnail);
             return true;
         } catch (error) {
             this.LOG.warn("setBackgroundImage", `could not use the picture: ${error}`);
             return false;
-        } finally {
-            this.refresh();
         }
     }
 
-    /** Takes the picture away, which brings the logo back. */
-    public async clearBackgroundImage(): Promise<void> {
-        await this.backgroundImages.clear();
-        this.refresh();
+    /**
+     *  Puts a tile's picture behind the page.
+     *
+     *  @param id the tile; null for no picture at all
+     *  @return false when it could not be had - a built-in one is downloaded, and needs a connection
+     */
+    public async chooseBackground(id: string | null): Promise<boolean> {
+        try {
+            if (id === null) {
+                await this.backgrounds.chooseNone();
+            } else {
+                await this.backgrounds.choose(id);
+            }
+            return true;
+        } catch (error) {
+            this.LOG.warn("chooseBackground", `could not use ${id}: ${error}`);
+            return false;
+        }
+    }
+
+    /** Takes a tile out of the library - and its picture from behind the page, if it is there. */
+    public async removeBackground(id: string): Promise<void> {
+        await this.backgrounds.remove(id);
     }
 
     /**
@@ -597,7 +646,8 @@ export class SettingsViewModel {
                 key: definition.key,
                 title,
                 explanation,
-                hasImage: this.backgroundImages.getImage() !== null,
+                tiles: this.backgrounds.tiles$.get().map(({ id, thumbnail, selected }) => ({ id, thumbnail, selected })),
+                noneSelected: !this.backgrounds.tiles$.get().some(tile => tile.selected),
                 disabledReason: null
             };
         }

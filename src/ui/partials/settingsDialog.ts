@@ -78,8 +78,8 @@ export class SettingsDialog {
    */
   private readonly regainedFocus = () => void this.viewModel.refreshShortcut();
 
-  /** Set when the last picture chosen could not be used; said under the setting until the next. */
-  private imageFailed = false;
+  /** Why the last background could not be used - a file that is not a picture, a download that failed. */
+  private backgroundProblem: string | null = null;
 
   /**
    * @param viewModel supplies the settings and stores the changes; injectable for testing
@@ -109,6 +109,7 @@ export class SettingsDialog {
       this.viewModel.refresh();
     }
     void this.viewModel.refreshShortcut();
+    void this.viewModel.loadBackgrounds();
     window.addEventListener('focus', this.regainedFocus);
   }
 
@@ -394,29 +395,21 @@ export class SettingsDialog {
   }
 
   /**
-   * A setting that is a picture: its name, a button that opens a file picker, and - once there
-   * is one - a button that takes it away.
+   * The background library (#127): tiles to choose the picture behind the page from - "none",
+   * the user's own pictures, the built-in ones - and one to add a picture of their own. Every
+   * picture tile has an x that takes it out of the library.
+   *
+   * The tiles carry no names: they are offered as pictures. A built-in one is downloaded when
+   * chosen, so its tile shows that it is loading, and the row says so if it could not be had.
    */
   private buildImage(setting: ImageSettingDTO): HTMLElement {
 
     const row = document.createElement('div');
     row.classList.add('settings-dialog__row', 'settings-dialog__row--image');
-    if (setting.disabledReason) {
-      row.classList.add('settings-dialog__row--disabled');
-      row.title = setting.disabledReason;
-    }
 
-    const text = document.createElement('div');
-    text.classList.add('settings-dialog__text');
-
-    const heading = document.createElement('div');
-    heading.classList.add('settings-dialog__range-heading');
-
-    const title = document.createElement('span');
-    title.classList.add('settings-dialog__name');
-    title.textContent = setting.title;
-
-    heading.appendChild(title);
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = this.backgroundProblem ?? setting.explanation;
 
     const picker = document.createElement('input');
     picker.type = 'file';
@@ -427,47 +420,101 @@ export class SettingsDialog {
       if (file) void this.answerImage(file);
     });
 
-    const actions = document.createElement('div');
-    actions.classList.add('settings-dialog__image-actions');
+    const grid = document.createElement('div');
+    grid.classList.add('background-library');
+    grid.setAttribute('role', 'listbox');
+    grid.setAttribute('aria-label', setting.title);
 
-    const choose = document.createElement('button');
-    choose.type = 'button';
-    choose.classList.add('add');
-    choose.textContent = t(setting.hasImage
-      ? 'settings.backgroundImage.change' : 'settings.backgroundImage.choose');
-    choose.disabled = Boolean(setting.disabledReason);
-    choose.addEventListener('click', () => picker.click());
-    actions.appendChild(choose);
+    grid.appendChild(this.backgroundTile({
+      label: t('settings.backgroundImage.none'),
+      selected: setting.noneSelected,
+      onChoose: this.chooseBackground(null),
+      extraClass: 'background-library__tile--none'
+    }));
+    setting.tiles.forEach((tile, index) => grid.appendChild(this.backgroundTile({
+      label: t('settings.backgroundImage.tile', { number: index + 1 }),
+      thumbnail: tile.thumbnail,
+      selected: tile.selected,
+      onChoose: this.chooseBackground(tile.id),
+      onRemove: () => void this.viewModel.removeBackground(tile.id)
+    })));
 
-    if (setting.hasImage) {
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.classList.add('danger');
-      remove.textContent = t('settings.backgroundImage.remove');
-      remove.addEventListener('click', () => {
-        this.imageFailed = false;
-        void this.viewModel.clearBackgroundImage();
-      });
-      actions.appendChild(remove);
-    }
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.classList.add('background-library__tile', 'background-library__tile--add');
+    add.textContent = '+';
+    add.title = t('settings.backgroundImage.add');
+    add.setAttribute('aria-label', t('settings.backgroundImage.add'));
+    add.addEventListener('click', () => picker.click());
+    grid.appendChild(add);
 
-    const explanation = document.createElement('span');
-    explanation.classList.add('settings-dialog__explanation');
-    explanation.textContent = this.imageFailed
-      ? t('settings.backgroundImage.failed')
-      : setting.disabledReason ?? setting.explanation;
-
-    text.appendChild(heading);
-    text.appendChild(actions);
-    text.appendChild(picker);
-    text.appendChild(explanation);
-    row.appendChild(text);
+    row.append(explanation, grid, picker);
     return row;
   }
 
-  /** Stores the chosen picture, and says so under the setting if it could not be used. */
+  /** One tile of the library: a picture - or "none" - to choose, and an x to remove it. */
+  private backgroundTile(tile: {
+    label: string;
+    thumbnail?: string;
+    selected: boolean;
+    onChoose: (element: HTMLElement) => Promise<void>;
+    onRemove?: () => void;
+    extraClass?: string;
+  }): HTMLElement {
+    const element = document.createElement('div');
+    element.classList.add('background-library__tile');
+    if (tile.extraClass) element.classList.add(tile.extraClass);
+    element.classList.toggle('background-library__tile--selected', tile.selected);
+    element.setAttribute('role', 'option');
+    element.setAttribute('aria-selected', String(tile.selected));
+    element.setAttribute('aria-label', tile.label);
+    element.tabIndex = 0;
+    if (tile.thumbnail) {
+      element.style.backgroundImage = `url("${tile.thumbnail}")`;
+    } else {
+      element.textContent = tile.label;
+    }
+    const choose = () => void tile.onChoose(element);
+    element.addEventListener('click', choose);
+    element.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        choose();
+      }
+    });
+
+    if (tile.onRemove) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.classList.add('background-library__remove', 'danger');
+      remove.textContent = ICON.DELETE;
+      remove.title = t('settings.backgroundImage.remove');
+      remove.setAttribute('aria-label', t('settings.backgroundImage.remove'));
+      remove.addEventListener('click', event => {
+        event.stopPropagation();       // removing is not choosing
+        this.backgroundProblem = null;
+        tile.onRemove!();
+      });
+      element.appendChild(remove);
+    }
+    return element;
+  }
+
+  /** Puts a tile's picture behind the page; a built-in one is downloaded, which can fail. */
+  private chooseBackground(id: string | null): (element: HTMLElement) => Promise<void> {
+    return async element => {
+      element.classList.add('background-library__tile--loading');
+      const done = await this.viewModel.chooseBackground(id);
+      element.classList.remove('background-library__tile--loading');
+      this.backgroundProblem = done ? null : t('settings.backgroundImage.downloadFailed');
+      this.viewModel.refresh();
+    };
+  }
+
+  /** Adds the chosen picture to the library, and says so under the setting if it could not be used. */
   private async answerImage(file: File): Promise<void> {
-    this.imageFailed = !(await this.viewModel.setBackgroundImage(file));
+    const done = await this.viewModel.setBackgroundImage(file);
+    this.backgroundProblem = done ? null : t('settings.backgroundImage.failed');
     this.viewModel.refresh();
   }
 

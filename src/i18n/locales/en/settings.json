@@ -6,7 +6,8 @@
     "uiAndBehavior": "UI and behavior",
     "languageAndLocalCustoms": "Language & local customs",
     "privacy": "Sync & privacy",
-    "search": "Search"
+    "search": "Search",
+    "background": "Background"
   },
   "enableDragAndDrop": {
     "title": "Enable drag & drop",
@@ -49,11 +50,13 @@
   },
   "backgroundImage": {
     "title": "Background",
-    "explanation": "Put a picture of your own behind the page, in place of the logo in the corner. It covers the whole window and is kept on this device only.",
-    "choose": "Choose picture…",
-    "change": "Change picture…",
-    "remove": "Remove",
-    "failed": "That file could not be used as a background. Try another picture."
+    "explanation": "Choose a picture to put behind the page, or add one of your own. Pictures are kept on this device only, and × takes one out of the list.",
+    "none": "None",
+    "tile": "Background {number}",
+    "add": "Add your own picture…",
+    "remove": "Remove from the list",
+    "failed": "That file could not be used as a background. Try another picture.",
+    "downloadFailed": "That picture could not be downloaded. Check the connection and try again."
   },
   "bookmarkShortcut": {
     "title": "Shortcut to save a page",

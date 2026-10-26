@@ -8,6 +8,10 @@ import { readVisits, recordVisit } from "../../src/backend/repository/VisitsRepo
 import {
     DevicePreferencesRepository, MAX_SCALE, MIN_SCALE, SCALE_STEP
 } from "../../src/backend/repository/DevicePreferencesRepository";
+import { BackgroundImageRepository } from "../../src/backend/repository/BackgroundImageRepository";
+import { BackgroundLibraryRepository } from "../../src/backend/repository/BackgroundLibraryRepository";
+import { BUILT_IN_BACKGROUNDS } from "../../src/backend/entity/BuiltInBackgrounds";
+import { memoryBackgroundUploads } from "../support/memoryBackgroundUploads";
 
 /**
  *  The settings screen is a list of categories over a profile's record. Two things about it
@@ -597,25 +601,45 @@ describe("SettingsViewModel, the theme style", () => {
 
 
 /** The background picture is open to every account: no premium check, nothing greyed out. */
-describe("SettingsViewModel, the background picture", () => {
+describe("SettingsViewModel, the background library", () => {
 
-    it("is offered and stored for an account that is not premium", async () => {
+    it("is a section of its own, open to every account, listing the pictures as tiles", async () => {
         const profiles = new ProfileRepository();
         await profiles.init();
         const devicePreferences = new DevicePreferencesRepository();
         await devicePreferences.init();
-        const stored: string[] = [];
-        const images = {
-            getImage: () => stored[0] ?? null,
-            setImage: async (image: string) => { stored.push(image); },
-            clearImage: async () => undefined
-        };
-        const settings = new SettingsViewModel(profiles, devicePreferences, images as never);
-        settings.refresh();
+        const images = new BackgroundImageRepository();
+        await images.init();
+        const library = new BackgroundLibraryRepository(images, memoryBackgroundUploads(), async () => "data:x");
+        const settings = new SettingsViewModel(profiles, devicePreferences, library);
+        await settings.loadBackgrounds();
 
-        const picture = settings.observables.settings.get().categories[0].settings
-            .find(setting => setting.kind === "image");
-        expect(picture).toMatchObject({ disabledReason: null });
-        expect(picture).not.toHaveProperty("tooltip");
+        const section = settings.observables.settings.get().categories.find(category => category.key === "background")!;
+        const picture = section.settings[0];
+        expect(picture).toMatchObject({ kind: "image", disabledReason: null, noneSelected: true });
+        if (picture.kind === "image") {
+            expect(picture.tiles).toHaveLength(BUILT_IN_BACKGROUNDS.length);
+        }
+
+        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[2].id)).toBe(true);
+        const chosen = settings.observables.settings.get().categories
+            .find(category => category.key === "background")!.settings[0];
+        expect(chosen).toMatchObject({ noneSelected: false });
+    });
+
+    it("says a built-in picture could not be had, rather than throwing", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        const images = new BackgroundImageRepository();
+        await images.init();
+        const offline = new BackgroundLibraryRepository(images, memoryBackgroundUploads(),
+            async () => { throw new Error("offline"); });
+        const settings = new SettingsViewModel(profiles, devicePreferences, offline);
+        await settings.loadBackgrounds();
+
+        expect(await settings.chooseBackground(BUILT_IN_BACKGROUNDS[0].id)).toBe(false);
+        expect(images.getImage()).toBeNull();
     });
 });

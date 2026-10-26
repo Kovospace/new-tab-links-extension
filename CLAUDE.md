@@ -794,6 +794,16 @@ with `background-attachment: fixed`. Chrome cannot composite a fixed background:
 behind every hover was repainted, at low quality while the transition ran and full quality when
 it ended - a flash at the end of every hover, in either style. `test/ui/partials/pageBackground.test.ts`.
 
+**The background is chosen from a library** (#127; Settings → Background, a section of tiles).
+Sixteen built-in pictures - eight themes, a photo and a drawing each, from Unsplash under its
+licence, numbered and never named - plus the user's own, each removable. **The thumbnail ships,
+the picture does not**: the 384x216 thumbnails are in `public/backgrounds/NN.webp`, the 3840x2160
+pictures on the website under the same name (`buildWebsiteUrl`), downloaded once when chosen.
+**Only the picture in use lives in `chrome.storage.local`** (`BACKGROUND_IMAGE_KEY`, so a new tab
+draws it at once); the library is IndexedDB (`BackgroundUploadStore`), loaded when Settings
+opens. Removing a built-in picture hides it on this device. A picture in use from before the
+library becomes its first upload. Uploads are kept at 3840px as WebP.
+
 **The page-wide button hover weighs nothing extra**: `html.dark button:hover:where(:not(:disabled))`.
 A bare `:not(:disabled)` adds a class's worth and beat every component's own hover
 (`html.dark .x:hover`), painting those buttons grey (`test/ui/styles/buttonHover.test.ts`).

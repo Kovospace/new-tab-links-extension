@@ -40,6 +40,19 @@ export class IndexedDB {
     });
   }
 
+  /** Every value in a namespace, in key order. */
+  static async getAllFromDB<T>(namespace: string): Promise<T[]> {
+    const db = await this.openDB(namespace);
+
+    return new Promise(resolve => {
+      const tx = db.transaction(namespace, "readonly");
+      const req = tx.objectStore(namespace).getAll();
+
+      req.onsuccess = () => resolve((req.result ?? []) as T[]);
+      req.onerror = () => resolve([]);
+    });
+  }
+
   static async deleteFromDB(key: string, namespace: string): Promise<void> {
     const db = await this.openDB(namespace);
 
