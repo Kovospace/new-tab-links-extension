@@ -44,6 +44,12 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     private currentWorkspaceId: string = "";
 
+    /**
+     *  The workspace's name and description while they are being edited in place: the menu item
+     *  that started it, and the text from before, for Escape to put back. Null otherwise.
+     */
+    private renaming: { menuItem: HTMLElement; title: string; description: string } | null = null;
+
     /** The recently closed tabs rail, and the button that holds it open. */
     private closedTabsPanel: ClosedTabsPanel | null = null;
     private closedTabsButton: HTMLButtonElement | null = null;
@@ -492,6 +498,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         const titleSectionElem: HTMLElement = renderContainer([CLASS_WORKSPACE_HEAD_TITLE]);
         const actionsSectionElem: HTMLElement = renderContainer([CLASS_WORKSPACE_HEAD_ACTIONS]);
+        // A redraw replaces the name, the description and the menu: an edit in progress ends.
+        this.renaming = null;
 
         // title
         titleSectionElem.appendChild(renderTextContainer("h1", workspace.title));
@@ -606,21 +614,74 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         this.closedTabsPanel?.togglePinned();
     }
 
+    /** "Edit title" starts editing the name in place; the same item, now "Save title", ends it. */
     private toggleWorkspaceTitleEditable(menuItem: HTMLElement) {
-
-        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
-        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h1")[0];
-        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
-
-        menuItem.classList.toggle("active");
-        titleElem.toggleAttribute('contentEditable');
-        titleElem.classList.toggle("editable");
-        descriptionElem.toggleAttribute('contentEditable');
-        descriptionElem.classList.toggle("editable");
-        if (menuItem.classList.contains("active")) {
-            setTimeout(() => { menuItem.textContent = t("workspace.menu.saveTitle") }, 250);
+        if (this.renaming) {
+            this.finishRenamingWorkspace(true);
         } else {
-            setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+            this.startRenamingWorkspace(menuItem);
+        }
+    }
+
+    /** The name and description elements of the heading as it is drawn now. */
+    private workspaceTitleElements(): { titleElem: HTMLElement; descriptionElem: HTMLElement } {
+        const container = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
+        return {
+            titleElem: container.querySelector(":scope > h1") as HTMLElement,
+            descriptionElem: container.querySelector(":scope > span") as HTMLElement
+        };
+    }
+
+    private startRenamingWorkspace(menuItem: HTMLElement): void {
+        const { titleElem, descriptionElem } = this.workspaceTitleElements();
+        this.renaming = {
+            menuItem,
+            title: titleElem.textContent ?? "",
+            description: descriptionElem.textContent ?? ""
+        };
+        for (const elem of [titleElem, descriptionElem]) {
+            elem.setAttribute("contenteditable", "true");
+            elem.classList.add("editable");
+        }
+        menuItem.classList.add("active");
+        setTimeout(() => { menuItem.textContent = t("workspace.menu.saveTitle") }, 250);
+
+        // Straight into the name, all of it selected, as a rename dialog would start.
+        titleElem.focus();
+        const selection = window.getSelection();
+        if (selection) {
+            const range = document.createRange();
+            range.selectNodeContents(titleElem);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    }
+
+    /**
+     *  Ends editing the name in place.
+     *
+     *  @param save true stores what was typed; false - Escape - puts back the text from before
+     */
+    private finishRenamingWorkspace(save: boolean): void {
+        if (!this.renaming) {
+            return;
+        }
+        const { menuItem, title, description } = this.renaming;
+        this.renaming = null;
+        const { titleElem, descriptionElem } = this.workspaceTitleElements();
+
+        for (const elem of [titleElem, descriptionElem]) {
+            elem.removeAttribute("contenteditable");
+            elem.classList.remove("editable");
+        }
+        menuItem.classList.remove("active");
+        setTimeout(() => { menuItem.textContent = menuItem.getAttribute('defaultText') }, 250);
+
+        if (save) {
+            this.VIEW_MODEL.editWorkspaceTitle(this.id, titleElem.textContent ?? "", descriptionElem.textContent ?? "");
+        } else {
+            titleElem.textContent = title;
+            descriptionElem.textContent = description;
         }
     }
 
@@ -630,33 +691,36 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         this.addGroupDialog.show();
     }
 
+    /**
+     *  How editing the name in place ends (#117): focus leaving the name and description - a click
+     *  anywhere outside them - or Enter saves; Escape puts the old text back. Moving between the
+     *  name and the description is still editing. Attached again on every redraw, since the
+     *  heading is built anew; an edit is only ever finished once (`finishRenamingWorkspace`).
+     */
     private listenerChangeWorkspaceName() {
+        const { titleElem, descriptionElem } = this.workspaceTitleElements();
 
-        const titleAndDescParentContainer = this.getElementsByClassName(CLASS_WORKSPACE_HEAD_TITLE)[0];
-        const titleElem = titleAndDescParentContainer.querySelectorAll(":scope > h1")[0];
-        const descriptionElem = titleAndDescParentContainer.querySelectorAll(":scope > span")[0];
-
-        titleElem.addEventListener('keydown', (e) => {
-            //TODO
-            // if (e.key === 'Enter') {
-            //     e.preventDefault(); // prevent new lines
-            // }
-        })
-
-        titleElem.addEventListener('blur', () => {
-            this.VIEW_MODEL.editWorkspaceTitle(this.id, titleElem.textContent, descriptionElem.textContent);
-        });
-
-        descriptionElem.addEventListener('keydown', (e) => {
-            //TODO
-            // if (e.key === 'Enter') {
-            //     e.preventDefault(); // prevent new lines
-            // }
-        })
-
-        descriptionElem.addEventListener('blur', () => {
-            this.VIEW_MODEL.editWorkspaceTitle(this.id, titleElem.textContent, descriptionElem.textContent);
-        });
+        for (const elem of [titleElem, descriptionElem]) {
+            elem.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (!this.renaming) {
+                    return;
+                }
+                if (event.key === 'Enter') {
+                    event.preventDefault();     // a name is one line
+                    this.finishRenamingWorkspace(true);
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    this.finishRenamingWorkspace(false);
+                }
+            });
+            elem.addEventListener('focusout', (event: FocusEvent) => {
+                const goingTo = event.relatedTarget;
+                if (goingTo === titleElem || goingTo === descriptionElem) {
+                    return;
+                }
+                this.finishRenamingWorkspace(true);
+            });
+        }
     }
 
 }
