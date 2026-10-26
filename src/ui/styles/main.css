@@ -342,7 +342,7 @@ html.dark .editable:hover {
 }
 
 /*
-   Every favicon sits on a mid-grey disc (--color-favicon-backdrop), so an icon drawn white -
+   Every favicon sits on a disc, so an icon drawn white -
    or black - is never the colour of whatever it is on. The inset keeps a square icon's
    corners inside the circle: at 15% of the icon on each side its diagonal is 0.7 x sqrt(2) =
    0.99 of the disc, so border-radius has nothing of the icon to cut off. box-sizing is
@@ -357,7 +357,10 @@ link-container > div > div.cls-link-icon > img,
 .closed-tabs__favicon,
 .bookmark-panel__icon > img {
     border-radius: 50%;
-    background-color: var(--color-favicon-backdrop);
+    /* The icon's own disc - its dominant hue, calmed, lightness opposite to the icon's - set on
+       the img by utils/faviconBackdrop.ts once it has loaded; the grey until then, and for an
+       icon whose pixels the browser will not hand over (#132). */
+    background-color: var(--favicon-backdrop, var(--color-favicon-backdrop));
     object-fit: contain;
 }
 

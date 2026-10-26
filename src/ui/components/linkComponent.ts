@@ -14,6 +14,7 @@ import {
 
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
+import { followFaviconBackdrop } from "../../utils/faviconBackdrop";
 import { contextMenu, ContextMenuAction } from "../partials/contextMenu";
 import {InputDialog} from "../partials/inputDialog";
 import {
@@ -100,6 +101,8 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
         FaviconsHandler
             .handleIconDownloadAndCache(anchor.href)
             .then(iconSrc => { if (iconSrc) img.src = iconSrc; });
+        // A disc of the icon's own colour behind it, once the real icon is in (#132).
+        followFaviconBackdrop(img);
 
         faviconDiv.appendChild(img);
 

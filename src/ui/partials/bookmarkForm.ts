@@ -1,4 +1,5 @@
 import { BookmarkRequest } from '../../utils/bookmarkRequest';
+import { followFaviconBackdrop } from '../../utils/faviconBackdrop';
 import {
   BookmarkDestination, BookmarkPlace, BookmarkTargetDTO, BookmarkViewModel
 } from '../../viewModel/bookmarkViewModel';
@@ -178,6 +179,7 @@ export class BookmarkForm {
     // A tab's icon can be gone by the time this opens, and a page may declare one Chrome
     // never fetched. Either way the favicon worker knows how to find one.
     img.addEventListener('error', () => { img.src = ICON_DEFAULT; });
+    followFaviconBackdrop(img);
     if (!this.request.favIconUrl) {
       FaviconsHandler
         .handleIconDownloadAndCache(this.request.url)
