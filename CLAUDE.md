@@ -347,7 +347,8 @@ the rail - a pointer that has stopped sends no more events, so the timer finishe
 
 **Opening never moves the list** (#137). What stands above it - the head's title and buttons,
 the card switcher, the search field - is laid out while folded too, only `visibility: hidden`,
-under the same per-card rules as open; the mark is drawn over that space. Hidden with `display`,
+under the same per-card rules as open; the mark is centred over that space, reaching down to
+the switcher or the search field by anchor positioning (`--closed-tabs-held`). Hidden with `display`,
 they pushed the list down as the panel widened, and the row the pointer was reaching for slid
 away from under it (`test/ui/styles/sidePanelHead.test.ts`).
 
