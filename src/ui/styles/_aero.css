@@ -148,7 +148,7 @@
 :root[data-theme-style="aero"] .closed-tabs__row,
 :root[data-theme-style="aero"] .settings-dialog__row,
 :root[data-theme-style="aero"] .profile-manager__row {
-    background-color: var(--aero-surface);
+    background-color: transparent;
 }
 
 :root[data-theme-style="aero"] .closed-tabs__row:hover,

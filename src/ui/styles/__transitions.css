@@ -179,3 +179,13 @@ workspace-plane-footer > div.tips-bar {
             background-color var(--time-transition-fast) var(--transition-easing-default);
 }
 
+
+
+.profile-manager__row {
+    transition: background-color var(--time-transition-fast) var(--transition-easing-default);
+}
+
+.profile-manager__row > div.profile-manager__text > span {
+    transition: color var(--time-transition-fast) var(--transition-easing-default);
+}
+

@@ -36,6 +36,10 @@ dialog.profile-manager {
     background-color: var(--color-button-background-hover);
 }
 
+.profile-manager__row:hover > div.profile-manager__text > span {
+    color: var(--color-button-text-hover);
+}
+
 /* The profile on screen, marked so the disabled delete button reads as
    deliberate rather than broken. */
 .profile-manager__row--active {
