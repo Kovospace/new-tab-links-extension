@@ -164,7 +164,6 @@ html.dark .tips-bar__control:hover {
 html.dark .tips-bar__more {
     min-width: 0;
     margin: 0;
-    padding: 0 0.25em;
     background: none;
     border: none;
     font-size: 1em;
@@ -173,10 +172,10 @@ html.dark .tips-bar__more {
     color: var(--color-button-active-text);
     text-decoration: underline;
     cursor: pointer;
+    padding: 0.125em 0.25em;
 }
 
 .tips-bar__more:hover,
 html.dark .tips-bar__more:hover {
-    background: none;
-    color: var(--color-button-active-background-hover);
+    background: var(--color-button-active-background-hover);
 }
