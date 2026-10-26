@@ -124,7 +124,10 @@ link-group-body.managed > link-subgroup > div > link-subgroup-body > link-contai
   max-width: 32em;
 }
 
-link-subgroup-body.managed > div > link-container > div > div.cls-link-actions-container {
+/* A subgroup's links are direct children of its body (subgroupComponent.ts) - the same path the
+   group's rule above takes. An extra `> div` here once made this match nothing, so "Manage
+   links" in a subgroup's menu toggled the class and showed no buttons (#121). */
+link-subgroup-body.managed > link-container > div > div.cls-link-actions-container {
   max-width: 32em;
 }
 
