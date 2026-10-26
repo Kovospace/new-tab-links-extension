@@ -200,6 +200,11 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     border-color: var(--border-lining-color-inset);
 }
 
+.closed-tabs__search::placeholder {
+    color: var(--color-textfield-text);
+    opacity: 0.6;
+}
+
 .closed-tabs--open:is([data-card="closed"], [data-card="history"]) .closed-tabs__search {
     display: block;
     align-self: stretch;
