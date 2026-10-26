@@ -21,7 +21,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Per-browser preferences (not synced) | `backend/repository/DevicePreferencesRepository.ts` |
 | Light / dark theme - the palette as `light-dark()` pairs, `data-theme` on the root | `ui/styles/__variables.css`, `DevicePreferencesRepository` (`theme`, `followTheme`) |
 | Flat / aero theme style - `data-theme-style` on the root; the opacity, blur and border knobs | `ui/styles/__variables.css` (`--aero-*`), `ui/styles/_aero.css`, `DevicePreferencesRepository` (`themeStyle`) |
-| Recently closed tabs | `backend/repository/ClosedTabsRepository.ts`, `backend/worker/module/closedTabsRecorder.ts`, `ui/partials/closedTabsPanel.ts` |
+| Recently closed tabs | `backend/repository/ClosedTabsRepository.ts`, `backend/worker/module/closedTabsRecorder.ts`, `ui/partials/closedTabsPanel.ts`; opening a row here or in a new tab: `utils/pageOpener.ts` |
 | Browsing history - the side panel's third card, recorded only when the profile turns it on, synchronised like closed tabs | `backend/entity/VisitEntity.ts`, `backend/repository/VisitsRepository.ts`, `backend/worker/module/historyRecorder.ts`, `viewModel/historyViewModel.ts`, `ui/partials/historyCard.ts`; rows shared with the other cards in `ui/partials/sidePanelRows.ts` |
 | Open tabs of this browser - the side panel's second card (local only) | `viewModel/openTabsViewModel.ts`, drawn by `ui/partials/closedTabsPanel.ts`; the chosen card is `sidePanelCard` in `DevicePreferencesRepository` |
 | `chrome.storage.local` keys | `backend/datasource/chromeStorage/storageKeys.ts` |

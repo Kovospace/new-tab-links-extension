@@ -1,4 +1,5 @@
 import { AppStateRepository, appStateRepository } from "../backend/repository/AppStateRepository";
+import { BROWSER_PAGE_OPENER, OpenWhere, PageOpener, openPage } from "../utils/pageOpener";
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { sameLocalDay, VisitsRepository } from "../backend/repository/VisitsRepository";
 import { MAX_VISITS, Visit } from "../backend/entity/VisitEntity";
@@ -86,7 +87,8 @@ export class HistoryViewModel {
         visits: VisitsRepository = new VisitsRepository(),
         appState: AppStateRepository = appStateRepository,
         profiles: ProfileRepository = profileRepository,
-        private readonly now: () => number = Date.now
+        private readonly now: () => number = Date.now,
+        private readonly opener: PageOpener = BROWSER_PAGE_OPENER
     ) {
         this.visits = visits;
         this.appState = appState;
@@ -107,14 +109,18 @@ export class HistoryViewModel {
         this.unsubscribes = [];
     }
 
-    /** Opens a visited page again, in a tab of its own. */
-    public reopen(id: string): void {
+    /**
+     *  Opens a visited page again - in this tab, as a link on the page opens, or in a new one.
+     *
+     *  @param where "here" for a click on the row, "newTab" for its own button
+     */
+    public reopen(id: string, where: OpenWhere = "here"): void {
         const visit = this.find(id);
         if (!visit) {
             return;
         }
-        this.LOG.debug("reopen", visit.url);
-        chrome.tabs.create({ url: visit.url });
+        this.LOG.debug("reopen", where, visit.url);
+        openPage(this.opener, visit.url, where);
     }
 
     /** Forgets one entry, on every device the profile reaches. */

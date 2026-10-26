@@ -27,7 +27,8 @@ const CLOSED_TAB_WORDING: LogRowWording = {
   happenedOn: 'closedTabs.closedOn',
   alreadySaved: 'closedTabs.alreadySaved',
   saveAsLink: 'closedTabs.saveAsLink',
-  forgetOne: 'closedTabs.forgetOne'
+  forgetOne: 'closedTabs.forgetOne',
+  openInNewTab: 'closedTabs.openInNewTab'
 };
 
 /** The cards in the order the switcher offers them, with the catalogue file naming each. */
@@ -585,8 +586,8 @@ export class ClosedTabsPanel {
     }
 
     tabs.forEach(tab => this.listEl!.appendChild(buildLogRow(tab, CLOSED_TAB_WORDING, {
-      open: () => {
-        this.viewModel.reopen(tab.id);
+      open: where => {
+        this.viewModel.reopen(tab.id, where);
         this.finishErrand();
       },
       forget: () => void this.viewModel.forget(tab.id)

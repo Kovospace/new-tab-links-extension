@@ -25,7 +25,8 @@ function fakeViewModel(days: VisitDayDTO[]) {
         setQuery(query: string) { this.query = query; },
         initialize: async () => undefined,
         dispose: () => undefined,
-        reopen: () => undefined,
+        reopened: [] as Array<[string, string]>,
+        reopen(id: string, where: string) { this.reopened.push([id, where]); },
         forget: async () => undefined
     };
 }
@@ -101,5 +102,22 @@ describe("HistoryCard, folding days", () => {
         viewModel.observables.days.set([]);
 
         expect(card.listEl.textContent).toBe("Nothing here matches “zzz”.");
+    });
+});
+
+/** A visit's row opens the page here, and its last button in a new tab. */
+describe("HistoryCard, opening a visit", () => {
+
+    it("opens a clicked row in this tab and the row's last button in a new one", async () => {
+        const viewModel = fakeViewModel(DAYS);
+        const card = new HistoryCard(viewModel as unknown as HistoryViewModel, () => undefined, () => undefined);
+        await card.initialize();
+        const row = card.listEl.querySelector(".closed-tabs__row")!;
+
+        row.querySelector<HTMLButtonElement>(".closed-tabs__text")!.click();
+        const buttons = row.querySelectorAll<HTMLButtonElement>(".closed-tabs__row-actions button");
+        buttons[buttons.length - 1].click();
+
+        expect(viewModel.reopened).toEqual([["a", "here"], ["a", "newTab"]]);
     });
 });

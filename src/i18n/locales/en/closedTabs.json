@@ -9,7 +9,8 @@
   "alreadySaved": "Already saved in this profile",
   "saveAsLink": "Save as a link",
   "forgetOne": "Forget this one",
-  "rowTooltip": "{url}\nOpen again",
+  "openInNewTab": "Open in a new tab",
+  "rowTooltip": "{url}\nOpen again in this tab",
   "closedOn": "Closed on {device}",
   "clear": "Clear",
   "forgetAllConfirmation": {

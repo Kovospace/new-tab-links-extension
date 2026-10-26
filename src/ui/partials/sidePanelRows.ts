@@ -1,4 +1,5 @@
 import { BookmarkForm } from './bookmarkForm';
+import { OpenWhere } from '../../utils/pageOpener';
 import { followFaviconBackdrop } from '../../utils/faviconBackdrop';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { t } from '../../i18n/i18n';
@@ -10,7 +11,8 @@ import { makeDraggable } from '../dragAndDrop/dragAndDrop';
  *
  * The closed tabs and the browsing history are both logs - something that happened somewhere,
  * at some time - so they draw the same row: favicon, title, when, where if not here, and a
- * "+" and an "x". What the row does when used is the card's business and is passed in.
+ * "+", an "x" and a "⇉" (open in a new tab). What the row does when used is the card's
+ * business and is passed in.
  */
 
 /** One entry of a log, as a card draws it. */
@@ -35,12 +37,16 @@ export interface LogRowWording {
   alreadySaved: string;
   saveAsLink: string;
   forgetOne: string;
+  openInNewTab: string;
 }
 
 /** What a log row does when used. */
 export interface LogRowActions {
-  /** The row itself was clicked: open the page again. The card decides what else follows. */
-  open(): void;
+  /**
+   * Open the page again: in this tab when the row itself was clicked, in a new one from the
+   * row's own button. The card decides what else follows.
+   */
+  open(where: OpenWhere): void;
   forget(): void;
 }
 
@@ -50,7 +56,8 @@ export interface LogRowActions {
  * **The whole row opens the page, not only its text.** Folded, the rail shows nothing but the
  * favicons - the text is not drawn at all - so a row that only answered to its text was a
  * column of icons that did nothing when clicked. The text stays a button, so a keyboard can
- * still reach it; its click bubbles to the row. The "+" and "x" are their own business.
+ * still reach it; its click bubbles to the row. The row opens the page in this tab, as a link
+ * on the page does; its "⇉" opens it in a new one. The buttons are their own business.
  */
 export function buildLogRow(entry: LogEntry, wording: LogRowWording, actions: LogRowActions): HTMLElement {
 
@@ -62,7 +69,7 @@ export function buildLogRow(entry: LogEntry, wording: LogRowWording, actions: Lo
     if ((event.target as HTMLElement | null)?.closest('.closed-tabs__row-actions')) {
       return;
     }
-    actions.open();
+    actions.open('here');
   });
 
   // Draggable out of the panel and onto a group, a subgroup or a place between two links. It
@@ -108,6 +115,10 @@ export function buildLogRow(entry: LogEntry, wording: LogRowWording, actions: Lo
   }
   buttons.appendChild(rowButton(ICON.ADD, 'add', t(wording.saveAsLink), () => void saveAsLink(entry)));
   buttons.appendChild(rowButton(ICON.DELETE, 'danger', t(wording.forgetOne), () => actions.forget()));
+  // Last, so it is the rightmost thing in the row: the panel widens leftwards from the rail,
+  // so the pointer that opened it is left standing at the right-hand end of a row - on this.
+  buttons.appendChild(rowButton(ICON.OPEN_GROUPED, 'open-in-new-tab', t(wording.openInNewTab),
+    () => actions.open('newTab')));
 
   row.appendChild(favicon(entry.faviconUrl));
   row.appendChild(text);

@@ -5,11 +5,12 @@
   "today": "Dnes",
   "yesterday": "Včera",
   "empty": "Zatiaľ nič. Navštívené stránky sa zobrazia tu.",
-  "rowTooltip": "{url}\nOtvoriť znova",
+  "rowTooltip": "{url}\nOtvoriť znova v tejto karte",
   "visitedOn": "Navštívené na {device}",
   "alreadySaved": "V tomto profile už uložené",
   "saveAsLink": "Uložiť ako odkaz",
   "forgetOne": "Zabudnúť túto",
+  "openInNewTab": "Otvoriť na novej karte",
   "clear": "Vymazať",
   "forgetAll": "Zabudnúť celú históriu",
   "forgetAllConfirmation": {

@@ -1,4 +1,5 @@
 import { AppStateRepository, appStateRepository } from "../backend/repository/AppStateRepository";
+import { BROWSER_PAGE_OPENER, OpenWhere, PageOpener, openPage } from "../utils/pageOpener";
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { ClosedTabsRepository } from "../backend/repository/ClosedTabsRepository";
 import { ClosedTab, MAX_CLOSED_TABS } from "../backend/entity/ClosedTabEntity";
@@ -74,7 +75,8 @@ export class ClosedTabsViewModel {
     constructor(
         closedTabs: ClosedTabsRepository = new ClosedTabsRepository(),
         appState: AppStateRepository = appStateRepository,
-        profiles: ProfileRepository = profileRepository
+        profiles: ProfileRepository = profileRepository,
+        private readonly opener: PageOpener = BROWSER_PAGE_OPENER
     ) {
         this.closedTabs = closedTabs;
         this.appState = appState;
@@ -122,14 +124,18 @@ export class ClosedTabsViewModel {
         this.unsubscribes = [];
     }
 
-    /** Opens a closed tab again, in a tab of its own. */
-    public reopen(id: string): void {
+    /**
+     *  Opens a closed tab again - in this tab, as a link on the page opens, or in a new one.
+     *
+     *  @param where "here" for a click on the row, "newTab" for its own button
+     */
+    public reopen(id: string, where: OpenWhere = "here"): void {
         const tab = this.find(id);
         if (!tab) {
             return;
         }
-        this.LOG.debug("reopen", tab.url);
-        chrome.tabs.create({ url: tab.url });
+        this.LOG.debug("reopen", where, tab.url);
+        openPage(this.opener, tab.url, where);
     }
 
     /** Forgets one entry, on every device the profile reaches. */
