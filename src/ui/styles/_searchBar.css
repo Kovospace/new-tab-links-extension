@@ -54,7 +54,7 @@ span.search-bar__caret {
 /* The list opens under the chooser, above the columns, as the menus in this heading do. */
 ul.search-bar__engines {
     position: absolute;
-    z-index: 101; /* as options-menu */
+    z-index: var(--z-index-top-panel);
     top: 100%;
     left: 0;
     margin-top: 0.5em;
