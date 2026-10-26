@@ -27,6 +27,7 @@ import { LinkComponent } from "./linkComponent"
 import { SubgroupComponent } from "./subgroupComponent"
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../../ui/partials/wrappedHtmlElements"
 import {OptionsMenu} from "../partials/optionsMenu";
+import { toggleManageLinksMode } from "../partials/manageLinksMode";
 import {InputDialog} from "../partials/inputDialog";
 import {SelectDialog} from "../partials/selectDialog";
 import { showNotice } from "../partials/confirmations";
@@ -331,13 +332,8 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
     }
 
     private toggleLinksManagementOptions(menuItem: HTMLElement) {
-        this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.toggle("managed");
-        menuItem.classList.toggle("active");
-        if (this.getElementsByTagName(ELEM_GROUP_BODY)[0].classList.contains("managed")) {
-            setTimeout(() => { menuItem.textContent = t("group.menu.finishManagingLinks") }, 250);
-        } else {
-            setTimeout(() => { menuItem.textContent = t("group.menu.manageLinks") }, 250);
-        }
+        toggleManageLinksMode(this.getElementsByTagName(ELEM_GROUP_BODY)[0], menuItem,
+            { manage: t("group.menu.manageLinks"), finish: t("group.menu.finishManagingLinks") });
     }
 
     private listenerChangeGroupName() {
