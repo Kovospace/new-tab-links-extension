@@ -27,6 +27,12 @@
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: fit-content;
+    /* As long as its tip needs, and never longer than the space it is in. A tip is one
+       nowrap line, so its natural width is the whole sentence: without the cap a long one
+       ran past the screen's edge - with the side panel open, at once - and gave the page
+       a sideways scrollbar. Capped, the sentence ellipsises instead (below). */
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* The two faces. Each is laid out like the bar used to be, since each is now
@@ -36,11 +42,22 @@
     display: flex;
     align-items: center;
     gap: 0.5em;
+    /* Allowed to be narrower than the sentence, or the cap above has nothing to give. */
+    min-width: 0;
 }
 
 .tips-bar__tip::before {
     content: 'TIP:';
     font-weight: bold;
+}
+
+/* Everything in the tip but its sentence keeps its size and its one line: "TIP:", the
+   "tell me more" and "I know" buttons, the arrows. Only the sentence gives way. */
+.tips-bar__tip::before,
+.tips-bar__tip > button,
+.tips-bar__controls {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .tips-bar__tip[hidden],
@@ -118,7 +135,10 @@ html.dnd-active .tips-bar * {
 }
 
 .tips-bar__text {
-    /* A long tip ellipsises rather than pushing the controls off the screen. */
+    /* A long tip ellipsises rather than pushing the controls off the screen: the text is
+       what gives way, the "TIP:" and the buttons keep their size. */
+    flex: 0 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
