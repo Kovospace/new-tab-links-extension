@@ -48,7 +48,7 @@
     --color-component-framing: light-dark(#6e6e6e, #888);
 
     /* Dialogs */
-    --color-dialog-background: light-dark(#ccc, #333);
+    --color-dialog-background: light-dark(#bbb, #000);
     --color-dialog-text: light-dark(#111, #eee);
 
     /* Items layered on background */
@@ -79,14 +79,14 @@
     --color-button-danger-text-hover: light-dark(#fff, #fff);
 
     /* Text, Select inputs */
-    --color-textfield-background: light-dark(#ddd, #444);
+    --color-textfield-background: light-dark(#ddd, #555);
     --color-textfield-text: light-dark(#111, #eee);
     --color-textfield-background-hover: light-dark(#eee, #555);
     --color-textfield-text-hover: light-dark(#000, #fff);
     --color-textfield-border-active: var(--color-theme-accent-background-hover);
 
     /* Menus */
-    --color-menu-lining: light-dark(#000, #fff);
+    --color-menu-lining: light-dark(#000, #666);
     --color-menu-shadow: light-dark(#000, #666);
     --z-index-menus: 103;
     --z-index-top-panel: 101;
