@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 const STYLES = resolve("src/ui/styles");
 /**
  *  `:root`, never `html`: the sheet is a shared chunk the page links before its own stylesheet,
- *  so its rules have to outrank the components' `html.dark ...` by specificity, not by order.
+ *  so its rules have to outrank the components' own classes by specificity, not by order.
  */
 const AERO = ':root[data-theme-style="aero"]';
 

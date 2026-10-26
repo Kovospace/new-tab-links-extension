@@ -13,9 +13,8 @@
    or HDMI adapter sends limited-range RGB (16-235): everything from about #ec up arrives as
    the same white, and a panel of #fff on a page of #f2 is no panel at all.
 
-   `html.dark` throughout the stylesheets is not the dark theme. It is the class both pages
-   carry to say "themed", older than the light theme; every rule under it reads these
-   variables and so serves both.
+   No rule anywhere is written for one theme: every rule reads these variables, and they
+   answer for both. A new colour is a pair here, never a selector of its own.
 */
 :root {
     color-scheme: light dark;
@@ -87,7 +86,7 @@
 
     /* Menus */
     --color-menu-lining: light-dark(#000, #666);
-    --color-menu-shadow: light-dark(#000, #666);
+    --color-menu-shadow: light-dark(#000, #000);
     --z-index-menus: 103;
     --z-index-top-panel: 101;
     --z-index-left-panel: 102;

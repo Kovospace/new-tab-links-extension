@@ -97,8 +97,7 @@
     text-wrap: nowrap;
 }
 
-.closed-tabs__head-action,
-html.dark .closed-tabs__head-action {
+.closed-tabs__head-action {
     margin: 0;
 }
 
@@ -156,24 +155,24 @@ html.dark .closed-tabs__head-action {
    without these the list scrolled with a bar the dark theme drew in system
    colours - which on a dark panel is a bar you cannot see.
 */
-html.dark .closed-tabs__list {
+.closed-tabs__list {
     scrollbar-color: var(--color-button-background) transparent;
 }
 
-html.dark .closed-tabs__list::-webkit-scrollbar {
+.closed-tabs__list::-webkit-scrollbar {
     width: 0.5em;
 }
 
-html.dark .closed-tabs__list::-webkit-scrollbar-track {
+.closed-tabs__list::-webkit-scrollbar-track {
     background-color: transparent;
 }
 
-html.dark .closed-tabs__list::-webkit-scrollbar-thumb {
+.closed-tabs__list::-webkit-scrollbar-thumb {
     background-color: var(--color-button-background);
     border-radius: var(--radius-normal);
 }
 
-html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
+.closed-tabs__list::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-button-background-hover);
 }
 
@@ -218,7 +217,7 @@ html.dark .closed-tabs__list::-webkit-scrollbar-thumb:hover {
     display: none;
 }
 
-html.dark .closed-tabs__search.editable:focus {
+.closed-tabs__search.editable:focus {
     box-shadow: none;
     border-color: var(--color-button-active-background-hover);
 }
@@ -298,9 +297,9 @@ html.dark .closed-tabs__search.editable:focus {
 
 /* main.css paints every button in the dark theme with a heavier selector than a
    class, as the settings dialog's category heads found out. */
-html.dark .closed-tabs__day-toggle,
-html.dark .closed-tabs__day-toggle:hover,
-html.dark .closed-tabs__day-toggle:active {
+.closed-tabs__day-toggle,
+.closed-tabs__day-toggle:hover,
+.closed-tabs__day-toggle:active {
     background-color: transparent;
     color: inherit;
     box-shadow: none;
@@ -397,8 +396,7 @@ html.dark .closed-tabs__day-toggle:active {
 }
 
 /* supress default colors for button element */
-.closed-tabs__text:hover,
-html.dark .closed-tabs__text:hover {
+.closed-tabs__text:hover {
     background: none;
 }
 
@@ -415,8 +413,7 @@ html.dark .closed-tabs__text:hover {
 
 /* The row's text is a button so a keyboard can reach the row; a click on it
    bubbles to the row, which is what reopens the tab. */
-.closed-tabs__text,
-html.dark .closed-tabs__text {
+.closed-tabs__text {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -484,8 +481,7 @@ html.dark .closed-tabs__text {
    the browser is tearing the drag down. With nothing to animate there is no
    layer to orphan.
 */
-.closed-tabs__row-action,
-html.dark .closed-tabs__row-action {
+.closed-tabs__row-action {
     margin: 0.125em;
 }
 

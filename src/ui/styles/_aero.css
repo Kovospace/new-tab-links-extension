@@ -15,10 +15,9 @@
    **Every rule starts with :root, never html.** Both pages import this file,
    so Vite splits it into a chunk of its own - and the page links that chunk
    *before* its own stylesheet, whatever order the imports are written in.
-   Order cannot be relied on, so specificity has to do it: the components
-   paint in both themes through `html.dark ...` (one class, one element), and
-   `:root[...]` is two classes' worth, which outranks that wherever it loads.
-   Matching specificity with `html[...]` is what left the groups solid.
+   Order cannot be relied on, so specificity has to do it: `:root[...]` is two
+   classes' worth, which outranks a component's own class wherever it loads.
+   Matching specificity with `html[...]` is what once left the groups solid.
 
    **What holds menus is blurred from behind, never on itself.** backdrop-filter
    makes an element a stacking context, and a menu inside one can rise no

@@ -131,9 +131,9 @@ html.dnd-active .tips-bar * {
 }
 
 /* The controls give up main.css's button styling, which is sized for the square
-   buttons in the group headers and would make a row of slabs out of these. */
-.tips-bar__control,
-html.dark .tips-bar__control {
+   buttons in the group headers and would make a row of slabs out of these.
+   Under .tips-bar so that it outweighs `button:first-child`, which takes the margin away. */
+.tips-bar .tips-bar__control {
     min-width: 0;
     margin: 0.125em;
     padding: 0.125em 0.375em;
@@ -146,8 +146,7 @@ html.dark .tips-bar__control {
     color: var(--color-button-text);
 }
 
-.tips-bar__control:hover,
-html.dark .tips-bar__control:hover {
+.tips-bar__control:hover {
     /*background: none;*/
     /*color: var(--color-button-active-background);*/
     background-color: var();
@@ -156,8 +155,7 @@ html.dark .tips-bar__control:hover {
 /* "Tell me more" and "I know" are the controls that are not symbols, and the
    ones that are always visible: they are part of the tip rather than a way of
    managing tips. */
-.tips-bar__more,
-html.dark .tips-bar__more {
+.tips-bar__more {
     min-width: 0;
     margin: 0;
     background: none;
@@ -172,7 +170,6 @@ html.dark .tips-bar__more {
     padding: 0.125em 0.25em;
 }
 
-.tips-bar__more:hover,
-html.dark .tips-bar__more:hover {
+.tips-bar__more:hover {
     background: var(--color-button-active-background-hover);
 }

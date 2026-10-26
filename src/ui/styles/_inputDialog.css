@@ -14,7 +14,7 @@ dialog.input-dialog::backdrop {
     background: transparent;
 }
 
-html.dark dialog.input-dialog {
+dialog.input-dialog {
     background-color: var(--color-dialog-background);
     color: var(--color-dialog-text);
 }
@@ -137,8 +137,7 @@ html.dark dialog.input-dialog {
    and stays where it is - a button that vanished or moved would leave the user
    looking for it - and says it is not available by being unavailable.
 */
-.input-dialog__actions > button:disabled,
-html.dark .input-dialog__actions > button:disabled {
+.input-dialog__actions > button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }
@@ -236,8 +235,7 @@ dialog.color-picker {
 
 /* One swatch. It gives up main.css's button styling, which is sized for the
    small square buttons in the group headers. */
-.color-picker__swatch,
-html.dark .color-picker__swatch {
+.color-picker__swatch {
     display: flex;
     align-items: center;
     gap: 0.5em;
@@ -251,15 +249,13 @@ html.dark .color-picker__swatch {
     cursor: pointer;
 }
 
-.color-picker__swatch:hover,
-html.dark .color-picker__swatch:hover {
+.color-picker__swatch:hover {
     background-color: var(--color-button-background-hover);
 }
 
 /* The one it is set to now, ringed rather than ticked: a tick over a colour
    hides the colour. */
-.color-picker__swatch--current,
-html.dark .color-picker__swatch--current {
+.color-picker__swatch--current {
     box-shadow: inset 0 0 0 0.125em var(--color-button-active-background);
 }
 

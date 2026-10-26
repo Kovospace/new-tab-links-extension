@@ -29,7 +29,7 @@ dialog.settings-dialog {
 }
 
 /* The list's scrollbar in the theme's colours, as main's and the closed tabs' are. */
-html.dark .settings-dialog__list {
+.settings-dialog__list {
     scrollbar-color: var(--color-button-background) transparent;
 }
 
@@ -49,7 +49,7 @@ html.dark .settings-dialog__list {
 /* A real button: the whole heading is the target, and it is reachable by
    keyboard. It gives up the button styling from main.css, which is sized for
    the small square buttons in the group headers. */
-html.dark .settings-dialog__category-head {
+.settings-dialog__category-head {
     display: flex;
     align-items: center;
     gap: 0.4em;
@@ -67,11 +67,10 @@ html.dark .settings-dialog__category-head {
     cursor: pointer;
 }
 
-/* main.css paints every button in the dark theme, and does it with a selector
-   heavier than a single class - so the heading has to say so at least as
-   loudly, or it comes out as a grey slab across the dialog. */
-html.dark .settings-dialog__category-head:hover,
-html.dark .settings-dialog__category-head:active {
+/* The heading's own hover, or main.css's page-wide button hover turns it into
+   a grey slab across the dialog. */
+.settings-dialog__category-head:hover,
+.settings-dialog__category-head:active {
     background-color: var(--color-button-add-background-hover);
     color: var(--color-button-add-text-hover);
     box-shadow: none;
