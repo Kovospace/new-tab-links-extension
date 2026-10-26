@@ -86,7 +86,7 @@
 
     /* Menus */
     --color-menu-lining: light-dark(#000, #666);
-    --color-menu-shadow: light-dark(#000, #666);
+    --color-menu-shadow: light-dark(#000, #000);
     --z-index-menus: 103;
     --z-index-top-panel: 101;
     --z-index-left-panel: 102;
