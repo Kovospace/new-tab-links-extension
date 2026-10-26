@@ -116,6 +116,16 @@ describe("OptionsMenu, pressing outside it", () => {
         expect(opened).toBe(2);
     });
 
+    it("eats no later click when the button was released outside the window, with no mouseup", async () => {
+        (document.getElementById("menu") as HTMLButtonElement).click();
+        behind().dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));   // and no mouseup at all
+        await tick();
+
+        press(behind());
+
+        expect(opened).toBe(1);
+    });
+
     it("eats no later click when the press that closed the menu ended without one", async () => {
         (document.getElementById("menu") as HTMLButtonElement).click();
         behind().dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));

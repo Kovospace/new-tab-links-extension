@@ -70,6 +70,20 @@ ul.search-bar__engines[hidden] {
     display: none;
 }
 
+/* Both lists in the top layer, like every menu (_optionsMenu.css, popover.ts): the browser's
+   popover defaults taken back, the place set inline from the engine button or the whole bar. */
+ul.search-bar__engines[popover],
+ul.search-bar__suggestions[popover] {
+    position: fixed;
+    margin: 0.5em 0 0 0;
+    overflow: visible;
+}
+
+/* The engine list draws its own frame; the suggestions have none, so the browser's goes too. */
+ul.search-bar__suggestions[popover] {
+    border: none;
+}
+
 button.search-bar__engine-option {
     display: flex;
     align-items: center;

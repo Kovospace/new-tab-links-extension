@@ -1,4 +1,5 @@
 import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM } from "../../constants";
+import { liftClosed, liftOpenAt, makePopover } from "./popover";
 
 export type ContextMenuAction = {
   label: string;
@@ -23,6 +24,8 @@ class ContextMenu {
     if (!this.el) {
       this.el = document.createElement(ELEM_OPTIONS_MENU);
       this.el.style.position = 'fixed';
+      // In the top layer, like every menu - see popover.ts.
+      makePopover(this.el);
       document.body.appendChild(this.el);
     }
     return this.el;
@@ -46,7 +49,9 @@ class ContextMenu {
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.style.right = 'auto';
+    el.style.bottom = 'auto';
     el.classList.add('visible');
+    liftOpenAt(el);
 
     // Correct overflow after layout
     requestAnimationFrame(() => {
@@ -65,6 +70,7 @@ class ContextMenu {
 
   hide(): void {
     this.el?.classList.remove('visible');
+    if (this.el) liftClosed(this.el);
     document.removeEventListener('mousedown', this.onOutsideMouseDown);
     document.removeEventListener('keydown', this.onEscapeKey);
   }

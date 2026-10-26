@@ -5,6 +5,7 @@ import { t } from "../../i18n/i18n";
 import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
 import { ICON, renderButton, renderUnsyncedMark } from "../partials/wrappedHtmlElements"
 import { confirmDestructiveAction } from "./confirmations";
+import { liftClosed, liftOpen, makePopover } from "./popover";
 
 /**
  *  A divider between groups of actions. It carries no label and nothing happens when it is
@@ -147,6 +148,9 @@ export class OptionsMenu {
         }
 
         this.menuElement = document.createElement(ELEM_OPTIONS_MENU);
+        // Shown in the top layer, above every stacking context on the page - see popover.ts.
+        // Still a child of its button in the document, so clicks inside it bubble as before.
+        makePopover(this.menuElement);
         this.openingElement.appendChild(this.menuElement);
 
         this.options.forEach((option: OptionsMenuItem) => this.appendMenuItem(option));
@@ -226,6 +230,7 @@ export class OptionsMenu {
                 }
                 this.menuElement.classList.remove("visible");
                 this.openingElement.classList.remove("active");
+                liftClosed(this.menuElement);
             }
         });
     }
@@ -233,12 +238,19 @@ export class OptionsMenu {
     private toggleMenu() {
         this.openingElement.classList.toggle("active");
         const willBeVisible = !this.menuElement.classList.contains('visible');
+        // In the right half of the window a menu opens leftwards from its button's right edge,
+        // so it does not run off the screen.
+        const rect = this.openingElement.getBoundingClientRect();
+        const isRightHalf = rect.left > window.innerWidth / 2;
         if (willBeVisible) {
-            const rect = this.openingElement.getBoundingClientRect();
-            const isRightHalf = rect.left > window.innerWidth / 2;
             this.menuElement.classList.toggle('align-right', isRightHalf);
         }
         this.menuElement.classList.toggle('visible');
+        if (willBeVisible) {
+            liftOpen(this.menuElement, this.openingElement, isRightHalf ? "end" : "start");
+        } else {
+            liftClosed(this.menuElement);
+        }
     }
 }
 
@@ -249,16 +261,24 @@ export class OptionsMenu {
  *  Pressing outside an open menu means "close it", not "and open the link I happened to land
  *  on". That used to be the overlay's doing - it covered the page while a menu was open, so the
  *  click landed on it - and the overlay is gone. The click of this press is dropped on its way
- *  down; if the press ends without one (dragged away), the listener is taken off right after
- *  the mouseup, so no later click is ever eaten.
+ *  down. If the press ends without one, the listener goes too: right after its mouseup (dragged
+ *  away), or - when no mouseup ever comes, the button released outside the window - as soon as
+ *  the next press begins. Either way no later click is ever eaten.
  */
 function swallowTheClickOfThisPress(): void {
     const swallow = (event: MouseEvent): void => {
         event.preventDefault();
         event.stopPropagation();
+        stop();
     };
-    document.addEventListener('click', swallow, { capture: true, once: true });
-    document.addEventListener('mouseup', () => {
-        setTimeout(() => document.removeEventListener('click', swallow, { capture: true }), 0);
-    }, { capture: true, once: true });
+    const stopSoon = (): void => { setTimeout(stop, 0); };
+    function stop(): void {
+        document.removeEventListener('click', swallow, { capture: true });
+        document.removeEventListener('mouseup', stopSoon, { capture: true });
+        document.removeEventListener('mousedown', stop, { capture: true });
+    }
+    document.addEventListener('click', swallow, { capture: true });
+    document.addEventListener('mouseup', stopSoon, { capture: true });
+    // Registered after this press has finished dispatching, so it is the *next* press that ends it.
+    setTimeout(() => document.addEventListener('mousedown', stop, { capture: true }), 0);
 }
