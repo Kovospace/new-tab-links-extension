@@ -16,6 +16,7 @@
    --------------------------------------------------------------------------- */
 
 .closed-tabs {
+    position: relative;
     grid-area: aside;
     width: var(--closed-tabs-rail);
     max-width: 90vw;
@@ -50,7 +51,8 @@
 
 /*
    What stands above the list - the head's title and buttons, the card switcher,
-   the search field - is laid out folded too, only invisible (#137). Opening
+   the search field - and the headings within it - a window's name, a day of the
+   history - are laid out folded too, only invisible (#137). Opening
    then puts the list exactly where it was, so the row under the pointer stays
    under it: hidden with display, they pushed the list 35 to 73 pixels down as
    the panel widened, and the row the pointer was reaching for moved away.
@@ -64,7 +66,8 @@
     .closed-tabs__head-action,
     .closed-tabs__keep-open,
     .closed-tabs__cards,
-    .closed-tabs__search
+    .closed-tabs__search,
+    .closed-tabs__window
 ) {
     visibility: hidden;
     white-space: nowrap;
@@ -76,14 +79,19 @@
 
 /* The mark is the rail's whole face while it is narrow, and says what the
    column of favicons is. At full width the heading says it instead. Laid over
-   the head rather than in it, so it takes none of the height the head holds
-   for the open panel. */
+   the space held for the open panel's head, switcher and search field rather
+   than in it, so it takes none of that height - and centred in all of it: it
+   reaches from the panel's top to the bottom of the last of them shown for
+   this card (anchor positioning). A browser without anchor positioning drops
+   the bottom and leaves it at the top. */
 .closed-tabs__mark {
     position: absolute;
     inset-inline: 0;
-    top: 50%;
-    translate: 0 -50%;
-    text-align: center;
+    top: 0;
+    bottom: anchor(--closed-tabs-held bottom);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 2em;
     font-weight: bold;
     opacity: 0.75;
@@ -95,7 +103,6 @@
 }
 
 .closed-tabs__head {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 0.5em;
@@ -240,6 +247,14 @@
     border-color: var(--color-button-active-background-hover);
 }
 
+/* The bottom of the space the folded rail holds for the open panel: the search
+   field when this card has one, the switcher otherwise - the last of them laid
+   out names it (one not displayed is no anchor). The mark is centred down to it. */
+.closed-tabs__cards,
+.closed-tabs__search {
+    anchor-name: --closed-tabs-held;
+}
+
 /* The switcher only makes sense at full width, like the head's own buttons;
    folded, it only holds its place. */
 .closed-tabs__cards {
@@ -267,9 +282,9 @@
     color: var(--color-button-active-text-hover);
 }
 
-/* A window's name above its tabs, drawn only when there is more than one. */
+/* A window's name above its tabs, drawn only when there is more than one, and a
+   day's heading in the history. Folded, it holds its place like the head does. */
 .closed-tabs__window {
-    display: none;
     margin: 0.75em 0.5em 0.25em;
     font-size: 0.75em;
     font-weight: bold;
@@ -280,10 +295,6 @@
 
 .closed-tabs__window:first-child {
     margin-top: 0.25em;
-}
-
-.closed-tabs--open .closed-tabs__window {
-    display: block;
 }
 
 /* A day of the history: its heading is the button that folds it. Each heading is
