@@ -17,12 +17,13 @@ link-group:last-child {
     margin-right: 0;
 }
 
-/* Not while the pointer is on a subgroup, which lights up itself - and not at all while
-   the group's title and description, or a subgroup's, are being edited: until the edit is
-   saved or cancelled the group holds still, wherever the pointer goes. */
-link-group:hover:not(:has(link-subgroup:hover)):not(:has(:is(div.cls-group-head-title, div.cls-subgroup-head-title) > .editable)),
-/* Its menu is open: the pointer has left the group for the menu, which says whose it is. */
-link-group.has-open-menu {
+/* Hovered, or its menu is open - the pointer has left the group for the menu, which says
+   whose it is. Not while the pointer is on a subgroup, which lights up itself - and not at
+   all while the group's title and description, or a subgroup's, are being edited: until the
+   edit is saved or cancelled the group holds still, wherever the pointer goes.
+   One selector for both on purpose: aero draws a group's background with a selector heavier
+   than a bare `link-group.has-open-menu`, which lost to it, so the menu's group stayed at rest. */
+link-group:is(:hover, .has-open-menu):not(:has(link-subgroup:hover)):not(:has(:is(div.cls-group-head-title, div.cls-subgroup-head-title) > .editable)) {
     background-color: var(--color-component-background-hover);
 }
 
