@@ -473,7 +473,8 @@ export class SyncAccountViewModel {
     }
 
     /**
-     *  Asks what to do about a name another signed-in device is already using.
+     *  Asks what to do about a name another device is already using - signed in, or signed out
+     *  while this installation signed in again (`DeviceNameReconciler`); the message says which.
      *
      *  Three answers, and none of them is wrong. Taking over is the reinstall case and the
      *  reason "overwrite" was ever wanted. Renaming is for somebody who simply reached for a
@@ -491,7 +492,8 @@ export class SyncAccountViewModel {
 
         const answer = await new ChoiceDialog<"take-over" | "rename" | "keep">(
             t("sync.deviceNameTaken.title"),
-            t("sync.deviceNameTaken.message", { name: takenName }),
+            t(verdict.by.signedIn ? "sync.deviceNameTaken.message" : "sync.deviceNameTaken.messageSignedOut",
+                { name: takenName }),
             [
                 { label: t("sync.deviceNameTaken.takeOver"), value: "take-over", danger: true },
                 { label: t("sync.deviceNameTaken.rename"), value: "rename" },

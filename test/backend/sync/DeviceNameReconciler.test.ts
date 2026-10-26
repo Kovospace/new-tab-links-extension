@@ -7,10 +7,11 @@ import { SessionRepository } from "../../../src/backend/sync/SessionRepository";
 const THIS_DEVICE = "0199aaaa-0000-7000-8000-00000000000a";
 const OTHER_DEVICE = "0199bbbb-0000-7000-8000-00000000000b";
 
-function device(id: string, deviceName: string, signedIn: boolean): UserDeviceDto {
+function device(id: string, deviceName: string, signedIn: boolean, firstSeenAt?: string): UserDeviceDto {
     return {
         id, deviceName, browserName: "Chrome", signedIn,
-        lastUsedAt: "2026-01-01T00:00:00Z"
+        lastUsedAt: "2026-01-01T00:00:00Z",
+        ...(firstSeenAt ? { firstSeenAt } : {})
     };
 }
 
@@ -70,6 +71,34 @@ describe("DeviceNameReconciler", () => {
     });
 
     it("reports a signed-out namesake as the same place returning", async () => {
+        const other = device(OTHER_DEVICE, "Work laptop", false);
+        listDevices.mockResolvedValue(listing(device(THIS_DEVICE, "Work laptop", true), other));
+
+        expect(await reconciler.assess("Work laptop")).toEqual({ kind: "returning", to: other });
+    });
+
+    /**
+     *  #131: signing in *again* keeps the row this installation already had, so a signed-out
+     *  namesake is another device, not this place reinstalled. It used to be taken over without
+     *  a word - the dialog asking what to do never appeared.
+     */
+    it("asks about a signed-out namesake when this installation signed in again", async () => {
+        const other = device(OTHER_DEVICE, "Work laptop", false);
+        const thisOne = device(THIS_DEVICE, "Work laptop", true, "2025-06-01T00:00:00Z");
+        listDevices.mockResolvedValue(listing(thisOne, other));
+
+        expect(await reconciler.assess("Work laptop")).toEqual({ kind: "taken", by: other });
+    });
+
+    it("still adopts a signed-out namesake when this installation's row is brand new", async () => {
+        const other = device(OTHER_DEVICE, "Work laptop", false);
+        const thisOne = device(THIS_DEVICE, "Work laptop", true, "2026-01-01T00:00:00Z");
+        listDevices.mockResolvedValue(listing(thisOne, other));
+
+        expect(await reconciler.assess("Work laptop")).toEqual({ kind: "returning", to: other });
+    });
+
+    it("keeps the old reading against a backend that does not say when a row was first seen", async () => {
         const other = device(OTHER_DEVICE, "Work laptop", false);
         listDevices.mockResolvedValue(listing(device(THIS_DEVICE, "Work laptop", true), other));
 
