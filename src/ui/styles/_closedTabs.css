@@ -407,7 +407,7 @@
        the gap and the alignment only matter once there is text beside them. */
     justify-content: center;
     gap: 0.5em;
-    padding: 0.25em 0.375em;
+    padding: 0.25em 0.25em;
     border-radius: var(--radius-small);
     min-height: 2.5em;
     background-color: var(--color-component-background);
