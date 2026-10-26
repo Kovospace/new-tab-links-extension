@@ -45,6 +45,11 @@
     --aero-menu-surface: light-dark(
         color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity-light), transparent),
         color-mix(in srgb, var(--color-component-background) var(--aero-menu-opacity-dark), transparent));
+    /* A dialog keeps the flat theme's darker dialog colour, only see-through, so its text
+       fields stand apart from it as they do in flat - on the menu surface they did not. */
+    --aero-dialog-surface: light-dark(
+        color-mix(in srgb, var(--color-dialog-background) var(--aero-menu-opacity-light), transparent),
+        color-mix(in srgb, var(--color-dialog-background) var(--aero-menu-opacity-dark), transparent));
     --aero-pill: light-dark(
         color-mix(in srgb, var(--color-document-background) var(--aero-opacity-light), transparent),
         color-mix(in srgb, var(--color-document-background) var(--aero-opacity-dark), transparent));
@@ -135,6 +140,10 @@
     backdrop-filter: var(--aero-filter);
      /*A layer of its own, kept - see "Each blur keeps a layer" above. */
     transform: translateZ(0);
+}
+
+:root[data-theme-style="aero"] dialog.input-dialog {
+    background-color: var(--aero-dialog-surface);
 }
 
 /* ── What sits inside them ──────────────────────────────────────────────── */
