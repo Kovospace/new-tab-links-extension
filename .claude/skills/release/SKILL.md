@@ -109,7 +109,10 @@ Then **ask** - with `AskUserQuestion` where the options are clear - whether to:
 - write any of the proposed tips;
 - do something this skill does not cover. Offer what fits the release, for example: a Firefox
   submission (`web-ext lint` lists what Firefox still wants), an announcement text, a store
-  marquee tile, a GitHub release with the zip, closing the released issues on the board, or a
-  tip for a feature that has none.
+  marquee tile, a GitHub release with the zip, or a tip for a feature that has none.
+
+Released issues need no closing: a PR merged with "Closes #N" closes its issue and the board
+(GitHub Project #3) moves the card to Done. Check that they are (`gh project item-list 3 --owner
+Kovospace`), and say which released change had no issue rather than offering to close them.
 
 When something worth doing every time comes up, add it to this file.
