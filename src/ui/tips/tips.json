@@ -2,8 +2,8 @@
   {
     "id": "change-background",
     "text": {
-      "en": "Put a picture of your own behind the page: Settings → \"UI and behavior\" → \"Background\". Groups and menus blur it in the Aero style.",
-      "sk": "Dajte si za stránku vlastný obrázok: Nastavenia → „Vzhľad a správanie“ → „Pozadie“. V štýle Aero ho skupiny a ponuky rozmazávajú."
+      "en": "Pick one of sixteen pictures for behind the page, or add your own: Settings → \"Background\". Groups and menus blur it in the Aero style.",
+      "sk": "Vyberte si za stránku jeden zo šestnástich obrázkov alebo pridajte vlastný: Nastavenia → „Pozadie“. V štýle Aero ho skupiny a ponuky rozmazávajú."
     },
     "url": {
       "en": "/tips/change-background",
@@ -101,8 +101,8 @@
   {
     "id": "use-searchbar",
     "text": {
-      "en": "The search bar uses your browser's search engine — pick another with the icon beside it.",
-      "sk": "Vyhľadávacie pole používa vyhľadávač vášho prehliadača — iný zvolíte ikonou vedľa neho."
+      "en": "Start typing in the search bar: your saved links, open and closed tabs and history come first, the web search last.",
+      "sk": "Začnite písať do vyhľadávacieho poľa: najprv vaše uložené odkazy, otvorené a zatvorené karty a história, vyhľadávanie na webe nakoniec."
     },
     "url": {
       "en": "/tips/use-searchbar",
@@ -133,6 +133,17 @@
     "button": {
       "en": "Set the shortcut",
       "sk": "Nastaviť skratku"
+    }
+  },
+  {
+    "id": "bookmark-into-new-group",
+    "text": {
+      "en": "Saving a page and the right group does not exist yet? Choose \"New group…\" at the end of the list - it is made as the page is saved.",
+      "sk": "Ukladáte stránku a vhodná skupina ešte neexistuje? Na konci zoznamu zvoľte „Nová skupina…“ - vytvorí sa spolu s uložením stránky."
+    },
+    "url": {
+      "en": "/tips/bookmark-into-new-group",
+      "sk": "/sk/tips/bookmark-into-new-group"
     }
   },
   {
@@ -189,8 +200,8 @@
   {
     "id": "choose-theme",
     "text": {
-      "en": "Light or dark? Settings → \"UI and behavior\" → \"Theme\" - or let it follow your system.",
-      "sk": "Svetlý alebo tmavý? Nastavenia → „Vzhľad a správanie“ → „Vzhľad“ - alebo nech sa riadi systémom."
+      "en": "Light or dark, flat or see-through Aero? Settings → \"UI and behavior\" → \"Theme\" and \"Theme style\".",
+      "sk": "Svetlý alebo tmavý, plochý alebo priehľadný Aero? Nastavenia → „Vzhľad a správanie“ → „Vzhľad“ a „Štýl témy“."
     },
     "url": {
       "en": "/tips/choose-theme",
