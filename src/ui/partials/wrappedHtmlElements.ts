@@ -40,22 +40,6 @@ export const renderUnsyncedMark = (reason: string): HTMLElement => {
 };
 
 /**
- *  Toggles black and blur overlay over whole page when opening context menu over some component
- */
-export const toggleOverlay = (forcedState?: boolean) => {
-    const overlayElement = document.getElementsByClassName("overlay")[0];
-    if (forcedState === undefined || forcedState === null) {
-        overlayElement.classList.toggle("hidden");
-        return;
-    }
-    if (forcedState) {
-        overlayElement.classList.remove("hidden");
-        return;
-    }
-    overlayElement.classList.add("hidden");
-};
-
-/**
  *  Renders DIV container
  *
  *  <div class="[[ classList[0], ..., classList[n] ]]"></div>

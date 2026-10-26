@@ -1,5 +1,4 @@
 import { t } from '../../i18n/i18n';
-import { toggleOverlay } from './wrappedHtmlElements';
 import {
   FieldConstraints, FieldType, normalizeUrl, validateFields
 } from './fieldValidation';
@@ -147,7 +146,6 @@ export class InputDialog {
     document.body.appendChild(this.dialogEl);
     this.dialogEl.showModal();
     this.dialogEl.querySelector<HTMLInputElement>('input')?.focus();
-    toggleOverlay(true);
   }
 
   /**
@@ -316,7 +314,6 @@ export class InputDialog {
 
     // clean up DOM when closed (including native Escape key and backdrop click)
     dialog.addEventListener('close', () => {
-      toggleOverlay(false);
       dialog.remove();
       this.dialogEl = null;
       this.fieldRefs = [];

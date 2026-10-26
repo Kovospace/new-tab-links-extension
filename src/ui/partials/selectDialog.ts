@@ -1,4 +1,3 @@
-import { toggleOverlay } from './wrappedHtmlElements';
 import { t } from '../../i18n/i18n';
 
 /** One entry of the dropdown: what it reads as, and what picking it means. */
@@ -69,12 +68,10 @@ export class SelectDialog<VALUE> {
       this.dialogEl.addEventListener('close', () => settle(null));
       this.dialogEl.showModal();
       this.dialogEl.querySelector('select')?.focus();
-      toggleOverlay(true);
     });
   }
 
   private hide(): void {
-    toggleOverlay(false);
     // Closed before it is removed: a modal <dialog> is in the browser's top layer, and taking
     // the element out from under that leaves the layer holding a node nothing points at.
     this.dialogEl?.close();

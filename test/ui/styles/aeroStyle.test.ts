@@ -15,12 +15,6 @@ const STYLES = resolve("src/ui/styles");
  */
 const AERO = ':root[data-theme-style="aero"]';
 
-/**
- *  What dims the page behind a modal dialog. Not a surface the style is about: it blurred the
- *  page before there was a style, and it does in both.
- */
-const MODAL_BACKDROPS = ["dialog.input-dialog::backdrop", "div.overlay"];
-
 function css(file: string): string {
     return readFileSync(resolve(STYLES, file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 }
@@ -54,7 +48,7 @@ describe("the theme style in the stylesheets", () => {
 
     it("blurs nothing in the flat style", () => {
         const unguarded = blurredSelectors()
-            .filter(selector => !selector.startsWith(AERO) && !MODAL_BACKDROPS.includes(selector));
+            .filter(selector => !selector.startsWith(AERO));
 
         expect(unguarded).toEqual([]);
     });
@@ -75,7 +69,7 @@ describe("the theme style in the stylesheets", () => {
 
     /**
      *  backdrop-filter makes an element a stacking context, and a menu inside one can rise no
-     *  higher than it: under the next column, or under the overlay shown while a menu is open.
+     *  higher than it - under the next column.
      */
     it.each(["header", "workspace-plane-head", "workspace-plane-body > link-group", "link-subgroup"])(
         "never blurs %s itself, which holds menus", element => {

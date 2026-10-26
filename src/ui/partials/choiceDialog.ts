@@ -1,4 +1,3 @@
-import { toggleOverlay } from './wrappedHtmlElements';
 
 /** One button in a choice dialog: what it says, and what picking it means. */
 export interface Choice<VALUE> {
@@ -62,12 +61,10 @@ export class ChoiceDialog<VALUE> {
       // Escape closes a <dialog> natively, and that is a dismissal like any other.
       this.dialogEl.addEventListener('close', () => settle(null));
       this.dialogEl.showModal();
-      toggleOverlay(true);
     });
   }
 
   private hide(): void {
-    toggleOverlay(false);
     // Closed before it is removed: a modal <dialog> is in the browser's top layer, and taking
     // the element out from under that leaves the layer holding a node nothing points at.
     this.dialogEl?.close();

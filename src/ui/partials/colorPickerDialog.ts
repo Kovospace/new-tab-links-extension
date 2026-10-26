@@ -1,7 +1,6 @@
 import {
   TAB_GROUP_COLORS, TabGroupColor, TabGroupColorSwatch
 } from '../../backend/entity/TabGroupColors';
-import { toggleOverlay } from './wrappedHtmlElements';
 import { t } from '../../i18n/i18n';
 
 /**
@@ -52,12 +51,10 @@ export class ColorPickerDialog {
       // Cancel, Escape and the backdrop all end in the element's own close event.
       this.dialogEl.addEventListener('close', () => settle(null));
       this.dialogEl.showModal();
-      toggleOverlay(true);
     });
   }
 
   private hide(): void {
-    toggleOverlay(false);
     // Closed before it is removed: a modal <dialog> is in the browser's top layer, and taking
     // the element out from under that leaves the layer holding a node nothing points at.
     this.dialogEl?.close();

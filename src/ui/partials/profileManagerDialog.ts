@@ -2,7 +2,7 @@ import { ManagedProfileDTO, ProfileManagerViewModel } from '../../viewModel/prof
 import { confirmByTypingPhrase, confirmDestructiveAction, showNotice } from './confirmations';
 import { InputDialog } from './inputDialog';
 import { MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
-import { ICON, renderUnsyncedMark, toggleOverlay } from './wrappedHtmlElements';
+import { ICON, renderUnsyncedMark } from './wrappedHtmlElements';
 import { t } from '../../i18n/i18n';
 
 /** What has to be typed before every other profile is deleted at once. */
@@ -48,7 +48,6 @@ export class ProfileManagerDialog {
 
     this.dialogEl.addEventListener('close', () => this.dispose());
     this.dialogEl.showModal();
-    toggleOverlay(true);
 
     await this.viewModel.refresh();
   }
@@ -61,7 +60,6 @@ export class ProfileManagerDialog {
   private dispose(): void {
     this.unsubscribe?.();
     this.unsubscribe = null;
-    toggleOverlay(false);
     this.dialogEl?.remove();
     this.dialogEl = null;
     this.listEl = null;

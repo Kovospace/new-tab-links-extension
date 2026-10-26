@@ -54,7 +54,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
     let profiles: ProfileRepository;
 
     beforeEach(async () => {
-        document.body.innerHTML = '<div class="overlay hidden"></div><main></main><button class="action-closed-tabs"></button>';
+        document.body.innerHTML = '<main></main><button class="action-closed-tabs"></button>';
         profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();
@@ -490,7 +490,7 @@ describe("ClosedTabsPanel, kept open", () => {
     }
 
     beforeEach(async () => {
-        document.body.innerHTML = '<div class="overlay hidden"></div><main></main><button class="action-closed-tabs"></button>';
+        document.body.innerHTML = '<main></main><button class="action-closed-tabs"></button>';
         profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();

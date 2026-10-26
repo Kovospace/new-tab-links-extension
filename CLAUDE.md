@@ -820,8 +820,7 @@ pages import it, so Vite makes it a shared chunk that the page links *before* it
 stylesheet - order cannot be relied on, and `html[...]` only ties with the components'
 `html.dark ...`, which then wins. That is what kept the groups solid at first. **What holds menus - the header, the groups - is blurred from a
 `::before` at z-index -1, never on itself**: `backdrop-filter` makes an element a stacking
-context, and a menu inside one could rise no higher than it - under the next column, or under
-the overlay shown while a menu is open. **Hover may change a tint, never whether something is
+context, and a menu inside one could rise no higher than it - under the next column. **Hover may change a tint, never whether something is
 blurred**: a blur layer that exists only under the pointer is built and dropped by Chrome on
 every hover and flickers - a hovered subgroup is tinted over its group's blur instead.
 `test/ui/styles/aeroStyle.test.ts` pins all of that, that flat blurs nothing, and that no
