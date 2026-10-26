@@ -792,7 +792,10 @@ component stylesheet is a colour only one theme gets.
 z-index -2, fed `--page-background-image` by `pageBackground.ts`), never the root's background
 with `background-attachment: fixed`. Chrome cannot composite a fixed background: the picture
 behind every hover was repainted, at low quality while the transition ran and full quality when
-it ended - a flash at the end of every hover, in either style. `test/ui/partials/pageBackground.test.ts`.
+it ended - a flash at the end of every hover, in either style. **The variable carries a `blob:`
+address, never the data URL**: Chromium silently drops a custom property of about 2 MB or more,
+and a 4K picture is a 2-4 MB data URL, so large backgrounds were stored and never drawn.
+`test/ui/partials/pageBackground.test.ts`.
 
 **The background is chosen from a library** (#127; Settings → Background, a section of tiles).
 Sixteen built-in pictures - eight themes, a photo and a drawing each, from Unsplash under its
