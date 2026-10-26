@@ -39,8 +39,10 @@ except the version.
 3. [ ] Merge this repo's `feature/release-0.4.0` (version 0.4.0, tip teasers, this file, the
        listing).
 4. [ ] Paste into the Developer Dashboard: sections 2, 3 and 5.
-5. [ ] Upload `tabilinks.zip` (section 6).
-6. [ ] After approval: check the store page in both languages, then announce.
+5. [ ] Upload `tabilinks.zip` (section 6), then move the release's cards **Merged → Deployed**
+       on the board: #83, #85, #92, #93, #97, #98, #107, #117, #120, #121, #127, #131, #132, #137.
+6. [ ] After approval: move the same cards **Deployed → Done**, check the store page in both
+       languages, then announce. (Website cards: Merged → Done once the site is deployed.)
 
 ---
 
