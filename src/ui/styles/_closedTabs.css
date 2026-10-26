@@ -51,7 +51,8 @@
 
 /*
    What stands above the list - the head's title and buttons, the card switcher,
-   the search field - is laid out folded too, only invisible (#137). Opening
+   the search field - and the headings within it - a window's name, a day of the
+   history - are laid out folded too, only invisible (#137). Opening
    then puts the list exactly where it was, so the row under the pointer stays
    under it: hidden with display, they pushed the list 35 to 73 pixels down as
    the panel widened, and the row the pointer was reaching for moved away.
@@ -65,7 +66,8 @@
     .closed-tabs__head-action,
     .closed-tabs__keep-open,
     .closed-tabs__cards,
-    .closed-tabs__search
+    .closed-tabs__search,
+    .closed-tabs__window
 ) {
     visibility: hidden;
     white-space: nowrap;
@@ -279,9 +281,9 @@
     color: var(--color-button-active-text-hover);
 }
 
-/* A window's name above its tabs, drawn only when there is more than one. */
+/* A window's name above its tabs, drawn only when there is more than one, and a
+   day's heading in the history. Folded, it holds its place like the head does. */
 .closed-tabs__window {
-    display: none;
     margin: 0.75em 0.5em 0.25em;
     font-size: 0.75em;
     font-weight: bold;
@@ -292,10 +294,6 @@
 
 .closed-tabs__window:first-child {
     margin-top: 0.25em;
-}
-
-.closed-tabs--open .closed-tabs__window {
-    display: block;
 }
 
 /* A day of the history: its heading is the button that folds it. Each heading is

@@ -16,7 +16,9 @@ const ABOVE_THE_LIST = [
     ".closed-tabs__head-action",
     ".closed-tabs__keep-open",
     ".closed-tabs__cards",
-    ".closed-tabs__search"
+    ".closed-tabs__search",
+    // Inside the list, so it moved only the rows after it: a window's name, a day of the history.
+    ".closed-tabs__window"
 ];
 
 /** Every rule of the panel's stylesheet, as [selector, declarations]. */
