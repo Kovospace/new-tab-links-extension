@@ -7,6 +7,7 @@ form.search-bar {
     max-width: 40em;
     margin-left: 2em;
     padding: 0.25em;
+    padding-right: 0.125em;
     gap: 0.5em;
     border-radius: 1.5em;
     /* What the suggestions are placed against. */
@@ -190,8 +191,8 @@ span.search-bar__suggestion-where {
 
 button.search-bar__submit {
     flex: 0 0 auto;
-    width: 2.25em;
-    height: 2.25em;
+    width: 2.5em;
+    height: 2.5em;
     padding: 0.375em;
     border-radius: var(--radius-circular);
     border: var(--border-lining-width) solid var(--border-lining-color);
