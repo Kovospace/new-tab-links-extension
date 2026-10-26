@@ -136,6 +136,17 @@
     }
   },
   {
+    "id": "bookmark-into-new-group",
+    "text": {
+      "en": "Saving a page and the right group does not exist yet? Choose \"New group…\" at the end of the list - it is made as the page is saved.",
+      "sk": "Ukladáte stránku a vhodná skupina ešte neexistuje? Na konci zoznamu zvoľte „Nová skupina…“ - vytvorí sa spolu s uložením stránky."
+    },
+    "url": {
+      "en": "/tips/bookmark-into-new-group",
+      "sk": "/sk/tips/bookmark-into-new-group"
+    }
+  },
+  {
     "id": "profiles",
     "text": {
       "en": "Profiles are separate worlds: work links in one, home links in another, and nothing in between.",
