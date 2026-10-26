@@ -1006,6 +1006,9 @@ Defined in `src/constants.ts`: custom element tag names, action classes and plai
   extension at `http://localhost:8080`, adding that origin to the manifest's host permissions —
   or call the public API directly, since the deployed backend already allows
   `chrome-extension://*` as a CORS origin.
+- **Releasing a version** — the `release` skill (`.claude/skills/release/SKILL.md`): what shipped,
+  version and zip, the store listing and a `store/release-<version>-store-update.md` tutorial, the
+  website's changelog, tips and claims, then asking what else to do.
 - **Branch policy** — pushes go to `feature/**` or `bugfix/**` branches only, named to match the
   corresponding backend-repo branch; `main`/`master` are reached through PRs only. A `PreToolUse`
   hook (`.claude/hooks/block-push-to-main.sh`, wired in `.claude/settings.json`) denies any

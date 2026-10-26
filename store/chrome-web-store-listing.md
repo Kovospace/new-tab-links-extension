@@ -36,6 +36,8 @@ As a bonus, the history of visited pages, recently closed tabs and the list of c
 
 Of course, everything mentioned can be backed up and synchronised across all your browsers and devices.
 
+Make it feel like home: light or dark, flat or see-through glass, with one of sixteen backgrounds or a picture of your own. And the search bar looks through your saved links, open and closed tabs and history before it offers the web.
+
 WHO IT IS FOR
 
 • People with many bookmarks who want order rather than another wall of speed-dial tiles
@@ -59,6 +61,11 @@ WHY TABILINKS
   - the free version is complete - premium mainly lifts limits and removes a small banner
   - 95% of users should never reach the free limits
   - no hidden traps forcing you to give in and buy premium
+• Yours to shape:
+  - light and dark theme, each flat or glass (Aero)
+  - sixteen built-in backgrounds or your own picture - in the free version too
+• One search for everything:
+  - your links, open tabs, closed tabs and history first, the web search last
 • Only useful functions:
   - no widgets, notes, to-do lists, clocks, weather or other fluff that is everywhere
 • Independent developer:
@@ -92,7 +99,6 @@ FREE VERSION:
 PREMIUM VERSION:
 - practically UNLIMITED*
 - no banner at the bottom
-- your own background image
 
 *UNLIMITED under the fair use policy (https://tabilinks.app/fair-use)
 - generous limits: we expect 99.99% of users never to reach them
@@ -100,7 +106,7 @@ PREMIUM VERSION:
 
 PRIVACY
 
-Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Privacy, which also deletes them. With an account, your links, closed tabs and (if on) history are stored to sync them - unless you untick "Synchronise this browser" when signing in or in the menu, which keeps everything on this browser while premium still applies. Full policy: https://tabilinks.app/privacy
+Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Sync & privacy, which also deletes them. Pictures you upload as a background stay in your browser; a built-in one is downloaded from tabilinks.app when you choose it. With an account, your links, closed tabs and (if on) history are stored to sync them - unless you untick "Synchronise this browser" when signing in or in the menu, which keeps everything on this browser while premium still applies. Full policy: https://tabilinks.app/privacy
 
 OTHER
 
@@ -118,6 +124,8 @@ Tabilinks nahradí prázdnu novú kartu vašimi vlastnými odkazmi, usporiadaný
 Ako bonus história navštívených stránok, nedávno zatvorené karty a zoznam práve otvorených kariet - všetko dostupné bez jediného kliknutia: stačí prejsť myšou nad panel na pravej strane.
 
 Samozrejme, všetko spomenuté sa dá zálohovať a synchronizovať naprieč všetkými vašimi prehliadačmi a zariadeniami.
+
+Aby ste sa tu cítili ako doma: svetlý alebo tmavý vzhľad, plochý alebo priehľadné sklo, s jedným zo šestnástich pozadí alebo vlastným obrázkom. A vyhľadávacie pole najprv prehľadá vaše uložené odkazy, otvorené a zatvorené karty a históriu, až potom ponúkne web.
 
 PRE KOHO JE
 
@@ -142,6 +150,11 @@ PREČO TABILINKS
   - bezplatná verzia je kompletná - premium hlavne zvyšuje limity a odstraňuje malý banner
   - 95 % používateľov by na limity bezplatnej verzie nemalo nikdy naraziť
   - žiadne skryté pasce, ktoré by vás nútili vzdať sa a kúpiť premium
+• Prispôsobíte si ho:
+  - svetlý a tmavý vzhľad, každý plochý alebo sklenený (Aero)
+  - šestnásť vstavaných pozadí alebo vlastný obrázok - aj v bezplatnej verzii
+• Jedno vyhľadávanie na všetko:
+  - najprv vaše odkazy, otvorené a zatvorené karty a história, vyhľadávanie na webe nakoniec
 • Len užitočné funkcie:
   - žiadne widgety, poznámky, zoznamy úloh, hodiny, počasie ani iná vata, ktorá je všade
 • Nezávislý vývojár:
@@ -175,7 +188,6 @@ BEZPLATNÁ VERZIA:
 PREMIUM VERZIA:
 - prakticky všetko NEOBMEDZENÉ*
 - bez bannera v spodnej časti
-- vlastný obrázok na pozadí
 
 *NEOBMEDZENÉ v rámci zásad primeraného používania (https://tabilinks.app/sk/fair-use)
 - štedré limity: očakávame, že 99,99 % používateľov na ne nikdy nenarazí
@@ -183,7 +195,7 @@ PREMIUM VERZIA:
 
 SÚKROMIE
 
-Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Súkromie, čím sa aj vymaže. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať - pokiaľ pri prihlásení alebo v menu nezrušíte „Synchronizovať tento prehliadač“; vtedy všetko zostane v tomto prehliadači a premium aj tak platí. Celé zásady: https://tabilinks.app/sk/privacy
+Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Synchronizácia a súkromie, čím sa aj vymaže. Obrázky, ktoré si nahráte ako pozadie, zostávajú vo vašom prehliadači; vstavaný sa stiahne z tabilinks.app, keď si ho vyberiete. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať - pokiaľ pri prihlásení alebo v menu nezrušíte „Synchronizovať tento prehliadač“; vtedy všetko zostane v tomto prehliadači a premium aj tak platí. Celé zásady: https://tabilinks.app/sk/privacy
 
 ĎALŠIE
 
@@ -201,12 +213,12 @@ Web: https://tabilinks.app/sk
 | Marquee promo tile | 1400×560 | optional - skipped for the first release; only used if Google features the extension |
 
 Suggested screenshots, in this order (the first one is what most people see):
-1. A full workspace: three or four groups, one subgroup with a tab-group colour stripe — the example set from "Load examples" is a good start
-2. The recently closed tabs panel open beside the columns
-3. The right-click submenu over a website: workspace name, groups, a group's subgroups
-   (the most distinctive feature; the bookmarking popup can be a sixth candidate if one is dropped)
-4. A subgroup opened as a coloured Chrome tab group
-5. The settings dialog
+1. A full workspace in the Aero (glass) style over a built-in background: three or four groups,
+   one subgroup with a tab-group colour stripe — "Load examples" is a good start
+2. The search bar's suggestions: a saved link, a closed tab and a history entry above "search the web"
+3. The side panel open beside the columns (History card, folded by day)
+4. The right-click submenu over a website: workspace name, groups, a group's subgroups
+5. Settings → Background: the library of pictures — or the light/dark × flat/glass comparison
 
 Small promo tile: the logo, the website's wordmark and "Your bookmarks, grouped, on every new tab".
 
@@ -220,7 +232,7 @@ Small promo tile: the logo, the website's wordmark and "Your bookmarks, grouped,
 
 ### Single purpose
 ```
-Tabilinks replaces the new tab page with the user's own links, organised into workspaces, groups and subgroups, and helps open and save them as browser tabs.
+Tabilinks replaces the new tab page with the user's own links, organised into profiles, workspaces, groups and subgroups, together with the user's open tabs, recently closed tabs and - when the user turns it on - recently visited pages, and helps open and save them as browser tabs.
 ```
 
 ### Permission justifications
@@ -228,11 +240,12 @@ Tabilinks replaces the new tab page with the user's own links, organised into wo
 | Permission | Justification to paste |
 |---|---|
 | `storage` | `Stores the user's workspaces, groups, links and settings locally in the browser, and the sign-in session when the user has an account.` |
-| `tabs` | `Reads the address and title of the current tab when the user saves it as a link, keeps the "recently closed tabs" panel (address and title of a tab when it closes), and moves a tab opened from a saved link into that link's tab group.` |
+| `tabs` | `Reads the address and title of tabs to: save the current tab as a link; show the tabs open in this browser in a panel on the new tab page, where they can be switched to, closed or saved as links, and offer them as suggestions in the search bar (this list is never stored or sent anywhere); keep the "recently closed tabs" list (address and title of a tab when it closes; on by default); keep the browsing history list (address, title and time of pages visited; off by default, only when the user turns it on); and move a tab opened from a saved link into that link's tab group. Closed tabs and browsing history are synced to the user's account only when signed in, and both can be turned off in Settings → Sync & privacy, which also deletes them.` |
 | `tabGroups` | `Opens a subgroup of links as a Chrome tab group with its name and colour, finds that group again to add newly opened links to it, and repaints it when the user changes the colour.` |
 | `contextMenus` | `Adds "Bookmark this page with Tabilinks" and "Bookmark this link with Tabilinks" to the right-click menu. Each is a submenu listing the groups and subgroups of the user's open workspace; choosing one saves the page or the link there. The last entry opens the extension's bookmarking popup instead.` |
 | `favicon` | `Shows each saved link with its website icon, using Chrome's own favicon cache.` |
 | `search` | `The search bar on the new tab page can send the query to the browser's default search engine through chrome.search.` |
+| `unlimitedStorage` | `Keeps the background pictures the user chooses or uploads (up to 3840 px, a few megabytes each) in the browser, beside their links. Without it the browser's 10 MB storage quota is shared with the links, closed tabs and history, and a full profile could not store a single large picture. Nothing in this storage is sent anywhere; uploaded pictures are never synchronised.` |
 | Host permission `<all_urls>` | `Saved links can point to any website. When Chrome has no cached icon for a link, the extension downloads that page's HTML and its icon file to display the icon next to the link. No page content is stored or sent anywhere; only the icon image is kept locally. The same access is used to reach the extension's own sync server (api.tabilinks.app).` |
 
 ### Remote code
@@ -242,7 +255,7 @@ Tabilinks replaces the new tab page with the user's own links, organised into wo
 ### Data usage — tick these
 - [x] **Personally identifiable information** — e-mail address and username, only when the user creates or signs in to an account
 - [x] **Authentication information** — the password at sign-in and the session tokens
-- [x] **Web history** — recently closed tabs (address, title) are synced to the account when signed in
+- [x] **Web history** — recently closed tabs (on by default) and, if the user turns it on, visited pages (address, title, time, device name) are synced to the account when signed in; both can be turned off in Settings → Sync & privacy
 - [ ] Health, Financial and payment (payments happen on the website, never in the extension), Personal communications, Location, User activity, Website content — **no**
 
 Then tick all three certifications:
