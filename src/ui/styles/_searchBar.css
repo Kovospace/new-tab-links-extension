@@ -109,6 +109,11 @@ input.search-bar__input {
     border: var(--border-lining-width) solid var(--color-document-background);
 }
 
+input.search-bar__input::placeholder {
+    color: var(--color-textfield-text);
+    opacity: 0.6;
+}
+
 /* ── Suggestions ────────────────────────────────────────────────────────── */
 
 /*

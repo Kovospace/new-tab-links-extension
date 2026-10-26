@@ -79,9 +79,13 @@ html.dark dialog.input-dialog {
     padding: 0.4em 0.6em;
     font-size: 1em;
     border: none;
-    border-radius: var(--radius-small);
+    border-radius: var(--radius-normal);
     outline: none;
-    border-radius: 0.25em;
+}
+
+.input-dialog__input::placeholder {
+    color: var(--color-textfield-text);
+    opacity: 0.6;
 }
 
 /*
