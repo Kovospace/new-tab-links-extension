@@ -387,6 +387,10 @@ device preferences instead of the profile, so it is never pushed.
 - **The whole row reopens the tab**, not only its text. Folded, the rail draws nothing but the
   favicons, so a row that answered only to its text was a column of icons that did nothing.
   The text stays a button for the keyboard; the "+" and "x" are excluded.
+- **A row opens in this tab; its last button, "⇉", opens a new one** - closed tabs and history
+  alike (`utils/pageOpener.ts`, injected into both view models). This tab, because that is
+  what a link on the page does. Last, because the panel widens leftwards from the rail and
+  leaves the pointer at the right-hand end of a row. Open tabs rows only switch to the tab.
 - Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
   a second way.
 - **Only synchronised with an account that keeps them.** A snapshot naming no `closedTabs`

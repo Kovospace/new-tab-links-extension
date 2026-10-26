@@ -12,7 +12,8 @@ const WORDING: LogRowWording = {
   happenedOn: 'history.visitedOn',
   alreadySaved: 'history.alreadySaved',
   saveAsLink: 'history.saveAsLink',
-  forgetOne: 'history.forgetOne'
+  forgetOne: 'history.forgetOne',
+  openInNewTab: 'history.openInNewTab'
 };
 
 /**
@@ -141,8 +142,8 @@ export class HistoryCard {
     body.classList.add('closed-tabs__day-body');
     for (const visit of day.visits) {
       body.appendChild(buildLogRow(visit, WORDING, {
-        open: () => {
-          this.viewModel.reopen(visit.id);
+        open: where => {
+          this.viewModel.reopen(visit.id, where);
           this.onFinished();
         },
         forget: () => void this.viewModel.forget(visit.id)

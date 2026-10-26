@@ -5,11 +5,12 @@
   "today": "Today",
   "yesterday": "Yesterday",
   "empty": "Nothing visited yet. Pages you visit will appear here.",
-  "rowTooltip": "{url}\nOpen again",
+  "rowTooltip": "{url}\nOpen again in this tab",
   "visitedOn": "Visited on {device}",
   "alreadySaved": "Already saved in this profile",
   "saveAsLink": "Save as a link",
   "forgetOne": "Forget this one",
+  "openInNewTab": "Open in a new tab",
   "clear": "Clear",
   "forgetAll": "Forget the whole history",
   "forgetAllConfirmation": {

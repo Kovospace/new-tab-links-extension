@@ -4,6 +4,7 @@ import { ProfileRepository } from "../../../src/backend/repository/ProfileReposi
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
+import { PageOpener } from "../../../src/utils/pageOpener";
 import { HistoryViewModel } from "../../../src/viewModel/historyViewModel";
 import { VisitsRepository } from "../../../src/backend/repository/VisitsRepository";
 import { CardPreference, ClosedTabsPanel, KeepOpenPreference } from "../../../src/ui/partials/closedTabsPanel";
@@ -13,6 +14,10 @@ import { SidePanelCard } from "../../../src/backend/repository/DevicePreferences
 import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
+
+/** Records where the panel opened a page; jsdom cannot navigate. Reset before every test. */
+const opener = { here: vi.fn(), newTab: vi.fn() } satisfies PageOpener;
+beforeEach(() => { opener.here.mockReset(); opener.newTab.mockReset(); });
 
 /**
  *  jsdom lays nothing out, so the panel is told where it is: a column down the right, starting
@@ -63,8 +68,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
             environments: [environment("e", "W")], groups: [group("g", "R", "e")], activeEnvironmentId: "e"
         }));
         await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
-        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
-            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles));
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener),
+            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener));
         await panel.render(document.body);
         await flushStorageNotifications();
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -119,8 +124,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
         panel.dispose();
         document.body.innerHTML = '<main></main>';
         panel = new ClosedTabsPanel(
-            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles), () => delay,
-            undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles));
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener), () => delay,
+            undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener));
         void panel.render(document.body);
         edgeAt(960);
 
@@ -144,8 +149,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
             panel.dispose();
             document.body.innerHTML = '<main></main>';
             panel = new ClosedTabsPanel(
-                new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles), undefined,
-                undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles),
+                new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener), undefined,
+                undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener),
                 undefined, () => closeOnClick);
             await panel.render(document.body);
         });
@@ -333,24 +338,36 @@ describe("ClosedTabsPanel, opening and closing", () => {
     it("reopens the tab from its favicon, which is all the folded rail shows", () => {
         // The bug: only the row's text reopened it, and folded the text is not drawn - so the
         // rail was a column of icons that did nothing when clicked.
-        const reopen = vi.fn();
-        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
-            .chrome.tabs.create = reopen;
-
         (document.querySelector('.closed-tabs__favicon') as HTMLElement).click();
 
-        expect(reopen).toHaveBeenCalledWith(expect.objectContaining({ url: "https://example.com/x" }));
+        expect(opener.here).toHaveBeenCalledWith("https://example.com/x");
     });
 
-    it("does not reopen the tab when one of its own buttons is pressed", () => {
-        const reopen = vi.fn();
-        (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
-            .chrome.tabs.create = reopen;
+    it("opens a clicked row in this tab, as a link on the page opens", () => {
+        (document.querySelector('.closed-tabs__text') as HTMLButtonElement).click();
 
-        const buttons = document.querySelector('.closed-tabs__row')!.querySelectorAll('button');
-        (buttons[buttons.length - 1] as HTMLButtonElement).click();
+        expect(opener.here).toHaveBeenCalledWith("https://example.com/x");
+        expect(opener.newTab).not.toHaveBeenCalled();
+    });
 
-        expect(reopen).not.toHaveBeenCalled();
+    it("opens the page in a new tab from the row's last button, where the pointer is left", () => {
+        // Last on purpose: the panel widens leftwards from the rail, so the pointer that
+        // opened it stands at the right-hand end of a row.
+        const buttons = document.querySelector('.closed-tabs__row-actions')!.querySelectorAll('button');
+        const last = buttons[buttons.length - 1] as HTMLButtonElement;
+        expect(last.classList.contains('open-in-new-tab')).toBe(true);
+
+        last.click();
+
+        expect(opener.newTab).toHaveBeenCalledWith("https://example.com/x");
+        expect(opener.here).not.toHaveBeenCalled();
+    });
+
+    it("does not reopen the tab when its delete button is pressed", () => {
+        (document.querySelector('.closed-tabs__row-action.danger') as HTMLButtonElement).click();
+
+        expect(opener.here).not.toHaveBeenCalled();
+        expect(opener.newTab).not.toHaveBeenCalled();
     });
 
     it("puts the device on a line of its own, and only when it was another one", async () => {
@@ -406,8 +423,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
         // Forgetting one entry is working through the list, not finishing with it.
         panel.togglePinned();
 
-        const buttons = document.querySelector('.closed-tabs__row')!.querySelectorAll('button');
-        (buttons[buttons.length - 1] as HTMLButtonElement).click();
+        (document.querySelector('.closed-tabs__row-action.danger') as HTMLButtonElement).click();
 
         expect(panel.isPinned()).toBe(true);
         expect(isOpen()).toBe(true);
@@ -452,9 +468,9 @@ describe("ClosedTabsPanel, cards", () => {
         };
 
         panel = new ClosedTabsPanel(
-            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
+            new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener),
             () => 0, new OpenTabsViewModel(appState, tabs), preference,
-            new HistoryViewModel(new VisitsRepository(), appState, profiles));
+            new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener));
         await panel.render(document.body);
         await flushStorageNotifications();
     });
@@ -532,8 +548,8 @@ describe("ClosedTabsPanel, kept open", () => {
 
     async function renderWith(keepOpen: boolean): Promise<void> {
         kept = new ObservableValue<boolean>(keepOpen);
-        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
-            () => 0, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles),
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener),
+            () => 0, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener),
             preference);
         await panel.render(document.body);
         await flushStorageNotifications();

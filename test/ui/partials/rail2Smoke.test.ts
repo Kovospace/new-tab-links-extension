@@ -4,12 +4,17 @@ import { ProfileRepository } from "../../../src/backend/repository/ProfileReposi
 import { ClosedTabsRepository, recordClosedTab } from "../../../src/backend/repository/ClosedTabsRepository";
 import { appStateInit } from "../../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../../src/viewModel/closedTabsViewModel";
+import { PageOpener } from "../../../src/utils/pageOpener";
 import { HistoryViewModel } from "../../../src/viewModel/historyViewModel";
 import { VisitsRepository } from "../../../src/backend/repository/VisitsRepository";
 import { ClosedTabsPanel } from "../../../src/ui/partials/closedTabsPanel";
 import { DEFAULT_CLOSED_TABS_OPEN_DELAY as OPEN_DELAY_MS } from "../../../src/backend/repository/DevicePreferencesRepository";
 import { environment, group, profileOf } from "../../support/profileDataFixtures";
 import { flushStorageNotifications } from "../../support/chromeStorageStub";
+
+/** Records where the panel opened a page; jsdom cannot navigate. Reset before every test. */
+const opener = { here: vi.fn(), newTab: vi.fn() } satisfies PageOpener;
+beforeEach(() => { opener.here.mockReset(); opener.newTab.mockReset(); });
 
 /** jsdom lays nothing out, so the panel is told where it is. */
 function edgeAt(x: number) {
@@ -36,8 +41,8 @@ describe("rail pointer logic", () => {
             environments: [environment("e", "W")], groups: [group("g", "R", "e")], activeEnvironmentId: "e"
         }));
         await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
-        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles),
-            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles));
+        panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener),
+            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener));
         await panel.render(document.body);
         await flushStorageNotifications();
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -96,8 +101,7 @@ describe("rail pointer logic", () => {
         (globalThis as any).chrome.tabs.create = vi.fn();
         panel.togglePinned();
 
-        const forget = document.querySelector('.closed-tabs__row')!.querySelectorAll('button');
-        (forget[forget.length - 1] as HTMLButtonElement).click();
+        (document.querySelector('.closed-tabs__row-action.danger') as HTMLButtonElement).click();
         expect(panel.isPinned()).toBe(true);
 
         await recordClosedTab((await new ProfileRepository().init(), "default"), { url: "https://example.com/y", title: "Y", closedAt: Date.now() });

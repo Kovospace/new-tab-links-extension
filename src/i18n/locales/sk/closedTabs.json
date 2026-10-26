@@ -9,7 +9,8 @@
   "alreadySaved": "V tomto profile už uložené",
   "saveAsLink": "Uložiť ako odkaz",
   "forgetOne": "Zabudnúť túto",
-  "rowTooltip": "{url}\nOtvoriť znova",
+  "openInNewTab": "Otvoriť na novej karte",
+  "rowTooltip": "{url}\nOtvoriť znova v tejto karte",
   "closedOn": "Zavreté na {device}",
   "clear": "Vyčistiť",
   "forgetAllConfirmation": {
