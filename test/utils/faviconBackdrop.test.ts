@@ -9,12 +9,19 @@ function pixels(count: number, red: number, green: number, blue: number, alpha =
 
 const icon = (...parts: number[][]) => new Uint8ClampedArray(parts.flat());
 
-/** Parses "hsl(h s% l%)" into its three numbers. */
-function hsl(colour: string | null): [number, number, number] {
-    const match = /^hsl\((\d+) (\d+)% (\d+)%\)$/.exec(colour ?? "");
+const HSL = /hsl\((\d+) (\d+)% (\d+)%\)/;
+const PAIR = new RegExp(`^light-dark\\(${HSL.source}, ${HSL.source}\\)$`);
+
+/** The disc for one theme, out of the "light-dark(hsl(h s% l%), hsl(h s% l%))" pair. */
+function disc(colour: string | null, theme: "light" | "dark"): [number, number, number] {
+    const match = PAIR.exec(colour ?? "");
     expect(match, `${colour}`).not.toBeNull();
-    return [Number(match![1]), Number(match![2]), Number(match![3])];
+    const at = theme === "light" ? 1 : 4;
+    return [Number(match![at]), Number(match![at + 1]), Number(match![at + 2])];
 }
+
+/** The light theme's disc, which the cases below were written for. */
+const hsl = (colour: string | null) => disc(colour, "light");
 
 /**
  *  Each favicon's disc (#132): the icon's dominant hue, calmed, and a lightness opposite to the
@@ -68,5 +75,38 @@ describe("backdropFor", () => {
 
     it("has nothing to say about an icon with no opaque pixel", () => {
         expect(backdropFor(icon(pixels(256, 255, 0, 0, 0)))).toBeNull();
+    });
+
+    /**
+     *  One colour for both themes put near-black discs behind white icons on the light page and
+     *  glaring white ones behind dark icons on the dark page - and kept them after a theme change.
+     */
+    describe("per theme", () => {
+
+        const white = () => backdropFor(icon(pixels(256, 255, 255, 255)));
+        const black = () => backdropFor(icon(pixels(256, 0, 0, 0)));
+
+        it("is a light-dark() pair, so the browser switches it with the theme", () => {
+            expect(white()).toMatch(PAIR);
+        });
+
+        it("keeps the contrast with the icon in both themes", () => {
+            expect(disc(white(), "light")[2]).toBeLessThan(50);
+            expect(disc(white(), "dark")[2]).toBeLessThan(50);
+            expect(disc(black(), "light")[2]).toBeGreaterThan(50);
+            expect(disc(black(), "dark")[2]).toBeGreaterThan(50);
+        });
+
+        it("leans each disc towards its theme's background", () => {
+            // Lighter on the light page, darker on the dark one.
+            expect(disc(white(), "light")[2]).toBeGreaterThan(disc(white(), "dark")[2]);
+            expect(disc(black(), "light")[2]).toBeGreaterThan(disc(black(), "dark")[2]);
+        });
+
+        it("keeps the icon's hue in both", () => {
+            const red = backdropFor(icon(pixels(256, 230, 20, 20)));
+            expect(disc(red, "dark")[0]).toBe(disc(red, "light")[0]);
+            expect(disc(red, "dark")[1]).toBe(disc(red, "light")[1]);
+        });
     });
 });
