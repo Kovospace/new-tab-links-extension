@@ -323,9 +323,11 @@ button:hover:where(:not(:disabled)) {
     color: var(--color-textfield-text-hover);
 }
 
-/*.editable:focus {*/
-/*    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);*/
-/*}*/
+.editable:focus {
+    box-shadow: inset 0 0 0 0.125em var(--color-textfield-border-active);
+    /*border-color: var(--color-textfield-border-active);*/
+    cursor: text !important;
+}
 
 /* The crossed-out sync mark beside a profile that does not synchronise - in the profiles menu
    and in the profile manager. The glyph is the sync arrow; the strike is what says "not". */

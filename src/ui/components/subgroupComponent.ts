@@ -26,6 +26,7 @@ import {LinkComponent} from "./linkComponent";
 import {LinkViewModel} from "../../viewModel/linkViewModel";
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../partials/wrappedHtmlElements"
 import { OptionsMenu } from "../partials/optionsMenu"
+import { toggleManageLinksMode } from "../partials/manageLinksMode";
 import {InputDialog} from "../partials/inputDialog";
 import { MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 import { ColorPickerDialog } from "../partials/colorPickerDialog";
@@ -346,12 +347,8 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
     }
 
     private toggleLinksManagementOptions(menuItem: HTMLElement): void {
-        this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.toggle("managed");
-        if (this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0].classList.contains("managed")) {
-            setTimeout(() => { menuItem.textContent = t("subgroup.menu.finishManagingLinks") }, 250);
-        } else {
-            setTimeout(() => { menuItem.textContent = t("subgroup.menu.manageLinks") }, 250);
-        }
+        toggleManageLinksMode(this.getElementsByTagName(ELEM_SUBGROUP_BODY)[0], menuItem,
+            { manage: t("subgroup.menu.manageLinks"), finish: t("subgroup.menu.finishManagingLinks") });
     }
 
     private actionOpenSubGroupLinksIsolated(): void {

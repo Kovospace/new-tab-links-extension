@@ -5,8 +5,8 @@ link-group {
     margin-right: calc(var(--widgets-spacing) / 2);
     border-radius: 0.75em;
     background-color: var(--color-component-background);
-    /*border: var(--border-lining-width) solid var(--border-lining-color);*/
-    box-shadow: inset 0 0 0 var(--border-lining-width-inset) var(--border-lining-color-inset);
+    border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
+    /*box-shadow: inset 0 0 0 var(--border-lining-width-inset) var(--border-lining-color-inset);*/
 }
 
 link-group:first-child {
@@ -17,7 +17,10 @@ link-group:last-child {
     margin-right: 0;
 }
 
-link-group:hover:not(:has(link-subgroup:hover)) {
+/* Not while the pointer is on a subgroup, which lights up itself - and not at all while
+   the group's title and description, or a subgroup's, are being edited: until the edit is
+   saved or cancelled the group holds still, wherever the pointer goes. */
+link-group:hover:not(:has(link-subgroup:hover)):not(:has(:is(div.cls-group-head-title, div.cls-subgroup-head-title) > .editable)) {
     background-color: var(--color-component-background-hover);
 }
 
@@ -51,14 +54,16 @@ link-group-head > div.cls-group-head-title > span {
 }
 
 link-group-head > div.cls-group-head-title > h2 {
-    padding: 0em 0.25em;
-    /*border-radius: 0.175em;*/
+    padding: 0 0.25em;
     border-top-left-radius: var(--radius-bigger);
+    margin-top: 0.125em;
+    margin-left: 0.125em;
 }
 
 link-group-head > div.cls-group-head-title > span {
-    padding: 0em 0.375em;
+    padding: 0 0.375em;
     border-bottom-right-radius: var(--radius-normal);
+    margin-left: 0.175em;
 }
 
 link-group-head > div.cls-group-head-actions {
@@ -79,7 +84,7 @@ link-group-head > div.cls-group-head-actions > button:first-child {
     margin-top: 0;
     border-radius: 0;
     border-bottom-left-radius: var(--radius-normal);
-    border-top-right-radius: var(--radius-bigger);
+    border-top-right-radius: var(--radius-big);
 }
 
 link-group-head > div.cls-group-head-actions > button:last-child {
