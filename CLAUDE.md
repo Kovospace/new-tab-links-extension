@@ -351,14 +351,17 @@ under the same per-card rules as open; the mark is drawn over that space. Hidden
 they pushed the list down as the panel widened, and the row the pointer was reaching for slid
 away from under it (`test/ui/styles/sidePanelHead.test.ts`).
 
-**The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
-unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
-errand, while deleting or saving one is working through the list and leaves it alone.
+**Closing can be made to take a click, and that outranks the pointer** (`closeSidePanelOnClick`,
+a device preference, off by default; Settings → UI and behavior). On, the panel the pointer
+opened is pinned: it stays open when the pointer moves off, until its "x" is pressed, something
+outside it is clicked, or a row is opened - opening one is the end of the errand, while deleting
+or saving one is working through the list and leaves it alone. Read each time the panel opens.
+There used to be a button in the header that pinned it; the setting replaced it.
 
 **"Keep open" outranks both** (#98): a checkbox in the panel's head, and the same setting in
 Settings → UI and behavior (`keepSidePanelOpen`, a device preference - it is a matter of screen
 width). Ticked, the panel is open on every new tab and nothing folds it - not the pointer, a
-click elsewhere or opening a row. The header's button still closes it, and that unticks it.
+click elsewhere or opening a row. Its own "x" still closes it, and that unticks it.
 Unticked from inside the panel, it is handed back to the pointer where it stands. Settings
 draws it as an ordinary checkbox: `SettingsViewModel` routes a `DeviceToggleKey` to the
 device preferences instead of the profile, so it is never pushed.

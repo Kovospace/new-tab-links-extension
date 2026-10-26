@@ -1,7 +1,6 @@
 {
   "workspaces": "Pracovné priestory",
   "addWorkspace": "Pridať nový pracovný priestor",
-  "closedTabs": "Nechať panel nedávno zavretých otvorený",
   "profilesMenu": "Zoznam profilov",
   "applicationMenu": "Menu aplikácie",
   "profileButton": "Profil: {name}",

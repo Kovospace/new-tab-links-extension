@@ -87,6 +87,10 @@
     "title": "Keep the side panel open",
     "explanation": "The panel of open tabs, closed tabs and history stays open beside the columns instead of widening under the pointer. On this device only."
   },
+  "closeSidePanelOnClick": {
+    "title": "Closing the side panel takes a click",
+    "explanation": "Once the pointer has opened the panel, it stays open when the pointer moves away, until you open something in it or click outside it. On this device only."
+  },
   "syncEnabled": {
     "title": "Synchronise this browser",
     "explanation": "While you are signed in, this browser's links, settings and the logs below are synchronised with your account. Off, you stay signed in and keep premium, but nothing is sent or received. On this device only.",

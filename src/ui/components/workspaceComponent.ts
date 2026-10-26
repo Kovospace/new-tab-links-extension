@@ -10,7 +10,7 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_SIGNED_OUT_NOTICE, CLASS_WORKSPACE_SYNC_NOTICE,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
-    ACT_USER_PROFILES, CLASS_ACTION_ACTIVE, CLASS_ACTION_HIGHLIGHT, ACT_CLOSED_TABS, ELEM_WORKSPACE_FOOTER,
+    ACT_USER_PROFILES, CLASS_ACTION_HIGHLIGHT, ELEM_WORKSPACE_FOOTER,
 } from "../../constants"
 
 // data/model layer
@@ -50,9 +50,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      */
     private renaming: { menuItem: HTMLElement; title: string; description: string } | null = null;
 
-    /** The recently closed tabs rail, and the button that holds it open. */
+    /** The recently closed tabs rail. */
     private closedTabsPanel: ClosedTabsPanel | null = null;
-    private closedTabsButton: HTMLButtonElement | null = null;
 
     /** The search bar in the heading; one element, moved into every redraw of the heading. */
     private searchBar: SearchBar = new SearchBar();
@@ -205,22 +204,6 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.addWorkspaceDialog.show();
             }
         ));
-
-        // recently closed tabs, first on the right so it sits furthest from the menus: it is
-        // reached far more often than they are, and it opens a panel rather than a menu.
-        // Kept rather than appended and forgotten: it wears the "active" class while the panel
-        // is being held open, and the panel can let go of itself - a click outside it unpins
-        // it without this button hearing about the click.
-        this.closedTabsButton = renderButton(
-            // Its own glyph, not the import arrow: that one already means "import profile"
-            // two items down in the menu beside it, and one symbol cannot mean both.
-            ICON.HISTORY,
-            "",
-            [ACT_CLOSED_TABS],
-            t("header.closedTabs"),
-            () => this.toggleClosedTabsPinned()
-        );
-        headerElemRightContent.appendChild(this.closedTabsButton);
 
         // application / profiles menu — populated reactively via observables.profiles
         // headerElemRightContent.appendChild(renderTextContainer("span", "Profile"));
@@ -603,15 +586,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
      */
     private async renderClosedTabs(): Promise<void> {
         this.closedTabsPanel = new ClosedTabsPanel();
-        // Subscribing fires immediately, which is what puts the button in its resting state.
-        this.closedTabsPanel.pinned$.subscribe(pinned =>
-            this.closedTabsButton?.classList.toggle(CLASS_ACTION_ACTIVE, pinned));
         await this.closedTabsPanel.render(document.body);
-    }
-
-    /** Holds the rail open, or lets it go back to widening on hover. */
-    private toggleClosedTabsPinned(): void {
-        this.closedTabsPanel?.togglePinned();
     }
 
     /** "Edit title" starts editing the name in place; the same item, now "Save title", ends it. */

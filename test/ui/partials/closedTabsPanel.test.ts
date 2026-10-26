@@ -54,7 +54,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
     let profiles: ProfileRepository;
 
     beforeEach(async () => {
-        document.body.innerHTML = '<main></main><button class="action-closed-tabs"></button>';
+        document.body.innerHTML = '<main></main>';
         profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();
@@ -134,6 +134,73 @@ describe("ClosedTabsPanel, opening and closing", () => {
         delay = 0;                                 // changed in the settings meanwhile
         pass(970);
         expect(isOpen()).toBe(true);
+    });
+
+    describe("when closing takes a click (this device's setting)", () => {
+        let closeOnClick = true;
+
+        beforeEach(async () => {
+            closeOnClick = true;
+            panel.dispose();
+            document.body.innerHTML = '<main></main>';
+            panel = new ClosedTabsPanel(
+                new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles), undefined,
+                undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles),
+                undefined, () => closeOnClick);
+            await panel.render(document.body);
+        });
+
+        /** Rests the pointer on the rail until the panel opens, then the edge is the open one. */
+        function openByPointer() {
+            edgeAt(960);
+            pass(970);
+            vi.advanceTimersByTime(OPEN_DELAY_MS);
+            expect(isOpen()).toBe(true);
+            edgeAt(600);
+        }
+
+        it("stays open when the pointer moves away", () => {
+            openByPointer();
+
+            move(400);
+
+            expect(isOpen()).toBe(true);
+        });
+
+        it("ignores a click inside it and closes on one outside", () => {
+            openByPointer();
+            move(400);
+
+            document.querySelector('.closed-tabs__list')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            expect(isOpen()).toBe(true);
+
+            document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            expect(isOpen()).toBe(false);
+        });
+
+        it("closes when a row in it is opened", () => {
+            (globalThis as unknown as { chrome: { tabs: { create: unknown } } })
+                .chrome.tabs.create = vi.fn();
+            openByPointer();
+            move(400);
+            expect(isOpen()).toBe(true);
+
+            (document.querySelector('.closed-tabs__text') as HTMLButtonElement).click();
+
+            expect(isOpen()).toBe(false);
+        });
+
+        it("reads the setting each time the panel opens", () => {
+            openByPointer();
+            document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            expect(isOpen()).toBe(false);
+
+            closeOnClick = false;              // unticked in Settings meanwhile
+            openByPointer();
+            move(400);
+
+            expect(isOpen()).toBe(false);
+        });
     });
 
     it("opens for a pointer flung out of the page through the edge beside it", () => {
@@ -230,19 +297,6 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(isOpen()).toBe(false);
     });
 
-    it("publishes being pinned, so the button can show it", () => {
-        // The button cannot just listen to its own clicks: the panel lets go of itself when
-        // something outside it is clicked, and a button that never heard about that would go
-        // on looking pressed.
-        const seen: boolean[] = [];
-        panel.pinned$.subscribe(pinned => seen.push(pinned));
-
-        panel.togglePinned();
-        document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-        expect(seen).toEqual([false, true, false]);
-    });
-
     it("ignores the pointer while pinned, and closes when unpinned", () => {
         panel.togglePinned();
         expect(isOpen()).toBe(true);
@@ -259,9 +313,6 @@ describe("ClosedTabsPanel, opening and closing", () => {
 
         document.querySelector('.closed-tabs__list')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(panel.isPinned()).toBe(true);
-
-        document.querySelector('.action-closed-tabs')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(panel.isPinned()).toBe(true);      // the button's own business
 
         document.querySelector('main')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(panel.isPinned()).toBe(false);
@@ -490,7 +541,7 @@ describe("ClosedTabsPanel, kept open", () => {
     }
 
     beforeEach(async () => {
-        document.body.innerHTML = '<main></main><button class="action-closed-tabs"></button>';
+        document.body.innerHTML = '<main></main>';
         profiles = new ProfileRepository();
         await profiles.init();
         appState = new AppStateRepository();
@@ -503,12 +554,12 @@ describe("ClosedTabsPanel, kept open", () => {
 
     afterEach(() => panel.dispose());
 
-    it("opens on a new tab already open, ticked, with the header's button pressed", async () => {
+    it("opens on a new tab already open and ticked", async () => {
         await renderWith(true);
 
         expect(isOpen()).toBe(true);
         expect(checkbox().checked).toBe(true);
-        expect(panel.pinned$.get()).toBe(true);
+        expect(panel.isPinned()).toBe(true);
     });
 
     it("is folded by nothing: not the pointer, a click elsewhere, or opening a row", async () => {
@@ -550,7 +601,7 @@ describe("ClosedTabsPanel, kept open", () => {
         expect(checkbox().checked).toBe(true);
     });
 
-    it("closes from the header's button, and that unticks it", async () => {
+    it("closes from its own close button, and that unticks it", async () => {
         await renderWith(true);
 
         panel.togglePinned();
@@ -558,6 +609,6 @@ describe("ClosedTabsPanel, kept open", () => {
         expect(isOpen()).toBe(false);
         expect(kept.get()).toBe(false);
         expect(checkbox().checked).toBe(false);
-        expect(panel.pinned$.get()).toBe(false);
+        expect(panel.isPinned()).toBe(false);
     });
 });
