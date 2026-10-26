@@ -27,22 +27,22 @@ const css = (file: string) =>
 
 /** The page-wide hover rule for buttons, as written in main.css. */
 function globalHover(): string {
-    const match = /(html\.dark button:hover[^{,]*)\{/.exec(css("main.css"));
+    const match = /(?:^|\})\s*(button:hover[^{,]*)\{/.exec(css("main.css"));
     return match![1].trim();
 }
 
 describe("the page-wide button hover", () => {
 
     it("still beats a button at rest", () => {
-        expect(beats(specificity(globalHover()), specificity("html.dark button"))).toBe(true);
+        expect(beats(specificity(globalHover()), specificity("button"))).toBe(true);
     });
 
     it.each([
         ['_closedTabs.css', '.closed-tabs__card[aria-pressed="true"]:hover'],
-        ['_closedTabs.css', 'html.dark .closed-tabs__day-toggle:hover'],
-        ['_closedTabs.css', 'html.dark .closed-tabs__text:hover'],
-        ['_settingsDialog.css', 'html.dark .settings-dialog__category-head:hover'],
-        ['main.css', 'html.dark .active:hover']
+        ['_closedTabs.css', '.closed-tabs__day-toggle:hover'],
+        ['_closedTabs.css', '.closed-tabs__text:hover'],
+        ['_settingsDialog.css', '.settings-dialog__category-head:hover'],
+        ['main.css', '.active:hover']
     ])("loses to %s %s", (file, selector) => {
         expect(css(file)).toContain(selector);
         expect(beats(specificity(selector), specificity(globalHover()))).toBe(true);

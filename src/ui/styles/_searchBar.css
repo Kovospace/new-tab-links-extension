@@ -215,65 +215,65 @@ button.search-bar__engine-option > svg {
 
 /* ── Dark theme colours ─────────────────────────────────────────────────── */
 
-html.dark input.search-bar__input {
+input.search-bar__input {
     box-shadow: inset 0 0 0 var(--border-lining-width) var(--border-lining-color-inset);
 }
 
 /* The field that is being typed into is what lights up, not the whole bar round it - the same
    inset ring every other text field here wears when focused (.editable:focus in main.css). */
-html.dark input.search-bar__input:focus {
+input.search-bar__input:focus {
     box-shadow: inset 0 0 0 var(--border-lining-width) var(--border-lining-color-inset-active);
 }
 
 /* The engine chooser wears the same ring while its list is open - it is the part of the bar in
    use then - and when reached by keyboard. */
-html.dark button.search-bar__engine-button[aria-expanded="true"],
-html.dark button.search-bar__engine-button:focus-visible {
+button.search-bar__engine-button[aria-expanded="true"],
+button.search-bar__engine-button:focus-visible {
     box-shadow: inset 0 0 0 var(--border-lining-width) var(--color-textfield-border-active);
 }
 
 /* No glow under a pressed button in the bar - the page-wide press shadow
-   (`html.dark button:active` in main.css) spills round its rounded buttons and
+   (`button:active` in main.css) spills round its rounded buttons and
    over the field beside them. Pressing the chooser keeps its ring, if it has one. */
-html.dark form.search-bar button:active:not([aria-expanded="true"]) {
+form.search-bar button:active:not([aria-expanded="true"]) {
     box-shadow: none;
 }
 
 /* The field is drawn as a group is - the same colours in both themes, and in the aero style the
    same see-through, blurred surface (_aero.css) - rather than as a form field, so the bar reads
    as one of the things on the page. */
-html.dark input.search-bar__input {
+input.search-bar__input {
     background-color: var(--color-textfield-background);
     color: var(--color-textfield-text);
 }
 
-html.dark input.search-bar__input:hover {
+input.search-bar__input:hover {
     background-color: var(--color-textfield-background-hover);
     color: var(--color-textfield-text-hover);
 }
 
-html.dark ul.search-bar__engines {
+ul.search-bar__engines {
     background-color: var(--color-component-background);
 }
 
-html.dark button.search-bar__engine-option {
+button.search-bar__engine-option {
     background-color: transparent;
 }
 
-html.dark button.search-bar__engine-option:hover {
+button.search-bar__engine-option:hover {
     background-color: var(--color-component-background-hover);
 }
 
-html.dark button.search-bar__engine-option.active {
+button.search-bar__engine-option.active {
     background-color: var(--color-button-active-background);
 }
 
-html.dark button.search-bar__submit {
+button.search-bar__submit {
     background-color: var(--color-button-active-background);
     color: var(--color-button-active-text);
 }
 
-html.dark button.search-bar__submit:hover {
+button.search-bar__submit:hover {
     background-color: var(--color-button-active-background-hover);
     color: var(--color-button-active-text-hover);
 }

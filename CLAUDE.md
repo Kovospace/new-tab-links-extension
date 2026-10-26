@@ -811,9 +811,9 @@ permission). A failure says which it was (`BackgroundOutcome`): not downloaded, 
 picture - they once shared one message, which blamed the connection for a full storage. Removing a built-in picture hides it on this device. A picture in use from before the
 library becomes its first upload. Uploads are kept at 3840px as WebP.
 
-**The page-wide button hover weighs nothing extra**: `html.dark button:hover:where(:not(:disabled))`.
-A bare `:not(:disabled)` adds a class's worth and beat every component's own hover
-(`html.dark .x:hover`), painting those buttons grey (`test/ui/styles/buttonHover.test.ts`).
+**The page-wide button hover weighs nothing extra**: `button:hover:where(:not(:disabled))`.
+A bare `:not(:disabled)` adds a class's worth and beat components' own hovers (`.x:hover`),
+painting those buttons grey (`test/ui/styles/buttonHover.test.ts`).
 
 **Text colour may be animated** with the background, and is (`__transitions.css`). It was
 forbidden for a while, while the hover flicker was being hunted: a colour transition redraws the
@@ -834,15 +834,18 @@ they follow the same `color-scheme` switch as every other colour. (A fourth,
 `_aero.css`.) Every aero rule is in `_aero.css` and takes its amounts from those variables
 only. **Its selectors start with `:root[data-theme-style="aero"]`, never `html[...]`**: both
 pages import it, so Vite makes it a shared chunk that the page links *before* its own
-stylesheet - order cannot be relied on, and `html[...]` only ties with the components'
-`html.dark ...`, which then wins. That is what kept the groups solid at first. **What holds menus - the header, the groups - is blurred from a
+stylesheet - order cannot be relied on, so the aero rules have to outweigh the components'
+own selectors rather than follow them. `html[...]` did not, and that is what kept the groups
+solid at first. **What holds menus - the header, the groups - is blurred from a
 `::before` at z-index -1, never on itself**: `backdrop-filter` makes an element a stacking
 context, and a menu inside one could rise no higher than it - under the next column. **Hover may change a tint, never whether something is
 blurred**: a blur layer that exists only under the pointer is built and dropped by Chrome on
 every hover and flickers - a hovered subgroup is tinted over its group's blur instead.
 `test/ui/styles/aeroStyle.test.ts` pins all of that, that flat blurs nothing, and that no
-amount is written into the rules. `html.dark` in the stylesheets is not the
-dark theme; it is the older "themed" class both pages carry, and its rules serve both.
+amount is written into the rules. **No rule is written for one theme**: there used to be an
+`html.dark` prefix on most of them, a "themed" class older than the light theme, which only
+added weight; it is gone, and a colour that differs between themes is a `light-dark()` pair in
+`__variables.css`.
 
 A profile also carries **settings** (`entity/ProfileSettings.ts`): what that profile is set to
 do, as opposed to what it holds. They live on the profile record rather than in a store of
