@@ -143,6 +143,12 @@ workspace-plane-body {
    everything else out to the edge, which is where the ads bar ended up.
 */
 workspace-plane-footer {
+    /* The footer takes the width the plane has, and never makes it wider. The plane sizes
+       itself to its widest content - which is right for the groups, which scroll sideways
+       when there are many - and a tip is one nowrap line, so a long sentence stretched the
+       whole plane past the screen. Contained, the footer contributes no width of its own;
+       the tip inside is capped at the footer's width and ellipsises (_tipsBar.css). */
+    contain: inline-size;
     display: flex;
     flex-direction: column;
     align-items: stretch;
