@@ -345,6 +345,12 @@ the viewport): in a maximised window the screen's last pixels are the window fra
 pointer flung at that edge sent its last mousemove from left of the rail and never reached it. The wait is started once and not restarted by movement within
 the rail - a pointer that has stopped sends no more events, so the timer finishes the job.
 
+**Opening never moves the list** (#137). What stands above it - the head's title and buttons,
+the card switcher, the search field - is laid out while folded too, only `visibility: hidden`,
+under the same per-card rules as open; the mark is drawn over that space. Hidden with `display`,
+they pushed the list down as the panel widened, and the row the pointer was reaching for slid
+away from under it (`test/ui/styles/sidePanelHead.test.ts`).
+
 **The button pins it, and pinning outranks the pointer.** A pinned panel stays open until it is
 unpinned, something outside it is clicked, or a row is opened - opening one is the end of the
 errand, while deleting or saving one is working through the list and leaves it alone.
