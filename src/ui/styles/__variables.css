@@ -44,7 +44,7 @@
     /* Group columns, panels, menus */
     --color-component-background: light-dark(#eee, #111);
     --color-component-text: light-dark(#111, #eee);
-    --color-component-background-hover: light-dark(#ccc, #222);
+    --color-component-background-hover: light-dark(#ddd, #222);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
     /* Dialogs */
@@ -59,7 +59,7 @@
     --border-lining-color-inset-active: var(--color-theme-accent-background-hover);
 
     /* Buttons */
-    --color-button-background: light-dark(#aaa, #444);
+    --color-button-background: light-dark(#ccc, #444);
     --color-button-text: light-dark(#111, #eee);
     --color-button-background-hover: var(--color-theme-accent-background-hover);
     --color-button-background-hover-noaccent: light-dark(#888, #555);
