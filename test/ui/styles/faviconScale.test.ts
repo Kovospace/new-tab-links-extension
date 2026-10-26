@@ -19,7 +19,7 @@ function ruleFor(file: string, selector: string): string {
 describe("favicon sizes", () => {
 
     it.each([
-        ["link.css", "link-container > div.cls-link-icon > img"],
+        ["link.css", "link-container > div > div.cls-link-icon > img"],
         ["_closedTabs.css", ".closed-tabs__favicon"],
         ["_bookmarkPanel.css", ".bookmark-panel__icon > img"],
     ])("%s sizes %s in rem", (file, selector) => {

@@ -353,7 +353,7 @@ html.dark .editable:hover {
    row it came out bigger than the icon and blew the side panel's favicons up to many times
    their size.
 */
-link-container > div.cls-link-icon > img,
+link-container > div > div.cls-link-icon > img,
 .closed-tabs__favicon,
 .bookmark-panel__icon > img {
     border-radius: 50%;
@@ -362,7 +362,7 @@ link-container > div.cls-link-icon > img,
 }
 
 /* 15% of 2rem */
-link-container > div.cls-link-icon > img,
+link-container > div > div.cls-link-icon > img,
 .bookmark-panel__icon > img {
     padding: 0.125rem;
 }

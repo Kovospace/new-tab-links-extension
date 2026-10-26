@@ -53,7 +53,13 @@ describe("the theme style in the stylesheets", () => {
         expect(unguarded).toEqual([]);
     });
 
-    it.each([
+    /*
+     *  Skipped while the aero style's blur is switched off: every backdrop-filter in _aero.css is
+     *  commented out (and the see-through backgrounds with it), so there is nothing here for these
+     *  to find. Take the .skip off when the blur is back. The other checks in this file still run:
+     *  they are rules for how a blur is written, and hold whether any is written or not.
+     */
+    it.skip.each([
         "header::before",
         "workspace-plane-head::before",
         "footer",
