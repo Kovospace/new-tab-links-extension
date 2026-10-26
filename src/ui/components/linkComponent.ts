@@ -237,7 +237,7 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 }
             });
 
-            contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, actions);
+            contextMenu.show((e as MouseEvent).clientX, (e as MouseEvent).clientY, actions, this);
         });
     }
 

@@ -2,7 +2,7 @@
 import {Logger} from "../../utils/logger";
 import { t } from "../../i18n/i18n";
 
-import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
+import { CLASS_HAS_OPEN_MENU, ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM} from "../../constants"
 import { ICON, renderButton, renderUnsyncedMark } from "../partials/wrappedHtmlElements"
 import { confirmDestructiveAction } from "./confirmations";
 import { liftClosed, liftOpen, makePopover } from "./popover";
@@ -58,6 +58,12 @@ type MenuRenderData = {
     openMenuButtonClass?: string | string[],
     openMenuButtonTooltipText?: string
     openMenuButtonContent?: string
+    /**
+     * What the menu is about - a group, a subgroup - marked while the menu is open, so it keeps
+     * its hover look: the menu sits in the top layer, the pointer leaves the element for it, and
+     * without the mark nothing on the page would say which element the menu belongs to.
+     */
+    owner?: HTMLElement
 }
 
 export class OptionsMenu {
@@ -231,6 +237,7 @@ export class OptionsMenu {
                 this.menuElement.classList.remove("visible");
                 this.openingElement.classList.remove("active");
                 liftClosed(this.menuElement);
+                this.markOwner(false);
             }
         });
     }
@@ -251,6 +258,12 @@ export class OptionsMenu {
         } else {
             liftClosed(this.menuElement);
         }
+        this.markOwner(willBeVisible);
+    }
+
+    /** Marks or unmarks the element the menu is about; see `owner` in the render data. */
+    private markOwner(open: boolean): void {
+        this.renderData.owner?.classList.toggle(CLASS_HAS_OPEN_MENU, open);
     }
 }
 

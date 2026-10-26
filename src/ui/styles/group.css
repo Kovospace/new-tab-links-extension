@@ -20,7 +20,9 @@ link-group:last-child {
 /* Not while the pointer is on a subgroup, which lights up itself - and not at all while
    the group's title and description, or a subgroup's, are being edited: until the edit is
    saved or cancelled the group holds still, wherever the pointer goes. */
-link-group:hover:not(:has(link-subgroup:hover)):not(:has(:is(div.cls-group-head-title, div.cls-subgroup-head-title) > .editable)) {
+link-group:hover:not(:has(link-subgroup:hover)):not(:has(:is(div.cls-group-head-title, div.cls-subgroup-head-title) > .editable)),
+/* Its menu is open: the pointer has left the group for the menu, which says whose it is. */
+link-group.has-open-menu {
     background-color: var(--color-component-background-hover);
 }
 

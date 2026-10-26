@@ -96,7 +96,8 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
             {
                 openMenuButtonId: `group-${this.id}-menu`,
                 openMenuButtonClass: ACT_EDIT_GROUP,
-                openMenuButtonTooltipText: t("group.menu.tooltip")
+                openMenuButtonTooltipText: t("group.menu.tooltip"),
+                owner: this
             },
             [
                 {

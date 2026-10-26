@@ -1,4 +1,4 @@
-import { ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM } from "../../constants";
+import { CLASS_HAS_OPEN_MENU, ELEM_OPTIONS_MENU, ELEM_OPTIONS_MENU_ITEM } from "../../constants";
 import { liftClosed, liftOpenAt, makePopover } from "./popover";
 
 export type ContextMenuAction = {
@@ -11,6 +11,9 @@ export type ContextMenuAction = {
 class ContextMenu {
 
   private el: HTMLElement | null = null;
+
+  /** The element the open menu is about, marked so it keeps its hover look while it is open. */
+  private owner: HTMLElement | null = null;
 
   private onOutsideMouseDown = (e: MouseEvent) => {
     if (!this.el?.contains(e.target as Node)) this.hide();
@@ -31,8 +34,13 @@ class ContextMenu {
     return this.el;
   }
 
-  show(x: number, y: number, actions: ContextMenuAction[]): void {
+  /**
+   * @param owner what the menu is about - the link right-clicked - kept in its hover look while
+   *              the menu is open, since the pointer leaves it for the menu
+   */
+  show(x: number, y: number, actions: ContextMenuAction[], owner?: HTMLElement): void {
     if (!actions.length) return;
+    this.setOwner(owner ?? null);
 
     const el = this.getEl();
     el.replaceChildren();
@@ -69,10 +77,17 @@ class ContextMenu {
   }
 
   hide(): void {
+    this.setOwner(null);
     this.el?.classList.remove('visible');
     if (this.el) liftClosed(this.el);
     document.removeEventListener('mousedown', this.onOutsideMouseDown);
     document.removeEventListener('keydown', this.onEscapeKey);
+  }
+
+  private setOwner(owner: HTMLElement | null): void {
+    this.owner?.classList.remove(CLASS_HAS_OPEN_MENU);
+    this.owner = owner;
+    this.owner?.classList.add(CLASS_HAS_OPEN_MENU);
   }
 }
 
