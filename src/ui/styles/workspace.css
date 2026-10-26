@@ -170,5 +170,5 @@ workspace-plane-footer > div:first-child {
 }
 
 workspace-plane-footer > div:last-child {
-    margin-bottom: 0;
+    /*margin-bottom: 0;*/
 }

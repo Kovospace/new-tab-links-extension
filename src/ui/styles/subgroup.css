@@ -21,7 +21,9 @@ link-subgroup > div {
     border-radius: var(--radius-bigger);
 }
 
-link-subgroup:hover > div {
+/* Not at all while its title and description are being edited: until the edit is saved
+   or cancelled the subgroup holds still, wherever the pointer goes. */
+link-subgroup:hover:not(:has(div.cls-subgroup-head-title > .editable)) > div {
     background-color: var(--color-component-background-hover);
     /*background-color: red;*/
 }
@@ -55,7 +57,6 @@ link-subgroup-head {
     flex-direction: row;
     align-items: flex-start;
     cursor: pointer;
-    padding-left: 0.125em;
     gap: 0.25em;
 }
 
@@ -68,21 +69,25 @@ link-subgroup-head {
 link-subgroup-head > div.cls-subgroup-head-title {
     display: flex;
     flex-direction: column;
-    gap: 0.125em;
+    /*gap: 0.125em;*/
     flex-grow: 1;
     flex-shrink: 1;
     min-width: 0;
 }
 
 link-subgroup-head > div.cls-subgroup-head-title > h3 {
-  border-radius: 0.25em;
+  border-top-left-radius: 0.25em;
+    border-top-right-radius: 0.25em;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  padding: 0 0.125em;
 }
 
 link-subgroup-head > div.cls-subgroup-head-title > span {
-  border-radius: 0.25em;
+    border-bottom-left-radius: 0.25em;
+    border-bottom-right-radius: 0.25em;
+  padding: 0 0.175em;
 }
 
 link-subgroup-head > div.cls-subgroup-head-actions {

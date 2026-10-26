@@ -186,7 +186,6 @@ options-menu-item > span.options-menu__swatch {
     height: 0.75em;
     margin-right: 0.5em;
     border-radius: var(--radius-circular);
-    /*box-shadow: 0 0 0 0.0625em var(--color-component-framing);*/
     vertical-align: baseline;
     border: 0.125em solid var(--color-component-background);
 }
