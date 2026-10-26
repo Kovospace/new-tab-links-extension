@@ -1006,6 +1006,12 @@ Defined in `src/constants.ts`: custom element tag names, action classes and plai
   extension at `http://localhost:8080`, adding that origin to the manifest's host permissions —
   or call the public API directly, since the deployed backend already allows
   `chrome-extension://*` as a CORS origin.
+- **The board's last columns follow the release** (GitHub Project #3). An extension card goes
+  to **Merged** when its PR merges, **Deployed** when the version holding it is uploaded for
+  store review, **Done** only when that version passed review. A website card goes Merged →
+  Done once the site is deployed (Deployed is not used there). The board's "item closed → Done"
+  automation fires when a PR's `Closes #N` closes the issue, so after merging an extension PR
+  set its card back to Merged by hand. Details in the `release` skill, section 6.
 - **Releasing a version** — the `release` skill (`.claude/skills/release/SKILL.md`): what shipped,
   version and zip, the store listing and a `store/release-<version>-store-update.md` tutorial, the
   website's changelog, tips and claims, then asking what else to do.

@@ -111,8 +111,34 @@ Then **ask** - with `AskUserQuestion` where the options are clear - whether to:
   submission (`web-ext lint` lists what Firefox still wants), an announcement text, a store
   marquee tile, a GitHub release with the zip, or a tip for a feature that has none.
 
-Released issues need no closing: a PR merged with "Closes #N" closes its issue and the board
-(GitHub Project #3) moves the card to Done. Check that they are (`gh project item-list 3 --owner
-Kovospace`), and say which released change had no issue rather than offering to close them.
+## 6. The board follows the release, not the merge
+
+GitHub Project #3 ("Tabilinks devel", owner `Kovospace`): Backlog → Analysis → Ready →
+In progress → In review → **Merged → Deployed → Done**. What the last three mean depends on the repo:
+
+| Repo | Merged | Deployed | Done |
+|---|---|---|---|
+| **Extension** | its PR is merged | the version holding it is **uploaded for review** in the store | that version **passed review** and is live |
+| **Website** | its PR is merged | *not used* - deploying is the same as done | the site serving it is deployed |
+
+**The board's own automation gets this wrong.** A PR merged with "Closes #N" closes the issue,
+and the project's "item closed → Done" workflow moves the card to Done at once. So an extension
+card has to be set back to **Merged** by hand after its PR merges (issues stay closed - that is
+wanted). Never leave a merged extension card in Done before its version passed review.
+
+During a release:
+1. **Preparing it** - every extension card shipped in it is in Merged (fix any the automation
+   moved to Done: the release's issue numbers, from section 1).
+2. **Uploaded for review** - the developer says so: move those cards Merged → **Deployed**.
+3. **Review passed** - the developer says so: move them Deployed → **Done**.
+Website cards go Merged → Done once the site is deployed with them.
+
+Moving a card: `gh project item-list 3 --owner Kovospace --format json --limit 300` for the item
+id, then `gh project item-edit --project-id PVT_kwDOEe6a4c4BmhFO --id <item>
+--field-id PVTSSF_lADOEe6a4c4BmhFOzhlJy9s --single-select-option-id <option>`, options
+Merged `20dbdc5c`, Deployed `c4ccf8bb`, Done `98236657` (re-read them with
+`gh project field-list 3 --owner Kovospace` if a move is refused).
+
+In the hand-over, list the cards and their column, and say which released change had no issue.
 
 When something worth doing every time comes up, add it to this file.
