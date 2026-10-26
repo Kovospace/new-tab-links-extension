@@ -185,8 +185,14 @@ function hueOf(red: number, green: number, blue: number, max: number, min: numbe
     return (hue * 60 + 360) % 360;
 }
 
-/** Discs already worked out, by image address: the same favicon appears in many places. */
+/**
+ *  Discs already worked out, by image address - and, for an icon that draws itself per theme,
+ *  by theme too: the same favicon appears in many places.
+ */
 const known = new Map<string, string | null>();
+
+/** Marks a followed favicon, so a theme change can find them all again without a list of its own. */
+const FOLLOWED = "faviconBackdrop";
 
 /** The icon drawn while the real one is on its way; it keeps the default disc. */
 const PLACEHOLDER = "favicon-default";
@@ -199,10 +205,63 @@ const SAMPLE_SIDE = 16;
  *  loads another picture - the worker's icon replacing the placeholder, "refresh icon".
  */
 export function followFaviconBackdrop(img: HTMLImageElement): void {
+    img.dataset[FOLLOWED] = "";
+    watchTheTheme();
     const apply = () => applyBackdrop(img);
     img.addEventListener("load", apply);
     if (img.complete && img.naturalWidth > 0) {
         apply();
+    }
+}
+
+/**
+ *  Whether the icon may look different in the other theme. An SVG can carry its own
+ *  `prefers-color-scheme` rules - ChatGPT's draws itself black on light and white on dark - and
+ *  the browser applies them to the page's theme, on the page and on a canvas alike. Its disc,
+ *  worked out from one drawing, was then right for one theme only, until the page was reloaded.
+ *  A bitmap looks the same in both, and its one reading answers for both.
+ */
+function drawsPerTheme(source: string): boolean {
+    return source.startsWith("data:image/svg") || /\.svg([?#]|$)/i.test(source);
+}
+
+/** The theme the page is drawn in now: the one chosen, or the system's under "auto". */
+function currentTheme(): "light" | "dark" {
+    const chosen = document.documentElement.dataset.theme;
+    if (chosen === "light" || chosen === "dark") {
+        return chosen;
+    }
+    return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+}
+
+let watching = false;
+
+/**
+ *  Works out the discs of the icons that draw themselves per theme again whenever the theme
+ *  changes: chosen in the settings (`data-theme` on the root, from any page), or the system's
+ *  while the setting is "auto". Started with the first icon followed; once is enough.
+ */
+function watchTheTheme(): void {
+    if (watching || typeof MutationObserver === "undefined") {
+        return;
+    }
+    watching = true;
+    const redrawNow = () => document
+        .querySelectorAll<HTMLImageElement>(`img[data-favicon-backdrop]`)
+        .forEach(img => {
+            if (drawsPerTheme(img.currentSrc || img.src) && img.complete && img.naturalWidth > 0) {
+                applyBackdrop(img);
+            }
+        });
+    // Two frames later, not at once: the observer runs before the page is restyled, and an SVG
+    // read then is still drawn in the theme being left - the disc came out for the old theme.
+    const redraw = () => requestAnimationFrame(() => requestAnimationFrame(redrawNow));
+    new MutationObserver(redraw).observe(document.documentElement,
+        { attributes: true, attributeFilter: ["data-theme"] });
+    if (typeof matchMedia === "function") {
+        matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
     }
 }
 
@@ -212,10 +271,11 @@ function applyBackdrop(img: HTMLImageElement): void {
         img.style.removeProperty("--favicon-backdrop");
         return;
     }
-    if (!known.has(source)) {
-        known.set(source, readBackdrop(img));
+    const key = drawsPerTheme(source) ? `${currentTheme()} ${source}` : source;
+    if (!known.has(key)) {
+        known.set(key, readBackdrop(img));
     }
-    const colour = known.get(source);
+    const colour = known.get(key);
     if (colour) {
         img.style.setProperty("--favicon-backdrop", colour);
     } else {
