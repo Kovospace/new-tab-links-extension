@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BackgroundImageRepository } from "../../../src/backend/repository/BackgroundImageRepository";
 import { BackgroundLibraryRepository } from "../../../src/backend/repository/BackgroundLibraryRepository";
@@ -103,5 +103,34 @@ describe("BackgroundLibraryRepository", () => {
 
         await open();       // and only once
         expect(uploads.items.size).toBe(1);
+    });
+});
+
+/**
+ *  A picture tried before the website had it was answered with a 404 the browser kept for a
+ *  week, and the download went on getting that remembered 404 - the picture stayed unavailable
+ *  while every other one worked. The download has to ask the server every time.
+ */
+describe("downloading a built-in picture", () => {
+
+    it("never takes the browser's remembered answer without asking the server", async () => {
+        const { fetchAsDataUrl } = await import("../../../src/backend/repository/BackgroundLibraryRepository");
+        const asked: RequestInit[] = [];
+        vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
+            asked.push(init);
+            return new Response(new Blob(["webp"]), { headers: { "Content-Type": "image/webp" } });
+        });
+
+        expect(await fetchAsDataUrl("https://tabilinks.app/backgrounds/01.webp")).toMatch(/^data:image\/webp;base64,/);
+        expect(asked[0]?.cache).toBe("no-cache");
+        vi.unstubAllGlobals();
+    });
+
+    it("refuses a missing picture rather than putting an error page behind the page", async () => {
+        const { fetchAsDataUrl } = await import("../../../src/backend/repository/BackgroundLibraryRepository");
+        vi.stubGlobal("fetch", async () => new Response("not found", { status: 404 }));
+
+        await expect(fetchAsDataUrl("https://tabilinks.app/backgrounds/01.webp")).rejects.toThrow(/404/);
+        vi.unstubAllGlobals();
     });
 });

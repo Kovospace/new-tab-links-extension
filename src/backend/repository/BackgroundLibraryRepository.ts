@@ -22,8 +22,17 @@ export interface BackgroundTile {
 /** Reads a picture from the network into a data URL: the website's copy of a built-in one. */
 export type PictureFetcher = (url: string) => Promise<string>;
 
-const fetchAsDataUrl: PictureFetcher = async url => {
-    const response = await fetch(url);
+/**
+ *  Downloads a built-in picture into a data URL.
+ *
+ *  **`cache: "no-cache"`**: the browser may use a copy it holds, but only after asking the
+ *  server whether it is still good. A picture asked for before the website had it was answered
+ *  with a 404 the site let the browser keep for a week, and plain `fetch` went on handing back
+ *  that remembered 404 - every picture tried too early stayed unavailable while all the others
+ *  worked. A picture is downloaded once and then kept, so asking the server costs nothing.
+ */
+export const fetchAsDataUrl: PictureFetcher = async url => {
+    const response = await fetch(url, { cache: "no-cache" });
     if (!response.ok) {
         throw new Error(`${url} answered ${response.status}`);
     }
