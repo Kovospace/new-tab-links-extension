@@ -38,20 +38,36 @@
    two and a half characters a title is a smear and the actions are targets too
    small to hit.
 */
-.closed-tabs__title,
-.closed-tabs__head-action,
 .closed-tabs__text,
 .closed-tabs__row-actions,
 .closed-tabs__empty {
     display: none;
 }
 
-.closed-tabs--open :is(
+.closed-tabs--open .closed-tabs__empty {
+    display: block;
+}
+
+/*
+   What stands above the list - the head's title and buttons, the card switcher,
+   the search field - is laid out folded too, only invisible (#137). Opening
+   then puts the list exactly where it was, so the row under the pointer stays
+   under it: hidden with display, they pushed the list 35 to 73 pixels down as
+   the panel widened, and the row the pointer was reaching for moved away.
+   The same rules decide what shows for which card in both states, so the space
+   held is always the space the open panel will need. nowrap keeps each of them
+   one line high at the rail's width; the overflow is clipped by the panel.
+   visibility: hidden also keeps them out of the pointer's and the keyboard's way.
+*/
+.closed-tabs:not(.closed-tabs--open) :is(
     .closed-tabs__title,
     .closed-tabs__head-action,
-    .closed-tabs__empty
+    .closed-tabs__keep-open,
+    .closed-tabs__cards,
+    .closed-tabs__search
 ) {
-    display: block;
+    visibility: hidden;
+    white-space: nowrap;
 }
 
 .closed-tabs--open :is(.closed-tabs__text, .closed-tabs__row-actions) {
@@ -59,10 +75,14 @@
 }
 
 /* The mark is the rail's whole face while it is narrow, and says what the
-   column of favicons is. At full width the heading says it instead. */
+   column of favicons is. At full width the heading says it instead. Laid over
+   the head rather than in it, so it takes none of the height the head holds
+   for the open panel. */
 .closed-tabs__mark {
-    flex: 0 0 auto;
-    width: 100%;
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    translate: 0 -50%;
     text-align: center;
     font-size: 1.1em;
     opacity: 0.7;
@@ -74,6 +94,7 @@
 }
 
 .closed-tabs__head {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.5em;
@@ -104,10 +125,6 @@
 /* "Keep open": a checkbox with its words, shown only at full width like the
    head's buttons. */
 .closed-tabs__keep-open {
-    display: none;
-}
-
-.closed-tabs--open .closed-tabs__keep-open {
     display: flex;
     align-items: center;
     gap: 0.3em;
@@ -189,8 +206,8 @@
     display: none;
 }
 
-/* The search field: only at full width, only on the two cards that are logs, and
-   not over a notice saying nothing is recorded. */
+/* The search field: only on the two cards that are logs, and not over a notice
+   saying nothing is recorded; folded, it only holds its place. */
 .closed-tabs__search {
     display: none;
     border-radius: 2em;
@@ -204,7 +221,7 @@
     opacity: 0.6;
 }
 
-.closed-tabs--open:is([data-card="closed"], [data-card="history"]) .closed-tabs__search {
+.closed-tabs:is([data-card="closed"], [data-card="history"]) .closed-tabs__search {
     display: block;
     align-self: stretch;
     width: auto;
@@ -222,12 +239,9 @@
     border-color: var(--color-button-active-background-hover);
 }
 
-/* The switcher only makes sense at full width, like the head's own buttons. */
+/* The switcher only makes sense at full width, like the head's own buttons;
+   folded, it only holds its place. */
 .closed-tabs__cards {
-    display: none;
-}
-
-.closed-tabs--open .closed-tabs__cards {
     display: flex;
     gap: 0.375em;
     align-self: stretch;
