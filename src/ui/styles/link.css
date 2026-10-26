@@ -26,11 +26,11 @@ link-container:last-child > div {
 
 }
 
-link-container:hover > div {
+link-container:is(:hover, .has-open-menu) > div {
   background-color: var(--color-button-background-hover);
 }
 
-link-container:hover > div > div.cls-link-text > a {
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-text > a {
   color: var(--color-button-text-hover);
 }
 
@@ -89,25 +89,25 @@ link-container > div > div.cls-link-actions-container > button:last-child {
   margin-right: 0;
 }
 
-link-container:hover > div > div.cls-link-actions-container > button {
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-actions-container > button {
   background-color: var(--color-link-action-background);
 }
 
-link-container:hover > div > div.cls-link-actions-container > button.act-link-move-up:hover,
-link-container:hover > div > div.cls-link-actions-container > button.act-link-move-down:hover
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-actions-container > button.act-link-move-up:hover,
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-actions-container > button.act-link-move-down:hover
 {
   background-color: var(--color-button-add-background-hover);
 }
 
-link-container:hover > div > div.cls-link-actions-container > button.act-link-edit:hover {
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-actions-container > button.act-link-edit:hover {
   background-color: var(--color-button-active-background-hover);
 }
 
-link-container:hover > div > div.cls-link-actions-container > button.danger {
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-actions-container > button.danger {
   background-color: var(--color-button-danger-background);
 }
 
-link-container:hover > div > div.cls-link-actions-container > button.danger:hover {
+link-container:is(:hover, .has-open-menu) > div > div.cls-link-actions-container > button.danger:hover {
   background-color: var(--color-button-danger-background-hover);
 }
 

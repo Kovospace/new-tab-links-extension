@@ -80,6 +80,8 @@ export const CLASS_ACTION_ADD: string = "add";
 export const CLASS_ACTION_DANGER: string = "danger";
 export const CLASS_ACTION_ACTIVE: string = "active";
 export const CLASS_ACTION_HIGHLIGHT: string = "highlight";
+/** On a link, group or subgroup while a menu opened from it is open: it keeps its hover look. */
+export const CLASS_HAS_OPEN_MENU: string = "has-open-menu";
 
 // Workspace component
 export const CLASS_WORKSPACE_HEADER_LEFT: string = "cls-workspace-header-left";

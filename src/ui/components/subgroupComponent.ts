@@ -160,7 +160,8 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
             {
                 openMenuButtonId: `subgroup-${this.id}-menu`,
                 openMenuButtonClass: ACT_EDIT_GROUP,
-                openMenuButtonTooltipText: t("subgroup.menu.tooltip")
+                openMenuButtonTooltipText: t("subgroup.menu.tooltip"),
+                owner: this
             },
             [
                 {

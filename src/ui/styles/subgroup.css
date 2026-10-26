@@ -23,7 +23,9 @@ link-subgroup > div {
 
 /* Not at all while its title and description are being edited: until the edit is saved
    or cancelled the subgroup holds still, wherever the pointer goes. */
-link-subgroup:hover:not(:has(div.cls-subgroup-head-title > .editable)) > div {
+link-subgroup:hover:not(:has(div.cls-subgroup-head-title > .editable)) > div,
+/* Its menu is open: the pointer has left the subgroup for the menu, which says whose it is. */
+link-subgroup.has-open-menu > div {
     background-color: var(--color-component-background-hover);
     /*background-color: red;*/
 }
