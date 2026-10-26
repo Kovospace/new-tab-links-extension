@@ -11,6 +11,11 @@
  *    grey - gets a neutral disc.
  *  - **Lightness opposite to the icon's.** A light icon gets a dark disc and a dark one a light
  *    disc, which is the contrast the disc is there for.
+ *  - **One disc per theme**, as a `light-dark()` pair like every colour in `__variables.css`, so
+ *    the browser switches it with the theme - no recalculation, open tabs included. Each stays
+ *    on the icon's side of the contrast but leans towards its theme's background: a single
+ *    colour for both had near-black discs behind white icons on the light page and glaring
+ *    white ones behind dark icons on the dark page, and kept them after a theme change.
  *
  *  The pixels are read through a canvas, which the browser allows only for an image it considers
  *  this page's own - a data URL, an extension path. A favicon from another site may be refused;
@@ -29,9 +34,9 @@ const MIN_SATURATION = 0.25;
 /** The disc's saturation when the icon has a hue: enough to be that colour, calm enough to recede. */
 const DISC_SATURATION = 22;
 
-/** The disc's lightness behind a light icon, and behind a dark one, in percent. */
-const DARK_DISC = 24;
-const LIGHT_DISC = 86;
+/** The disc's lightness, in percent, per theme: behind a light icon, and behind a dark one. */
+const LIGHT_THEME = { behindLightIcon: 38, behindDarkIcon: 86 };
+const DARK_THEME = { behindLightIcon: 22, behindDarkIcon: 68 };
 
 /** An icon this bright on average (relative luminance, 0..1) gets the dark disc. */
 const LIGHT_ICON = 0.5;
@@ -40,7 +45,7 @@ const LIGHT_ICON = 0.5;
  *  The disc colour for an icon's pixels.
  *
  *  @param rgba the pixels as a canvas reports them: red, green, blue, alpha, one byte each
- *  @return a CSS colour, or null when the icon has no opaque pixel to judge it by
+ *  @return a CSS colour - a `light-dark()` pair - or null when the icon has no opaque pixel
  */
 export function backdropFor(rgba: Uint8ClampedArray | Uint8Array): string | null {
     let opaque = 0;
@@ -77,15 +82,18 @@ export function backdropFor(rgba: Uint8ClampedArray | Uint8Array): string | null
     if (opaque === 0) {
         return null;
     }
-    const lightness = luminance / opaque >= LIGHT_ICON ? DARK_DISC : LIGHT_DISC;
+    const lightIcon = luminance / opaque >= LIGHT_ICON;
+    const lightness = (theme: typeof LIGHT_THEME) => lightIcon ? theme.behindLightIcon : theme.behindDarkIcon;
 
     const winner = votes.indexOf(Math.max(...votes));
     // A hue that only a few stray pixels voted for does not make the icon coloured.
-    if (votes[winner] < opaque * 0.08) {
-        return `hsl(0 0% ${lightness}%)`;
-    }
-    const hue = Math.round((Math.atan2(hueY[winner], hueX[winner]) * 180 / Math.PI + 360) % 360);
-    return `hsl(${hue} ${DISC_SATURATION}% ${lightness}%)`;
+    const coloured = votes[winner] >= opaque * 0.08;
+    const hue = coloured
+        ? Math.round((Math.atan2(hueY[winner], hueX[winner]) * 180 / Math.PI + 360) % 360)
+        : 0;
+    const saturation = coloured ? DISC_SATURATION : 0;
+    const disc = (theme: typeof LIGHT_THEME) => `hsl(${hue} ${saturation}% ${lightness(theme)}%)`;
+    return `light-dark(${disc(LIGHT_THEME)}, ${disc(DARK_THEME)})`;
 }
 
 function relativeLuminance(red: number, green: number, blue: number): number {
