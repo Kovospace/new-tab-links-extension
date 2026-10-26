@@ -29,13 +29,13 @@
 
     /* AERO Theme setup */
     /* Groups, a subgroup under the pointer, the header, footer and side panel. */
-    --aero-opacity-light: 55%;
-    --aero-opacity-dark: 80%;
+    --aero-opacity-light: 60%;
+    --aero-opacity-dark: 75%;
     /* Menus, the search suggestions and dialogs - read over anything. */
     --aero-menu-opacity-light: 80%;
-    --aero-menu-opacity-dark: 55%;
+    --aero-menu-opacity-dark: 80%;
     /* How far what is behind a surface is blurred. 0 for none. */
-    --aero-blur: 0.75em;
+    --aero-blur: 0.5em;
 
     /* Document base */
     --color-document-background: light-dark(#e6e6e6, #000);
@@ -43,7 +43,7 @@
 
     /* Group columns, panels, menus */
     --color-component-background: light-dark(#eee, #111);
-    --color-component-text: light-dark(#111, #eee);
+    --color-component-text: light-dark(#000, #eee);
     --color-component-background-hover: light-dark(#ddd, #222);
     --color-component-framing: light-dark(#6e6e6e, #888);
 
