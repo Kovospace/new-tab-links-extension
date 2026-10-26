@@ -47,6 +47,19 @@ options-menu.align-right {
     right: 0;
 }
 
+/*
+   In the top layer (popover.ts, #120), where no stacking context on the page can cover it. The
+   browser gives a popover its own defaults - fixed and centred in the window, padded, framed,
+   scrolling - and this takes back what the menu does not want. Where it goes is set inline,
+   from its button's rectangle; the rules above still apply without the Popover API.
+*/
+options-menu[popover] {
+    position: fixed;
+    margin: 0.5em 0 0 0;
+    padding: 0;
+    overflow: visible;
+}
+
 options-menu-item {
     position: relative;
     white-space: nowrap;

@@ -2,6 +2,7 @@ import { SearchBarDTO, SearchBarViewModel, SearchEngineDTO } from '../../viewMod
 import { SuggestionDTO, SuggestionKind } from '../../viewModel/searchSuggestions';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
 import { t } from '../../i18n/i18n';
+import { liftClosed, liftOpen, makePopover } from './popover';
 
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -116,6 +117,8 @@ export class SearchBar {
     this.engineList.classList.add('search-bar__engines');
     this.engineList.setAttribute('role', 'listbox');
     this.engineList.hidden = true;
+    // Both lists open over the columns and the side panel: in the top layer - see popover.ts.
+    makePopover(this.engineList);
 
     engine.append(this.engineButton, this.engineList);
 
@@ -136,6 +139,7 @@ export class SearchBar {
     this.suggestionList.classList.add('search-bar__suggestions');
     this.suggestionList.setAttribute('role', 'listbox');
     this.suggestionList.hidden = true;
+    makePopover(this.suggestionList);
 
     const submit = document.createElement('button');
     submit.type = 'submit';
@@ -265,6 +269,11 @@ export class SearchBar {
     this.highlighted = 0;
     this.suggestionList!.replaceChildren(...found.map((one, index) => this.suggestionRow(one, index)));
     this.suggestionList!.hidden = found.length === 0;
+    if (found.length > 0) {
+      liftOpen(this.suggestionList!, this.form!, 'stretch');
+    } else {
+      liftClosed(this.suggestionList!);
+    }
     this.input!.setAttribute('aria-expanded', String(found.length > 0));
     this.highlight(0);
   }
@@ -331,6 +340,7 @@ export class SearchBar {
       this.closeEngineList();
     } else {
       this.engineList!.hidden = false;
+      liftOpen(this.engineList!, this.engineButton!.parentElement!, 'start');
       this.engineButton!.setAttribute('aria-expanded', 'true');
     }
   }
@@ -338,6 +348,7 @@ export class SearchBar {
   private closeEngineList(): void {
     if (!this.engineList || this.engineList.hidden) return;
     this.engineList.hidden = true;
+    liftClosed(this.engineList);
     this.engineButton!.setAttribute('aria-expanded', 'false');
   }
 
