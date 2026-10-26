@@ -1,4 +1,5 @@
 import { BookmarkForm } from './bookmarkForm';
+import { followFaviconBackdrop } from '../../utils/faviconBackdrop';
 import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { t } from '../../i18n/i18n';
 import { ICON } from './wrappedHtmlElements';
@@ -134,6 +135,7 @@ export function favicon(url: string | undefined): HTMLImageElement {
   icon.alt = '';
   icon.src = url ?? '/gfx/favicon-default.svg';
   icon.addEventListener('error', () => { icon.src = '/gfx/favicon-default.svg'; });
+  followFaviconBackdrop(icon);
   return icon;
 }
 

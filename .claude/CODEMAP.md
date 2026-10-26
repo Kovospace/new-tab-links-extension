@@ -47,6 +47,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Bookmark popup | `bookmark.ts`, `bookmark.html`, `backend/worker/module/bookmarkCurrentPage.ts` (right-click submenus, saving from the worker), `backend/worker/module/bookmarkMenuTree.ts` (what the submenu offers), `utils/bookmarkRequest.ts` |
 | Favicons — lookup, caching, retrying a miss | `backend/worker/module/favIconWorker.ts`, `backend/repository/FavIconRepository.ts` |
 | Favicons — reading a page's `<link rel="icon">` without a DOM | `backend/worker/module/faviconCandidates.ts` |
+| Favicons — each icon's backdrop disc coloured from the icon (dominant hue, contrasting lightness) | `utils/faviconBackdrop.ts`, used by `linkComponent.ts`, `sidePanelRows.ts`, `bookmarkForm.ts`; fallback `--color-favicon-backdrop` |
 | Reactive primitive | `utils/observableValue.ts` |
 | View-models (one per component or dialog) | `viewModel/*ViewModel.ts`, base `viewModel/abstract/abstractViewModel.ts` |
 | Components | `ui/components/*Component.ts`, base `ui/abstract/abstractComponent.ts` |
