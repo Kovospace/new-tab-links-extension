@@ -798,12 +798,12 @@ it ended - a flash at the end of every hover, in either style. `test/ui/partials
 A bare `:not(:disabled)` adds a class's worth and beat every component's own hover
 (`html.dark .x:hover`), painting those buttons grey (`test/ui/styles/buttonHover.test.ts`).
 
-**Text colour is never animated.** A hover may change it in one step - a `0s` transition delayed
-to halfway through the background's fade (`color 0s linear calc(var(--time-transition-medium) / 2)`),
-so the new colour never sits on a background that has barely begun to change; never a fade. A colour transition redraws the text every frame,
-and Chrome draws text one way while it keeps being repainted and another once it settles - the
-switch at the end of each hover flickered the text until Chrome had seen it often enough to stop
-(`test/ui/styles/textColorTransitions.test.ts`).
+**Text colour may be animated** with the background, and is (`__transitions.css`). It was
+forbidden for a while, while the hover flicker was being hunted: a colour transition redraws the
+text every frame, and Chrome draws text one way while it keeps being repainted and another once it
+settles. The flicker's real causes turned out to be elsewhere - the fixed background picture and
+the always-composited overlay - but if text flickers at the end of a hover again, a colour
+transition is the first thing to switch off.
 
 **Flat or aero is a second, independent choice** (`themeStyle`, device preference, **aero by
 default**, flat the opt-out; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
