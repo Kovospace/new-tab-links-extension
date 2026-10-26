@@ -20,8 +20,6 @@
     color-scheme: light dark;
 
     /* Base theme accent color which will be chosen by the user */
-    /*--color-theme-accent-background: light-dark(#0036ff, #09F);*/
-    /*--color-theme-accent-background-hover: light-dark(#0072ff, #0BF);*/
     --color-theme-accent-background: light-dark(#0036ff, #0036ff);
     --color-theme-accent-background-hover: light-dark(#0072ff, #0072ff);
     --color-theme-accent-text-hover: light-dark(#fff, #fff);
