@@ -1,4 +1,5 @@
 import { test as base, type BrowserContext } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { extensionIdOf, launchWithExtension } from "./browser";
@@ -6,7 +7,19 @@ import { translator, type Translate } from "./i18n";
 import { NewTabPage } from "./newTabPage";
 import { holdStill, openWithExamples, settle, type StagePreferences } from "./stage";
 
-const OUTPUT_DIR = path.resolve(__dirname, "..", "out");
+/**
+ *  Pictures are kept per release: versions/<version>/<target>/<language>/<name>.png. The
+ *  version is the manifest's, so a run before a release overwrites that release's pictures,
+ *  and earlier releases' stay as they were - for documentation of an older version.
+ */
+const VERSIONS_DIR = path.resolve(__dirname, "..", "versions");
+const VERSION: string = JSON.parse(
+    readFileSync(path.resolve(__dirname, "..", "..", "public", "manifest.json"), "utf8")).version;
+
+/** A target is the scene file's name: store.shots.ts renders "store". */
+function targetOf(sceneFile: string): string {
+    return path.basename(sceneFile, ".shots.ts");
+}
 
 /** Options a project or a scene sets: `test.use({ preferences: { theme: "light" } })`. */
 export interface ShotOptions {
@@ -25,7 +38,7 @@ interface ShotFixtures {
     t: Translate;
     /** The new tab page with the demo data, held still, ready for a scene to act on. */
     newTab: NewTabPage;
-    /** Lets the page settle and saves it as out/<language>/<name>.png. */
+    /** Lets the page settle and saves it as versions/<version>/<target>/<language>/<name>.png. */
     shoot: (name: string) => Promise<void>;
 }
 
@@ -61,10 +74,10 @@ export const test = base.extend<ShotFixtures & ShotOptions>({
         await use(new NewTabPage(page, t));
     },
 
-    shoot: async ({ newTab, language }, use) => {
+    shoot: async ({ newTab, language }, use, testInfo) => {
         await use(async name => {
             await settle(newTab.page);
-            const directory = path.join(OUTPUT_DIR, language);
+            const directory = path.join(VERSIONS_DIR, VERSION, targetOf(testInfo.file), language);
             await mkdir(directory, { recursive: true });
             await newTab.page.screenshot({
                 path: path.join(directory, `${name}.png`),

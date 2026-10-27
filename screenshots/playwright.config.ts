@@ -12,6 +12,7 @@ import type { ShotOptions } from "./support/test";
 export default defineConfig<ShotOptions>({
     testDir: ".",
     testMatch: "**/*.shots.ts",
+    // What a failed scene leaves behind - trace, screenshot, the browser profile; not committed.
     outputDir: "out/.results",
     // One Chromium at a time: each loads the extension into a profile of its own anyway,
     // and parallel ones only race for the CPU the favicons and fonts are drawn with.

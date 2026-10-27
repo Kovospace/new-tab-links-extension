@@ -11,7 +11,7 @@ npm run build        # Build extension to /dist (unpacked Chrome extension)
 npm run preview      # Preview built extension
 npm test             # Run the test suite once (Vitest)
 npm run test:watch   # Re-run the affected tests as files change
-npm run screenshots  # Build, then render the store screenshots into screenshots/out/ (Playwright)
+npm run screenshots  # Build, then render every screenshot target (Playwright); `-- store` for one
 ```
 
 **Screenshots are rendered, not taken by hand** (#129, `screenshots/`). Playwright's runner
@@ -23,8 +23,10 @@ place selectors live, buttons found by their wording from the extension's own lo
 (`support/i18n.ts`) so a scene works in every language - and calls `shoot`. `support/stage.ts`
 sets device preferences (`test.use({ preferences })`), loads the data, freezes the clock and
 the random tip; `support/browser.ts` loads the extension and refuses `tabilinks.app` and the
-API, so the ad slot and the account stay out of the picture. `screenshots/out/` is not committed; a
-picture worth keeping is copied into `store/materials/screenshots/` by hand. One-time setup:
+API, so the ad slot and the account stay out of the picture. Pictures go to
+`screenshots/versions/<manifest version>/<target>/<lang>/` and are committed, one folder per
+release; the website publishes only the newest. What exists and where each target lands:
+`screenshots/CATALOGUE.md`. The `screenshot-maker` agent runs all of it. One-time setup:
 `npx playwright install chromium`. To watch a scene step by step: `npx playwright test -c
 screenshots --ui`. Vitest never looks in `screenshots/`, Playwright never in `test/`.
 
@@ -982,6 +984,10 @@ Defined in `src/constants.ts`: custom element tag names, action classes and plai
   impact analysis of backend/data-model changes on the extension, and implementing them here.
   Invoke it for anything touching sync, the storage contract, or work that must stay in step
   with the backend repository.
+- **`screenshot-maker` agent** (`.claude/agents/screenshot-maker.md`, reachable from other
+  repos through `~/.claude/agents/screenshot-maker.md`) — renders screenshots with Playwright,
+  writes new scenes, and when the website asks, copies the newest pictures into its
+  `public/images/` for its `image-maintainer` to convert. Its map is `screenshots/CATALOGUE.md`.
 - **Sibling repositories**, each reached through a **user-level** agent in `~/.claude/agents/`,
   because a project-scoped agent is invisible from another checkout. Each points at that repo's
   own agent file, resolves its own checkout, and never edits this one.
