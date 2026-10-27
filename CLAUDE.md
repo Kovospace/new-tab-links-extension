@@ -17,9 +17,13 @@ npm run screenshots  # Build, then render the store screenshots into screenshots
 **Screenshots are rendered, not taken by hand** (#129, `screenshots/`). Playwright's runner
 drives its own Chromium - Google Chrome ignores `--load-extension` since 137 - with `dist/`
 loaded into a fresh profile per language (one project per language in
-`screenshots/playwright.config.ts`). A scene is a `*.shots.ts` "test"; `extensionFixture.ts`
-seeds the data, fixes the clock and the random tip, and refuses `tabilinks.app` and the API, so
-the ad slot and the account stay out of the picture. `screenshots/out/` is not committed; a
+`screenshots/playwright.config.ts`). A scene is a `*.shots.ts` "test" that names the fixtures
+it needs (`support/test.ts`), acts through the page object `support/newTabPage.ts` - the one
+place selectors live, buttons found by their wording from the extension's own locale JSON
+(`support/i18n.ts`) so a scene works in every language - and calls `shoot`. `support/stage.ts`
+sets device preferences (`test.use({ preferences })`), loads the data, freezes the clock and
+the random tip; `support/browser.ts` loads the extension and refuses `tabilinks.app` and the
+API, so the ad slot and the account stay out of the picture. `screenshots/out/` is not committed; a
 picture worth keeping is copied into `store/materials/screenshots/` by hand. One-time setup:
 `npx playwright install chromium`. To watch a scene step by step: `npx playwright test -c
 screenshots --ui`. Vitest never looks in `screenshots/`, Playwright never in `test/`.

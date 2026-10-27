@@ -1,5 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import type { ShotOptions } from "./extensionFixture";
+import type { ShotOptions } from "./support/test";
 
 /**
  *  Playwright runs the screenshot scenes, not tests (#129) - its runner is used for what it

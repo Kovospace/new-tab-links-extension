@@ -59,7 +59,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |
 | Tips | `ui/tips/tipsCatalogue.ts`, `ui/tips/tips.json` |
 | Strings | `i18n/locales/{en,sk}/<area>.json`, loader `i18n/i18n.ts` |
-| Store screenshots rendered by Playwright - scenes, the extension-loading fixture, per-language projects | `../screenshots/` (`store.shots.ts`, `extensionFixture.ts`, `playwright.config.ts`); output in `../screenshots/out/` |
+| Store screenshots rendered by Playwright - scenes, the extension-loading fixture, per-language projects | `../screenshots/` (scenes in `store.shots.ts`; `support/test.ts` fixtures, `support/newTabPage.ts` page actions, `support/stage.ts` data and preferences, `support/browser.ts`, `support/i18n.ts`); output in `../screenshots/out/` |
 | Manifest, host permissions | `../public/manifest.json` |
 | The extension's icon (toolbar, context menu, tab) | `../public/icons/` - rendered from the logo SVG |
 | What is behind the page - the user's own picture (any account), on a fixed layer of its own | `ui/partials/pageBackground.ts`, `backend/repository/BackgroundImageRepository.ts`, `utils/imageDownscale.ts` |
