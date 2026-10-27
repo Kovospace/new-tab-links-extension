@@ -76,21 +76,39 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.5em;
 }
-
 
 header > div > div,
 header > div > span {
     display: inline-block;
 }
 
-header > div > div {
-    margin-left: 0.25em;
-    margin-right: 0.25em;
+header > div > button {
+    margin: 0;
 }
 
-header > div > span {
-    margin-right: 0.5em;
+header > div.cls-workspace-header-left {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+}
+
+header > div.cls-workspace-header-left > div {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25em;
+}
+
+header > div.cls-workspace-header-left > div > button {
+    margin: 0;
+}
+
+header > div.cls-workspace-header-right {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
 }
 
 /*
