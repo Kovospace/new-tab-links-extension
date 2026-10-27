@@ -3,7 +3,9 @@ form.search-bar {
     display: flex;
     align-items: center;
     flex: 1 1 20em;
-    min-width: 16em;
+    /* 16em, unless the head - capped at the window's width - is narrower than that and the
+       bar's own left margin: then all of the line, and not a pixel past it. */
+    min-width: min(16em, 100% - 2em);
     max-width: 40em;
     margin-left: 2em;
     padding: 0.25em;
@@ -100,7 +102,11 @@ button.search-bar__engine-option {
 
 input.search-bar__input {
     flex: 1 1 auto;
-    min-width: 32em;
+    /* The length the field asks for - the head is max-content, so nothing else would make it
+       long - but not a floor: a head capped at the window's width shrinks the field with the
+       form instead of having it run out of both. */
+    width: 32em;
+    min-width: 0;
     height: 2.5em;
     padding: 0 0.75em;
     font: inherit;

@@ -38,6 +38,14 @@ workspace-plane-head {
     border-radius: 3em;
     width: max-content;
     /*
+       But never wider than the window beside the folded side panel, less the 1em margin on
+       each side - so a long head wraps rather than running off the screen. The folded rail,
+       not the panel as it is now: opening it must not rewrap the head, which then passes
+       under it as the columns do. Not 100%: the plane is as wide as its columns.
+    */
+    max-width: calc(100vw - var(--closed-tabs-rail) - 2em);
+    box-sizing: border-box;
+    /*
        The search bar in the workspace heading: [engine ▾] [query] [search].
 
        It takes the room the heading had spare - growing into it, centred in it by its auto
