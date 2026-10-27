@@ -6,3 +6,4 @@ dist.crx
 dist.pem
 .claude/settings.local.json
 .probe-profile
+screenshots/out

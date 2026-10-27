@@ -11,7 +11,18 @@ npm run build        # Build extension to /dist (unpacked Chrome extension)
 npm run preview      # Preview built extension
 npm test             # Run the test suite once (Vitest)
 npm run test:watch   # Re-run the affected tests as files change
+npm run screenshots  # Build, then render the store screenshots into screenshots/out/ (Playwright)
 ```
+
+**Screenshots are rendered, not taken by hand** (#129, `screenshots/`). Playwright's runner
+drives its own Chromium - Google Chrome ignores `--load-extension` since 137 - with `dist/`
+loaded into a fresh profile per language (one project per language in
+`screenshots/playwright.config.ts`). A scene is a `*.shots.ts` "test"; `extensionFixture.ts`
+seeds the data, fixes the clock and the random tip, and refuses `tabilinks.app` and the API, so
+the ad slot and the account stay out of the picture. `screenshots/out/` is not committed; a
+picture worth keeping is copied into `store/materials/screenshots/` by hand. One-time setup:
+`npx playwright install chromium`. To watch a scene step by step: `npx playwright test -c
+screenshots --ui`. Vitest never looks in `screenshots/`, Playwright never in `test/`.
 
 Tests run on **Vitest** in a jsdom environment, from **`test/`**, which mirrors `src/`:
 `test/backend/sync/ChangeSetBuilder.test.ts` covers `src/backend/sync/ChangeSetBuilder.ts`.
