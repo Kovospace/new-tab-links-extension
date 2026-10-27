@@ -21,6 +21,7 @@ when signing in again. The settings section **"Privacy" is now "Sync & privacy"*
 | Sync & privacy: per-log sync switches | #104 (#97) |
 | Bookmarking always has a place | #100 (#83) |
 | Fixes | #99, #123, #124, #133 |
+| After the release PR: tips bar width, menus keep their element lit, favicon discs per theme and by measured contrast, SVG favicons per theme | #145, #146, #147, #148, #149, #150, #151 |
 
 **What changes for the store:** one new permission, `unlimitedStorage` (#127) - it carries **no
 install warning**, so users are not asked to re-consent and the extension is not disabled on
@@ -144,8 +145,8 @@ The banner at the bottom is our own premium offer, loaded from https://tabilinks
 
 ## 6. Package
 
-- `tabilinks.zip` in the repo root: version **0.4.0**, built from `feature/release-0.4.0`
-  (= `main` at #142 plus the version and the tip teasers), `manifest.json` at the root of the zip.
+- `tabilinks.zip` in the repo root: version **0.4.0**, rebuilt from `main` at #151 (the release
+  PR #144 and every fix after it), `manifest.json` at the root of the zip.
 - Rebuild after any change: `npm run build && rm -f tabilinks.zip && (cd dist && zip -qr -X ../tabilinks.zip .)`
 - `npx web-ext lint --source-dir dist`: 0 errors; three warnings - the two expected ones
   (`favicon`, the ignored `service_worker`) and a new one, below.
