@@ -64,6 +64,76 @@ export class NewTabPage {
         await this.pointerAway();
     }
 
+    /**
+     *  Opens the side panel the way a user does - the pointer rests on its rail - and waits
+     *  until it has widened. Which card it shows is the `sidePanelCard` preference.
+     */
+    async openSidePanel(): Promise<void> {
+        const viewport = this.page.viewportSize()!;
+        await this.page.mouse.move(viewport.width - 10, viewport.height / 2);
+        await this.page.locator(".closed-tabs.closed-tabs--open").waitFor();
+        // The panel widens with a transition; a row measured halfway is somewhere else after.
+        await this.page.waitForTimeout(600);
+    }
+
+    /**
+     *  Rests the pointer on one recently closed tab in the open side panel, so it is drawn
+     *  hovered, and draws the pointer there.
+     *
+     *  @param index which row, from 0 at the top
+     */
+    async hoverClosedTab(index: number): Promise<void> {
+        const row = this.page.locator(".closed-tabs__list--closed .closed-tabs__row").nth(index);
+        const box = (await row.boundingBox())!;
+        // On the title line, clear of the time and the device under it.
+        await this.movePointerTo(box.x + box.width * 0.55, box.y + box.height * 0.2);
+    }
+
+    /**
+     *  Rests the pointer on the first search suggestion of one kind, so it is the highlighted
+     *  one, and draws the pointer there. The suggestions have to be open - see `search`.
+     *
+     *  @param kind "link", "closedTab", "visit", "openTab" or "web"
+     */
+    async hoverSuggestion(kind: string): Promise<void> {
+        const row = this.page.locator(`li.search-bar__suggestion--${kind}`).first();
+        const box = (await row.boundingBox())!;
+        await this.movePointerTo(box.x + box.width * 0.3, box.y + box.height * 0.35);
+    }
+
+    /**
+     *  Moves the pointer and draws it. A headless browser has no pointer of its own on
+     *  screen, so a picture of a hover would otherwise show the effect and not the cause.
+     */
+    async movePointerTo(x: number, y: number): Promise<void> {
+        await this.page.mouse.move(x, y, { steps: 5 });
+        await this.page.evaluate(({ x, y }) => {
+            let pointer = document.getElementById("screenshot-pointer");
+            if (!pointer) {
+                pointer = document.createElement("div");
+                pointer.id = "screenshot-pointer";
+                // The classic arrow, tip at the element's top left corner; outside the page's
+                // own stacking and hit-testing, so it changes nothing it is drawn over.
+                pointer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="30"
+                    viewBox="0 0 20 30"><path d="M1 1 L1 23 L6.5 17.5 L10.5 27 L14 25.5 L10 16.5 L17.5 16.5 Z"
+                    fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+                pointer.style.cssText = "position:fixed;inset:auto;margin:0;padding:0;border:0;"
+                    + "background:none;overflow:visible;pointer-events:none;"
+                    + "width:20px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))";
+                // A popover, because the menus and the search suggestions are: the top layer
+                // is drawn above every z-index, and the last one shown is drawn above the rest.
+                pointer.popover = "manual";
+                document.documentElement.appendChild(pointer);
+            }
+            pointer.style.left = `${x - 1}px`;
+            pointer.style.top = `${y - 1}px`;
+            if (pointer.matches(":popover-open")) {
+                pointer.hidePopover();
+            }
+            pointer.showPopover();
+        }, { x, y });
+    }
+
     /** Types into the search bar and waits for the suggestions under it. */
     async search(query: string): Promise<void> {
         await this.page.locator("input.search-bar__input").pressSequentially(query, { delay: 50 });

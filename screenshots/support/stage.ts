@@ -68,6 +68,15 @@ const OTHER_DEVICE_PAGES = [
         faviconUrl: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico",
         minutesAgo: 47,
     },
+    {
+        // Visited and still open over there, so it is in the history only - and the search
+        // suggests it as history rather than as a closed tab, which ranks first.
+        url: "https://music.apple.com/",
+        title: "Apple Music",
+        faviconUrl: "https://www.google.com/s2/favicons?domain=music.apple.com&sz=64",
+        minutesAgo: 33,
+        historyOnly: true,
+    },
 ];
 
 /** The pages visited here are spread out this far apart before `FIXED_TIME`, newest first. */
@@ -104,6 +113,7 @@ export async function openWithExamples(
  *
  *  - **No longer example data.** The first edit clears the example mark on the workspace and
  *    the profile, and with it the "this is only an example" notice; this clears it the same way.
+ *  - **No tips** along the bottom - the profile's own "hide tips".
  *  - **History and closed tabs.** History recording is turned on, a few pages are really
  *    visited and closed, and two pages "closed on the work computer" are added beside them.
  *  - **Premium**, so there is no ad slot: tabilinks.app is not blocked (the background pictures
@@ -117,7 +127,8 @@ async function stageDemoData(page: Page, language: string): Promise<void> {
         const { profile_registry: registry } = await chrome.storage.local.get("profile_registry");
         const profileId: string = registry.activeProfileId;
         const { example: _example, ...profile } = registry.profiles[profileId];
-        profile.settings = { ...profile.settings, recordBrowsingHistory: true };
+        // Tips hidden: a sentence of advice at the foot of every picture is not what it shows.
+        profile.settings = { ...profile.settings, recordBrowsingHistory: true, hideTips: true };
         registry.profiles[profileId] = profile;
 
         const stateKey = `app_state_${profileId}`;
@@ -196,18 +207,20 @@ async function placeLogsInTime(page: Page, otherDevice: string): Promise<void> {
 
         // Both logs are stored as records keyed by their id.
         type Entry = Record<string, unknown> & { id: string };
-        const restamped = (entries: Record<string, Entry>, field: string): Record<string, Entry> => {
+        const restamped = (entries: Record<string, Entry>, field: "closedAt" | "visitedAt"): Record<string, Entry> => {
             const local = Object.values(entries)
                 .sort((one, other) => (other[field] as number) - (one[field] as number))
                 .map((entry, index) => ({
                     ...entry,
                     [field]: now - (localMinutesAgo[index] ?? localMinutesAgo.length * 15 + index) * minute,
                 }));
-            const fromOther: Entry[] = otherPages.map(other => ({
-                id: crypto.randomUUID(), url: other.url, title: other.title,
-                faviconUrl: other.faviconUrl, deviceName: otherDevice,
-                [field]: now - other.minutesAgo * minute,
-            }));
+            const fromOther: Entry[] = otherPages
+                .filter(other => field === "visitedAt" || !other.historyOnly)
+                .map(other => ({
+                    id: crypto.randomUUID(), url: other.url, title: other.title,
+                    faviconUrl: other.faviconUrl, deviceName: otherDevice,
+                    [field]: now - other.minutesAgo * minute,
+                }));
             return Object.fromEntries([...local, ...fromOther].map(entry => [entry.id, entry]));
         };
 
