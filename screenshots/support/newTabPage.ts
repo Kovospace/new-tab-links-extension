@@ -102,6 +102,45 @@ export class NewTabPage {
     }
 
     /**
+     *  Opens a subgroup's options menu from its ⋮ button.
+     *
+     *  @param index which subgroup on the page, from 0 at the top of the first group
+     */
+    async openSubgroupMenu(index: number): Promise<void> {
+        await this.page.locator("link-subgroup").nth(index)
+            .locator("button:has(> options-menu)").first().click();
+        await this.page.locator("options-menu.visible").waitFor();
+    }
+
+    /**
+     *  Right-clicks a link, opening its context menu where the pointer is.
+     *
+     *  @param title the link's title as the page shows it
+     */
+    async openLinkContextMenu(title: string): Promise<void> {
+        const link = this.page.locator("link-container").filter({ hasText: title }).first();
+        const box = (await link.boundingBox())!;
+        await this.movePointerTo(box.x + box.width * 0.5, box.y + box.height * 0.5);
+        await this.page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5, { button: "right" });
+        await this.page.locator("options-menu.visible").waitFor();
+    }
+
+    /**
+     *  Rests the pointer on an item of the open menu - an options menu or a context menu, they
+     *  are drawn alike - so it is drawn hovered, and draws the pointer there.
+     *
+     *  @param key the item's wording, as a key under the locale files ("link.menu.edit")
+     */
+    async hoverMenuItem(key: string): Promise<void> {
+        const item = this.page.locator("options-menu.visible options-menu-item")
+            .getByText(this.t(key), { exact: true }).first();
+        const box = (await item.boundingBox())!;
+        // Fades in: measured before it has settled, a hover is a hover of where it was going.
+        await this.page.waitForTimeout(300);
+        await this.movePointerTo(box.x + box.width * 0.6, box.y + box.height * 0.55);
+    }
+
+    /**
      *  Moves the pointer and draws it. A headless browser has no pointer of its own on
      *  screen, so a picture of a hover would otherwise show the effect and not the cause.
      */

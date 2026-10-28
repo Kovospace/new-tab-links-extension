@@ -42,6 +42,33 @@ test.describe("light theme", () => {
 
     test("settings, background", async ({ newTab, shoot }) => {
         await newTab.openSettings("background");
-        await shoot("5-settings-background");
+        await shoot("6-settings-background");
+    });
+});
+
+/** Dark, over another picture: the menus, and how the page looks the other way. */
+const DARK_BACKGROUND = 12;
+
+test.describe("dark theme", () => {
+    test.use({ preferences: { theme: "dark" } });
+
+    test("subgroup menu", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(DARK_BACKGROUND);
+        // Directories, the open subgroup - its links show under the menu's button.
+        await newTab.openSubgroupMenu(1);
+        await newTab.hoverMenuItem("subgroup.menu.editTitle");
+        await shoot("4-subgroup-menu");
+    });
+
+    test.describe("flat", () => {
+        test.use({ preferences: { theme: "dark", themeStyle: "flat" } });
+
+        test("link context menu", async ({ newTab, shoot }) => {
+            await newTab.chooseBackground(DARK_BACKGROUND);
+            // A root-level link of a group with subgroups: the menu offers moving it into them.
+            await newTab.openLinkContextMenu("Brave Search");
+            await newTab.hoverMenuItem("link.menu.edit");
+            await shoot("5-link-context-menu");
+        });
     });
 });

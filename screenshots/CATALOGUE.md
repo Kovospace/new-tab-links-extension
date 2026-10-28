@@ -33,7 +33,7 @@ Status: **ready** = scenes exist and render; **planned** = asked for, no scenes 
 
 | Target | Status | Size, density | Used by | Notes |
 |---|---|---|---|---|
-| `store` | ready (4 of 5) | 1280×800, 1× | Chrome Web Store listing, copied by hand into `store/materials/screenshots/<lang>/` | Order and content: `store/chrome-web-store-listing.md`, "Suggested screenshots". #4 (right-click submenu) cannot be rendered - browser UI. |
+| `store` | ready (6 pictures; the store takes 5) | 1280×800, 1× | Chrome Web Store listing, copied by hand into `store/materials/screenshots/<lang>/` | Order and content: `store/chrome-web-store-listing.md`, "Suggested screenshots". #4 (right-click submenu) cannot be rendered - browser UI. |
 | `tips` | planned | 3× | website `public/images/<lang>/tips/<slug>/<name>_3x.png` | One folder per tip slug; names follow what is there now. `image-maintainer` derives `_2x`/`_1x` from `_3x` and converts to WebP. |
 | `demo` | planned | 3× | website `public/images/<lang>/demo/<n>_3x.png` | Numbered. |
 | `theme-showcase` | planned | 3× | website `public/images/<lang>/theme-showcase/<n>-<dark\|light>_3x.png` | Same scene in each theme: `test.use({ preferences: { theme } })`. |
@@ -51,7 +51,9 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `store` | light theme › home | `1-home` | The example workspace, light, Aero, background 3 |
 | `store` | light theme › recently closed › side panel, a row hovered | `2-recently-closed` | Light, background 3: the side panel open on Recently closed, the work computer's row hovered, pointer drawn |
 | `store` | light theme › search suggestions | `3-search` | Light, background 3: "music" typed - links, a history entry (hovered, pointer drawn), "search the web" |
-| `store` | light theme › settings, background | `5-settings-background` | Settings → Background, light |
+| `store` | dark theme › subgroup menu | `4-subgroup-menu` | Dark, Aero, background 12: the Directories subgroup's menu, "Edit subgroup title & description" hovered, pointer drawn |
+| `store` | dark theme › flat › link context menu | `5-link-context-menu` | Dark, flat, background 12: Brave Search right-clicked, "Edit link" hovered, pointer drawn |
+| `store` | light theme › settings, background | `6-settings-background` | Settings → Background, light |
 
 ## What every scene starts from (`support/stage.ts`)
 
@@ -76,6 +78,9 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `openSidePanel()` | Rests the pointer on the rail until the panel is open; the card is the `sidePanelCard` preference |
 | `hoverClosedTab(index)` | Hovers that row of Recently closed and draws the pointer on it |
 | `hoverSuggestion(kind)` | Hovers the first search suggestion of that kind and draws the pointer on it |
+| `openSubgroupMenu(index)` | Opens that subgroup's ⋮ menu (0 = first on the page) |
+| `openLinkContextMenu(title)` | Right-clicks the link with that title, pointer drawn where it clicked |
+| `hoverMenuItem(key)` | Hovers the open menu's item with that locale key's wording and draws the pointer |
 | `movePointerTo(x, y)` | Moves the pointer and draws it - headless pictures have none of their own |
 | `search(query)` | Types into the search bar, waits for suggestions |
 | `chooseBackground(number)` | Settings → Background → that built-in tile, waits for the picture, closes Settings |
