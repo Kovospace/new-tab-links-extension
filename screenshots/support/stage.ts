@@ -124,7 +124,9 @@ export async function openWithExamples(
  */
 async function stageDemoData(page: Page, language: string): Promise<void> {
     await page.evaluate(async now => {
-        const { profile_registry: registry } = await chrome.storage.local.get("profile_registry");
+        const { profile_registry: registry } = await chrome.storage.local.get("profile_registry") as {
+            profile_registry: { activeProfileId: string; profiles: Record<string, { example?: boolean; settings?: object }> };
+        };
         const profileId: string = registry.activeProfileId;
         const { example: _example, ...profile } = registry.profiles[profileId];
         // Tips hidden: a sentence of advice at the foot of every picture is not what it shows.
@@ -132,7 +134,8 @@ async function stageDemoData(page: Page, language: string): Promise<void> {
         registry.profiles[profileId] = profile;
 
         const stateKey = `app_state_${profileId}`;
-        const { [stateKey]: state } = await chrome.storage.local.get(stateKey);
+        const { [stateKey]: state } = await chrome.storage.local.get(stateKey) as
+            Record<string, { environments: Record<string, Record<string, unknown>> }>;
         for (const workspace of Object.values<Record<string, unknown>>(state.environments)) {
             delete workspace.example;
         }
@@ -180,7 +183,9 @@ async function visitAndClose(page: Page, urls: string[]): Promise<void> {
 /** How many closed tabs and visits the active profile has stored. */
 function countLogs(page: Page): Promise<{ closedTabs: number; visits: number }> {
     return page.evaluate(async () => {
-        const { profile_registry: registry } = await chrome.storage.local.get("profile_registry");
+        const { profile_registry: registry } = await chrome.storage.local.get("profile_registry") as {
+            profile_registry: { activeProfileId: string; profiles: Record<string, { example?: boolean; settings?: object }> };
+        };
         const id = registry.activeProfileId;
         const stored = await chrome.storage.local.get([`closed_tabs_${id}`, `visits_${id}`]);
         return {
@@ -199,11 +204,14 @@ function countLogs(page: Page): Promise<{ closedTabs: number; visits: number }> 
 async function placeLogsInTime(page: Page, otherDevice: string): Promise<void> {
     await page.evaluate(async ({ now, localMinutesAgo, otherDevice, otherPages }) => {
         const minute = 60 * 1000;
-        const { profile_registry: registry } = await chrome.storage.local.get("profile_registry");
+        const { profile_registry: registry } = await chrome.storage.local.get("profile_registry") as {
+            profile_registry: { activeProfileId: string; profiles: Record<string, { example?: boolean; settings?: object }> };
+        };
         const id = registry.activeProfileId;
         const closedKey = `closed_tabs_${id}`;
         const visitsKey = `visits_${id}`;
-        const stored = await chrome.storage.local.get([closedKey, visitsKey]);
+        const stored = await chrome.storage.local.get([closedKey, visitsKey]) as
+            Record<string, Record<string, Entry> | undefined>;
 
         // Both logs are stored as records keyed by their id.
         type Entry = Record<string, unknown> & { id: string };
