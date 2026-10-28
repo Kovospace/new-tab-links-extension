@@ -86,8 +86,10 @@ promo tile stays.
 
 ## 5. Test instructions tab
 
-Paste from `store/chrome-web-store-listing.md`, section 4 - the 0.4.0 text with one sentence
-added at the start of "Appearance": the "Mode" button in the top bar.
+Paste from `store/chrome-web-store-listing.md`, section 4 - rewritten whole for 0.4.1: every
+feature in the order a reviewer meets it (links and menus, appearance with the "Mode" button,
+search, side panel, saving a page, tab groups, synchronisation) and every host the extension talks
+to. Fill in the reviewer account first.
 
 ---
 
