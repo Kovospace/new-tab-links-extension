@@ -20,6 +20,9 @@ export const ICON = {
     HISTORY: "↺",   // recently closed / bring back
     CHECKED: "✓",  // ticked / confirmed / already done
     SYNC: "⟳",     // synchronisation; struck through by CSS where something does not sync
+    THEME_AUTO: "◐",  // theme follows the system - half light, half dark
+    THEME_LIGHT: "☀", // always light
+    THEME_DARK: "☾",  // always dark
     TRASH: "🗑"     // destroy for good - the one pictorial icon here, because the
                    // trash bar has to be recognised from across the page mid-drag
 } as const;

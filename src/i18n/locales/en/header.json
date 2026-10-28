@@ -3,6 +3,7 @@
   "addWorkspace": "Add new workspace",
   "profilesMenu": "User profiles list",
   "applicationMenu": "Application menu",
+  "themeMenu": "Theme: {theme}",
   "profileButton": "Profile: {name}",
   "noProfile": "...",
   "profileMenu": {

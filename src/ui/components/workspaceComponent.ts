@@ -10,7 +10,7 @@ import {
     CLASS_WORKSPACE_HEAD_ACTIONS,
     CLASS_SIGNED_OUT_NOTICE, CLASS_WORKSPACE_SYNC_NOTICE,
     CLASS_ACTION_ADD, CLASS_WORKSPACE_HEADER_LEFT, CLASS_WORKSPACE_HEADER_RIGHT, ACT_EDIT_GROUP, ACT_APP_MENU,
-    ACT_USER_PROFILES, CLASS_ACTION_HIGHLIGHT, ELEM_WORKSPACE_FOOTER,
+    ACT_USER_PROFILES, ACT_THEME_MENU, CLASS_ACTION_HIGHLIGHT, ELEM_WORKSPACE_FOOTER,
 } from "../../constants"
 
 // data/model layer
@@ -19,6 +19,8 @@ import { GroupViewModel } from "../../viewModel/groupViewModel";
 import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
 import { AccountDTO, logInRequests$, SyncAccountViewModel } from "../../viewModel/syncAccountViewModel";
 import { syncStateViewModel } from "../../viewModel/syncStateViewModel";
+import { ThemeMenuDTO, ThemeMenuViewModel } from "../../viewModel/themeMenuViewModel";
+import { ThemeId } from "../../backend/repository/DevicePreferencesRepository";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent";
@@ -39,6 +41,13 @@ import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
+
+/** The theme switcher's button: which theme is in force, at a glance. */
+const THEME_ICONS: Record<ThemeId, string> = {
+    auto: ICON.THEME_AUTO,
+    light: ICON.THEME_LIGHT,
+    dark: ICON.THEME_DARK
+};
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -73,6 +82,9 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     /** Account section of the application menu; not tied to AppState, hence its own view model. */
     private accountViewModel: SyncAccountViewModel = new SyncAccountViewModel();
+
+    /** The header's theme switcher; device preferences, so not tied to AppState either. */
+    private themeMenuViewModel: ThemeMenuViewModel = new ThemeMenuViewModel();
 
     // The last two fields - synchronise, device name - are `signInDeviceFields`, shared by
     // every sign-in dialog.
@@ -205,6 +217,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             }
         ));
 
+        this.renderThemeMenu(headerElemRightContent);
+
         // application / profiles menu — populated reactively via observables.profiles
         // headerElemRightContent.appendChild(renderTextContainer("span", "Profile"));
 
@@ -296,6 +310,36 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                         : this.buildSignedOutAccountMenuItems());
                 this.updateSignedOutNotice(account);
             });
+    }
+
+    /**
+     *  The theme switcher, before the profiles menu (#155): its button shows the theme in force
+     *  as an icon, and each theme is a checkable item - the look of the account menu's
+     *  "Synchronized" - so the menu says which one is set before anything is picked.
+     */
+    private renderThemeMenu(parentElem: HTMLElement): void {
+        const themeMenu = new OptionsMenu(
+            parentElem,
+            {
+                openMenuButtonId: `theme-menu`,
+                openMenuButtonClass: ACT_THEME_MENU,
+                openMenuButtonContent: THEME_ICONS[this.themeMenuViewModel.menu$.get().chosen]
+            },
+            [],
+            {}
+        );
+        this.themeMenuViewModel.menu$.subscribe((menu: ThemeMenuDTO) => {
+            const chosen = menu.options.find(option => option.chosen);
+            themeMenu.updateButtonContent(THEME_ICONS[menu.chosen]);
+            themeMenu.setTooltip(t("header.themeMenu", { theme: chosen?.label ?? "" }));
+            themeMenu.updateOptions(menu.options.map(option => ({
+                actionTitle: option.label,
+                noBorder: true,
+                checkable: true,
+                active: option.chosen,
+                onClick: () => void this.themeMenuViewModel.choose(option.theme)
+            })));
+        });
     }
 
     /** The notice's element, hidden until there is an account to have been signed out of. */
