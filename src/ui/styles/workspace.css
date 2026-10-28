@@ -123,6 +123,10 @@ workspace-plane-body {
     flex-direction: row;
     align-items: start;
     padding: 0 1em;
+    max-width: 100vw;
+    flex-wrap: wrap;
+    gap: var(--widgets-spacing);
+    margin-bottom: var(--widgets-spacing);
 }
 
 
