@@ -26,7 +26,7 @@ repo's rule would make 0.5.0.
 
 ## 0. Order of work
 
-1. [ ] Website (optional for this release): a changelog entry 0.4.1 - see section 1.
+1. [ ] Website: commit and merge the changelog entry 0.4.1 - see section 1.
 2. [ ] Merge this repo's `feature/release-0.4.1` (this file, the listing, the five screenshots,
        the zip).
 3. [ ] Paste into the Developer Dashboard: sections 3 and 5. Section 2 stays as it is.
@@ -41,8 +41,12 @@ repo's rule would make 0.5.0.
 
 Nothing there is made untrue by this release: no setting moved, nothing was renamed or removed.
 The `choose-theme` tip says where the theme is set in Settings, which is still true; it could
-mention the "Mode" button as the quicker way. A changelog entry
-`public/content/changelog/{en,sk}/0.4.1.md` is not written yet - ask for it if wanted.
+mention the "Mode" button as the quicker way.
+
+**Changelog** `public/content/changelog/{en,sk}/0.4.1.md`: written, on `feature/release-0.4.1` in
+`new-tab-links-frontend`, not committed yet. The site builds with it (changelog index: 5 per
+language) and its 352 tests pass. Check the date line (`*Released: 2026-10-28*`) against the day
+the store approves the update.
 
 ---
 
