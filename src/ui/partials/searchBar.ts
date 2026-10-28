@@ -3,6 +3,7 @@ import { SuggestionDTO, SuggestionKind } from '../../viewModel/searchSuggestions
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
 import { t } from '../../i18n/i18n';
 import { liftClosed, liftOpen, makePopover } from './popover';
+import {renderContainer} from "./wrappedHtmlElements";
 
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -48,7 +49,7 @@ export class SearchBar {
 
   private readonly viewModel: SearchBarViewModel;
 
-  private form: HTMLFormElement | null = null;
+  private form: HTMLElement | null = null;
   private input: HTMLInputElement | null = null;
   private engineButton: HTMLButtonElement | null = null;
   private engineIcon: HTMLElement | null = null;
@@ -86,8 +87,10 @@ export class SearchBar {
     return this.form;
   }
 
-  private build(): HTMLFormElement {
+  private build(): HTMLElement {
+    const formWrapper = renderContainer(['search-bar-wrapper']);
     const form = document.createElement('form');
+    formWrapper.appendChild(form);
     form.classList.add('search-bar');
     form.setAttribute('role', 'search');
     form.addEventListener('submit', event => {
@@ -164,7 +167,7 @@ export class SearchBar {
       }
     });
 
-    return form;
+    return formWrapper;
   }
 
   /** Redraws everything that depends on which engine is in use. */

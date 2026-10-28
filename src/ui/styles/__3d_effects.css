@@ -3,7 +3,7 @@ options-menu {
     box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
 }
 
-workspace-plane-head > form.search-bar > ul.search-bar__suggestions {
+workspace-plane-head > div > form.search-bar > ul.search-bar__suggestions {
     var(--z-index-menus);
     box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
 }

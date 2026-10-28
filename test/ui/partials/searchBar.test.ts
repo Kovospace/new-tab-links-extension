@@ -120,7 +120,8 @@ describe("SearchBar", () => {
         const press = (key: string) =>
             input().dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
         const submit = async () => {
-            form.dispatchEvent(new Event("submit", { cancelable: true }));
+            // To the form itself: the bar's element is the wrapper around it.
+            form.querySelector("form.search-bar")!.dispatchEvent(new Event("submit", { cancelable: true }));
             await vi.waitFor(() => expect(visited.length + browserSearches.length).toBe(1));
         };
 

@@ -31,17 +31,17 @@ workspace-plane-head > div.cls-workspace-head-title > h1 {
 /*            background-color var(--time-transition-fast) var(--transition-easing-default);*/
 /*}*/
 
-workspace-plane-head > form.search-bar > input {
+workspace-plane-head > div > form.search-bar > input {
     transition:
             box-shadow var(--time-transition-fast) var(--transition-easing-default),
             background-color var(--time-transition-fast) var(--transition-easing-default);
 }
 
-workspace-plane-head > form.search-bar > ul.search-bar__suggestions > li {
+workspace-plane-head > div > form.search-bar > ul.search-bar__suggestions > li {
     transition: background-color var(--time-transition-fast) var(--transition-easing-default);
 }
 
-workspace-plane-head > form.search-bar > ul.search-bar__suggestions > li > span > span {
+workspace-plane-head > div > form.search-bar > ul.search-bar__suggestions > li > span > span {
     transition: color var(--time-transition-fast) var(--transition-easing-default);
 }
 

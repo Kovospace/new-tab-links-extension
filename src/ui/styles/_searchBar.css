@@ -1,14 +1,20 @@
 
+/* The head's flex item is the wrapper, not the form, so the sizing is the wrapper's: a rule
+   for the form's flex, floor or cap would reach nothing, and the bar would go back to taking
+   whatever length its content asks for. */
+div.search-bar-wrapper {
+    flex: 1 1 32em;
+    /* 16em, unless the head - capped at the window's width - is narrower than that and the
+       bar's own left margin: then all of the line, and not a pixel past it. */
+    min-width: min(24em, 100% - 2em);
+    max-width: 40em;
+}
+
 form.search-bar {
     display: flex;
     align-items: center;
-    flex: 1 1 20em;
-    /* 16em, unless the head - capped at the window's width - is narrower than that and the
-       bar's own left margin: then all of the line, and not a pixel past it. */
-    min-width: min(16em, 100% - 2em);
-    max-width: 40em;
-    margin-left: 2em;
-    padding: 0.25em;
+    /*margin-left: 2em;*/
+    /*padding: 0.25em;*/
     padding-right: 0.125em;
     gap: 0.5em;
     border-radius: 1.5em;
