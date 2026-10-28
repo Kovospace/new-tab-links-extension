@@ -20,7 +20,6 @@ import { WorkspaceViewModel } from "../../viewModel/workspaceViewModel";
 import { AccountDTO, logInRequests$, SyncAccountViewModel } from "../../viewModel/syncAccountViewModel";
 import { syncStateViewModel } from "../../viewModel/syncStateViewModel";
 import { ThemeMenuDTO, ThemeMenuViewModel } from "../../viewModel/themeMenuViewModel";
-import { ThemeId } from "../../backend/repository/DevicePreferencesRepository";
 
 // components layer
 import { AbstractComponent } from "../abstract/abstractComponent";
@@ -41,13 +40,6 @@ import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
-
-/** The theme switcher's button: which theme is in force, at a glance. */
-const THEME_ICONS: Record<ThemeId, string> = {
-    auto: ICON.THEME_AUTO,
-    light: ICON.THEME_LIGHT,
-    dark: ICON.THEME_DARK
-};
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -313,8 +305,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     }
 
     /**
-     *  The theme switcher, before the profiles menu (#155): its button shows the theme in force
-     *  as an icon, and each theme is a checkable item - the look of the account menu's
+     *  The theme switcher, before the profiles menu (#155): its button names the theme in force
+     *  ("Mode: Light"), drawn like the profiles button beside it, and each theme is a checkable item - the look of the account menu's
      *  "Synchronized" - so the menu says which one is set before anything is picked.
      */
     private renderThemeMenu(parentElem: HTMLElement): void {
@@ -322,16 +314,15 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             parentElem,
             {
                 openMenuButtonId: `theme-menu`,
-                openMenuButtonClass: ACT_THEME_MENU,
-                openMenuButtonContent: THEME_ICONS[this.themeMenuViewModel.menu$.get().chosen]
+                openMenuButtonClass: [ACT_THEME_MENU, CLASS_ACTION_HIGHLIGHT],
+                openMenuButtonTooltipText: t("header.themeMenu"),
+                openMenuButtonContent: this.themeMenuViewModel.menu$.get().buttonLabel
             },
             [],
             {}
         );
         this.themeMenuViewModel.menu$.subscribe((menu: ThemeMenuDTO) => {
-            const chosen = menu.options.find(option => option.chosen);
-            themeMenu.updateButtonContent(THEME_ICONS[menu.chosen]);
-            themeMenu.setTooltip(t("header.themeMenu", { theme: chosen?.label ?? "" }));
+            themeMenu.updateButtonContent(menu.buttonLabel);
             themeMenu.updateOptions(menu.options.map(option => ({
                 actionTitle: option.label,
                 noBorder: true,

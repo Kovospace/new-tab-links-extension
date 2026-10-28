@@ -3,7 +3,13 @@
   "addWorkspace": "Pridať nový pracovný priestor",
   "profilesMenu": "Zoznam profilov",
   "applicationMenu": "Menu aplikácie",
-  "themeMenu": "Vzhľad: {theme}",
+  "themeMenu": "Svetlý alebo tmavý vzhľad",
+  "themeButton": "Režim: {mode}",
+  "themeModes": {
+    "auto": "Systém",
+    "light": "Svetlý",
+    "dark": "Tmavý"
+  },
   "profileButton": "Profil: {name}",
   "noProfile": "...",
   "profileMenu": {

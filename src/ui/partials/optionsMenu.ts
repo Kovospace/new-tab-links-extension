@@ -120,11 +120,6 @@ export class OptionsMenu {
         }
     }
 
-    /** Replace the opening button's tooltip - for a button that names what it is set to. */
-    public setTooltip(tooltip: string) {
-        this.openingElement.title = tooltip;
-    }
-
     public render() {
         this.renderButton();
         this.renderMenu();

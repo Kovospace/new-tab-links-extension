@@ -14,6 +14,8 @@ export type ThemeOptionDTO = {
 /** What the header's theme menu draws: the themes, and the one this browser is set to. */
 export type ThemeMenuDTO = {
     chosen: ThemeId;
+    /** The menu's button, naming the theme in force: "Mode: Light". */
+    buttonLabel: string;
     options: ThemeOptionDTO[];
 };
 
@@ -51,6 +53,7 @@ export class ThemeMenuViewModel {
 function menuFor(chosen: ThemeId): ThemeMenuDTO {
     return {
         chosen,
+        buttonLabel: t("header.themeButton", { mode: t(`header.themeModes.${chosen}`) }),
         options: THEMES.map(theme => ({
             theme,
             label: t(`settings.theme.options.${theme}`),
