@@ -7,11 +7,6 @@ import { test } from "./support/test";
  *  second scene would need too belongs in support/newTabPage.ts, not here.
  */
 
-test("home", async ({ newTab, shoot }) => {
-    await newTab.pointerAway();
-    await shoot("1-home");
-});
-
 test("search suggestions", async ({ newTab, shoot }) => {
     await newTab.search("you");
     await shoot("2-search");
@@ -20,6 +15,11 @@ test("search suggestions", async ({ newTab, shoot }) => {
 test.describe("light theme", () => {
     // Preferences are in place before the page draws; one setting changes a whole group.
     test.use({ preferences: { theme: "light" } });
+
+    test("home", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(3);
+        await shoot("1-home");
+    });
 
     test("settings, background", async ({ newTab, shoot }) => {
         await newTab.openSettings("background");

@@ -48,6 +48,22 @@ export class NewTabPage {
         await this.pointerAway();
     }
 
+    /**
+     *  Puts one of the built-in background pictures behind the page, the way a user does:
+     *  Settings → Background, its tile, and Close. The full-size picture is downloaded from the
+     *  website, so this waits until the page is drawn with it.
+     *
+     *  @param number the tile's number as Settings labels it, from 1
+     */
+    async chooseBackground(number: number): Promise<void> {
+        await this.openSettings("background");
+        await this.page.getByRole("option",
+            { name: this.t("settings.backgroundImage.tile", { number: String(number) }), exact: true }).click();
+        await this.page.locator("html.has-custom-background").waitFor({ state: "attached", timeout: 30_000 });
+        await this.page.getByRole("button", { name: this.t("common.close"), exact: true }).click();
+        await this.pointerAway();
+    }
+
     /** Types into the search bar and waits for the suggestions under it. */
     async search(query: string): Promise<void> {
         await this.page.locator("input.search-bar__input").pressSequentially(query, { delay: 50 });

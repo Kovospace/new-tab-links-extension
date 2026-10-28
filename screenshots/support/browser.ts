@@ -5,11 +5,13 @@ import path from "node:path";
 const EXTENSION_DIR = path.resolve(__dirname, "..", "..", "dist");
 
 /**
- *  Hosts that make a picture differ from run to run: the ad slot, the account, the usage
- *  counter. Refused, they leave the page as it is offline, which it treats as an ordinary
- *  state. Favicons still come from the network.
+ *  Hosts that make a picture differ from run to run: the account and the usage counter.
+ *  Refused, they leave the page as it is offline, which it treats as an ordinary state.
+ *  Favicons still come from the network, and so does the website: the full-size background
+ *  pictures are downloaded from it. Its ad slot stays out because the staged account is
+ *  premium (`stage.ts`), which draws no slot at all.
  */
-const BLOCKED_HOSTS = ["https://tabilinks.app/**", "https://api.tabilinks.app/**"];
+const BLOCKED_HOSTS = ["https://api.tabilinks.app/**"];
 
 /**
  *  A Chromium with the extension loaded, in a profile of its own.
