@@ -282,7 +282,7 @@ The extension works without an account: open a new tab and click "Load examples"
 
 New in this version: the "Mode" button in the top bar switches between light, dark and the system's theme.
 
-Appearance: menu (three dots, top right) → Settings → "UI and behavior" sets the same theme and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen.
+Appearance: menu (three dots, top right) → Settings → "UI and behavior" sets the theme (light/dark) and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen.
 
 Search: type in the search bar at the top - saved links, open tabs, closed tabs and history are suggested first, the web search last.
 
@@ -291,7 +291,7 @@ The panel on the right edge opens when the pointer rests on it. It has three car
 To test synchronisation, sign in from the menu with this test account:
   username: <reviewer account>
   password: <password>
-Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in dialog has a "Synchronise this browser with the account" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised.
+Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in dialog has a "Synchronise this browser" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised.
 
 The banner at the bottom is our own premium offer, loaded from https://tabilinks.app/slot/workspace-footer.html.
 ```
