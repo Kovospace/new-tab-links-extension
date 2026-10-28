@@ -15,7 +15,9 @@
     "workspace": "Príklady",
     "search": "Vyhľadávanie",
     "ai": "AI",
-    "aiDescription": "Podskupina - zbalíte ju kliknutím na jej nadpis",
+    "aiDescription": "Chatboti",
+    "directories": "Katalógy",
+    "directoriesDescription": "Katalógové vyhľadávače",
     "socials": "Sociálne siete",
     "music": "Hudba"
   }

@@ -92,13 +92,14 @@ export function buildExampleProfileData(): ProfileData {
     const search = addGroup(t("firstRun.examples.search"), 0);
     addLinks(search, searchLinks, 0);
 
-    // After the root-level links in the sequence they share with it.
+    // After the root-level links in the sequence they share with them. One folded and one
+    // open, so the page shows both states of a subgroup.
     const aiId = uid();
     data.subgroups[aiId] = {
         id: aiId, title: t("firstRun.examples.ai"),
         description: t("firstRun.examples.aiDescription"),
         groupId: search, environmentId, type: "subgroup", position: searchLinks.length,
-        collapsed: false, defaultCollapsed: false, color: "blue", createdAt: now
+        collapsed: true, defaultCollapsed: false, color: "blue", createdAt: now
     };
     addLinks(search, [
         { title: "ChatGPT", url: "https://chatgpt.com/" },
@@ -106,6 +107,18 @@ export function buildExampleProfileData(): ProfileData {
         { title: "Gemini", url: "https://gemini.google.com/" },
         { title: "Grok", url: "https://grok.com/" }
     ], 0, aiId);
+
+    const directoriesId = uid();
+    data.subgroups[directoriesId] = {
+        id: directoriesId, title: t("firstRun.examples.directories"),
+        description: t("firstRun.examples.directoriesDescription"),
+        groupId: search, environmentId, type: "subgroup", position: searchLinks.length + 1,
+        collapsed: false, defaultCollapsed: true, color: "yellow", createdAt: now
+    };
+    addLinks(search, [
+        { title: "Seznam", url: "https://seznam.cz" },
+        { title: "Azet", url: "https://www.azet.sk/katalog/" }
+    ], 0, directoriesId);
 
     const socials = addGroup(t("firstRun.examples.socials"), 1);
     addLinks(socials, [

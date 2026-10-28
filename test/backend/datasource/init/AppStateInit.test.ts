@@ -31,11 +31,11 @@ describe("the example set", () => {
         expect(Object.keys(data.environments)).toHaveLength(1);
         expect(data.activeEnvironmentId).toBe(Object.keys(data.environments)[0]);
         expect(Object.keys(data.groups).length).toBeGreaterThanOrEqual(2);
-        expect(Object.keys(data.subgroups)).toHaveLength(1);
+        expect(Object.keys(data.subgroups)).toHaveLength(2);
         expect(Object.values(data.links).some(link => link.subGroupId)).toBe(true);
     });
 
-    it("is search with an AI subgroup, socials and music, in that order", () => {
+    it("is search with AI and directories subgroups, socials and music, in that order", () => {
         const data = buildExampleProfileData();
         const groups = Object.values(data.groups).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         const titlesIn = (groupId: string, subGroupId = "") => Object.values(data.links)
@@ -47,10 +47,13 @@ describe("the example set", () => {
         expect(titlesIn(groups[0].id))
             .toEqual(["Google", "DuckDuckGo", "Brave Search", "Yandex", "Bing"]);
 
-        const ai = Object.values(data.subgroups)[0];
+        const [ai, directories] = Object.values(data.subgroups).sort((a, b) => a.position - b.position);
         expect(ai.title).toBe("AI");
         expect(ai.groupId).toBe(groups[0].id);
         expect(titlesIn(groups[0].id, ai.id)).toEqual(["ChatGPT", "Claude", "Gemini", "Grok"]);
+        expect(directories.title).toBe("Directories");
+        expect(directories.groupId).toBe(groups[0].id);
+        expect(titlesIn(groups[0].id, directories.id)).toEqual(["Seznam", "Azet"]);
 
         expect(titlesIn(groups[1].id))
             .toEqual(["Facebook", "X (Twitter)", "LinkedIn", "TikTok", "Myspace"]);

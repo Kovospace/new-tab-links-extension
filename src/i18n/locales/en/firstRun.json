@@ -15,7 +15,9 @@
     "workspace": "Examples",
     "search": "Search",
     "ai": "AI",
-    "aiDescription": "A subgroup - fold it by clicking its heading",
+    "aiDescription": "Chatbots",
+    "directories": "Directories",
+    "directoriesDescription": "Web directories",
     "socials": "Socials",
     "music": "Music"
   }

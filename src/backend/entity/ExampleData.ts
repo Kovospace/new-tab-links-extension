@@ -43,10 +43,14 @@ export function exampleFingerprintOf(data: ProfileData, workspaceId: string): st
             .filter(subgroup => subgroup.groupId === group.id)
             .sort((one, other) => one.position - other.position);
         const subgroupIndex = new Map(subgroups.map((subgroup, index) => [subgroup.id, index]));
+        // Root-level links first, then each subgroup's in the subgroups' order - never by the
+        // subgroup's identifier, which differs between two loads of the same template.
+        const sequenceOf = (subGroupId?: string): number =>
+            subGroupId ? subgroupIndex.get(subGroupId) ?? subgroups.length : -1;
         const links = Object.values(data.links)
             .filter(link => link.groupId === group.id)
             .sort((one, other) =>
-                (one.subGroupId ?? "").localeCompare(other.subGroupId ?? "") || one.position - other.position)
+                sequenceOf(one.subGroupId) - sequenceOf(other.subGroupId) || one.position - other.position)
             .map(link => [
                 link.title, link.url, link.position,
                 link.subGroupId ? subgroupIndex.get(link.subGroupId) ?? -1 : null
