@@ -278,39 +278,21 @@ Then tick all three certifications:
 
 ## 4. Test instructions tab (for the reviewer)
 ```
-No account is needed to test the extension. Open a new tab: the first screen offers "- Load examples", which fills the page with a sample workspace, three groups of links and two subgroups. Everything below works on that data.
+The extension works without an account: open a new tab and click "Load examples" on the first screen to get sample workspaces, groups and links.
 
-LINKS AND GROUPS
-- Click a link to open it in this tab. Each group, subgroup and link has a menu: the "⋮" button of a group or subgroup, or a right-click on a link. Near the bottom of the window these menus open upwards.
-- Click a subgroup's heading to fold or unfold it.
-- Drag a link, a subgroup or a group to move it; drop a link on the bar at the bottom (it turns red while dragging) to delete it.
-- "+ Add group" next to the workspace's name, and "+" next to "Workspaces" in the top bar, add a group and a workspace.
+New in this version: the "Mode" button in the top bar switches between light, dark and the system's theme.
 
-APPEARANCE
-- The "Mode" button in the top bar ("Mode: System" by default) switches between light, dark and the system's theme.
-- Menu (three dots, top right) → Settings → "UI and behavior" holds the same theme, the theme style (flat or glass, "Aero") and the interface size. Settings → "Background" chooses one of sixteen pictures or uploads one. A built-in picture is downloaded from https://tabilinks.app/backgrounds/ when chosen; an uploaded one stays in the browser.
+Appearance: menu (three dots, top right) → Settings → "UI and behavior" sets the same theme and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen.
 
-SEARCH
-Type in the search bar at the top, for example "music". Saved links, open tabs, recently closed tabs and history are suggested first, the web search last. Enter opens the highlighted suggestion.
+Search: type in the search bar at the top - saved links, open tabs, closed tabs and history are suggested first, the web search last.
 
-SIDE PANEL
-Rest the pointer on the strip at the right edge of the page and the panel opens. It has three cards: "Open" (tabs open in this browser - click to switch, "x" to close), "Closed" (recently closed tabs; recorded by default) and "History". Browsing history is off by default: turn it on in Settings → "Sync & privacy", visit a few pages, then open a new tab. Turning either recording off there asks for confirmation and deletes what was recorded. "Keep open" in the panel's head keeps it open.
+The panel on the right edge opens when the pointer rests on it. It has three cards: Open (tabs open in this browser), Closed (recently closed tabs) and History. Browsing history is off by default: turn it on in Settings → "Sync & privacy", then visit a few pages and open a new tab. Turning either recording off there asks for confirmation and deletes what was recorded.
 
-SAVING THE CURRENT PAGE
-On any http(s) page, click the extension's toolbar icon or press Alt+Shift+D: a popup asks for the workspace, group and subgroup, and offers "New group…" and "New subgroup…". Right-clicking a page or a link offers "Bookmark this page with Tabilinks" / "Bookmark this link with Tabilinks", with the groups as a submenu and "Choose a place…" for the popup.
-
-TAB GROUPS
-A subgroup's menu → "Open all links in grouped tabs" opens its links in a browser tab group of the subgroup's colour. "Catch links into tab group" makes a tab that navigates to one of the subgroup's links join that group.
-
-SYNCHRONISATION (needs the test account)
-Menu (three dots, top right) → "Log in", with:
+To test synchronisation, sign in from the menu with this test account:
   username: <reviewer account>
   password: <password>
-The dialog has a "Synchronise this browser with the account" checkbox, ticked by default; unticked, the browser is signed in but nothing is synchronised. Sign in with the same account in a second Chrome profile to see the links, closed tabs and history appear there. The account menu's status row is a checkbox that switches synchronisation off and on.
+Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in dialog has a "Synchronise this browser with the account" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised.
 
-NETWORK
-- https://api.tabilinks.app - the account and synchronisation, only while signed in; and an anonymous daily count of opened new tabs (a number per day, no identifier), sent without credentials.
-- https://tabilinks.app - the built-in backgrounds, and the banner at the bottom of the page: our own premium offer, loaded in a frame from https://tabilinks.app/slot/workspace-footer.html. A premium account has no banner.
-- Website icons come from the browser's own icon cache (the "favicon" permission), or else from the sites themselves.
+The banner at the bottom is our own premium offer, loaded from https://tabilinks.app/slot/workspace-footer.html.
 ```
 Create a dedicated reviewer account for this, and do not reuse your own.
