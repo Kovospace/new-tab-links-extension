@@ -90,6 +90,78 @@ describe("menus as popovers", () => {
         expect(menu.style.top).toBe("20px");
     });
 
+    /**
+     *  #157: a group's menu at the foot of a long column ran off the bottom of the window. The
+     *  window here is 800px tall and the menu 300px; jsdom lays nothing out, so both are given.
+     */
+    describe("kept on screen", () => {
+
+        async function menuOfHeight(height: number, button: { top: number; left?: number }) {
+            const { button: opener, menu } = await menuWithButtonAt(button.left ?? 100);
+            Object.defineProperty(document.documentElement, "clientHeight", { value: 800, configurable: true });
+            const left = button.left ?? 100;
+            opener.getBoundingClientRect = () => ({
+                left, right: left + 40, top: button.top, bottom: button.top + 40, width: 40, height: 40
+            }) as DOMRect;
+            menu.getBoundingClientRect = () => ({ width: 200, height }) as DOMRect;
+            return { opener, menu };
+        }
+
+        it("opens under its button where it fits", async () => {
+            const { opener, menu } = await menuOfHeight(300, { top: 100 });
+
+            opener.click();
+
+            expect(menu.style.top).toBe("140px");
+            expect(menu.style.bottom).toBe("auto");
+            expect(menu.style.maxHeight).toBe("");
+        });
+
+        it("opens above its button when it would run off the bottom", async () => {
+            const { opener, menu } = await menuOfHeight(300, { top: 650 });
+
+            opener.click();
+
+            expect(menu.style.top).toBe("auto");
+            expect(menu.style.bottom).toBe("150px");     // 800 - 650: its bottom at the button's top
+            expect(menu.style.maxHeight).toBe("");
+        });
+
+        it("takes the side with more room and scrolls when it fits neither", async () => {
+            const { opener, menu } = await menuOfHeight(700, { top: 500 });
+
+            opener.click();
+
+            expect(menu.style.bottom).toBe("300px");
+            expect(menu.style.maxHeight).toBe("500px");
+            expect(menu.style.overflowY).toBe("auto");
+        });
+
+        it("goes back under its button once the page has scrolled room for it", async () => {
+            const { opener, menu } = await menuOfHeight(300, { top: 650 });
+            opener.click();
+
+            opener.getBoundingClientRect = () =>
+                ({ left: 100, right: 140, top: 100, bottom: 140, width: 40, height: 40 }) as DOMRect;
+            window.dispatchEvent(new Event("scroll"));
+
+            expect(menu.style.top).toBe("140px");
+            expect(menu.style.bottom).toBe("auto");
+        });
+
+        it("lines up with the other edge of its button when it would run off the side", async () => {
+            // In the left half of a 1000px window, so the menu asks for its button's left edge;
+            // the page is only 600px wide, and 200px from 450 would pass it.
+            const { opener, menu } = await menuOfHeight(100, { top: 100, left: 450 });
+            Object.defineProperty(document.documentElement, "clientWidth", { value: 600, configurable: true });
+
+            opener.click();
+
+            expect(menu.style.left).toBe("auto");
+            expect(menu.style.right).toBe("110px");      // 600 - (450 + 40)
+        });
+    });
+
     it("puts the right-click menu in the top layer too", async () => {
         const { contextMenu } = await import("../../../src/ui/partials/contextMenu");
 
