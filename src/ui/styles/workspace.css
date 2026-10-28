@@ -56,7 +56,7 @@ workspace-plane-head {
     flex-wrap: wrap;
     gap: 0;
     row-gap: 0.25em;
-    /*padding:0.25em 0;*/
+    padding-right: 0.175em;
 }
 
 workspace-plane-head > div {
@@ -123,6 +123,10 @@ workspace-plane-body {
     flex-direction: row;
     align-items: start;
     padding: 0 1em;
+    max-width: 100vw;
+    flex-wrap: wrap;
+    gap: var(--widgets-spacing);
+    margin-bottom: var(--widgets-spacing);
 }
 
 

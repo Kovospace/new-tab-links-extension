@@ -1,12 +1,12 @@
 
 link-group {
-    margin-bottom: var(--widgets-spacing);
-    margin-left: calc(var(--widgets-spacing) / 2);
-    margin-right: calc(var(--widgets-spacing) / 2);
+    /*margin-bottom: var(--widgets-spacing);*/
+    /*margin-left: calc(var(--widgets-spacing) / 2);*/
+    /*margin-right: calc(var(--widgets-spacing) / 2);*/
     border-radius: 0.75em;
     background-color: var(--color-component-background);
     border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
-    /*box-shadow: inset 0 0 0 var(--border-lining-width-inset) var(--border-lining-color-inset);*/
+    max-width: 25vw;
 }
 
 link-group:first-child {
