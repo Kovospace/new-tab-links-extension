@@ -51,6 +51,7 @@ export const ACT_FIRST_RUN_LOG_IN: string = "act-first-run-log-in";
 // Workspace component
 export const ACT_APP_MENU: string = "action-app-menu";
 export const ACT_USER_PROFILES: string = "action-user-profiles-menu";
+export const ACT_THEME_MENU: string = "action-theme-menu";
 export const ACT_SWITCH_WORKSPACE: string = "action-switch-workspace";
 export const ACT_ADD_WORKSPACE: string = "action-add-workspace";
 export const ACT_EDIT_WORKSPACE: string = "action-edit-workspace";

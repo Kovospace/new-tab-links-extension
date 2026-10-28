@@ -3,6 +3,13 @@
   "addWorkspace": "Add new workspace",
   "profilesMenu": "User profiles list",
   "applicationMenu": "Application menu",
+  "themeMenu": "Light or dark theme",
+  "themeButton": "Mode: {mode}",
+  "themeModes": {
+    "auto": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "profileButton": "Profile: {name}",
   "noProfile": "...",
   "profileMenu": {
