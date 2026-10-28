@@ -62,7 +62,7 @@ WHY TABILINKS
   - 95% of users should never reach the free limits
   - no hidden traps forcing you to give in and buy premium
 • Yours to shape:
-  - light and dark theme, each flat or glass (Aero)
+  - light and dark theme, each flat or glass (Aero) - light, dark or as the system, one click away in the top bar
   - sixteen built-in backgrounds or your own picture - in the free version too
 • One search for everything:
   - your links, open tabs, closed tabs and history first, the web search last
@@ -151,7 +151,7 @@ PREČO TABILINKS
   - 95 % používateľov by na limity bezplatnej verzie nemalo nikdy naraziť
   - žiadne skryté pasce, ktoré by vás nútili vzdať sa a kúpiť premium
 • Prispôsobíte si ho:
-  - svetlý a tmavý vzhľad, každý plochý alebo sklenený (Aero)
+  - svetlý a tmavý vzhľad, každý plochý alebo sklenený (Aero) - svetlý, tmavý alebo podľa systému, jedným klikom v hornej lište
   - šestnásť vstavaných pozadí alebo vlastný obrázok - aj v bezplatnej verzii
 • Jedno vyhľadávanie na všetko:
   - najprv vaše odkazy, otvorené a zatvorené karty a história, vyhľadávanie na webe nakoniec
@@ -208,17 +208,20 @@ Web: https://tabilinks.app/sk
 | Asset | Size | Status |
 |---|---|---|
 | Store icon | 128×128 PNG | have it: `public/icons/icon-128.png` |
-| Screenshots | 1280×800 (or 640×400), 1–5 | have three: `store/materials/screenshots/1-3.png` (24-bit, no alpha) |
+| Screenshots | 1280×800 (or 640×400), 1–5 | rendered (`npm run screenshots`, see `screenshots/CATALOGUE.md`) into `screenshots/versions/<version>/store/<lang>/`; the five uploaded are copied to `store/materials/screenshots/<lang>/1-5.png` (24-bit, no alpha) |
 | Small promo tile | 440×280 | have it: `store/materials/promo/small-promo-tile.png`, Slovak `small-promo-tile-sk.png` (sources: the `.html` beside them) |
 | Marquee promo tile | 1400×560 | optional - skipped for the first release; only used if Google features the extension |
 
-Suggested screenshots, in this order (the first one is what most people see):
-1. A full workspace in the Aero (glass) style over a built-in background: three or four groups,
-   one subgroup with a tab-group colour stripe — "Load examples" is a good start
-2. The search bar's suggestions: a saved link, a closed tab and a history entry above "search the web"
-3. The side panel open beside the columns (History card, folded by day)
-4. The right-click submenu over a website: workspace name, groups, a group's subgroups
-5. Settings → Background: the library of pictures — or the light/dark × flat/glass comparison
+Screenshots, in this order (the first one is what most people see). Rendered from the example
+data with Playwright, in both languages; the scenes are `screenshots/store.shots.ts`:
+1. `1-home` - the example workspace, light, glass (Aero), background 3
+2. `2-recently-closed` - the side panel open on Recently closed, a row from the work computer hovered
+3. `3-search` - "music": saved links, a history entry and "search the web"
+4. `4-subgroup-menu` - dark, glass, background 12: a subgroup's menu
+5. `5-link-context-menu` - dark, flat, background 12: a link's right-click menu
+
+A sixth is rendered, `6-settings-background` (Settings → Background, the library of pictures);
+the store takes five, so it is left out - swap it in for one of the above if wanted.
 
 Small promo tile: the logo, the website's wordmark and "Your bookmarks, grouped, on every new tab".
 
@@ -277,10 +280,18 @@ Then tick all three certifications:
 ```
 The extension works without an account: open a new tab and click "Load examples" on the first screen to get sample workspaces, groups and links.
 
-To test synchronisation, sign in from the menu (three dots, top right) with this test account:
+New in this version: the "Mode" button in the top bar switches between light, dark and the system's theme.
+
+Appearance: menu (three dots, top right) → Settings → "UI and behavior" sets the theme (light/dark) and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen.
+
+Search: type in the search bar at the top - saved links, open tabs, closed tabs and history are suggested first, the web search last.
+
+The panel on the right edge opens when the pointer rests on it. It has three cards: Open (tabs open in this browser), Closed (recently closed tabs) and History. Browsing history is off by default: turn it on in Settings → "Sync & privacy", then visit a few pages and open a new tab. Turning either recording off there asks for confirmation and deletes what was recorded.
+
+To test synchronisation, sign in from the menu with this test account:
   username: <reviewer account>
   password: <password>
-Sign in on a second Chrome profile with the same account to see the links appear there.
+Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in dialog has a "Synchronise this browser" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised.
 
 The banner at the bottom is our own premium offer, loaded from https://tabilinks.app/slot/workspace-footer.html.
 ```
