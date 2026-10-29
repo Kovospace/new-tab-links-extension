@@ -6,7 +6,12 @@ link-group {
     border-radius: 0.75em;
     background-color: var(--color-component-background);
     border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
-    max-width: 25vw;
+    /* As wide as its own links, up to 25em - a long title ellipsises there rather than making
+       a banner of the column. Groups that do not fit the row drop to the next one, so nothing
+       is narrowed below what it needs; only a single column wider than the whole window shrinks. */
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 25em;
 }
 
 link-group:first-child {
