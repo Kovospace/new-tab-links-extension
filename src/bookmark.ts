@@ -44,6 +44,12 @@ import './ui/styles/_aero.css'
  */
 (async () => {
 
+    // Nothing here is dragged, and a drag closes the popup: Chrome dismisses an action popup the
+    // moment one starts. The name field opens with its text selected, so pressing on it and
+    // moving a few millimetres - meaning to select something else - picked the text up instead,
+    // and the popup vanished with the form (#161).
+    document.addEventListener('dragstart', event => event.preventDefault());
+
     // The same size the new tab page is drawn at: this window is a page of the same extension
     // and sized in the same em, and a popup half the size of everything else looks broken.
     await devicePreferencesRepository.init();
