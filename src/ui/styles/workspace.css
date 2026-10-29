@@ -2,8 +2,14 @@ workspace-plane {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    flex-shrink: 0;
+    /*
+       As wide as main and no wider. Sized to its columns (fit-content, no shrinking), the plane
+       was one row of every group however many there were, so the body had nothing to wrap
+       against and main scrolled sideways.
+    */
+    flex-shrink: 1;
     flex-basis: fit-content;
+    min-width: 0;
 }
 
 
@@ -123,8 +129,11 @@ workspace-plane-body {
     flex-direction: row;
     align-items: start;
     padding: 0 1em;
-    max-width: 100vw;
+    /*max-width: 100vw;*/
+    /* A group that does not fit the row drops to the next one at its own width (group.css),
+       so the columns always fit the screen and none is squeezed to fit. */
     flex-wrap: wrap;
+    min-width: 0;
     gap: var(--widgets-spacing);
     margin-bottom: var(--widgets-spacing);
 }
