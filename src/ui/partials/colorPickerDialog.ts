@@ -2,6 +2,7 @@ import {
   TAB_GROUP_COLORS, TabGroupColor, TabGroupColorSwatch
 } from '../../backend/entity/TabGroupColors';
 import { t } from '../../i18n/i18n';
+import { dismissOnBackdropClick } from './backdropDismiss';
 
 /**
  * Picks the colour Chrome paints a subgroup's tab group.
@@ -102,9 +103,7 @@ export class ColorPickerDialog {
     dialog.appendChild(actions);
 
     // click on the backdrop (outside the dialog box) dismisses it
-    dialog.addEventListener('click', event => {
-      if (event.target === dialog) settle(null);
-    });
+    dismissOnBackdropClick(dialog, () => settle(null));
 
     return dialog;
   }
