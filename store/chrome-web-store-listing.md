@@ -280,7 +280,7 @@ Then tick all three certifications:
 ```
 The extension works without an account: open a new tab and click "Load examples" on the first screen to get sample workspaces, groups and links.
 
-New in this version: the "Mode" button in the top bar switches between light, dark and the system's theme.
+New in this version: fixes only. A dialog no longer closes when text is selected in a field and the mouse is released outside it, the bookmarking popup (toolbar icon) no longer closes when selected text is dragged, and many or wide groups wrap onto further rows instead of scrolling sideways.
 
 Appearance: menu (three dots, top right) → Settings → "UI and behavior" sets the theme (light/dark) and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen.
 
