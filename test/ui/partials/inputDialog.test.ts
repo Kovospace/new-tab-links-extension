@@ -107,6 +107,30 @@ describe("InputDialog", () => {
         expect(errors()[0]).toContain("at most 5");
         expect(ok().disabled).toBe(true);
     });
+
+    /**
+     *  #161, #162: selecting text in a field and letting go just outside the dialog delivers the
+     *  click to the <dialog> itself - the element the press and the release have in common - which
+     *  is what a backdrop click looks like. The dialog closed, with what had been typed.
+     */
+    it("stays open when a press inside ends on the backdrop, and closes on a real backdrop click", () => {
+        new InputDialog("Rename", { "Name": { type: "string" } }, vi.fn()).show();
+        const dialog = document.querySelector('dialog')!;
+        const gesture = (pressed: Element, released: Element) => {
+            pressed.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+            released.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
+            dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        };
+
+        gesture(inputs()[0], dialog);
+        expect(dialog.open).toBe(true);
+
+        gesture(dialog, inputs()[0]);
+        expect(dialog.open).toBe(true);
+
+        gesture(dialog, dialog);
+        expect(document.querySelector('dialog')).toBeNull();
+    });
 });
 
 /**

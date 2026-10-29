@@ -4,6 +4,7 @@ import { InputDialog } from './inputDialog';
 import { MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
 import { ICON, renderUnsyncedMark } from './wrappedHtmlElements';
 import { t } from '../../i18n/i18n';
+import { dismissOnBackdropClick } from './backdropDismiss';
 
 /** What has to be typed before every other profile is deleted at once. */
 
@@ -99,9 +100,7 @@ export class ProfileManagerDialog {
     dialog.appendChild(actions);
 
     // Clicking the backdrop closes it, matching every other dialog here.
-    dialog.addEventListener('click', event => {
-      if (event.target === dialog) this.hide();
-    });
+    dismissOnBackdropClick(dialog, () => this.hide());
 
     return dialog;
   }

@@ -1,4 +1,5 @@
 import { t } from '../../i18n/i18n';
+import { dismissOnBackdropClick } from './backdropDismiss';
 
 /** One entry of the dropdown: what it reads as, and what picking it means. */
 export interface SelectOption<VALUE> {
@@ -145,9 +146,7 @@ export class SelectDialog<VALUE> {
     });
 
     // click on the backdrop (outside the dialog box) dismisses it
-    dialog.addEventListener('click', (e: MouseEvent) => {
-      if (e.target === dialog) settle(null);
-    });
+    dismissOnBackdropClick(dialog, () => settle(null));
 
     return dialog;
   }

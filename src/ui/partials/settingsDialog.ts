@@ -5,6 +5,7 @@ import {
 import { t } from '../../i18n/i18n';
 import { ICON } from './wrappedHtmlElements';
 import { confirmDestructiveAction } from './confirmations';
+import { dismissOnBackdropClick } from './backdropDismiss';
 
 /**
  * Where "reopen the settings dialog once the page comes back" is left.
@@ -154,9 +155,7 @@ export class SettingsDialog {
     dialog.appendChild(actions);
 
     // Clicking the backdrop closes it, matching every other dialog here.
-    dialog.addEventListener('click', event => {
-      if (event.target === dialog) this.hide();
-    });
+    dismissOnBackdropClick(dialog, () => this.hide());
 
     return dialog;
   }

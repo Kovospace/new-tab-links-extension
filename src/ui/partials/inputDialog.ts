@@ -2,6 +2,7 @@ import { t } from '../../i18n/i18n';
 import {
   FieldConstraints, FieldType, normalizeUrl, validateFields
 } from './fieldValidation';
+import { dismissOnBackdropClick } from './backdropDismiss';
 
 export type { FieldType } from './fieldValidation';
 
@@ -302,9 +303,7 @@ export class InputDialog {
     });
 
     // click on the backdrop (outside the dialog box) closes it
-    dialog.addEventListener('click', (e: MouseEvent) => {
-      if (e.target === dialog) this.hide();
-    });
+    dismissOnBackdropClick(dialog, () => this.hide());
 
     // Escape while the answer is being checked: the check would finish into a closed dialog -
     // a sign-in that worked with nothing left to say so.
