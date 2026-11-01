@@ -94,6 +94,16 @@
     --closed-tabs-rail: 2.5em;
     --closed-tabs-open: 22em;
 
+    /* Search bar */
+    --color-search-input-background: light-dark(
+        rgba(255, 255, 255, 0.33),
+        rgba(68, 68, 68, 0.5)
+    );
+    --color-search-input-background-hover: light-dark(
+            rgba(255, 255, 255, 0.33),
+            rgba(85, 85, 85, 0.5)
+    );
+
     /* Spacing of widgets on desktop */
     --widgets-spacing: 0.75em;
 

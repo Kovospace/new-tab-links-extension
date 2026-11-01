@@ -73,9 +73,16 @@
 :root[data-theme-style="aero"] workspace-plane-head,
 :root[data-theme-style="aero"] workspace-plane-body > link-group,
 :root[data-theme-style="aero"] .tips-bar
-/*:root[data-theme-style="aero"] input.search-bar__input*/
 {
     background-color: var(--aero-surface);
+}
+
+:root[data-theme-style="aero"] input.search-bar__input {
+    background-color: var(--color-search-input-background);
+}
+
+:root[data-theme-style="aero"] input.search-bar__input:hover {
+    background-color: var(--color-search-input-background-hover);
 }
 
 /* A hovered subgroup is tinted, not blurred on its own: its group already

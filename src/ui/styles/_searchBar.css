@@ -229,7 +229,7 @@ button.search-bar__engine-option > svg {
 /* ── Dark theme colours ─────────────────────────────────────────────────── */
 
 input.search-bar__input {
-    box-shadow: inset 0 0 0 var(--border-lining-width) var(--border-lining-color-inset);
+    /*box-shadow: inset 0 0 0 var(--border-lining-width) var(--border-lining-color-inset);*/
 }
 
 /* The field that is being typed into is what lights up, not the whole bar round it - the same
