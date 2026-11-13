@@ -1,6 +1,6 @@
 import { test as base, type BrowserContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { extensionIdOf, launchWithExtension } from "./browser";
 import { translator, type Translate } from "./i18n";
@@ -38,8 +38,20 @@ interface ShotFixtures {
     t: Translate;
     /** The new tab page with the demo data, held still, ready for a scene to act on. */
     newTab: NewTabPage;
-    /** Lets the page settle and saves it as versions/<version>/<target>/<language>/<name>.png. */
-    shoot: (name: string) => Promise<void>;
+    /**
+     *  Lets the page settle and saves it as versions/<version>/<target>/<language>/<name>.png.
+     *  A name may carry a folder - "change-background/pozadie_3x" - for targets kept one
+     *  folder per subject, as the tips are. `clip` keeps only that area, in CSS pixels - for a
+     *  close-up.
+     */
+    shoot: (name: string, options?: { clip?: { x: number; y: number; width: number; height: number } }) => Promise<void>;
+    /**
+     *  Saves one picture of the page in both themes, split by a vertical seam - light on the
+     *  left, dark on the right - leaving the page dark. The same naming as `shoot`.
+     *
+     *  @param splitAt where the seam is, in CSS pixels from the left; the middle when not given
+     */
+    shootThemeSplit: (name: string, splitAt?: number) => Promise<void>;
 }
 
 /**
@@ -75,15 +87,67 @@ export const test = base.extend<ShotFixtures & ShotOptions>({
     },
 
     shoot: async ({ newTab, language }, use, testInfo) => {
-        await use(async name => {
+        await use(async (name, options) => {
             await settle(newTab.page);
-            const directory = path.join(VERSIONS_DIR, VERSION, targetOf(testInfo.file), language);
-            await mkdir(directory, { recursive: true });
             await newTab.page.screenshot({
-                path: path.join(directory, `${name}.png`),
+                path: await pictureFile(testInfo.file, language, name),
+                clip: options?.clip,
                 animations: "disabled",
                 caret: "hide",
             });
         });
     },
+
+    shootThemeSplit: async ({ context, newTab, language }, use, testInfo) => {
+        await use(async (name, splitAt) => {
+            const halves: Buffer[] = [];
+            for (const theme of ["light", "dark"]) {
+                await newTab.setPreferences({ theme });
+                await newTab.page.locator(`html[data-theme="${theme}"]`).waitFor({ state: "attached" });
+                await settle(newTab.page);
+                halves.push(await newTab.page.screenshot({ animations: "disabled", caret: "hide" }));
+            }
+            await writeFile(await pictureFile(testInfo.file, language, name), await joinHalves(context, halves,
+                (splitAt ?? newTab.page.viewportSize()!.width / 2) / newTab.page.viewportSize()!.width));
+        });
+    },
 });
+
+/** Where a picture of that name is kept, its folder made: versions/<version>/<target>/<language>/<name>.png. */
+async function pictureFile(sceneFile: string, language: string, name: string): Promise<string> {
+    const file = path.join(VERSIONS_DIR, VERSION, targetOf(sceneFile), language, `${name}.png`);
+    await mkdir(path.dirname(file), { recursive: true });
+    return file;
+}
+
+/**
+ *  The first picture left of the seam beside the second one right of it, as a PNG. Joined on
+ *  a canvas in a blank page of the same browser, so the scenes need no image library.
+ *
+ *  @param seam where the two meet, as a fraction of the width
+ */
+async function joinHalves(context: BrowserContext, [left, right]: Buffer[], seam: number): Promise<Buffer> {
+    const page = await context.newPage();
+    try {
+        const dataUrl = await page.evaluate(async ([left, right, seam]) => {
+            const load = (base64: string) => {
+                const image = new Image();
+                image.src = `data:image/png;base64,${base64}`;
+                return image.decode().then(() => image);
+            };
+            const [leftImage, rightImage] = await Promise.all([load(left), load(right)]);
+            const canvas = document.createElement("canvas");
+            canvas.width = leftImage.naturalWidth;
+            canvas.height = leftImage.naturalHeight;
+            const half = Math.round(canvas.width * Number(seam));
+            const drawing = canvas.getContext("2d")!;
+            drawing.drawImage(leftImage, 0, 0);
+            drawing.drawImage(rightImage, half, 0, canvas.width - half, canvas.height,
+                half, 0, canvas.width - half, canvas.height);
+            return canvas.toDataURL("image/png");
+        }, [left.toString("base64"), right.toString("base64"), String(seam)]);
+        return Buffer.from(dataUrl.split(",")[1], "base64");
+    } finally {
+        await page.close();
+    }
+}
