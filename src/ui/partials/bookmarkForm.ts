@@ -494,7 +494,7 @@ export function renderNotice(host: HTMLElement, title: string, message: string):
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.textContent = 'Close';
+    closeBtn.textContent = t('common.close');
     closeBtn.classList.add('add');
     closeBtn.addEventListener('click', () => resolve());
     actions.appendChild(closeBtn);

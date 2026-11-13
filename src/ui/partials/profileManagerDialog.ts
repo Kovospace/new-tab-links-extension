@@ -92,7 +92,7 @@ export class ProfileManagerDialog {
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.textContent = 'Close';
+    closeBtn.textContent = t('common.close');
     closeBtn.addEventListener('click', () => this.hide());
 
     actions.appendChild(deleteAllBtn);

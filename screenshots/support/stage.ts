@@ -79,6 +79,25 @@ const OTHER_DEVICE_PAGES = [
     },
 ];
 
+/**
+ *  What the seeded profile is called. The extension seeds "Default" in every language, and
+ *  deliberately: first contact pairs two devices' profiles by name, so a translated seed would
+ *  split one account's profile in two between a Slovak and an English browser. A user would
+ *  rename it; the pictures do it for them, so a Slovak picture has no English word in its header.
+ */
+const PROFILE_NAME: Record<string, string> = { en: "Default", sk: "Predvolený" };
+
+/**
+ *  Example links whose own icon headless Chromium cannot have - the sites refuse it - taken
+ *  from Google's favicon service instead, as the other device's Stack Overflow is. Keyed by
+ *  the link's address exactly as the examples store it, which is the cache's key.
+ */
+const FAVICONS_FROM_GOOGLE: Record<string, string> = {
+    "https://x.com/": "https://www.google.com/s2/favicons?domain=x.com&sz=64",
+    "https://www.linkedin.com/": "https://www.google.com/s2/favicons?domain=linkedin.com&sz=64",
+    "https://claude.ai/": "https://www.google.com/s2/favicons?domain=claude.ai&sz=64",
+};
+
 /** The pages visited here are spread out this far apart before `FIXED_TIME`, newest first. */
 const LOCAL_MINUTES_AGO = [4, 11, 26, 39];
 
@@ -99,6 +118,8 @@ export async function openWithExamples(
     await page.evaluate(
         stored => chrome.storage.local.set({ device_preferences: stored }),
         { ...preferences, language, syncEnabled: false });
+    // Before the examples are drawn: the worker remembers a miss, and would not ask again.
+    await cacheFavicons(page);
     await page.reload();
     await Promise.all([
         page.waitForEvent("load"),
@@ -106,6 +127,36 @@ export async function openWithExamples(
     ]);
     await page.waitForSelector("workspace-plane link-group");
     await stageDemoData(page, language);
+}
+
+/**
+ *  Puts `FAVICONS_FROM_GOOGLE` into the extension's favicon cache - the IndexedDB database and
+ *  store both named "favicon", a data URI per page address (`FavIconRepository`) - so the
+ *  worker answers with them instead of looking.
+ */
+async function cacheFavicons(page: Page): Promise<void> {
+    const icons: Record<string, string> = {};
+    for (const [pageUrl, iconUrl] of Object.entries(FAVICONS_FROM_GOOGLE)) {
+        const response = await page.context().request.get(iconUrl);
+        if (!response.ok()) {
+            throw new Error(`No favicon for ${pageUrl} from ${iconUrl}: ${response.status()}`);
+        }
+        const type = response.headers()["content-type"] ?? "image/png";
+        icons[pageUrl] = `data:${type};base64,${(await response.body()).toString("base64")}`;
+    }
+    await page.evaluate(icons => new Promise<void>((resolve, reject) => {
+        const opening = indexedDB.open("favicon", 1);
+        opening.onupgradeneeded = () => opening.result.createObjectStore("favicon");
+        opening.onerror = () => reject(opening.error);
+        opening.onsuccess = () => {
+            const writing = opening.result.transaction("favicon", "readwrite");
+            for (const [pageUrl, dataUri] of Object.entries(icons)) {
+                writing.objectStore("favicon").put(dataUri, pageUrl);
+            }
+            writing.oncomplete = () => { opening.result.close(); resolve(); };
+            writing.onerror = () => reject(writing.error);
+        };
+    }), icons);
 }
 
 /**
@@ -123,12 +174,14 @@ export async function openWithExamples(
  *  Reloads the page at the end, so it is drawn from the staged storage.
  */
 async function stageDemoData(page: Page, language: string): Promise<void> {
-    await page.evaluate(async now => {
+    await page.evaluate(async ({ now, profileName }) => {
         const { profile_registry: registry } = await chrome.storage.local.get("profile_registry") as {
             profile_registry: { activeProfileId: string; profiles: Record<string, { example?: boolean; settings?: object }> };
         };
         const profileId: string = registry.activeProfileId;
-        const { example: _example, ...profile } = registry.profiles[profileId];
+        const { example: _example, ...profile } = registry.profiles[profileId] as
+            { example?: boolean; settings?: object; name?: string };
+        profile.name = profileName;
         // Tips hidden: a sentence of advice at the foot of every picture is not what it shows.
         profile.settings = { ...profile.settings, recordBrowsingHistory: true, hideTips: true };
         registry.profiles[profileId] = profile;
@@ -150,7 +203,7 @@ async function stageDemoData(page: Page, language: string): Promise<void> {
             },
             account_standing: { userId: "screenshots", premium: true, checkedAt: now },
         });
-    }, FIXED_TIME.getTime());
+    }, { now: FIXED_TIME.getTime(), profileName: PROFILE_NAME[language] ?? PROFILE_NAME.en });
 
     await visitAndClose(page, VISITED_PAGES[language] ?? VISITED_PAGES.en);
     await placeLogsInTime(page, OTHER_DEVICE[language] ?? OTHER_DEVICE.en);
