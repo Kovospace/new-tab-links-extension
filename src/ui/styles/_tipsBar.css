@@ -172,6 +172,19 @@ html.dnd-active .tips-bar * {
     background-color: var();
 }
 
+/* The close control is red like every other close and delete button (#176). The rule
+   above paints every control grey with two classes' weight, which main.css's `.danger`
+   alone cannot outweigh - so the red is said again here, at three. */
+.tips-bar .tips-bar__control.danger {
+    background-color: var(--color-button-danger-background);
+    color: var(--color-button-danger-text);
+}
+
+.tips-bar .tips-bar__control.danger:hover {
+    background-color: var(--color-button-danger-background-hover);
+    color: var(--color-button-danger-text-hover);
+}
+
 /* "Tell me more" and "I know" are the controls that are not symbols, and the
    ones that are always visible: they are part of the tip rather than a way of
    managing tips. */
