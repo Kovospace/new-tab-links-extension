@@ -13,6 +13,11 @@
     "title": "Pridať odkaz"
   },
   "addLinkTooltip": "Pridať odkaz do skupiny",
+  "emptyHint": {
+    "text": "Táto skupina je prázdna.",
+    "addLink": "Pridať odkaz",
+    "delete": "Zmazať skupinu"
+  },
   "menu": {
     "tooltip": "Upraviť skupinu",
     "addLink": "Pridať odkaz",

@@ -135,3 +135,24 @@ link-group-body {
 /*link-group-body > *:last-child {*/
 /*    padding-bottom: 0.375em;*/
 /*}*/
+
+/* An empty group says so, and offers the two things worth doing about it (#187).
+   Spaced with gap, not margins, for the reason the head is: a drop aimed between the
+   lines has to land on something inside the group. */
+link-group-body > div.cls-group-empty-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375em;
+    padding: 0.25em 0.5em 0.5em;
+    color: var(--color-component-text);
+}
+
+link-group-body > div.cls-group-empty-hint > p {
+    opacity: 0.75;
+    white-space: normal;
+}
+
+link-group-body > div.cls-group-empty-hint > button {
+    margin: 0;
+}

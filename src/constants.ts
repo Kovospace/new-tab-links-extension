@@ -96,6 +96,7 @@ export const CLASS_WORKSPACE_SYNC_NOTICE: string = "cls-workspace-sync-notice";
 // Group component
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
 export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
+export const CLASS_GROUP_EMPTY_HINT: string = "cls-group-empty-hint";
 
 // Subgroup component
 export const CLASS_SUBGROUP_HEAD_TITLE = "cls-subgroup-head-title";
