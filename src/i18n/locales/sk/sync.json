@@ -61,13 +61,13 @@
       "EXAMPLE": "Ukážkové údaje: nesynchronizujú sa, kým ich nezmeníte."
     },
     "workspace": {
-      "LOCAL_ONLY_FREE_LIMIT": "Tento pracovný priestor zostáva iba v tomto zariadení: bezplatný plán synchronizuje {maximum} pracovné priestory v profile a tento profil ich už vo vašom účte má.",
-      "LOCAL_ONLY_FAIR_USE": "Tento pracovný priestor zostáva iba v tomto zariadení: prekračuje limit férového používania alebo tento profil už synchronizuje toľko pracovných priestorov, koľko zásady férového používania dovoľujú.",
-      "EXAMPLE": "Ukážkový pracovný priestor: nesynchronizuje sa, kým ho nezmeníte, a ak ho necháte tak, po prihlásení sa odstráni."
+      "LOCAL_ONLY_FREE_LIMIT": "Táto plocha zostáva iba v tomto zariadení: bezplatný plán synchronizuje {maximum} plochy v profile a tento profil ich už vo vašom účte má.",
+      "LOCAL_ONLY_FAIR_USE": "Táto plocha zostáva iba v tomto zariadení: prekračuje limit férového používania alebo tento profil už synchronizuje toľko plôch, koľko zásady férového používania dovoľujú.",
+      "EXAMPLE": "Ukážková plocha: nesynchronizuje sa, kým ju nezmeníte, a ak ju necháte tak, po prihlásení sa odstráni."
     },
     "workspaceOfProfile": {
-      "LOCAL_ONLY_FREE_LIMIT": "Tento profil aj jeho pracovné priestory zostávajú iba v tomto zariadení: bezplatný plán synchronizuje {maximum} profil a váš účet ho už má.",
-      "LOCAL_ONLY_FAIR_USE": "Tento profil aj jeho pracovné priestory zostávajú iba v tomto zariadení: váš účet už synchronizuje toľko profilov, koľko zásady férového používania dovoľujú."
+      "LOCAL_ONLY_FREE_LIMIT": "Tento profil aj jeho plochy zostávajú iba v tomto zariadení: bezplatný plán synchronizuje {maximum} profil a váš účet ho už má.",
+      "LOCAL_ONLY_FAIR_USE": "Tento profil aj jeho plochy zostávajú iba v tomto zariadení: váš účet už synchronizuje toľko profilov, koľko zásady férového používania dovoľujú."
     },
     "renameAdvice": "Premenujte ho na {names} a pri ďalšej synchronizácii sa zlúči s tým vo vašom účte.",
     "upgrade": "Prémiová verzia",

@@ -1,15 +1,15 @@
 {
   "heading": "Vitajte !",
   "subheading": "Vyberte ako chete začať:",
-  "createWorkspace": "1. Vytvorte prvý pracovný priestor",
-  "createWorkspaceButton": "+ Pridať prvý pracovný priestor",
+  "createWorkspace": "1. Vytvorte prvú plochu",
+  "createWorkspaceButton": "+ Pridať prvú plochu",
   "importPrompt": "2. načítajte odkazy zo zálohy / exportovaného súboru",
   "importButton": "> Importovať",
   "examplesPrompt": "... alebo načítajte pripravenú ukážkovú sadu",
   "examplesButton": "- Načítať ukážky",
   "accountPrompt": "... alebo si prineste odkazy, ktoré už máte vo svojom účte Tabilinks",
   "signedInAs": "Prihlásený ako {username}",
-  "defaultWorkspaceDescription": "Predvolený pracovný priestor",
+  "defaultWorkspaceDescription": "Predvolená plocha",
   "titleMandatory": "Názov je povinný",
   "examples": {
     "workspace": "Príklady",

@@ -1,6 +1,7 @@
 {
   "workspaces": "Workspaces",
   "addWorkspace": "Add new workspace",
+  "addWorkspaceButton": "+ Add workspace",
   "profilesMenu": "User profiles list",
   "applicationMenu": "Application menu",
   "themeMenu": "Light or dark theme",

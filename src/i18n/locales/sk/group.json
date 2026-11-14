@@ -23,14 +23,14 @@
     "finishManagingLinks": "Ukončiť úpravu odkazov skupiny",
     "moveLeft": "Posunúť skupinu doľava",
     "moveRight": "Posunúť skupinu doprava",
-    "migrate": "Presunúť do iného pracovného priestoru",
+    "migrate": "Presunúť na inú plochu",
     "delete": "Zmazať skupinu",
     "deleteConfirmation": "Zmažú sa všetky odkazy a podskupiny, ktoré do tejto skupiny patria."
   },
   "migrateDialog": {
-    "title": "Presunúť skupinu do iného pracovného priestoru",
-    "field": "Cieľový pracovný priestor",
+    "title": "Presunúť skupinu na inú plochu",
+    "field": "Cieľová plocha",
     "confirm": "Presunúť",
-    "nowhereToGo": "Nie je iný pracovný priestor, do ktorého by sa dala skupina presunúť. Najprv nejaký pridajte."
+    "nowhereToGo": "Nie je iná plocha, na ktorú by sa dala skupina presunúť. Najprv nejakú pridajte."
   }
 }

@@ -1,6 +1,7 @@
 {
-  "workspaces": "Pracovné priestory",
-  "addWorkspace": "Pridať nový pracovný priestor",
+  "workspaces": "Plochy",
+  "addWorkspace": "Pridať novú plochu",
+  "addWorkspaceButton": "+ Pridať plochu",
   "profilesMenu": "Zoznam profilov",
   "applicationMenu": "Menu aplikácie",
   "themeMenu": "Svetlý alebo tmavý vzhľad",

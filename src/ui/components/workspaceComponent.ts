@@ -199,7 +199,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
         // add workspace button
         headerElemLeftContent.appendChild(renderButton(
-            ICON.ADD,
+            t("header.addWorkspaceButton"),
             "",
             [ACT_ADD_WORKSPACE, CLASS_ACTION_ADD],
             t("header.addWorkspace"),
