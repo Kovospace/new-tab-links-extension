@@ -36,7 +36,7 @@ Status: **ready** = scenes exist and render; **planned** = asked for, no scenes 
 | Target | Status | Size, density | Used by | Notes |
 |---|---|---|---|---|
 | `store` | ready (6 pictures; the store takes 5) | 1280×800, 1× | Chrome Web Store listing, copied by hand into `store/materials/screenshots/<lang>/` | Order and content: `store/chrome-web-store-listing.md`, "Suggested screenshots". #4 (right-click submenu) cannot be rendered - browser UI. |
-| `tips` | every tip the website has (14) | 1280×800, 3× | website `public/images/<lang>/tips/<slug>/<name>_3x.png` | One `test.describe` and one folder per tip slug; names follow what is there now. `image-maintainer` derives `_2x`/`_1x` from `_3x` and converts to WebP. |
+| `tips` | every tip the website has (19; `saving-from-webpage` 1 is Chrome's own right-click menu and is not rendered) | 1280×800, 3× | website `public/images/<lang>/tips/<slug>/<name>_3x.png` | One `test.describe` and one folder per tip slug; names follow what is there now. `image-maintainer` derives `_2x`/`_1x` from `_3x` and converts to WebP. |
 | `demo` | planned | 3× | website `public/images/<lang>/demo/<n>_3x.png` | Numbered. |
 | `theme-showcase` | ready (6 pairs) | 1280×800, 3× | website `public/images/<lang>/theme-showcase/<n>-<dark\|light>_3x.png` | Every scene rendered once per theme (`for (const theme of ["light", "dark"])`), so a pair differs in the theme alone - the home page lays the dark one over the light one and clips it. |
 | `home-features` | planned | 3× | website `public/images/<lang>/home-features/<feature>/` | One folder per feature section. |
@@ -93,6 +93,13 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `tips` | set-size › settings, the size slider framed | `set-size/settings_size_3x` | Close-up of Settings → UI and behavior, "Size" framed |
 | `tips` | set-size › home at 100% / 75% | `set-size/velkost-100_3x`, `set-size/velkost-75_3x` | The page at size 1 and 0.75 (`scale`) |
 | `tips` | subgroup-links-into-tab-group › a subgroup's menu, … framed | `subgroup-links-into-tab-group/podskupina-zachytavat-do-kariet_3x`, `…/podskupina-farba-kariet_3x` | Close-up of AI unfolded with its menu open, "Catch links into tab group" / "Grouped tabs color" framed |
+| `tips` | bookmark-into-new-group › side panel, a closed tab's + ringed | `bookmark-into-new-group/panel-ulozit_3x` | Side panel on Closed, the first row hovered, its "+" ringed |
+| `tips` | bookmark-into-new-group › the bookmarking popup, a new group being named | `bookmark-into-new-group/nova-skupina_3x` | The popup (`bookmark.html` in a tab, a Wikipedia page waiting in session storage), "New group…" chosen and named "Reading" / "Na čítanie" |
+| `tips` | discover-premium-features › application menu, the upgrade framed | `discover-premium-features/premium-menu_3x` | Signed in, not premium (ad bar shown): the application menu open, "Upgrade to premium" framed |
+| `tips` | saving-from-webpage › the bookmarking popup | `saving-from-webpage/2_3x` | The popup as the toolbar button opens it, on a Wikipedia page in the picture's language |
+| `tips` | setup-privacy › settings, sync & privacy | `setup-privacy/nastavenia-sukromie_3x` | `syncEnabled` on: close-up of Settings → Sync & privacy |
+| `tips` | use-drag-and-drop › a link held over another group | `use-drag-and-drop/presun-odkazu_3x` | Spotify picked up and held over LinkedIn: the drop line, the tips bar turned trash, pointer drawn |
+| `tips` | use-drag-and-drop › settings, enable drag & drop framed | `use-drag-and-drop/nastavenia-presun_3x` | Close-up of Settings → UI and behavior, "Enable drag & drop" framed |
 | `theme-showcase` | <theme> › home | `1-<theme>_3x` | The example workspace, background 6 |
 | `theme-showcase` | <theme> › recently closed › side panel, a row hovered | `2-<theme>_3x` | As store #2, background 6 |
 | `theme-showcase` | <theme> › search suggestions | `3-<theme>_3x` | As store #3, background 6 |
@@ -148,6 +155,8 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `menuItem(key)` | The selector of an open options menu's item by its wording key |
 | `addProfiles(profiles)` | Adds profiles beside the open one - names, workspaces, a link count - under fixed ids (so the listed order is stable), and reloads |
 | `addWorkspaces(names)` | Adds empty workspaces to the open profile after its own, under fixed ids, and reloads; the open one stays open |
+| `openBookmarkPopup(request)` | Leaves a page to bookmark in session storage and opens `bookmark.html` in its own tab at popup size; returns it for `shoot(name, { page })` |
+| `holdLinkOver(title, overTitle)` | Picks a link up and holds it over another (drag in progress), pointer drawn; the scene lets go after shooting |
 | `openSearchEngines()` | Opens the search engine dropdown at the search bar's left end |
 | `openProfilesMenu()` / `openProfileManager()` | Opens the header's profiles menu / its "Manage profiles" dialog |
 | `areaAround(selectors, margin)` | The area holding the first match of each selector plus a margin, inside the window - a `clip` |
