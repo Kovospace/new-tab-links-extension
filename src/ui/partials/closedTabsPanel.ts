@@ -442,7 +442,8 @@ export class ClosedTabsPanel {
 
     const pinBtn = document.createElement('button');
     pinBtn.type = 'button';
-    pinBtn.classList.add('closed-tabs__head-action');
+    // Red like every other close and delete button (#176).
+    pinBtn.classList.add('closed-tabs__head-action', CLASS_ACTION_DANGER);
     pinBtn.textContent = ICON.CLOSE;
     pinBtn.title = t('closedTabs.closePanel');
     pinBtn.addEventListener('click', () => this.togglePinned());

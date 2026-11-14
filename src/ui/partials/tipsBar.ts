@@ -4,6 +4,7 @@ import { confirmDestructiveAction } from './confirmations';
 import { makeContainerTarget } from '../dragAndDrop/dragAndDrop';
 import { ICON } from './wrappedHtmlElements';
 import { t } from '../../i18n/i18n';
+import { CLASS_ACTION_DANGER } from '../../constants';
 
 /**
  * The bar along the bottom of the workspace, which has two faces.
@@ -139,8 +140,11 @@ export class TipsBar {
         ICON.MOVE_DOWN, ['tips-bar__control'], t('tips.next'), () => this.viewModel.next()));
     }
 
+    // Red like every other close and delete button (#176): it takes the tips away on every
+    // device, which is the most the bar can do.
     controls.appendChild(this.button(
-      ICON.CLOSE, ['tips-bar__control'], t('tips.hide'), () => void this.confirmHide()));
+      ICON.CLOSE, ['tips-bar__control', CLASS_ACTION_DANGER], t('tips.hide'),
+      () => void this.confirmHide()));
 
     this.tipEl.appendChild(controls);
   }
