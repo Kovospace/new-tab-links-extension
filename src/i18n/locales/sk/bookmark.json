@@ -32,5 +32,13 @@
   "newWorkspace": {
     "defaultName": "Môj pracovný priestor"
   },
-  "optional": "nepovinné"
+  "optional": "nepovinné",
+  "welcome": {
+    "title": "Vitajte v Tabilinks",
+    "message": "Tabilinks nájdete na stránke novej karty - tam sú vaše odkazy, skupiny a pracovné priestory a tam ho aj nastavíte. Toto tlačidlo do neho uloží stránku, na ktorej práve ste.",
+    "open": "Otvoriť Tabilinks",
+    "tour": "Ako to funguje",
+    "saveAnyway": "Uložiť túto stránku",
+    "tourPath": "/sk/tour"
+  }
 }

@@ -277,6 +277,12 @@ feature needs no permission beyond `contextMenus`.
   (`chrome.commands.getAll`, re-read when the page regains focus) with a button to that page,
   and so does a tip (`utils/extensionShortcuts.ts`). A chrome:// page opens only through
   `chrome.tabs.create`, never as a link.
+- **Before anything is set up, the toolbar icon welcomes rather than asks** (#172). A fresh
+  install opens a new tab (`worker/module/firstRunTab.ts`, `onInstalled` with `install` only), and
+  while the active profile has no workspace - the new tab page's first-run test - a popup opened
+  from the icon or the shortcut shows `renderWelcome`: "Open Tabilinks", "How it works" (the
+  website's tour, per language in `bookmark.welcome.tourPath`) and, when the tab can be kept,
+  "Save this page", which goes on to the form. A right-click entry is a deliberate save and skips it.
 - **A popup takes no argument**, so the worker leaves the page to bookmark in
   `chrome.storage.session` and the popup takes it (`utils/bookmarkRequest.ts`). Taken, not
   read, and stamped: a request a dismissed popup left behind is never answered later. A popup

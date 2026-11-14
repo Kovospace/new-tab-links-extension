@@ -4,7 +4,8 @@ import { devicePreferencesRepository } from "./backend/repository/DevicePreferen
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 
 import { BookmarkViewModel } from "./viewModel/bookmarkViewModel";
-import { BookmarkForm, renderNotice } from "./ui/partials/bookmarkForm";
+import { BookmarkForm, renderNotice, renderWelcome } from "./ui/partials/bookmarkForm";
+import { buildWebsiteUrl } from "./backend/sync/SyncConfiguration";
 import { requestForActiveTab, takePendingBookmark } from "./utils/bookmarkRequest";
 import { t } from "./i18n/i18n";
 
@@ -60,7 +61,29 @@ import './ui/styles/_aero.css'
 
     const host = document.body.getElementsByTagName("main")[0];
 
-    const request = await takePendingBookmark() ?? await requestForActiveTab();
+    const pending = await takePendingBookmark();
+
+    await profileRepository.init();
+    await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
+
+    // Opened from the toolbar icon before anything was set up - the new tab page would show
+    // its first-run screen - this is most likely somebody looking for the application, not a
+    // page to keep (#172). A right-click entry is a deliberate save and goes straight on.
+    const firstRun = !pending && !appStateRepository.getCurrentEnvironment();
+    const request = pending ?? await requestForActiveTab();
+
+    if (firstRun) {
+        const choice = await renderWelcome(host, request !== null, {
+            openNewTab: async () => { await chrome.tabs.create({}); },
+            openTour: async () => {
+                await chrome.tabs.create({ url: buildWebsiteUrl(t("bookmark.welcome.tourPath")) });
+            }
+        });
+        if (choice === "done") {
+            window.close();
+            return;
+        }
+    }
 
     if (!request) {
         await renderNotice(
@@ -70,9 +93,6 @@ import './ui/styles/_aero.css'
         window.close();
         return;
     }
-
-    await profileRepository.init();
-    await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
     // A profile with no group yet is not turned away: the form offers to make one, and asks
     // what to call it - see BookmarkForm.

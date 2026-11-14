@@ -32,5 +32,13 @@
   "newWorkspace": {
     "defaultName": "My workspace"
   },
-  "optional": "optional"
+  "optional": "optional",
+  "welcome": {
+    "title": "Welcome to Tabilinks",
+    "message": "Tabilinks lives on your new tab page - that is where your links, groups and workspaces are, and where you set it up. This button saves the page you are on into it.",
+    "open": "Open Tabilinks",
+    "tour": "How it works",
+    "saveAnyway": "Save this page",
+    "tourPath": "/tour"
+  }
 }

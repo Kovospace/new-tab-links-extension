@@ -8,6 +8,7 @@ import {registerLinkTabGroupCatcher} from "./module/linkTabGroupCatcher";
 import {registerBookmarkContextMenu} from "./module/bookmarkCurrentPage";
 import {registerClosedTabsRecorder} from "./module/closedTabsRecorder";
 import {registerHistoryRecorder} from "./module/historyRecorder";
+import {registerFirstRunTab} from "./module/firstRunTab";
 
 type ModuleConstructor = new () => BackgroundWorker<any, any>;
 
@@ -65,3 +66,4 @@ registerLinkTabGroupCatcher();
 registerBookmarkContextMenu();
 registerClosedTabsRecorder();
 registerHistoryRecorder();
+registerFirstRunTab();
