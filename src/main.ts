@@ -22,6 +22,7 @@ import {LinkComponent} from "./ui/components/linkComponent";
 import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
+import { LANGUAGE_CATEGORY } from "./viewModel/settingsViewModel";
 import { PageBackground } from "./ui/partials/pageBackground";
 import { t } from "./i18n/i18n";
 import { sendToWorkerThread } from "./utils/sendToWorker";
@@ -185,7 +186,7 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // whose strings were all read as it was built. This is what brings the user back to the
     // screen they were standing on when they asked for it.
     if (consumeSettingsReopen()) {
-        new SettingsDialog().show();
+        new SettingsDialog().show(LANGUAGE_CATEGORY);
     }
 
 })();

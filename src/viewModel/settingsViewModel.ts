@@ -231,6 +231,9 @@ interface CategoryDefinition {
 /** The category holding what the profile records; the closed tabs panel opens Settings on it. */
 export const PRIVACY_CATEGORY = "privacy";
 
+/** The category holding the language; Settings reopens on it after a language change reloads the page. */
+export const LANGUAGE_CATEGORY = "language-and-local-customs";
+
 /**
  *  Every setting there is, in the order and the sections the dialog shows them in.
  *
@@ -266,7 +269,7 @@ const CATEGORIES: CategoryDefinition[] = [
         // Two questions rather than one, because they are two: the language decides the words
         // and the date format decides the order the parts of a date go in, and a reader can
         // want one without the other - see i18n/dates.ts.
-        key: "language-and-local-customs",
+        key: LANGUAGE_CATEGORY,
         wording: "languageAndLocalCustoms",
         settings: [
             { kind: "choice", key: "language", wording: "language" },
@@ -299,9 +302,6 @@ const CATEGORIES: CategoryDefinition[] = [
     }
 ];
 
-/** The category a new dialog opens with expanded: the first one, and only the first one. */
-const FIRST_CATEGORY = CATEGORIES[0]?.key;
-
 /**
  *  View model behind the settings dialog.
  *
@@ -315,9 +315,9 @@ const FIRST_CATEGORY = CATEGORIES[0]?.key;
  *
  *  **Which categories are folded away is not one of the settings.** It is not stored and not
  *  synchronised - it lives here, for as long as the dialog is open, the way which workspace is
- *  open is a per-device choice rather than data. A dialog opened again starts with the first
- *  category expanded and the rest folded, which is the state that makes a growing list
- *  readable.
+ *  open is a per-device choice rather than data. A dialog opened again starts with every
+ *  category folded, so the whole list of headings fits on the screen at once - unless it was
+ *  opened for one category, which is then the only one unfolded.
  */
 export class SettingsViewModel {
 
@@ -331,9 +331,8 @@ export class SettingsViewModel {
     /** What saving a page is bound to, as last read; Chrome answers asynchronously. */
     private bookmarkShortcut: string | null = null;
 
-    /** Categories the user has folded away; the first one starts out of it. */
-    private readonly collapsed: Set<string> = new Set(
-        CATEGORIES.map(category => category.key).filter(key => key !== FIRST_CATEGORY));
+    /** Categories folded away right now; every one of them, until one is opened. */
+    private readonly collapsed: Set<string> = new Set(CATEGORIES.map(category => category.key));
 
     public readonly observables = {
         settings: new ObservableValue<SettingsDTO>({ profileName: "", categories: [] })
