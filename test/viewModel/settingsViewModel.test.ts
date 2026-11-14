@@ -472,9 +472,9 @@ describe("SettingsViewModel, keeping the side panel open", () => {
         .flatMap(category => category.settings)
         .find(one => one.kind === "toggle" && one.key === "keepSidePanelOpen");
 
-    it("is offered under UI and behavior, off", () => {
+    it("is offered under UI and behavior, on (#178)", () => {
         expect(settings.observables.settings.get().categories[0].settings).toContain(keepOpen());
-        expect(keepOpen()).toMatchObject({ enabled: false });
+        expect(keepOpen()).toMatchObject({ enabled: true });
     });
 
     it("is stored on this device and not on the profile", async () => {
@@ -482,10 +482,10 @@ describe("SettingsViewModel, keeping the side panel open", () => {
         profiles.profiles$.subscribe(() => published++);
         const before = published;
 
-        await settings.toggle("keepSidePanelOpen", true);
+        await settings.toggle("keepSidePanelOpen", false);
 
-        expect(devicePreferences.getKeepSidePanelOpen()).toBe(true);
-        expect(keepOpen()).toMatchObject({ enabled: true });
+        expect(devicePreferences.getKeepSidePanelOpen()).toBe(false);
+        expect(keepOpen()).toMatchObject({ enabled: false });
         expect(published).toBe(before);
         expect(profiles.getSettings()).toEqual(DEFAULT_PROFILE_SETTINGS);
     });

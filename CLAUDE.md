@@ -385,7 +385,8 @@ There used to be a button in the header that pinned it; the setting replaced it.
 
 **"Keep open" outranks both** (#98): a checkbox in the panel's head, and the same setting in
 Settings → UI and behavior (`keepSidePanelOpen`, a device preference - it is a matter of screen
-width). Ticked, the panel is open on every new tab and nothing folds it - not the pointer, a
+width). **On by default** (#178), read as on unless storage says `false`, so only unticking it
+turns it off; the screenshot scenes stage it off unless a scene asks. Ticked, the panel is open on every new tab and nothing folds it - not the pointer, a
 click elsewhere or opening a row. Its own "x" still closes it, and that unticks it.
 Unticked from inside the panel, it is handed back to the pointer where it stands. Settings
 draws it as an ordinary checkbox: `SettingsViewModel` routes a `DeviceToggleKey` to the

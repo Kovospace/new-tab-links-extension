@@ -117,7 +117,7 @@ export async function openWithExamples(
     // Synchronisation off: the premium session below must never reach for the account.
     await page.evaluate(
         stored => chrome.storage.local.set({ device_preferences: stored }),
-        { ...preferences, language, syncEnabled: false });
+        { keepSidePanelOpen: false, ...preferences, language, syncEnabled: false });
     // Before the examples are drawn: the worker remembers a miss, and would not ask again.
     await cacheFavicons(page);
     await page.reload();
