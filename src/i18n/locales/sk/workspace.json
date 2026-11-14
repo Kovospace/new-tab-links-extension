@@ -1,21 +1,21 @@
 {
   "pageTitle": "Nová Karta",
   "addDialog": {
-    "title": "Pridať pracovný priestor",
-    "name": "Názov pracovného priestoru",
-    "description": "Popis pracovného priestoru"
+    "title": "Pridať plochu",
+    "name": "Názov plochy",
+    "description": "Popis plochy"
   },
   "menu": {
-    "tooltip": "Upraviť aktuálny pracovný priestor",
-    "add": "Pridať pracovný priestor",
-    "editTitle": "Upraviť názov pracovného priestoru",
-    "saveTitle": "Uložiť názov pracovného priestoru",
-    "delete": "Zmazať pracovný priestor",
-    "deleteConfirmation": "Zmažú sa aj všetky skupiny a odkazy, ktoré do tohto pracovného priestoru patria."
+    "tooltip": "Upraviť aktuálnu plochu",
+    "add": "Pridať plochu",
+    "editTitle": "Upraviť názov plochy",
+    "saveTitle": "Uložiť názov plochy",
+    "delete": "Zmazať plochu",
+    "deleteConfirmation": "Zmažú sa aj všetky skupiny a odkazy, ktoré do tejto plochy patria."
   },
   "addGroup": "Pridať skupinu",
   "addGroupTooltip": "Pridať novú skupinu",
   "errors": {
-    "noName": "Pracovný priestor potrebuje názov."
+    "noName": "Plocha potrebuje názov."
   }
 }

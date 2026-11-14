@@ -17,10 +17,10 @@
     "empty": "prázdny",
     "summary": "{workspaces}, {links}",
     "workspaces": {
-      "one": "{count} pracovný priestor",
-      "few": "{count} pracovné priestory",
-      "many": "{count} pracovného priestoru",
-      "other": "{count} pracovných priestorov"
+      "one": "{count} plocha",
+      "few": "{count} plochy",
+      "many": "{count} plochy",
+      "other": "{count} plôch"
     },
     "links": {
       "one": "{count} odkaz",
@@ -44,7 +44,7 @@
   "nameMissing": "Profil potrebuje názov.",
   "deleteOne": {
     "title": "Zmazať tento profil?",
-    "message": "„{name}“ obsahuje {contents}. Zmazaním sa jeho pracovné priestory, skupiny a odkazy odstránia z tohto prehliadača aj z vášho účtu, na každom zariadení. Toto sa nedá vrátiť späť.",
+    "message": "„{name}“ obsahuje {contents}. Zmazaním sa jeho plochy, skupiny a odkazy odstránia z tohto prehliadača aj z vášho účtu, na každom zariadení. Toto sa nedá vrátiť späť.",
     "confirm": "Zmazať"
   },
   "nothingToDelete": {
@@ -56,9 +56,9 @@
     "phrase": "zmazať všetky profily",
     "confirm": "Áno, zmazať ich",
     "message": {
-      "one": "Zmaže sa {count} profil a všetko v ňom — pracovné priestory, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť.",
-      "few": "Zmažú sa {count} profily a všetko v nich — pracovné priestory, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť.",
-      "other": "Zmaže sa {count} profilov a všetko v nich — pracovné priestory, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť."
+      "one": "Zmaže sa {count} profil a všetko v ňom — plochy, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť.",
+      "few": "Zmažú sa {count} profily a všetko v nich — plochy, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť.",
+      "other": "Zmaže sa {count} profilov a všetko v nich — plochy, skupiny a odkazy — z tohto prehliadača aj z vášho účtu, na každom zariadení. Profil, ktorý máte práve otvorený, zostane. Toto sa nedá vrátiť späť."
     }
   }
 }

@@ -4,7 +4,7 @@
   "fields": {
     "name": "Názov",
     "url": "URL",
-    "workspace": "Pracovný priestor",
+    "workspace": "Plocha",
     "group": "Skupina",
     "subgroup": "Podskupina",
     "newGroup": "Názov skupiny",
@@ -30,12 +30,12 @@
     "option": "Nová podskupina…"
   },
   "newWorkspace": {
-    "defaultName": "Môj pracovný priestor"
+    "defaultName": "Moja plocha"
   },
   "optional": "nepovinné",
   "welcome": {
     "title": "Vitajte v Tabilinks",
-    "message": "Tabilinks nájdete na stránke novej karty - tam sú vaše odkazy, skupiny a pracovné priestory a tam ho aj nastavíte. Toto tlačidlo do neho uloží stránku, na ktorej práve ste.",
+    "message": "Tabilinks nájdete na stránke novej karty - tam sú vaše odkazy, skupiny a plochy a tam ho aj nastavíte. Toto tlačidlo do neho uloží stránku, na ktorej práve ste.",
     "open": "Otvoriť Tabilinks",
     "tour": "Ako to funguje",
     "saveAnyway": "Uložiť túto stránku",
