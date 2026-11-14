@@ -507,3 +507,65 @@ export function renderNotice(host: HTMLElement, title: string, message: string):
     closeBtn.focus();
   });
 }
+
+/** What the user chose on the welcome panel. */
+export type WelcomeChoice = 'save' | 'done';
+
+/** Where the welcome panel's buttons lead; injected so the panel itself opens nothing. */
+export interface WelcomeActions {
+  openNewTab(): Promise<void>;
+  openTour(): Promise<void>;
+}
+
+/**
+ *  Shown instead of the form while this browser has no workspace yet (#172) - the state the new
+ *  tab page answers with its first-run screen. Somebody who has just installed the extension
+ *  reaches for its toolbar icon expecting the application, and was handed a form asking them to
+ *  name a workspace and a group for a page they had not decided to keep. This says where the
+ *  application is and leads there first; saving stays one click away, offered only when there
+ *  is something to save.
+ *
+ *  Resolves `'save'` when the user goes on to the form, `'done'` once a page was opened.
+ */
+export function renderWelcome(host: HTMLElement, canSave: boolean, actions: WelcomeActions): Promise<WelcomeChoice> {
+  return new Promise<WelcomeChoice>(resolve => {
+
+    const panel = document.createElement('section');
+    panel.classList.add('bookmark-panel');
+
+    const heading = document.createElement('h2');
+    heading.classList.add('input-dialog__title');
+    heading.textContent = t('bookmark.welcome.title');
+
+    const text = document.createElement('p');
+    text.classList.add('bookmark-panel__message');
+    text.textContent = t('bookmark.welcome.message');
+
+    const buttons = document.createElement('div');
+    buttons.classList.add('input-dialog__actions', 'bookmark-panel__actions');
+
+    const button = (label: string, onClick: () => void): HTMLButtonElement => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.textContent = label;
+      element.addEventListener('click', onClick);
+      buttons.appendChild(element);
+      return element;
+    };
+    const opening = (open: () => Promise<void>) => () => { void open().finally(() => resolve('done')); };
+
+    if (canSave) {
+      button(t('bookmark.welcome.saveAnyway'), () => resolve('save'));
+    }
+    button(t('bookmark.welcome.tour'), opening(actions.openTour));
+    const openButton = button(t('bookmark.welcome.open'), opening(actions.openNewTab));
+    openButton.classList.add('add');
+
+    panel.appendChild(heading);
+    panel.appendChild(text);
+    panel.appendChild(buttons);
+
+    host.replaceChildren(panel);
+    openButton.focus();
+  });
+}

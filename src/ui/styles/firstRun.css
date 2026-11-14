@@ -21,3 +21,11 @@ first-run > h2 {
 .first-run__section > h3 {
     margin-bottom: 1.5em;
 }
+
+.first-run__section button {
+    font-size: 1.5em;
+}
+
+.first-run__section {
+    margin-left: 2em;
+}

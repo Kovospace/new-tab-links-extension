@@ -44,7 +44,7 @@ Keep it current: a new module or a new concern adds a row here.
 | Service worker entry and its modules | `backend/worker/background.ts`, `backend/worker/module/*` |
 | Tab groups, catching links into them | `backend/worker/module/tabGroups.ts`, `backend/worker/module/linkTabGroupCatcher.ts` |
 | The bookmarking shortcut - reading it, opening Chrome's shortcuts page | `utils/extensionShortcuts.ts` |
-| Bookmark popup | `bookmark.ts`, `bookmark.html`, `backend/worker/module/bookmarkCurrentPage.ts` (right-click submenus, saving from the worker), `backend/worker/module/bookmarkMenuTree.ts` (what the submenu offers), `utils/bookmarkRequest.ts` |
+| Bookmark popup (its welcome before first run, #172; the tab opened on install: `backend/worker/module/firstRunTab.ts`) | `bookmark.ts`, `bookmark.html`, `ui/partials/bookmarkForm.ts` (`renderWelcome`), `backend/worker/module/bookmarkCurrentPage.ts` (right-click submenus, saving from the worker), `backend/worker/module/bookmarkMenuTree.ts` (what the submenu offers), `utils/bookmarkRequest.ts` |
 | Favicons — lookup, caching, retrying a miss | `backend/worker/module/favIconWorker.ts`, `backend/repository/FavIconRepository.ts` |
 | Favicons — reading a page's `<link rel="icon">` without a DOM | `backend/worker/module/faviconCandidates.ts` |
 | Favicons — each icon's backdrop disc coloured from the icon (dominant hue, contrasting lightness) | `utils/faviconBackdrop.ts`, used by `linkComponent.ts`, `sidePanelRows.ts`, `bookmarkForm.ts`; fallback `--color-favicon-backdrop` |

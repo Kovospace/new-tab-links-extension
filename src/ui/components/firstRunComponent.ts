@@ -6,7 +6,8 @@ import {
     ACT_FIRST_RUN_LOG_IN,
     ACT_FIRST_WORKSPACE,
     ACT_IMPORT_LINKS,
-    ACT_LOAD_DEFAUTLS
+    ACT_LOAD_DEFAUTLS,
+    CLASS_ACTION_ADD
 } from "../../constants"
 import {InputDialog} from "../partials/inputDialog";
 import { signInDeviceFields, wantsSync } from "../partials/signInFields";
@@ -86,7 +87,7 @@ export class FirstRunComponent extends HTMLElement {
             heading("h1", t("firstRun.heading")),
             heading("h2", t("firstRun.subheading")),
             section(t("firstRun.createWorkspace"),
-                button(ACT_FIRST_WORKSPACE, t("firstRun.createWorkspaceButton"))),
+                button(ACT_FIRST_WORKSPACE, t("firstRun.createWorkspaceButton"), CLASS_ACTION_ADD)),
             section(t("firstRun.importPrompt"),
                 button(ACT_IMPORT_LINKS, t("firstRun.importButton"))),
             section(t("firstRun.examplesPrompt"),
@@ -176,9 +177,10 @@ function heading(tag: "h1" | "h2" | "h3", text: string): HTMLElement {
 }
 
 /** A button with the identifier its action is found by, and a plain-text label. */
-function button(id: string, label: string): HTMLButtonElement {
+function button(id: string, label: string, ...classNames: string[]): HTMLButtonElement {
     const element = document.createElement("button");
     element.id = id;
+    element.classList.add(...classNames);
     element.textContent = label;
     return element;
 }
