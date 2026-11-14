@@ -344,6 +344,25 @@ describe("DevicePreferencesRepository, the side panel's card", () => {
         expect(reopened.getSidePanelCard()).toBe("open");
     });
 
+    it("keeps the panel open on a browser that never said otherwise (#178)", async () => {
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { sidePanelCard: "history" });
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+
+        expect(preferences.getKeepSidePanelOpen()).toBe(true);
+    });
+
+    it("leaves the panel to the pointer once it has been unticked", async () => {
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        expect(preferences.getKeepSidePanelOpen()).toBe(true);
+        await preferences.setKeepSidePanelOpen(false);
+
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getKeepSidePanelOpen()).toBe(false);
+    });
+
     it("reads a card this version does not know as the closed tabs", async () => {
         seedFakeStorage(DEVICE_PREFERENCES_KEY, { sidePanelCard: "bookmarks" });
         const preferences = new DevicePreferencesRepository();

@@ -71,10 +71,11 @@ export interface DevicePreferences {
     sidePanelCard: SidePanelCard;
 
     /**
-     *  Whether the side panel stays open at full width whatever the pointer does. Off by
-     *  default, which is the rail that widens under the pointer. Per device because it is a
-     *  question of screen width: a wide desktop has room for the panel beside the columns,
-     *  and a laptop does not.
+     *  Whether the side panel stays open at full width whatever the pointer does. On by
+     *  default (#178): the history and the tabs are in sight without reaching for them, and
+     *  off is the rail that widens under the pointer. Per device because it is a question of
+     *  screen width: a wide desktop has room for the panel beside the columns, and a laptop
+     *  does not.
      */
     keepSidePanelOpen: boolean;
 
@@ -198,7 +199,7 @@ const DEFAULTS: DevicePreferences = {
     searchEngine: DEFAULT_SEARCH_ENGINE,
     closedTabsOpenDelay: DEFAULT_CLOSED_TABS_OPEN_DELAY,
     sidePanelCard: DEFAULT_SIDE_PANEL_CARD,
-    keepSidePanelOpen: false,
+    keepSidePanelOpen: true,
     closeSidePanelOnClick: false,
     syncEnabled: true,
     syncClosedTabs: true,
@@ -614,7 +615,8 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
         closedTabsOpenDelay: normalizeClosedTabsOpenDelay(
             stored?.closedTabsOpenDelay ?? DEFAULT_CLOSED_TABS_OPEN_DELAY),
         sidePanelCard: normalizeSidePanelCard(stored?.sidePanelCard),
-        keepSidePanelOpen: stored?.keepSidePanelOpen === true,
+        // Anything but an explicit false keeps it open: unticking it is what writes the false.
+        keepSidePanelOpen: stored?.keepSidePanelOpen !== false,
         closeSidePanelOnClick: stored?.closeSidePanelOnClick === true,
         // Anything but an explicit false is on: a browser that never answered synchronised.
         syncEnabled: stored?.syncEnabled !== false,

@@ -20,6 +20,15 @@ const opener = { here: vi.fn(), newTab: vi.fn() } satisfies PageOpener;
 beforeEach(() => { opener.here.mockReset(); opener.newTab.mockReset(); });
 
 /**
+ *  The panel handed to the pointer, which is what these tests are about. Kept open is the
+ *  default now (#178), and a panel nothing can fold would answer none of them.
+ */
+const notKeptOpen: KeepOpenPreference = {
+    set: async () => undefined,
+    follow: listener => { listener(false); return () => undefined; }
+};
+
+/**
  *  jsdom lays nothing out, so the panel is told where it is: a column down the right, starting
  *  below the header and ending above the footer. Those edges are exactly what the rule reads.
  */
@@ -69,7 +78,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
         }));
         await recordClosedTab(profiles.getActiveProfileId(), { url: "https://example.com/x", title: "Page", closedAt: Date.now() });
         panel = new ClosedTabsPanel(new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener),
-            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener));
+            undefined, undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener),
+            notKeptOpen);
         await panel.render(document.body);
         await flushStorageNotifications();
         vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -125,7 +135,8 @@ describe("ClosedTabsPanel, opening and closing", () => {
         document.body.innerHTML = '<main></main>';
         panel = new ClosedTabsPanel(
             new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener), () => delay,
-            undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener));
+            undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener),
+            notKeptOpen);
         void panel.render(document.body);
         edgeAt(960);
 
@@ -151,7 +162,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
             panel = new ClosedTabsPanel(
                 new ClosedTabsViewModel(new ClosedTabsRepository(), appState, profiles, opener), undefined,
                 undefined, undefined, new HistoryViewModel(new VisitsRepository(), appState, profiles, undefined, opener),
-                undefined, () => closeOnClick);
+                notKeptOpen, () => closeOnClick);
             await panel.render(document.body);
         });
 
