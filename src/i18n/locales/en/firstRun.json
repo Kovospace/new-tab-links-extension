@@ -1,6 +1,6 @@
 {
-  "heading": "No workspaces, groups or links here yet.",
-  "subheading": "If you see this page, it is either the first run or everything was wiped out.",
+  "heading": "Welcome !",
+  "subheading": "Let's choose how to begin:",
   "createWorkspace": "Start by creating a workspace",
   "createWorkspaceButton": "+ Add first workspace",
   "importPrompt": "... or load links from backup / exported file",

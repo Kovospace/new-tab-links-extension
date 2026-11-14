@@ -38,7 +38,21 @@ link-group-head {
     display: flex;
     direction: row;
     align-items: flex-start;
-    margin-bottom: 0.25em;
+    margin-bottom: 0.375em;
+    position: relative;
+    padding-bottom: 0.25em;
+}
+
+link-group-head::after {
+    position: absolute;
+    top: 100%;
+    left: 10%;
+    display: block;
+    content: "";
+    height: 0.125em;
+    background-color: var(--color-document-text);
+    width: 80%;
+    opacity: 0.5;
 }
 
 /*
