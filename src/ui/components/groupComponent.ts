@@ -10,7 +10,9 @@ import {
     ACT_EDIT_GROUP,
     CLASS_GROUP_HEAD_TITLE,
     CLASS_GROUP_HEAD_ACTIONS,
-    CLASS_ACTION_ADD
+    CLASS_GROUP_EMPTY_HINT,
+    CLASS_ACTION_ADD,
+    CLASS_ACTION_DANGER
 } from "../../constants"
 
 // utils
@@ -222,6 +224,10 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         //TODO pre hybanie linkami vymysliet destruktivnu akciu na prerenderovanie vsetkeho v
         // ramci grupy, resp. vymysliet ako predat flag na trigger destruktivnej akcie
         parentElem.replaceChildren();
+        if (groupDto.items.length === 0) {
+            parentElem.appendChild(this.renderEmptyHint());
+            return;
+        }
         groupDto.items.forEach(groupItem => {
             switch (groupItem.type) {
                 case "link":
@@ -235,6 +241,34 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                     //return document.createElement("span");
             }
         });
+    }
+
+    /**
+     *  What an empty group says instead of nothing (#187): that it is empty, and the two
+     *  things worth doing about it - adding a link, or deleting the group.
+     *
+     *  Deleting here asks nothing, unlike the menu's "Delete group": that confirmation warns
+     *  about the links and subgroups going with it, and an empty group has none to lose.
+     *  The hint is drawn only while the group is empty, so it never deletes anything else.
+     */
+    private renderEmptyHint(): HTMLElement {
+        const hintElem: HTMLElement = renderContainer([CLASS_GROUP_EMPTY_HINT]);
+        hintElem.appendChild(renderTextContainer("p", t("group.emptyHint.text")));
+        hintElem.appendChild(renderButton(
+            `${ICON.ADD} ${t("group.emptyHint.addLink")}`,
+            undefined,
+            [CLASS_ACTION_ADD],
+            "",
+            () => this.actionAddLink()
+        ));
+        hintElem.appendChild(renderButton(
+            `${ICON.DELETE} ${t("group.emptyHint.delete")}`,
+            undefined,
+            [CLASS_ACTION_DANGER],
+            "",
+            () => this.VIEW_MODEL.deleteGroup(this.id)
+        ));
+        return hintElem;
     }
 
     private actionAddLink() {

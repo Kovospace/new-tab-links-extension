@@ -13,6 +13,11 @@
     "title": "Add link"
   },
   "addLinkTooltip": "Add link to group",
+  "emptyHint": {
+    "text": "This group is empty.",
+    "addLink": "Add a link",
+    "delete": "Delete group"
+  },
   "menu": {
     "tooltip": "Edit the Group",
     "addLink": "Add link",
