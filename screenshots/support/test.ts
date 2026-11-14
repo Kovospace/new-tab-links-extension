@@ -1,4 +1,4 @@
-import { test as base, type BrowserContext } from "@playwright/test";
+import { test as base, type BrowserContext, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -44,7 +44,11 @@ interface ShotFixtures {
      *  folder per subject, as the tips are. `clip` keeps only that area, in CSS pixels - for a
      *  close-up.
      */
-    shoot: (name: string, options?: { clip?: { x: number; y: number; width: number; height: number } }) => Promise<void>;
+    shoot: (name: string, options?: {
+        clip?: { x: number; y: number; width: number; height: number };
+        /** Another page of the extension to take instead - the bookmarking popup. */
+        page?: Page;
+    }) => Promise<void>;
     /**
      *  Saves one picture of the page in both themes, split by a vertical seam - light on the
      *  left, dark on the right - leaving the page dark. The same naming as `shoot`.
@@ -88,8 +92,9 @@ export const test = base.extend<ShotFixtures & ShotOptions>({
 
     shoot: async ({ newTab, language }, use, testInfo) => {
         await use(async (name, options) => {
-            await settle(newTab.page);
-            await newTab.page.screenshot({
+            const page = options?.page ?? newTab.page;
+            await settle(page);
+            await page.screenshot({
                 path: await pictureFile(testInfo.file, language, name),
                 clip: options?.clip,
                 animations: "disabled",

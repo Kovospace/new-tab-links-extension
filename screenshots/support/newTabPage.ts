@@ -517,6 +517,44 @@ export class NewTabPage {
         return `options-menu.visible options-menu-item:has-text("${this.t(key)}")`;
     }
 
+    /**
+     *  Opens the bookmarking popup (`bookmark.html`) in a tab of its own, sized like the bubble
+     *  the browser draws, with a page to bookmark waiting for it - what the worker leaves in
+     *  session storage when the right-click entry or the shortcut opens it.
+     *
+     *  @param request the page to bookmark
+     *  @returns the popup's page, for `shoot(name, { page })`
+     */
+    async openBookmarkPopup(request: { url: string; title: string }): Promise<Page> {
+        // Stamped with the real clock: the popup's page is not held still, and refuses a
+        // request older than fifteen seconds.
+        await this.page.evaluate(pending => chrome.storage.session.set({ pending_bookmark: pending }),
+            { ...request, at: Date.now() });
+        const popup = await this.page.context().newPage();
+        await popup.setViewportSize({ width: 520, height: 420 });
+        await popup.goto(this.page.url().replace(/[^/]*$/, "bookmark.html"));
+        await popup.locator(".bookmark-panel__form").waitFor();
+        return popup;
+    }
+
+    /**
+     *  Starts dragging a link and holds it over another, as a hand does before letting go:
+     *  the page draws where it would land and turns the tips bar into the trash.
+     *
+     *  @param title the link picked up
+     *  @param overTitle the link it is held over - in its lower half, so it would go after it
+     */
+    async holdLinkOver(title: string, overTitle: string): Promise<void> {
+        const from = (await this.page.locator("link-container").filter({ hasText: title }).first().boundingBox())!;
+        const to = (await this.page.locator("link-container").filter({ hasText: overTitle }).first().boundingBox())!;
+        await this.page.mouse.move(from.x + from.width * 0.4, from.y + from.height / 2);
+        await this.page.mouse.down();
+        await this.page.mouse.move(from.x + from.width * 0.4 + 10, from.y + from.height / 2, { steps: 3 });
+        await this.page.mouse.move(to.x + to.width * 0.4, to.y + to.height * 0.75, { steps: 12 });
+        await this.page.waitForTimeout(400);
+        await this.movePointerTo(to.x + to.width * 0.4, to.y + to.height * 0.75);
+    }
+
     /** Opens the search engine dropdown, the button at the search bar's left end. */
     async openSearchEngines(): Promise<void> {
         await this.page.locator(".search-bar__engine-button").click();

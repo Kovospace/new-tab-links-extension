@@ -378,3 +378,97 @@ test.describe("subgroup-links-into-tab-group", () => {
         });
     }
 });
+
+/** The page being bookmarked in the tips about saving - in the picture's language. */
+const PAGE_TO_SAVE: Record<string, { url: string; title: string }> = {
+    en: { url: "https://en.wikipedia.org/wiki/Web_browser", title: "Web browser - Wikipedia" },
+    sk: { url: "https://sk.wikipedia.org/wiki/Webový_prehliadač", title: "Webový prehliadač – Wikipédia" },
+};
+
+/** The new group a page is saved into, in the tips about saving. */
+const NEW_GROUP: Record<string, string> = { en: "Reading", sk: "Na čítanie" };
+
+test.describe("bookmark-into-new-group", () => {
+    const shot = (name: string) => `bookmark-into-new-group/${name}_3x`;
+    test.use({ preferences: { sidePanelCard: "closed" } });
+
+    // The "+" of a closed tab opens the same form as the toolbar button.
+    test("side panel, a closed tab's + ringed", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.openSidePanel();
+        await newTab.hoverClosedTab(0);
+        const plus = ".closed-tabs__list--closed .closed-tabs__row >> nth=0 >> .closed-tabs__row-action.add";
+        await newTab.outline(plus, 4, 4, true);
+        await shoot(shot("panel-ulozit"));
+    });
+
+    // The bookmarking popup - the toolbar button, the shortcut, "Choose a place…".
+    test("the bookmarking popup, a new group being named", async ({ newTab, shoot, t, language }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        const popup = await newTab.openBookmarkPopup(PAGE_TO_SAVE[language] ?? PAGE_TO_SAVE.en);
+        await popup.getByLabel(t("bookmark.fields.group"), { exact: true })
+            .selectOption({ label: t("bookmark.newGroup.option") });
+        await popup.getByLabel(t("bookmark.fields.newGroup"), { exact: true }).fill(NEW_GROUP[language] ?? NEW_GROUP.en);
+        await popup.mouse.move(5, 5);
+        await popup.waitForTimeout(300);
+        await shoot(shot("nova-skupina"), { page: popup, clip: (await popup.locator(".bookmark-panel").boundingBox())! });
+    });
+});
+
+test.describe("discover-premium-features", () => {
+    // Signed in, not premium: the application menu offers the upgrade.
+    test("application menu, the upgrade framed", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.page.evaluate(() => chrome.storage.local.set({
+            account_standing: { userId: "screenshots", premium: false, checkedAt: Date.now() } }));
+        await newTab.reload();
+        await newTab.page.locator(".ads-bar__frame:not([hidden])").waitFor({ timeout: 30_000 });
+        await newTab.page.waitForTimeout(1500);
+        await newTab.page.click(".action-app-menu");
+        await newTab.page.locator("options-menu.visible").waitFor();
+        await newTab.page.waitForTimeout(300);
+        await newTab.outline(newTab.menuItem("sync.menu.upgradeToPremium"), 3, 4);
+        await shoot("discover-premium-features/premium-menu_3x");
+    });
+});
+
+test.describe("saving-from-webpage", () => {
+    // The popup the toolbar button and the shortcut open; the right-click menu (1) is the
+    // browser's own and cannot be drawn here.
+    test("the bookmarking popup", async ({ newTab, shoot, language }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        const popup = await newTab.openBookmarkPopup(PAGE_TO_SAVE[language] ?? PAGE_TO_SAVE.en);
+        const panel = (await popup.locator(".bookmark-panel").boundingBox())!;
+        await shoot("saving-from-webpage/2_3x", { page: popup, clip: panel });
+    });
+});
+
+test.describe("setup-privacy", () => {
+    // This browser synchronising, so the logs' own synchronisation switches are live.
+    test("settings, sync & privacy", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.setPreferences({ syncEnabled: true });
+        await newTab.reload();
+        await newTab.openSettings("privacy");
+        await shoot("setup-privacy/nastavenia-sukromie_3x",
+            { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
+    });
+});
+
+test.describe("use-drag-and-drop", () => {
+    const shot = (name: string) => `use-drag-and-drop/${name}_3x`;
+
+    test("a link held over another group", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.holdLinkOver("Spotify", "LinkedIn");
+        await shoot(shot("presun-odkazu"));
+        await newTab.page.mouse.up();
+    });
+
+    test("settings, enable drag & drop framed", async ({ newTab, shoot }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.openSettings("uiAndBehavior");
+        await newTab.outline(newTab.settingsRow("enableDragAndDrop"), 4, 4);
+        await shoot(shot("nastavenia-presun"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
+    });
+});
