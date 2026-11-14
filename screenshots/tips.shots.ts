@@ -174,6 +174,17 @@ test.describe("use-searchbar", () => {
         await shoot(shot("searchbar-detail"), { clip: await newTab.areaAround([SEARCH_BAR], 16) });
     });
 
+    // A group's name typed: its links come first, by where they are kept ("Examples › Music"),
+    // then the history, then the web. The group is "Hudba" in Slovak, so the query is too.
+    test("suggestions, a group's links first", async ({ newTab, shoot, language }) => {
+        await newTab.search(language === "sk" ? "hudba" : "music");
+        await newTab.pointerAway();
+        await newTab.page.waitForTimeout(300);
+        await shoot(shot("searchbar-suggestions"));
+        await shoot(shot("searchbar-suggestions-detail"),
+            { clip: await newTab.areaAround([SEARCH_BAR, "ul.search-bar__suggestions"], 16) });
+    });
+
     // Google chosen, so the bar says so and the list shows which is in use.
     test.describe("google chosen", () => {
         test.use({ preferences: { searchEngine: "google" } });
