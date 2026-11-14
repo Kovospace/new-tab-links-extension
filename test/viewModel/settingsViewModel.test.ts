@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { ProfileRepository } from "../../src/backend/repository/ProfileRepository";
 import { DEFAULT_PROFILE_SETTINGS } from "../../src/backend/entity/ProfileSettings";
-import { SettingsViewModel } from "../../src/viewModel/settingsViewModel";
+import { PRIVACY_CATEGORY, SettingsViewModel } from "../../src/viewModel/settingsViewModel";
 import { readClosedTabs, recordClosedTab } from "../../src/backend/repository/ClosedTabsRepository";
 import { readVisits, recordVisit } from "../../src/backend/repository/VisitsRepository";
 import {
@@ -44,9 +44,9 @@ describe("SettingsViewModel", () => {
         return setting;
     };
 
-    it("puts the settings in categories, the first of them expanded", () => {
+    it("puts the settings in categories, every one of them folded", () => {
         expect(firstCategory().title).toBe("UI and behavior");
-        expect(firstCategory().collapsed).toBe(false);
+        expect(shown().categories.every(category => category.collapsed)).toBe(true);
         expect(firstCategory().settings.map(one => one.key)).toContain("enableDragAndDrop");
     });
 
@@ -127,12 +127,19 @@ describe("SettingsViewModel", () => {
         expect(profiles.getSettings().recordBrowsingHistory).toBe(false);
     });
 
-    it("folds a category away and back", () => {
-        settings.toggleCategory(firstCategory().key);
-        expect(firstCategory().collapsed).toBe(true);
-
+    it("unfolds a category and folds it away again", () => {
         settings.toggleCategory(firstCategory().key);
         expect(firstCategory().collapsed).toBe(false);
+
+        settings.toggleCategory(firstCategory().key);
+        expect(firstCategory().collapsed).toBe(true);
+    });
+
+    it("unfolds only the category it was opened for", () => {
+        settings.expandOnly(PRIVACY_CATEGORY);
+
+        expect(shown().categories.filter(category => !category.collapsed).map(category => category.key))
+            .toEqual([PRIVACY_CATEGORY]);
     });
 
     it("does not touch the profile when a category is folded away", () => {
@@ -149,8 +156,6 @@ describe("SettingsViewModel", () => {
     });
 
     it("keeps a folded category folded while the settings on it change", async () => {
-        settings.toggleCategory(firstCategory().key);
-
         await settings.toggle("enableDragAndDrop", true);
 
         expect(firstCategory().collapsed).toBe(true);

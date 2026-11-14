@@ -26,7 +26,7 @@ export class NewTabPage {
      *  folded, and that one scrolled to the top of the dialog.
      *
      *  @param category a key under `settings.categories`, e.g. "background"; the dialog as it
-     *                  opens - the first category unfolded - when none is given
+     *                  opens - every category folded - when none is given
      */
     async openSettings(category?: string): Promise<void> {
         await this.page.click(".action-app-menu");

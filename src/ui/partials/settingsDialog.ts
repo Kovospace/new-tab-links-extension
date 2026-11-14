@@ -92,7 +92,7 @@ export class SettingsDialog {
   /**
    * Builds the dialog, loads the settings into it, and shows it.
    *
-   * @param category the one category to open unfolded; the first one when not given
+   * @param category the one category to open unfolded; every one stays folded when not given
    */
   public show(category?: string): void {
     this.dialogEl = this.build();
