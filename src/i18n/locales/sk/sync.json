@@ -2,7 +2,6 @@
   "menu": {
     "logIn": "Prihlásiť sa",
     "register": "Registrovať sa",
-    "enterSyncCode": "Zadať kód na synchronizáciu",
     "upgradeToPremium": "Prejsť na prémiovú verziu",
     "logOut": "Odhlásiť sa",
     "settings": "Nastavenia"

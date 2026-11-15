@@ -8,14 +8,15 @@ import { SyncAccountViewModel } from '../../viewModel/syncAccountViewModel';
 type SignInMethod = 'password' | 'syncCode';
 
 /**
- * "Log in / set up sync" on the empty workspace's widget and on the page with no workspace
- * (#182), in two steps so nobody has to work out which fields are theirs.
+ * Every way into an account (#182) - the application menu's "Log in", the signed-out and limit
+ * notices, the empty workspace's widget and the page with no workspace - in two steps, so
+ * nobody has to work out which fields are theirs.
  *
  * 1. The method: "I have a username and password" or "I have a sync code".
  * 2. That method's form only, with the device fields every sign-in dialog has.
  *
  * Cancelling the form goes back to step 1, because a wrong guess at the method is the likely
- * reason for it. Cancel on step 1 ends it. The menu keeps its two dialogs as they were.
+ * reason for it. Cancel on step 1 ends it.
  *
  * @param account  the account view model that signs in
  * @param signedIn what to do once a sign-in has worked and its dialog has closed

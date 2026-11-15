@@ -32,7 +32,6 @@ import { handleReactiveRendering } from "../utils/rendering"
 import { toggleActiveClassOnSpecificAttribute } from "../utils/elementsAttributesManipulation";
 import {InputDialog} from "../partials/inputDialog";
 import {MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH} from "../../backend/sync/SyncContracts";
-import { signInDeviceFields, wantsSync } from "../partials/signInFields";
 import {ProfileManagerDialog} from "../partials/profileManagerDialog";
 import {SettingsDialog} from "../partials/settingsDialog";
 import {TipsBar} from "../partials/tipsBar";
@@ -83,35 +82,14 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     /** The header's theme switcher; device preferences, so not tied to AppState either. */
     private themeMenuViewModel: ThemeMenuViewModel = new ThemeMenuViewModel();
 
-    // The last two fields - synchronise, device name - are `signInDeviceFields`, shared by
-    // every sign-in dialog.
-    private logInDialog: InputDialog = new InputDialog(
-        t("sync.logInDialog.title"),
-        {
-            [t("sync.logInDialog.usernameOrEmail")]:
-                { type: "string", required: true, key: "usernameOrEmail" },
-            [t("sync.logInDialog.password")]:
-                { type: "password", required: true, key: "password" },
-            ...signInDeviceFields()
-        },
-        () => void this.accountViewModel.finishSignIn(),
-        ({ usernameOrEmail, password, deviceName, synchronise }) =>
-            this.accountViewModel.logIn(
-                usernameOrEmail, password, deviceName, wantsSync(synchronise)));
-
-    // the field is labelled the way the website labels it ("Your connect code"), so the user
-    // recognises what to paste, while the menu entry keeps the wording of the sync feature
-    private syncCodeDialog: InputDialog = new InputDialog(
-        t("sync.syncCodeDialog.title"),
-        {
-            [t("sync.syncCodeDialog.connectCode")]:
-                { type: "string", required: true, key: "connectCode" },
-            ...signInDeviceFields()
-        },
-        () => void this.accountViewModel.finishSignIn(),
-        ({ connectCode, deviceName, synchronise }) =>
-            this.accountViewModel.connectWithCode(
-                connectCode, deviceName, wantsSync(synchronise)));
+    /**
+     *  Every way into an account on this page - the application menu, the signed-out notice, a
+     *  limit's notice, the empty workspace's widget - asks the method first ("I have a
+     *  username and password" / "I have a sync code"), then shows that form only (#182).
+     */
+    private signIn(): void {
+        void signInStepByStep(this.accountViewModel, () => {});
+    }
 
     private addWorkspaceDialog: InputDialog = new InputDialog(
         t("workspace.addDialog.title"),
@@ -157,7 +135,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             new WorkspaceWelcomeViewModel(this.REPOSITORY, workspaceWelcomeRepository),
             {
                 addGroup: workspaceId => this.actionAddGroup(workspaceId),
-                signIn: () => void signInStepByStep(this.accountViewModel, () => {}),
+                signIn: () => this.signIn(),
                 isSignedIn: () => sessionRepository.isSignedIn()
             });
         return this.welcome;
@@ -305,7 +283,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         let logInReplayed = false;
         logInRequests$.subscribe(() => {
             if (logInReplayed) {
-                this.logInDialog.show();
+                this.signIn();
             }
             logInReplayed = true;
         });
@@ -373,7 +351,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             "",
             [],
             t("sync.menu.logIn"),
-            () => this.logInDialog.show()
+            () => this.signIn()
         ));
         return noticeElem;
     }
@@ -421,21 +399,18 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
     }
 
     /**
-     *  Application menu while no account is connected: the three ways of getting one.
+     *  Application menu while no account is connected: log in (with a password or a sync code) or register.
      */
     private buildSignedOutAccountMenuItems(): OptionsMenuItem[] {
         return [
             {
+                // A sync code is the second answer of the dialog this opens.
                 actionTitle: t("sync.menu.logIn"),
-                onClick: () => this.logInDialog.show()
+                onClick: () => this.signIn()
             },
             {
                 actionTitle: t("sync.menu.register"),
                 onClick: () => this.accountViewModel.openRegistrationPage()
-            },
-            {
-                actionTitle: t("sync.menu.enterSyncCode"),
-                onClick: () => this.syncCodeDialog.show()
             },
             ...this.settingsMenuItems()
         ];

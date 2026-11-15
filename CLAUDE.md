@@ -352,7 +352,9 @@ There is no first-run screen. A profile with no workspace is given one, the **st
 - **"Log in / set up sync" takes two steps** (`signInStepByStep`): first the method, "I have a
   username and password" or "I have a sync code", then that method's form only, with the usual
   device fields. Cancelling the form goes back to the choice, since a wrong guess at the method
-  is the likely reason. The menu keeps its separate log-in and sync-code entries.
+  is the likely reason. It is the only way in: the application menu's "Log in", the
+  "Signed out of {username}" notice and a limit's notice open it too, and the menu has no
+  "Enter sync code" of its own any more.
 - **The examples are no longer offered anywhere.** Their code stays: existing example data
   is still removed at sign-in. The screenshot staging builds them with
   `buildExampleProfileData` and stores them (`stage.ts`).
