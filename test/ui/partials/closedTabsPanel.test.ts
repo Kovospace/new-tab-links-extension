@@ -29,24 +29,31 @@ const notKeptOpen: KeepOpenPreference = {
 };
 
 /**
- *  jsdom lays nothing out, so the panel is told where it is: a column down the right, starting
+ *  jsdom lays nothing out, so the panel is told where it is: a column down the left, starting
  *  below the header and ending above the footer. Those edges are exactly what the rule reads.
+ *
+ *  The numbers in these tests count from the far side of a 1000-pixel page - 1000 is the
+ *  window's left-hand edge, where the rail is, and smaller numbers further into the page. They
+ *  were written while the panel stood on the right, and reading them as a distance from the far
+ *  side kept every one of them meaning what it meant; `mirrored` is where that happens.
  */
+const PAGE_WIDTH = 1000;
+const mirrored = (x: number) => PAGE_WIDTH - x;
 const HEADER_BOTTOM = 60;
 const FOOTER_TOP = 700;
 
 function edgeAt(x: number) {
     const panel = document.querySelector('.closed-tabs') as HTMLElement;
     panel.getBoundingClientRect = () => ({
-        left: x, right: 1000, top: HEADER_BOTTOM, bottom: FOOTER_TOP,
-        width: 1000 - x, height: FOOTER_TOP - HEADER_BOTTOM, x, y: HEADER_BOTTOM,
+        left: 0, right: mirrored(x), top: HEADER_BOTTOM, bottom: FOOTER_TOP,
+        width: mirrored(x), height: FOOTER_TOP - HEADER_BOTTOM, x: 0, y: HEADER_BOTTOM,
         toJSON: () => ({})
     }) as DOMRect;
 }
 
 /** A pointer somewhere on the page; beside the panel unless a test says otherwise. */
 const pass = (x: number, y: number = 300) =>
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: mirrored(x), clientY: y, bubbles: true }));
 /** A pointer that comes to rest there - long enough for the panel to act on it. */
 const move = (x: number, y: number = 300) => {
     pass(x, y);
@@ -101,7 +108,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
         expect(aside().classList.contains("closed-tabs--off")).toBe(false);
     });
 
-    it("opens over the rail, stays open to the right, closes to the left", () => {
+    it("opens over the rail, stays open further out, closes further in", () => {
         edgeAt(960);                 // collapsed rail starts at 960
         expect(isOpen()).toBe(false);
 
@@ -227,7 +234,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
         pass(400);
 
         document.dispatchEvent(new MouseEvent('mouseout',
-            { clientX: window.innerWidth + 3, clientY: 300, relatedTarget: null, bubbles: true }));
+            { clientX: -3, clientY: 300, relatedTarget: null, bubbles: true }));
         vi.advanceTimersByTime(OPEN_DELAY_MS);
 
         expect(isOpen()).toBe(true);
@@ -237,7 +244,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
         edgeAt(960);
 
         document.dispatchEvent(new MouseEvent('mouseout',
-            { clientX: 980, clientY: -5, relatedTarget: null, bubbles: true }));
+            { clientX: mirrored(980), clientY: -5, relatedTarget: null, bubbles: true }));
         vi.advanceTimersByTime(OPEN_DELAY_MS);
 
         expect(isOpen()).toBe(false);
@@ -247,7 +254,7 @@ describe("ClosedTabsPanel, opening and closing", () => {
         edgeAt(960);
 
         document.querySelector('main')!.dispatchEvent(new MouseEvent('mouseout',
-            { clientX: 980, clientY: 300, relatedTarget: document.body, bubbles: true }));
+            { clientX: mirrored(980), clientY: 300, relatedTarget: document.body, bubbles: true }));
         vi.advanceTimersByTime(OPEN_DELAY_MS);
 
         expect(isOpen()).toBe(false);

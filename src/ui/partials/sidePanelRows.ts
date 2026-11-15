@@ -115,8 +115,9 @@ export function buildLogRow(entry: LogEntry, wording: LogRowWording, actions: Lo
   }
   buttons.appendChild(rowButton(ICON.ADD, 'add', t(wording.saveAsLink), () => void saveAsLink(entry)));
   buttons.appendChild(rowButton(ICON.DELETE, 'danger', t(wording.forgetOne), () => actions.forget()));
-  // Last, so it is the rightmost thing in the row: the panel widens leftwards from the rail,
-  // so the pointer that opened it is left standing at the right-hand end of a row - on this.
+  // Last, so it is the rightmost thing in the row. That was chosen while the panel stood on
+  // the right and widened leftwards, leaving the pointer at a row's right-hand end - on this.
+  // On the left it widens rightwards and the pointer is left on the favicon instead.
   buttons.appendChild(rowButton(ICON.OPEN_GROUPED, 'open-in-new-tab', t(wording.openInNewTab),
     () => actions.open('newTab')));
 

@@ -331,7 +331,7 @@ it there is the tab behind that window. Do not go looking for it in this codebas
 
 ### Recently closed tabs (`repository/ClosedTabsRepository.ts`, `worker/module/closedTabsRecorder.ts`)
 
-A rail down the right-hand edge of the new tab page, always present, showing the favicons of
+A rail down the left-hand edge of the new tab page, always present, showing the favicons of
 what was closed - and widening into the full list when the pointer reaches it. No click is
 needed to look, which is the point: the question it answers is asked in passing.
 
@@ -352,20 +352,20 @@ window only when there is more than one. A click switches to the tab, the "x" cl
 
 **Opening is decided from the pointer's position, not by `:hover`.** Hover gives up the moment
 the pointer crosses onto the scrollbar or the gap beside it, which is exactly where somebody
-reaching for the list is about to be. The rule is: at or right of the panel's left edge, *and*
+reaching for the list is about to be. The rule is: at or left of the panel's right edge, *and*
 between its top and bottom. It cannot flap, because the edge moves with the panel - closing
-puts the edge to the right of the pointer, which is not a reason to open again. The vertical
+puts the edge to the left of the pointer, which is not a reason to open again. The vertical
 half is not decoration: the rail is a grid column starting below the header, so "far enough
-right" alone is also true of the application menu and the settings button in the corner, and
-reaching for those opened the panel underneath them.
+left" alone is also true of the header's buttons in that corner. (The panel stood on the right
+until it was moved; the numbers in its pointer tests still count from the far side -
+`mirrored` in `closedTabsPanel.test.ts`.)
 
 **Opening waits; closing does not.** The pointer has to rest in that zone before the panel
-widens, because the rail sits under the settings button and a pointer on its way there crossed
-it. How long is a device preference (`closedTabsOpenDelay`, 0-1500 ms, 300 by default, a slider
+widens, because a pointer on its way to the header's corner crosses the rail. How long is a device preference (`closedTabsOpenDelay`, 0-1500 ms, 300 by default, a slider
 in "UI and behavior"), read each time the pointer arrives so a change needs no reload.
 Leaving the page counts as a position too (a `mouseout` with no `relatedTarget`, clamped into
 the viewport): in a maximised window the screen's last pixels are the window frame, and a
-pointer flung at that edge sent its last mousemove from left of the rail and never reached it. The wait is started once and not restarted by movement within
+pointer flung at that edge sent its last mousemove from beside the rail and never reached it. The wait is started once and not restarted by movement within
 the rail - a pointer that has stopped sends no more events, so the timer finishes the job.
 
 **Opening never moves the list** (#137). What stands above it - the head's title and buttons,
@@ -413,8 +413,8 @@ device preferences instead of the profile, so it is never pushed.
   The text stays a button for the keyboard; the "+" and "x" are excluded.
 - **A row opens in this tab; its last button, "⇉", opens a new one** - closed tabs and history
   alike (`utils/pageOpener.ts`, injected into both view models). This tab, because that is
-  what a link on the page does. Last, because the panel widens leftwards from the rail and
-  leaves the pointer at the right-hand end of a row. Open tabs rows only switch to the tab.
+  what a link on the page does. Last, chosen while the panel stood on the right and widened
+  leftwards, leaving the pointer at a row's right-hand end; on the left it leaves it on the favicon. Open tabs rows only switch to the tab.
 - Saving one as a link reuses `BookmarkForm` in a dialog rather than asking the same question
   a second way.
 - **Only synchronised with an account that keeps them.** A snapshot naming no `closedTabs`

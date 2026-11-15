@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
    Recently closed tabs
 
-   A rail down the right-hand edge showing the favicons of what was closed, and
+   A rail down the left-hand edge showing the favicons of what was closed, and
    widening into the full list when the pointer reaches it. No click to look:
    the question it answers is asked in passing.
 
@@ -28,6 +28,11 @@
     overflow: hidden;
     align-items: flex-start;
     background-color: var(--color-component-background);
+    margin-left: var(--widgets-spacing);
+    margin-bottom: var(--widgets-spacing);
+    margin-top: var(--widgets-spacing);
+    border-radius: var(--radius-big);
+    border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
 }
 
 .closed-tabs--open {
@@ -106,14 +111,10 @@
     display: flex;
     align-items: center;
     gap: 0.5em;
-    padding: 0.5em 0.375em;
     /*border-bottom: 0.0625em solid var(--color-component-framing);*/
-    align-self: center;
-    width: 100%;
-}
-
-.closed-tabs--open .closed-tabs__head {
-    padding: 0.5em 0.75em;
+    align-self: stretch;
+    margin: 0.5em;
+    margin-bottom: 0.25em;
 }
 
 .closed-tabs__title {
@@ -255,14 +256,59 @@
     anchor-name: --closed-tabs-held;
 }
 
+/* The head, the card switcher and the search field, ruled off from the lists
+   below by the same line a group's head has (group.css, link-group-head::after):
+   80% wide, centred, the text colour at half strength. A block of its own rather
+   than an absolutely placed line, so this container needs no position - the
+   rail's mark is placed against the panel and has to stay so. Folded, the line
+   stays under the mark. */
+.closed-tabs__top {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    flex: 0 0 auto;
+    padding-bottom: 0.75em;
+    position: relative;
+}
+
+.closed-tabs__top::after {
+    content: "";
+    display: block;
+    width: 80%;
+    height: 0.125em;
+    margin: 0.375em auto 0;
+    background-color: var(--color-document-text);
+    opacity: 0.5;
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+}
+
+/* Everything under the line - the lists and the "not recorded" notices. It is
+   the panel's column again, one level down: what the lists and notices were
+   sized against before they were wrapped (the list stretched only once open,
+   sized to its favicons while folded; a notice filling the height to centre
+   itself), so none of their own rules had to change. min-height: 0 is what
+   lets a list scroll instead of pushing past the panel's bottom. */
+.closed-tabs__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+    margin-top: 0.25em;
+}
+
 /* The switcher only makes sense at full width, like the head's own buttons;
    folded, it only holds its place. */
 .closed-tabs__cards {
     display: flex;
     gap: 0.375em;
     align-self: stretch;
-    padding: 0.375em 0.75em;
-    border-bottom: 0.0625em solid var(--color-component-framing);
+    margin: 0.375em 0.75em;
 }
 
 .closed-tabs__card {
@@ -435,6 +481,8 @@
     /* rem, not px: the rail is sized in em and has to scale with what it holds. */
     width: 1.5rem;
     height: 1.5rem;
+    min-width: 1.5rem;
+    min-height: 1.5rem;
 }
 
 /* The row's text is a button so a keyboard can reach the row; a click on it
