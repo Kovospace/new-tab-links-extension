@@ -201,3 +201,9 @@ workspace-plane-footer > div.tips-bar {
     transition: color var(--time-transition-fast) var(--transition-easing-default);
 }
 
+button.welcome-tile {
+    transition:
+            background-color var(--time-transition-fast) var(--transition-easing-default),
+            transform var(--time-transition-fast) var(--transition-easing-default);
+}
+

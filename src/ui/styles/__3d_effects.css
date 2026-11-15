@@ -35,3 +35,7 @@ div.tips-bar,
 div.ads-bar {
     box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
 }
+
+button.welcome-tile {
+    box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
+}
