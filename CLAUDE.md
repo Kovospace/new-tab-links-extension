@@ -616,6 +616,10 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   changes without a release and no remote code runs in the extension. It stays hidden until
   the page posts `tabilinks-ad-slot-ready` from the website's origin - `load` also fires for the
   browser's own offline error page.
+- **The slot page is told this page's look** (#180): `?theme=light|dark` - the theme in force,
+  "follow the system" resolved - and `?accent=` (six hex digits, `ACCENT_SWATCHES`) beside
+  `?lang=`, so it draws in the same colours (`followSlotLook`). A change reloads it, hidden until
+  it says it has drawn again; nothing reloads when nothing changed.
 - **The slot is only as wide as the banner** (728px plus its lining, `--ads-slot-width` in
   `_adsBar.css`; #202), centred, and narrower only when the window is. Fixed rather than fitted
   to its content, so it holds its place before the page in it has drawn.

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AD_SLOT_READY_MESSAGE, AdsBar } from "../../../src/ui/partials/adsBar";
+import { AD_SLOT_READY_MESSAGE, AdsBar, followSlotLook, SlotLook } from "../../../src/ui/partials/adsBar";
 import { ObservableValue } from "../../../src/utils/observableValue";
+import { DevicePreferences } from "../../../src/backend/repository/DevicePreferencesRepository";
 
 describe("AdsBar", () => {
 
@@ -91,5 +92,51 @@ describe("AdsBar, for a premium account from the start", () => {
 
         expect(document.querySelector("iframe")).toBeNull();
         bar.dispose();
+    });
+});
+
+/** #180: the slot page is told this page's theme and accent, and follows them when they change. */
+describe("AdsBar, the slot page's look", () => {
+
+    it("passes the theme and the accent, and reloads the page only when they change", () => {
+        document.body.replaceChildren();
+        const look$ = new ObservableValue<SlotLook>({ theme: "dark", accent: "0036ff" });
+        const bar = new AdsBar(new ObservableValue<boolean>(false), look$);
+        bar.render(document.body);
+        const frame = document.querySelector<HTMLIFrameElement>("iframe.ads-bar__frame")!;
+
+        const first = new URL(frame.src);
+        expect(first.searchParams.get("theme")).toBe("dark");
+        expect(first.searchParams.get("accent")).toBe("0036ff");
+        expect(first.searchParams.get("lang")).toBe("en");
+
+        frame.hidden = false;           // the page said it had drawn
+        look$.set({ theme: "dark", accent: "0036ff" });
+        expect(frame.hidden).toBe(false);   // nothing changed: not reloaded
+
+        look$.set({ theme: "light", accent: "e0a100" });
+        const second = new URL(frame.src);
+        expect(second.searchParams.get("theme")).toBe("light");
+        expect(second.searchParams.get("accent")).toBe("e0a100");
+        expect(frame.hidden).toBe(true);    // hidden until it has drawn again
+        bar.dispose();
+    });
+});
+
+describe("followSlotLook", () => {
+
+    const preferencesWith = (theme: string, accentColor: string) => ({
+        preferences$: new ObservableValue({ theme, accentColor } as unknown as DevicePreferences)
+    });
+    const system = (dark: boolean) => ({ matches: dark, addEventListener: () => {} }) as unknown as MediaQueryList;
+
+    it("resolves a theme that follows the system to what the system says", () => {
+        expect(followSlotLook(preferencesWith("auto", "blue"), system(true)).get().theme).toBe("dark");
+        expect(followSlotLook(preferencesWith("auto", "blue"), system(false)).get().theme).toBe("light");
+        expect(followSlotLook(preferencesWith("light", "blue"), system(true)).get().theme).toBe("light");
+    });
+
+    it("gives the accent as six hex digits", () => {
+        expect(followSlotLook(preferencesWith("dark", "teal"), system(true)).get().accent).toBe("00707f");
     });
 });
