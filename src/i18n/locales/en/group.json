@@ -27,6 +27,7 @@
     "manageLinks": "Manage links",
     "finishManagingLinks": "Finish group links editing",
     "sortLinks": "Sort links",
+    "resetSize": "Reset size",
     "moveLeft": "Move group left",
     "moveRight": "Move group right",
     "migrate": "Migrate to other workspace",

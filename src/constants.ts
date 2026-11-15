@@ -97,6 +97,10 @@ export const CLASS_WORKSPACE_SYNC_NOTICE: string = "cls-workspace-sync-notice";
 export const CLASS_GROUP_HEAD_TITLE: string = "cls-group-head-title";
 export const CLASS_GROUP_HEAD_ACTIONS: string = "cls-group-head-actions";
 export const CLASS_GROUP_EMPTY_HINT: string = "cls-group-empty-hint";
+/** A group resized by hand (#173), its corner handle, and the group while the corner is held. */
+export const CLASS_GROUP_RESIZED: string = "cls-group-resized";
+export const CLASS_GROUP_RESIZE_HANDLE: string = "cls-group-resize-handle";
+export const CLASS_GROUP_RESIZING: string = "cls-group-resizing";
 
 // Subgroup component
 export const CLASS_SUBGROUP_HEAD_TITLE = "cls-subgroup-head-title";

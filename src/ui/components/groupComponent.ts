@@ -28,12 +28,13 @@ import { AbstractComponent } from "../abstract/abstractComponent"
 import { LinkComponent } from "./linkComponent"
 import { SubgroupComponent } from "./subgroupComponent"
 import { ICON, renderContainer, renderButton, renderTextContainer } from "../../ui/partials/wrappedHtmlElements"
-import {OptionsMenu} from "../partials/optionsMenu";
+import {OptionsMenu, OptionsMenuItem} from "../partials/optionsMenu";
 import { toggleManageLinksMode } from "../partials/manageLinksMode";
 import {InputDialog} from "../partials/inputDialog";
 import {SelectDialog} from "../partials/selectDialog";
 import { ChoiceDialog } from "../partials/choiceDialog";
 import { LinkSortOrder } from "../../backend/repository/linkSorting";
+import { applyGroupSize, attachResizeHandle } from "../partials/groupResize";
 import { showNotice } from "../partials/confirmations";
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 import {
@@ -46,6 +47,9 @@ import { t } from "../../i18n/i18n";
 export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> {
 
     private groupTitleEditingMenuItem: HTMLElement | null = null;
+
+    /** Kept so "Reset size" can be greyed out and back as the group is resized (#173). */
+    private groupMenu: OptionsMenu | null = null;
 
     private addSubgroupDialog: InputDialog = new InputDialog(
         t("group.addSubgroupDialog.title"),
@@ -95,7 +99,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         // title — rendered reactively via the group observable (same pattern as workspaceComponent)
 
         // buttons
-        new OptionsMenu(
+        this.groupMenu = new OptionsMenu(
             actionsSectionElem,
             {
                 openMenuButtonId: `group-${this.id}-menu`,
@@ -103,46 +107,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 openMenuButtonTooltipText: t("group.menu.tooltip"),
                 owner: this
             },
-            [
-                {
-                    actionTitle: t("group.menu.addLink"),
-                    onClick: () => this.actionAddLink()
-                },
-                {
-                    actionTitle: t("group.menu.addSubgroup"),
-                    onClick: () => this.addSubgroupDialog.show()
-                },
-                {
-                    actionTitle: t("group.menu.editTitle"),
-                    onClick: () => this.toggleGroupTitleEditable(event?.target as HTMLElement)
-                },
-                {
-                    actionTitle: t("group.menu.manageLinks"),
-                    onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
-                },
-                {
-                    actionTitle: t("group.menu.sortLinks"),
-                    onClick: () => void this.actionSortLinks()
-                },
-                {
-                    actionTitle: t("group.menu.moveLeft"),
-                    onClick: () => this.VIEW_MODEL.moveGroupUp()
-                },
-                {
-                    actionTitle: t("group.menu.moveRight"),
-                    onClick: () => this.VIEW_MODEL.moveGroupDown()
-                },
-                {
-                    actionTitle: t("group.menu.migrate"),
-                    onClick: () => void this.actionMigrateToWorkspace()
-                },
-                {
-                    actionTitle: t("group.menu.delete"),
-                    dangerous: true,
-                    dangerConfirmation: t("group.menu.deleteConfirmation"),
-                    onClick: () => this.VIEW_MODEL.deleteGroup(this.id)
-                }
-            ],
+            this.menuItems(),
             {
                 groupId: this.id
             }
@@ -180,12 +145,28 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
      */
     private listenerDragAndDrop() {
         makeDraggable(this, { kind: "group", id: this.DTO.id });
+        this.listenerResize();
         makeReorderTarget(this, "group", (side, draggedId) => {
             const index = this.VIEW_MODEL.indexAmongGroups() + (side === "after" ? 1 : 0);
             this.VIEW_MODEL.acceptGroup(draggedId, index);
         });
         makeContainerTarget(this, ["link", "subgroup", "panelTab"],
             draggedId => this.takeDropped(draggedId));
+    }
+
+    /**
+     *  The corner that resizes the group (#173), and the size it was given here before.
+     *  After `makeDraggable`, which the handle switches off while it is held.
+     */
+    private listenerResize() {
+        applyGroupSize(this, this.VIEW_MODEL.getSize());
+        attachResizeHandle(this, {
+            resized: size => {
+                void this.VIEW_MODEL.setSize(size)
+                    .then(() => this.groupMenu?.updateOptions(this.menuItems()));
+            },
+            reset: () => void this.resetSize()
+        });
     }
 
     /**
@@ -292,6 +273,62 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
      * built at construction time would still be offering a workspace that has since been
      * renamed or deleted.
      */
+    /** The group's menu, built again when its size is set or forgotten (#173). */
+    private menuItems(): OptionsMenuItem[] {
+        return [
+            {
+                actionTitle: t("group.menu.addLink"),
+                onClick: () => this.actionAddLink()
+            },
+            {
+                actionTitle: t("group.menu.addSubgroup"),
+                onClick: () => this.addSubgroupDialog.show()
+            },
+            {
+                actionTitle: t("group.menu.editTitle"),
+                onClick: () => this.toggleGroupTitleEditable(event?.target as HTMLElement)
+            },
+            {
+                actionTitle: t("group.menu.manageLinks"),
+                onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
+            },
+            {
+                actionTitle: t("group.menu.sortLinks"),
+                onClick: () => void this.actionSortLinks()
+            },
+            {
+                actionTitle: t("group.menu.resetSize"),
+                disabled: this.VIEW_MODEL.getSize() === null,
+                onClick: () => void this.resetSize()
+            },
+            {
+                actionTitle: t("group.menu.moveLeft"),
+                onClick: () => this.VIEW_MODEL.moveGroupUp()
+            },
+            {
+                actionTitle: t("group.menu.moveRight"),
+                onClick: () => this.VIEW_MODEL.moveGroupDown()
+            },
+            {
+                actionTitle: t("group.menu.migrate"),
+                onClick: () => void this.actionMigrateToWorkspace()
+            },
+            {
+                actionTitle: t("group.menu.delete"),
+                dangerous: true,
+                dangerConfirmation: t("group.menu.deleteConfirmation"),
+                onClick: () => this.VIEW_MODEL.deleteGroup(this.id)
+            }
+        ];
+    }
+
+    /** Back to the automatic size: the menu's "Reset size", or a double-click on the corner. */
+    private async resetSize(): Promise<void> {
+        applyGroupSize(this, null);
+        await this.VIEW_MODEL.resetSize();
+        this.groupMenu?.updateOptions(this.menuItems());
+    }
+
     /**
      * Asks which order, then puts the links in it (#184). One item in the menu and the four
      * orders in a dialog, rather than four items in a menu that already has eight.

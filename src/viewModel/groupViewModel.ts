@@ -10,6 +10,7 @@ import {toSubGroupDTO, toLinkDTO, toWorkspaceDTO} from "../viewModel/abstract/ma
 // utils
 import {ObservableValue} from "../utils/observableValue";
 import {LinkSortOrder} from "../backend/repository/linkSorting";
+import {GroupSize, GroupSizeRepository, groupSizeRepository} from "../backend/repository/GroupSizeRepository";
 import {isItemInGroupAndEnv, isRootGroupLink, isSubGroupLink, isSubGroup} from "./groupViewModelUtils"
 
 
@@ -155,6 +156,23 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
 
     public deleteGroup(id: string) {
         this.REPOSITORY.deleteGroup(id);
+        void this.sizes.forget(id);
+    }
+
+    /** Where this browser keeps hand-set group sizes (#173); replaceable in tests. */
+    protected sizes: GroupSizeRepository = groupSizeRepository;
+
+    /** The size this group was given by hand on this browser, or null for its automatic one. */
+    public getSize(): GroupSize | null {
+        return this.sizes.get(this.DTO.id);
+    }
+
+    public setSize(size: GroupSize): Promise<void> {
+        return this.sizes.set(this.DTO.id, size);
+    }
+
+    public resetSize(): Promise<void> {
+        return this.sizes.forget(this.DTO.id);
     }
 
     public addLink(url: string | null, title: string | null, groupId: string, subGroupId?: string): void {

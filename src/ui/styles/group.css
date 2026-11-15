@@ -9,6 +9,64 @@ link-group {
     flex: 0 1 auto;
     min-width: 0;
     max-width: 25em;
+    /* What the resize corner is placed against (#173). Aero already says so. */
+    position: relative;
+}
+
+/*
+   A group resized by hand (#173): its width and height come from the element's own
+   style, in em. The 25em cap is the automatic width's and goes; the width of the
+   window does not - a column wider than the screen still shrinks to it. A column
+   and its body, so a height shorter than the links scrolls the links and never the
+   head.
+*/
+link-group.cls-group-resized {
+    flex: 0 0 auto;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+link-group.cls-group-resized > link-group-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-button-background) transparent;
+}
+
+/* While the corner is held nothing in the page is selected or animated - the
+   size follows the pointer, not a transition behind it. */
+link-group.cls-group-resizing,
+link-group.cls-group-resizing * {
+    user-select: none;
+    transition: none !important;
+}
+
+/*
+   The corner itself: two short diagonal strokes, always shown - faint at rest, so
+   it can be found without hunting for it, and full strength under the pointer or
+   while held. Sits inside the frame, on the group's rounded corner.
+*/
+link-group > div.cls-group-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1em;
+    height: 1em;
+    cursor: nwse-resize;
+    touch-action: none;
+    opacity: 0.5;
+    border-bottom-right-radius: 0.75em;
+    background-image: linear-gradient(135deg,
+        transparent 45%, var(--color-document-text) 45%, var(--color-document-text) 52%,
+        transparent 52%, transparent 70%, var(--color-document-text) 70%, var(--color-document-text) 77%,
+        transparent 77%);
+}
+
+link-group > div.cls-group-resize-handle:hover,
+link-group.cls-group-resizing > div.cls-group-resize-handle {
+    opacity: 1;
 }
 
 link-group:first-child {

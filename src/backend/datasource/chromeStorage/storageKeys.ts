@@ -80,6 +80,13 @@ export const INSTALLATION_NAME_KEY = "sync_installation_name";
 export const DEVICE_PREFERENCES_KEY = "device_preferences";
 
 /**
+ *  The groups resized by hand on this browser (#173): group id to width and height in em. A key
+ *  of its own rather than a device preference, so a resize does not redraw everything that
+ *  follows the preferences. Never synchronised - see `GroupSizeRepository`.
+ */
+export const GROUP_SIZES_KEY = "group_sizes";
+
+/**
  *  New tabs opened and not yet reported, by local day, with when the last report was made and
  *  how long the server asked to wait before the next. Written only by the service worker, so
  *  two new tab pages opening at once cannot lose a count or send one twice.

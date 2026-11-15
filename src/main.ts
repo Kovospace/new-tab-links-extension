@@ -6,6 +6,7 @@ import { sessionRepository } from "./backend/sync/SessionRepository";
 import { accountStandingRepository } from "./backend/sync/AccountStandingRepository";
 import { backgroundImageRepository } from "./backend/repository/BackgroundImageRepository";
 import { backgroundLibraryRepository } from "./backend/repository/BackgroundLibraryRepository";
+import { groupSizeRepository } from "./backend/repository/GroupSizeRepository";
 import { syncCoordinator } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
@@ -102,6 +103,8 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     new PageBackground().render();
     // A fresh install's default picture (#175), downloaded while the page draws, not before.
     void backgroundLibraryRepository.applyInstallDefault();
+    // Groups resized by hand (#173), read before any group is drawn so none of them jumps.
+    await groupSizeRepository.init();
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();

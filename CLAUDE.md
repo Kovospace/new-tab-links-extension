@@ -658,6 +658,14 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   group's root-level links, so it can be dropped beside one of them; its own links travel with
   it, because a link names the group it is in as well as the subgroup, and one left behind
   would claim a group that no longer holds its subgroup and be drawn by neither.
+- **A group's bottom-right corner resizes it** (#173; `ui/partials/groupResize.ts`), width and
+  height - always drawn, faint until pointed at - with pointer events rather than HTML5 drag: the group itself is draggable, so it is
+  made undraggable while the corner is held, or the browser would carry the column off. Sizes
+  are in em, so the size slider still scales them, and **per device** (`GroupSizeRepository`,
+  key `group_sizes`, read before the page draws) - a width chosen on a desktop would squeeze a
+  laptop. A resized group loses the automatic 25em cap and scrolls its body when it is shorter
+  than its links; a group never resized keeps the automatic width. Double-clicking the corner,
+  or "Reset size" in the group menu (greyed out until there is a size), goes back to automatic.
 - Which half of the element decides before or after: **vertically for a link, horizontally for
   a group**, because groups are columns.
 - **The index a drop names counts the sequence as the user sees it**, which still contains the
