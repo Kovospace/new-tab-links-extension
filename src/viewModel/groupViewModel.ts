@@ -175,7 +175,7 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
         return this.sizes.forget(this.DTO.id);
     }
 
-    public addLink(url: string | null, title: string | null, groupId: string, subGroupId?: string): void {
+    public addLink(url: string | null, title: string | null, groupId: string, subGroupId?: string, favorite = false): void {
         this.LOG.debug(
             "addLink",
             `groupId: ${groupId}, subGroupId: ${subGroupId}, url: ${url}, title: ${title}`);
@@ -194,7 +194,7 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
             this.LOG.debug("addLink", "Refusing a link with no title");
             return;
         }
-        this.REPOSITORY.createLink(url, title, groupId, subGroupId);
+        this.REPOSITORY.createLink(url, title, groupId, subGroupId, favorite);
     }
 
     /**

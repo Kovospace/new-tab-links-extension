@@ -109,3 +109,65 @@ body.popup > main {
             color var(--time-transition-fast) var(--transition-easing-default),
             background-color var(--time-transition-fast) var(--transition-easing-default);
 }
+
+/* ---------------------------------------------------------------------------
+   The open workspace's favorites, under the form (#183): a list of rows, each
+   the page's icon, its name and where it is kept, as wide as the form.
+   --------------------------------------------------------------------------- */
+
+.popup-favorites {
+    width: 30em;
+}
+
+.popup-favorites__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125em;
+    max-height: 18em;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0.5em;
+    list-style: none;
+}
+
+button.popup-favorites__row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    width: 100%;
+    margin: 0;
+    padding: 0.35em 0.5em;
+    border-radius: var(--radius-normal);
+    background-color: transparent;
+    color: var(--color-dialog-text);
+    text-align: left;
+}
+
+button.popup-favorites__row:hover {
+    background-color: var(--color-button-background-hover);
+    color: var(--color-button-text-hover);
+}
+
+.popup-favorites__row > img {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+}
+
+.popup-favorites__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.popup-favorites__place {
+    flex: 0 1 auto;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85em;
+    opacity: 0.7;
+}

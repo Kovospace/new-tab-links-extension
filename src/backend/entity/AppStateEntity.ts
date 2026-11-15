@@ -118,4 +118,10 @@ export interface Subgroup extends GroupItem {
 export interface Link extends GroupItem {
     url: string;
     subGroupId?: string;
+    /**
+     *  A favorite (#183): marked by its circle, listed in the side panel's Favorites card and
+     *  in the bookmarking popup. Synchronised. Absent means no - only `true` is stored, so a
+     *  link that never was one is not a record more to compare.
+     */
+    favorite?: boolean;
 }

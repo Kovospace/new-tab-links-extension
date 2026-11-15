@@ -13,6 +13,7 @@
     "title": "Title",
     "deviceName": "Device name",
     "synchronise": "Synchronise this browser with the account",
-    "profileName": "Profile name"
+    "profileName": "Profile name",
+    "favorite": "Favorite"
   }
 }

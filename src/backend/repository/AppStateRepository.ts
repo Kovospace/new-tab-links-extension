@@ -831,7 +831,7 @@ export class AppStateRepository {
     /**
      *  Create new link for given group (and sub-group if selected) in current workspace
      */
-    createLink(url: string, title: string, groupId: string, subGroupId?: string): Promise<AppState> {
+    createLink(url: string, title: string, groupId: string, subGroupId?: string, favorite = false): Promise<AppState> {
 
         this.LOG.debug(
             "createLink",
@@ -862,11 +862,30 @@ export class AppStateRepository {
                     subGroupId: subGroupId,
                     type: "link",
                     createdAt: Date.now(),
-                    position: nextPosition
+                    position: nextPosition,
+                    // Made a favorite straight away from the add-link dialog (#183).
+                    ...(favorite ? { favorite: true } : {})
                 } satisfies Link
             }
         };
 
+        return this.save();
+    }
+
+    /**
+     *  Marks a link as a favorite, or unmarks it (#183). Only `true` is stored, as with every
+     *  link that never was one; the change set sends `false` for the rest.
+     */
+    setLinkFavorite(id: string, favorite: boolean): Promise<AppState> {
+        const link = this.state.links[id];
+        if (!link || (link.favorite === true) === favorite) {
+            return Promise.resolve(this.state);
+        }
+        const { favorite: _previous, ...rest } = link;
+        this.state = {
+            ...this.state,
+            links: { ...this.state.links, [id]: favorite ? { ...rest, favorite: true } : rest }
+        };
         return this.save();
     }
 

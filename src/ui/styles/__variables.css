@@ -109,6 +109,12 @@
 
     /* Other widgets */
     --color-favicon-backdrop: light-dark(#aaa, #555);
+    /* The favorite circle (#183): a rim when it is not one - white on the dark theme, grey on
+       the light one, where white would vanish - and gold when it is. */
+    --color-favorite-rim: light-dark(#8a8a8a, #fff);
+    --color-favorite-rim-hover: light-dark(#b8960c, #ffe58a);
+    --color-favorite: light-dark(#d4a017, #f5c542);
+    --color-favorite-hover: light-dark(#e8b923, #ffd95e);
     /* Danger as text rather than as a button: #900 is sized to be read as white
        on, and is close to unreadable against #222 at 0.85em. */
     --color-danger-text: light-dark(#a00, #F66);

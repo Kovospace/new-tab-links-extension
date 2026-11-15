@@ -25,6 +25,11 @@ export interface SuggestionDTO {
 
     /** The tab to switch to, for an open tab. */
     tab?: { id: number; windowId: number };
+
+    /** The link itself, for a link: what its favorite circle marks (#183). */
+    linkId?: string;
+    /** Whether that link is a favorite (#183). */
+    favorite?: boolean;
 }
 
 /** Everything a query is looked for in, as it stands when the query is typed. */
@@ -120,7 +125,9 @@ function linkSuggestions(data: ProfileData): SuggestionDTO[] {
                 data.environments[link.environmentId]?.name,
                 data.groups[link.groupId]?.title,
                 link.subGroupId ? data.subgroups[link.subGroupId]?.title : undefined
-            ].filter(part => part).join(" › ")
+            ].filter(part => part).join(" › "),
+            linkId: link.id,
+            favorite: link.favorite === true
         }));
 }
 

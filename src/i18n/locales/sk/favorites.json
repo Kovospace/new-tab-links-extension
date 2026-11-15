@@ -1,0 +1,8 @@
+{
+  "card": "Obľúbené",
+  "title": "Obľúbené",
+  "cardTooltip": "Obľúbené odkazy tejto plochy",
+  "empty": "V tejto ploche zatiaľ nie sú obľúbené. Kliknite na krúžok vedľa odkazu alebo sem odkaz potiahnite.",
+  "rowTooltip": "{url}\nOtvoriť tento obľúbený odkaz",
+  "openInNewTab": "Otvoriť na novej karte"
+}

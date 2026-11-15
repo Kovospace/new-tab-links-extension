@@ -26,6 +26,7 @@ import {SubgroupComponent} from "./ui/components/subgroupComponent";
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
 import { renderWorkspaceLessPage } from "./ui/partials/workspaceLessPage";
 import { WorkspaceLessViewModel } from "./viewModel/workspaceLessViewModel";
+import { followFavoritesSwitch } from "./viewModel/favorites";
 import { LANGUAGE_CATEGORY } from "./viewModel/settingsViewModel";
 import { PageBackground } from "./ui/partials/pageBackground";
 import { t } from "./i18n/i18n";
@@ -111,6 +112,8 @@ customElements.define(ELEM_LINK, LinkComponent);
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();
+    // Favorites switched on for this profile show their circles (#183), from any page.
+    followFavoritesSwitch();
     // initialize "app data" object and repository, WAIT FOR IT !!!
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 

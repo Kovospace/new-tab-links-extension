@@ -35,11 +35,12 @@ describe("SettingsViewModel", () => {
     const shown = () => settings.observables.settings.get();
     const firstCategory = () => shown().categories[0];
 
-    /** One setting of the first category, asserted to be a switch rather than a slider. */
-    const toggleAt = (index: number) => {
-        const setting = firstCategory().settings[index];
-        if (setting.kind !== "toggle") {
-            throw new Error(`setting ${index} is a ${setting.kind}, not a toggle`);
+    /** The drag-and-drop switch, asserted to be a switch rather than a slider. */
+    const dragAndDrop = () => {
+        const setting = shown().categories.flatMap(category => category.settings)
+            .find(one => one.key === "enableDragAndDrop");
+        if (setting?.kind !== "toggle") {
+            throw new Error("enableDragAndDrop is not a toggle");
         }
         return setting;
     };
@@ -47,7 +48,16 @@ describe("SettingsViewModel", () => {
     it("puts the settings in categories, every one of them folded", () => {
         expect(firstCategory().title).toBe("UI and behavior");
         expect(shown().categories.every(category => category.collapsed)).toBe(true);
-        expect(firstCategory().settings.map(one => one.key)).toContain("enableDragAndDrop");
+    });
+
+    // #183: what the page can do, in a section of its own right after how it looks.
+    it("puts favorites, dragging and the tips under Functions, favorites off", () => {
+        const functions = shown().categories[1];
+        expect(functions.title).toBe("Functions");
+        expect(functions.settings.map(one => one.key))
+            .toEqual(["enableFavorites", "enableDragAndDrop", "hideTips"]);
+        expect(functions.settings[0]).toMatchObject({ kind: "toggle", enabled: false });
+        expect(firstCategory().settings.map(one => one.key)).not.toContain("enableDragAndDrop");
     });
 
     it("names the profile the settings belong to", () => {
@@ -60,7 +70,7 @@ describe("SettingsViewModel", () => {
         await profiles.updateSettings({ enableDragAndDrop: false });
         settings.refresh();
 
-        expect(toggleAt(0).enabled).toBe(false);
+        expect(dragAndDrop().enabled).toBe(false);
     });
 
     it("stores a setting the user changes", async () => {
@@ -68,7 +78,7 @@ describe("SettingsViewModel", () => {
         await settings.toggle("enableDragAndDrop", false);
 
         expect(profiles.getSettings().enableDragAndDrop).toBe(false);
-        expect(toggleAt(0).enabled).toBe(false);
+        expect(dragAndDrop().enabled).toBe(false);
     });
 
     it("puts recording closed tabs under Privacy, on, asking before it is turned off", () => {
@@ -159,7 +169,7 @@ describe("SettingsViewModel", () => {
         await settings.toggle("enableDragAndDrop", true);
 
         expect(firstCategory().collapsed).toBe(true);
-        expect(toggleAt(0).enabled).toBe(true);
+        expect(dragAndDrop().enabled).toBe(true);
     });
 });
 

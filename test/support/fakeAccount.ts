@@ -135,7 +135,8 @@ export class FakeAccount {
                         ?? this.profiles.get(operation.id)?.recordClosedTabs ?? true,
                     // Absent keeps what is stored too; a new profile starts off.
                     recordBrowsingHistory: operation.recordBrowsingHistory
-                        ?? this.profiles.get(operation.id)?.recordBrowsingHistory ?? false
+                        ?? this.profiles.get(operation.id)?.recordBrowsingHistory ?? false,
+                    enableFavorites: operation.enableFavorites ?? false
                 };
             case "environment":
                 return {
@@ -173,7 +174,8 @@ export class FakeAccount {
                     title: operation.title,
                     url: operation.url,
                     faviconUrl: operation.faviconUrl ?? null,
-                    position: operation.position ?? 0
+                    position: operation.position ?? 0,
+                    favorite: operation.favorite ?? false
                 };
             case "closedTab":
                 return {

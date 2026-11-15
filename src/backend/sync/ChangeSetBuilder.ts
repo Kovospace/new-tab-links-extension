@@ -229,6 +229,7 @@ export class ChangeSetBuilder {
             dismissedTips: settingsOf(profile).dismissedTips,
             recordClosedTabs: settingsOf(profile).recordClosedTabs,
             recordBrowsingHistory: settingsOf(profile).recordBrowsingHistory,
+            enableFavorites: settingsOf(profile).enableFavorites,
             position
         };
     }
@@ -306,7 +307,10 @@ export class ChangeSetBuilder {
                 parentSubgroupId: link.subGroupId ?? null,
                 title: link.title,
                 url: link.url,
-                position: link.position
+                position: link.position,
+                // Every time, as false when it is not one: absent, the backend reads false
+                // anyway, and a rename sent without it would unfavorite the link (#183).
+                favorite: link.favorite === true
             }),
             upserts, deletes);
     }

@@ -372,6 +372,36 @@ There is no first-run screen. A profile with no workspace is given one, the **st
   because it needs the click that asked for it. Required, it would disable the extension on
   update until accepted.
 
+### Favorites (#183; `viewModel/favorites.ts`, `ui/partials/favoriteControls.ts`)
+
+A link can be marked a favorite. **Off by default** (`enableFavorites`, a profile setting in
+Settings → Functions, beside drag and drop and hide tips). While off, nothing of it shows, and
+links keep their marks for when it is turned back on.
+
+- **The mark is the link's own** (`Link.favorite`, only `true` stored), synchronised. It is
+  threaded through the usual five places, the backend (`link.favorite`) and the migration
+  (V19) included. **Every link upsert carries it**, as `false` when the link is not a
+  favorite: the backend reads an absent value as false, so a rename sent without it would
+  unfavorite the link everywhere. `enableFavorites` rides on the profile upsert like `hideTips`.
+- **The circle at the end of every link** (`favoriteToggle`): empty with a rim (white on dark,
+  grey on light), golden when marked, slightly recoloured and scaled under the pointer. It is
+  always built, and the stylesheet shows it only under `data-favorites="on"` on the root
+  (`followFavoritesSwitch`), so switching the setting redraws nothing. A click on it never
+  opens the link.
+- **Other ways to mark a link**: the link's context menu ("Add to favorites" / "Remove from
+  favorites"), and the "Favorite" checkbox of every dialog that makes a link (`favoriteField`,
+  read each time the dialog is built; the bookmarking form too).
+- **Closed tabs, history, open tabs and search suggestions have the circle too**
+  (`addressFavoriteToggle`). A favorite has to be a link first: when the open workspace keeps
+  a link under that address (trailing slash aside), that link is marked. Otherwise the
+  save-as-link form opens with "Favorite" ticked. A link suggestion marks the link itself.
+- **The side panel's fourth card, Favorites** (`favoritesCard.ts`, `FavoritesViewModel`):
+  the open workspace's favorites in the order the page draws them (`favoritesOfWorkspace`). A
+  link dragged onto it becomes a favorite and stays in its group. Its switcher button is
+  hidden while favorites are off, and a remembered Favorites card then shows Closed instead.
+- **The toolbar popup lists them under its form** (`popupFavorites.ts`), and under the
+  "nothing to bookmark" notice too. A row opens in a new tab and closes the popup.
+
 ### The strip at the bottom of the new tab page is not ours
 
 Chrome 138 added a **footer to the new tab page** which names the extension that overrode it,

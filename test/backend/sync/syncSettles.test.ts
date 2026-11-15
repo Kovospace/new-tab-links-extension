@@ -117,6 +117,15 @@ describe("synchronisation settles", () => {
             expect(await operationsOfTheSecondPass()).toEqual([]);
         });
 
+    it("has nothing to say the second time, with favorites on and a favorite link (#183)", async () => {
+        await profiles.updateSettings({ enableFavorites: true });
+        const anyLink = Object.values(appState.state$.get().links)[0];
+        await appState.setLinkFavorite(anyLink.id, true);
+
+        expect(await operationsOfTheSecondPass()).toEqual([]);
+        expect(appState.state$.get().links[anyLink.id].favorite).toBe(true);
+    });
+
     it("has nothing to say the second time, with the profile's settings turned on", async () => {
         await profiles.updateSettings({
             enableDragAndDrop: true, hideTips: true,

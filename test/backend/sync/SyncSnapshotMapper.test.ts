@@ -96,7 +96,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
 
     it("takes the settings the account holds", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: true })).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false });
     });
 
     it("reads a backend that does not store settings yet as having the defaults", () => {
@@ -104,7 +104,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
         // whose settings are undefined compares differently from one whose settings are the
         // defaults, and the difference would be pushed straight back.
         expect(mappedProfile(accountWithProfile({})).settings)
-            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false });
+            .toEqual({ enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false });
     });
 
     it("takes the dismissed tips exactly as the account holds them, order included", () => {
@@ -125,7 +125,7 @@ describe("SyncSnapshotMapper, profile settings", () => {
 
     it("keeps an account that has them off, off", () => {
         expect(mappedProfile(accountWithProfile({ enableDragAndDrop: false })).settings)
-            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false });
+            .toEqual({ enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false });
     });
 });
 
@@ -250,5 +250,33 @@ describe("SyncSnapshotMapper, browsing history", () => {
         expect(mappedProfile(accountWithProfile({})).settings?.recordBrowsingHistory).toBe(false);
         expect(mappedProfile(accountWithProfile({ recordBrowsingHistory: true })).settings
             ?.recordBrowsingHistory).toBe(true);
+    });
+});
+
+/** #183: favorites travel with the link, and the switch with the profile. */
+describe("SyncSnapshotMapper, favorites", () => {
+
+    const LINK = "0199eeee-0000-7000-8000-0000000000aa";
+    const withLink = (favorite?: boolean): SyncSnapshot => ({
+        ...accountWithSubgroup({}),
+        links: [{
+            id: LINK, parentGroupId: GROUP, parentSubgroupId: null, title: "Mail",
+            url: "https://mail.test", faviconUrl: null, position: 0,
+            createdAt: NOW, updatedAt: NOW,
+            ...(favorite === undefined ? {} : { favorite })
+        }]
+    });
+    const mappedLink = (snapshot: SyncSnapshot) =>
+        SyncSnapshotMapper.toProfiles(snapshot).dataByProfileId[PROFILE].links[LINK];
+
+    it("takes a favorite as one, and a link that says nothing or no as not one", () => {
+        expect(mappedLink(withLink(true)).favorite).toBe(true);
+        expect(mappedLink(withLink(false)).favorite).toBeUndefined();
+        expect(mappedLink(withLink()).favorite).toBeUndefined();
+    });
+
+    it("reads a profile that says nothing about favorites as not using them", () => {
+        expect(mappedProfile(accountWithProfile({})).settings?.enableFavorites).toBe(false);
+        expect(mappedProfile(accountWithProfile({ enableFavorites: true })).settings?.enableFavorites).toBe(true);
     });
 });

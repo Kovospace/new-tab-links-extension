@@ -105,5 +105,8 @@ export const CLASS_SUBGROUP_LINK_COUNT = "cls-subgroup-link-count";
 // Link component
 export const CLASS_LINK_WRAPPER = "cls-link-wrapper";
 export const CLASS_LINK_ACTIONS_CONTAINER = "cls-link-actions-container";
+/** The favorite circle at the end of a link (#183), and its state when the link is one. */
+export const CLASS_FAVORITE_TOGGLE = "cls-favorite-toggle";
+export const CLASS_FAVORITE_ON = "is-favorite";
 export const CLASS_LINK_TEXT = "cls-link-text";
 export const CLASS_LINK_ICON= "cls-link-icon";

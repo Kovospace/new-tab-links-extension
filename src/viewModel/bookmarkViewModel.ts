@@ -108,13 +108,15 @@ export class BookmarkViewModel {
      *  @param title       what to call it
      *  @param groupId     the group it belongs to
      *  @param subGroupId  the subgroup within that group, when one was chosen
+     *  @param favorite    whether it is made a favorite straight away (#183)
      *  @return null when stored; the fair use refusal when the group's workspace is full
      */
     public async save(
         url: string,
         title: string,
         groupId: string,
-        subGroupId?: string
+        subGroupId?: string,
+        favorite = false
     ): Promise<LimitRefusal | null> {
         this.LOG.debug("save", `${title} -> group ${groupId}, subgroup ${subGroupId ?? "-"}`);
 
@@ -132,7 +134,7 @@ export class BookmarkViewModel {
             return refusal;
         }
 
-        await this.appState.createLink(url, title, groupId, subGroupId);
+        await this.appState.createLink(url, title, groupId, subGroupId, favorite);
         return null;
     }
 
@@ -147,12 +149,14 @@ export class BookmarkViewModel {
      *  @param url         the address to keep
      *  @param title       what to call it
      *  @param destination where it goes, and what to make on the way
+     *  @param favorite    whether it is made a favorite straight away (#183)
      *  @return null when stored; the refusal when a limit stands in the way
      */
     public async saveInto(
         url: string,
         title: string,
-        destination: BookmarkDestination
+        destination: BookmarkDestination,
+        favorite = false
     ): Promise<LimitRefusal | null> {
 
         const refusal = this.refusalOf(destination, await readStoredPlanLimits());
@@ -184,7 +188,7 @@ export class BookmarkViewModel {
             this.LOG.warn("saveInto", "A place to save into could not be made");
             return null;
         }
-        return this.save(url, title, groupId, subgroupId);
+        return this.save(url, title, groupId, subgroupId, favorite);
     }
 
     /**

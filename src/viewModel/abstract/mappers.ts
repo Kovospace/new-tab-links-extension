@@ -26,7 +26,8 @@ export const toLinkDTO = (link: Link | undefined): LinkDTO | null => {
         type: "link",
         workspaceId: link.environmentId,
         groupId: link.groupId,
-        subGroupId: link.subGroupId
+        subGroupId: link.subGroupId,
+        favorite: link.favorite === true
     } satisfies LinkDTO
 }
 

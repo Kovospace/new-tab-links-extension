@@ -1,5 +1,6 @@
 
 // utils
+import {favoriteField, isFavoriteAnswer} from "../partials/favoriteControls";
 import {OpenSubgroupAsGroupedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsGroupedTabsHandler"
 import {OpenSubgroupAsIsolatedTabsHandler} from "../backgroundWorkerCommands/openSubgroupAsIsolatedTabsHandler"
 
@@ -42,16 +43,21 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
 
     private subgroupTitleEditingMenuItem: HTMLElement | null = null;
 
-    private addLinkDialog: InputDialog = new InputDialog(
-        t("subgroup.addLinkDialog.title"),
-        {
-            [t("subgroup.addLinkDialog.linkTitle")]:
-                { type: "string", required: true, maxLength: MAX_TITLE_LENGTH,
-                  key: "linkTitle" },
-            [t("dialogs.fields.url")]:
-                { type: "url", required: true, maxLength: MAX_URL_LENGTH, key: "url" }
-        },
-        ({ linkTitle, url }) => this.VIEW_MODEL.addLink(linkTitle, url));
+    /** Built for each use, so its "Favorite" checkbox follows the setting (#183). */
+    private addLinkDialog(): InputDialog {
+        return new InputDialog(
+            t("subgroup.addLinkDialog.title"),
+            {
+                [t("subgroup.addLinkDialog.linkTitle")]:
+                    { type: "string", required: true, maxLength: MAX_TITLE_LENGTH,
+                      key: "linkTitle" },
+                [t("dialogs.fields.url")]:
+                    { type: "url", required: true, maxLength: MAX_URL_LENGTH, key: "url" },
+                ...favoriteField()
+            },
+            ({ linkTitle, url, favorite }) =>
+                this.VIEW_MODEL.addLink(linkTitle, url, isFavoriteAnswer(favorite)));
+    }
 
     protected render(parentElem: HTMLElement) {
         this.VIEW_MODEL.observables.subgroup
@@ -168,7 +174,7 @@ export class SubgroupComponent extends AbstractComponent<SubgroupDTO, SubGroupVi
                     actionTitle: t("subgroup.menu.addLink"),
                     onClick: () => {
                         event?.stopPropagation();
-                        this.addLinkDialog.show();
+                        this.addLinkDialog().show();
                     }
                 },
                 {

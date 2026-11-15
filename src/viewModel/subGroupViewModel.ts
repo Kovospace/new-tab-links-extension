@@ -138,7 +138,7 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
         // state$ is intentionally not fired — the component toggles the class directly
     }
 
-    public addLink(title: string | null, url: string | null): void {
+    public addLink(title: string | null, url: string | null, favorite = false): void {
         if (!title) {
             //TODO validations for user
             return;
@@ -147,6 +147,6 @@ export class SubGroupViewModel extends AbstractViewModel<SubgroupDTO> {
             //TODO validations for user
             return;
         }
-        this.REPOSITORY.createLink(url, title, this.DTO.groupId, this.DTO.id);
+        this.REPOSITORY.createLink(url, title, this.DTO.groupId, this.DTO.id, favorite);
     }
 }

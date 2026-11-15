@@ -151,6 +151,19 @@ export interface SyncOperation {
      */
     recordBrowsingHistory?: boolean;
 
+    /**
+     *  Whether this profile uses favorites (#183). Carried on every profile upsert like the
+     *  rest; the backend reads an absent value as off.
+     */
+    enableFavorites?: boolean;
+
+    /**
+     *  Whether a link is a favorite (#183). **Every link upsert carries it**: an upsert replaces
+     *  every synchronised field and the backend reads an absent value as `false`, so a rename
+     *  built without it would quietly unfavorite the link on every device.
+     */
+    favorite?: boolean;
+
     /** Whether a subgroup is folded away right now. */
     collapsed?: boolean;
     /** Whether a subgroup starts folded away. */
@@ -243,6 +256,8 @@ export interface SnapshotProfileDto {
     recordClosedTabs?: boolean;
     /** Same again, and read as off. */
     recordBrowsingHistory?: boolean;
+    /** Same again, and read as off (#183). */
+    enableFavorites?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -292,6 +307,8 @@ export interface SnapshotLinkDto {
     url: string;
     faviconUrl: string | null;
     position: number;
+    /** Absent only from a backend that does not store it yet, and read as not a favorite (#183). */
+    favorite?: boolean;
     createdAt: string;
     updatedAt: string;
 }

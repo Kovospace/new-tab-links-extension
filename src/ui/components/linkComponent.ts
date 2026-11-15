@@ -11,6 +11,8 @@ import {
     CLASS_LINK_ACTIONS_CONTAINER, CLASS_LINK_TEXT, CLASS_LINK_ICON, CLASS_ACTION_ADD,
     CLASS_ACTION_DANGER, CLASS_LINK_WRAPPER
 } from "../../constants";
+import { favoriteToggle } from "../partials/favoriteControls";
+import { favoritesEnabled } from "../../viewModel/favorites";
 
 // utils
 import {FaviconsHandler} from "../backgroundWorkerCommands/faviconsHandler";
@@ -130,6 +132,8 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
                 event?.stopPropagation();
                 this.editLinkDialog.show({ title: this.DTO.title, url: this.DTO.url });
             }));
+
+        wrapper.appendChild(favoriteToggle(linkDto.favorite, favorite => this.VIEW_MODEL.setFavorite(favorite)));
     }
 
     /**
@@ -178,6 +182,11 @@ export class LinkComponent extends AbstractComponent<LinkDTO, LinkViewModel> {
 
             // link actions
             const actions: ContextMenuAction[] = [
+                // Only while the profile uses favorites (#183).
+                ...(favoritesEnabled() ? [{
+                    label: this.DTO.favorite ? t("link.menu.removeFavorite") : t("link.menu.addFavorite"),
+                    onClick: () => this.VIEW_MODEL.setFavorite(!this.DTO.favorite)
+                }] : []),
                 {
                     label: t("link.menu.copyUrl"),
                     onClick: () => navigator.clipboard.writeText(this.DTO.url)

@@ -8,6 +8,7 @@ import { t } from '../../i18n/i18n';
 import { describeFairUseRefusal } from '../../viewModel/fairUseNoticeViewModel';
 import { validateField } from './fieldValidation';
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
+import { favoritesEnabled } from '../../viewModel/favorites';
 
 /** Shown until the page's own icon arrives, and when none can be found. */
 const ICON_DEFAULT = '/gfx/favicon-default.svg';
@@ -50,6 +51,8 @@ export class BookmarkForm {
   private subgroupSelect!: HTMLSelectElement;
   private subgroupField!: HTMLElement;
   private saveBtn!: HTMLButtonElement;
+  /** "Favorite", while the profile uses favorites (#183); null when it does not. */
+  private favoriteBox: HTMLInputElement | null = null;
 
   /** The new workspace's name; only drawn when the profile has no workspace. */
   private newWorkspaceInput: HTMLInputElement | null = null;
@@ -69,8 +72,14 @@ export class BookmarkForm {
   /**
    * @param request   the page to bookmark
    * @param viewModel supplies the destinations and stores the link; injectable for testing
+   * @param favorite  whether "Favorite" starts ticked - a closed tab, a visit or a search
+   *                  suggestion made a favorite has to be saved as a link first (#183)
    */
-  constructor(request: BookmarkRequest, viewModel: BookmarkViewModel = new BookmarkViewModel()) {
+  constructor(
+    request: BookmarkRequest,
+    viewModel: BookmarkViewModel = new BookmarkViewModel(),
+    private readonly favorite: boolean = false
+  ) {
     this.request = request;
     this.viewModel = viewModel;
   }
@@ -143,6 +152,14 @@ export class BookmarkForm {
       this.appendRow(fields, t('bookmark.fields.subgroup'), this.subgroupSelect);
     this.newSubgroupRow =
       this.appendRow(fields, t('bookmark.fields.newSubgroup'), this.newSubgroupInput);
+    if (favoritesEnabled()) {
+      this.favoriteBox = document.createElement('input');
+      this.favoriteBox.type = 'checkbox';
+      this.favoriteBox.id = 'bookmark-favorite';
+      this.favoriteBox.checked = this.favorite;
+      this.favoriteBox.classList.add('input-dialog__checkbox', 'bookmark-panel__favorite');
+      this.appendRow(fields, t('dialogs.fields.favorite'), this.favoriteBox);
+    }
 
     this.groupSelect.addEventListener('change', () => this.renderSubgroups());
     this.subgroupSelect.addEventListener('change', () => this.renderNewSubgroup());
@@ -369,7 +386,8 @@ export class BookmarkForm {
     const refusal = await this.viewModel.saveInto(
       url,
       this.nameInput.value.trim() || url,
-      destination);
+      destination,
+      this.favoriteBox?.checked === true);
 
     if (refusal) {
       // The form stays open: another workspace may still have room.

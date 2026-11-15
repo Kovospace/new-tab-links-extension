@@ -246,8 +246,6 @@ const CATEGORIES: CategoryDefinition[] = [
         key: "ui-and-behavior",
         wording: "uiAndBehavior",
         settings: [
-            { kind: "toggle", key: "enableDragAndDrop", wording: "enableDragAndDrop" },
-            { kind: "toggle", key: "hideTips", wording: "hideTips" },
             { kind: "choice", key: "theme", wording: "theme" },
             { kind: "choice", key: "themeStyle", wording: "themeStyle" },
             { kind: "range", key: "uiScale", wording: "uiScale" },
@@ -255,6 +253,17 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
             { kind: "toggle", key: "closeSidePanelOnClick", wording: "closeSidePanelOnClick" },
             { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" }
+        ]
+    },
+    {
+        // What the page can do, each switched on or off for the profile (#183): favorites,
+        // dragging, the tips. Beside how it looks, not mixed into it.
+        key: "functions",
+        wording: "functions",
+        settings: [
+            { kind: "toggle", key: "enableFavorites", wording: "enableFavorites" },
+            { kind: "toggle", key: "enableDragAndDrop", wording: "enableDragAndDrop" },
+            { kind: "toggle", key: "hideTips", wording: "hideTips" }
         ]
     },
     {

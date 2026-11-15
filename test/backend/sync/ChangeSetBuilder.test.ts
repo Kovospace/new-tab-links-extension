@@ -194,6 +194,42 @@ describe("ChangeSetBuilder", () => {
         expect(operations[0].color).toBe("purple");
     });
 
+    // #183: the backend replaces every synchronised field on an upsert and reads an absent
+    // `favorite` as false, so a rename that did not carry it would unfavorite the link.
+    it("carries a link's favorite mark when the link is only being renamed", () => {
+        const before = profileOf({ links: [{ ...link("lnk", "Mail", "https://mail.test", "grp", "env"), favorite: true }] });
+        const after = profileOf({ links: [{ ...link("lnk", "Post", "https://mail.test", "grp", "env"), favorite: true }] });
+
+        const operations = ChangeSetBuilder.build(
+            baselineOf(before), [{ id: PROFILE_ID, name: "Default", createdAt: 0 }], { [PROFILE_ID]: after });
+
+        expect(operations).toHaveLength(1);
+        expect(operations[0]).toMatchObject({ title: "Post", favorite: true });
+    });
+
+    it("pushes a link marked as a favorite, and one unmarked", () => {
+        const plain = link("lnk", "Mail", "https://mail.test", "grp", "env");
+        const marked = { ...plain, favorite: true };
+        const profiles = [{ id: PROFILE_ID, name: "Default", createdAt: 0 }];
+
+        const on = ChangeSetBuilder.build(baselineOf(profileOf({ links: [plain] })), profiles,
+            { [PROFILE_ID]: profileOf({ links: [marked] }) });
+        expect(on.map(operation => operation.favorite)).toEqual([true]);
+
+        const off = ChangeSetBuilder.build(baselineOf(profileOf({ links: [marked] })), profiles,
+            { [PROFILE_ID]: profileOf({ links: [plain] }) });
+        expect(off.map(operation => operation.favorite)).toEqual([false]);
+    });
+
+    it("says a link stored before favorites existed is not one - and pushes nothing for it", () => {
+        const stored = link("lnk", "Mail", "https://mail.test", "grp", "env");
+        const operations = ChangeSetBuilder.build(
+            baselineOf(profileOf({ links: [{ ...stored, favorite: false }] })),
+            [{ id: PROFILE_ID, name: "Default", createdAt: 0 }],
+            { [PROFILE_ID]: profileOf({ links: [stored] }) });
+        expect(operations).toEqual([]);
+    });
+
     it("says a subgroup stored before the setting existed is not catching", () => {
         // Absent locally and false on the account are the same thing, and a subgroup that
         // has simply never been touched must not push on every synchronisation.
@@ -225,7 +261,7 @@ describe("ChangeSetBuilder, profile settings", () => {
             baselineOf(),
             [{
                 id: PROFILE_ID, name: "Default", createdAt: 0,
-                settings: { enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false }
+                settings: { enableDragAndDrop: false, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false }
             }],
             { [PROFILE_ID]: emptyProfile() });
 
@@ -235,7 +271,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("says nothing about a profile whose settings did not change", () => {
-        const settings = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false };
+        const settings = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -266,7 +302,7 @@ describe("ChangeSetBuilder, profile settings", () => {
         // would turn the setting off, on every device the account reaches. Every setting has
         // to be asserted here, not just the first one: they are what a second one added
         // carelessly would silently stop carrying.
-        const settings = { enableDragAndDrop: true, hideTips: true, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false };
+        const settings = { enableDragAndDrop: true, hideTips: true, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false };
 
         const operations = ChangeSetBuilder.build(
             {
@@ -285,7 +321,7 @@ describe("ChangeSetBuilder, profile settings", () => {
     });
 
     it("pushes a profile that dismissed one more tip", () => {
-        const before = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false };
+        const before = { enableDragAndDrop: true, hideTips: false, dismissedTips: ["hide-tips"], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false };
         const after = { ...before, dismissedTips: ["hide-tips", "disable-ads"] };
 
         const operations = ChangeSetBuilder.build(
@@ -310,7 +346,7 @@ describe("ChangeSetBuilder, profile settings", () => {
                 { id: PROFILE_ID, name: "Default", createdAt: 0 },
                 {
                     id: created, name: "Fresh", createdAt: 0,
-                    settings: { enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false }
+                    settings: { enableDragAndDrop: true, hideTips: false, dismissedTips: [], recordClosedTabs: true, recordBrowsingHistory: false, enableFavorites: false }
                 }
             ],
             { [PROFILE_ID]: emptyProfile(), [created]: emptyProfile() });
@@ -489,7 +525,7 @@ describe("ChangeSetBuilder, browsing history", () => {
             { profiles: [], dataByProfileId: {} },
             [{ ...profiles[0], settings: {
                 enableDragAndDrop: true, hideTips: false, dismissedTips: [],
-                recordClosedTabs: true, recordBrowsingHistory: true } }],
+                recordClosedTabs: true, recordBrowsingHistory: true, enableFavorites: false } }],
             {});
 
         expect(operations.find(operation => operation.type === "profile")?.recordBrowsingHistory)
