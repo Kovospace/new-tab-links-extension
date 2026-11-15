@@ -279,7 +279,7 @@ feature needs no permission beyond `contextMenus`.
   `chrome.tabs.create`, never as a link.
 - **Before anything is set up, the toolbar icon welcomes rather than asks** (#172). A fresh
   install opens a new tab (`worker/module/firstRunTab.ts`, `onInstalled` with `install` only), and
-  while the active profile has no workspace - the new tab page's first-run test - a popup opened
+  while the active profile has no group - at most the starter workspace (#182) - a popup opened
   from the icon or the shortcut shows `renderWelcome`: "Open Tabilinks", "How it works" (the
   website's tour, per language in `bookmark.welcome.tourPath`) and, when the tab can be kept,
   "Save this page", which goes on to the form. A right-click entry is a deliberate save and skips it.
@@ -316,6 +316,59 @@ feature needs no permission beyond `contextMenus`.
   groups, and the subgroup dropdown is hidden only while a new group is being named. A link
   takes its `environmentId` from its group in `createLink`, never from the open workspace,
   or a link saved into another workspace would claim the wrong one.
+
+### First start: straight into a workspace (#182; `main.ts`, `ui/partials/workspaceWelcome.ts`)
+
+There is no first-run screen. A profile with no workspace is given one, the **starter**
+(`AppStateRepository.addStarterWorkspace`, "My workspace"), and the page opens on it.
+
+- **The starter is example data with nothing in it** (`isStarterWorkspace`): flagged with the
+  fingerprint of an empty workspace. Untouched, it is never synchronised, sign-in removes it
+  (`removeUntouchedExamples`), and first contact counts a profile holding only a starter as
+  empty (`SyncCoordinator.isEmpty`). Without that, every fresh install signing in would give
+  the account one more empty workspace, and a fresh install's "Default" profile would be merged
+  instead of replaced (`freshInstallSignIn.test.ts`). The first group or a rename makes it the
+  user's, and from then on it synchronises. It carries no "only an example" notice.
+- **A browser that synchronises waits for its account first** (`environmentToOpen`). Until the
+  first synchronisation ends (or 15 s pass) the page says it is loading, and makes the starter
+  only if nothing arrived. A profile left with no workspace at all reloads the page.
+- **An empty workspace shows a widget where its columns would be**: part of the page, not a
+  dialog. It has four flat icon tiles, 96x96 icons (6em) over their labels (`welcomeTiles.ts`):
+  - create new group (green);
+  - import bookmarks from the browser;
+  - log in / set up sync (only while signed out);
+  - Cancel (red).
+  It goes away once the workspace has a group. Cancel puts it away for that workspace on this
+  browser (`WorkspaceWelcomeRepository`, `workspace_welcome_dismissed`, never synchronised).
+- **Deleting the last workspace leads to the page with no workspace** (`workspaceLessPage.ts`),
+  not to a new starter: the user asked for it to be empty. `WorkspaceViewModel.deleteWorkspace`
+  marks the profile before deleting (`profiles_emptied_by_user`, per device). The page offers:
+  - create workspace (green);
+  - import links from a backup file;
+  - log in / set up sync (only while signed out);
+  - Cancel (red), which makes the starter after all.
+  The mark is cleared once the profile has a workspace again. Any other empty profile - a
+  fresh install, a new profile, one emptied by a pull - gets the starter.
+- **"Log in / set up sync" takes two steps** (`signInStepByStep`): first the method, "I have a
+  username and password" or "I have a sync code", then that method's form only, with the usual
+  device fields. Cancelling the form goes back to the choice, since a wrong guess at the method
+  is the likely reason. The menu keeps its separate log-in and sync-code entries.
+- **The examples are no longer offered anywhere.** Their code stays: existing example data
+  is still removed at sign-in. The screenshot staging builds them with
+  `buildExampleProfileData` and stores them (`stage.ts`).
+- **Bookmark import** (`viewModel/bookmarkImport.ts`, pure): every folder directly inside a
+  browser root (Bookmarks bar, Other, Mobile; Firefox's toolbar, menu, unfiled) is offered as a
+  group, plus each root's loose bookmarks under the root's name. All folders start ticked
+  (`BookmarkImportDialog`). A folder's bookmarks become the group's links and its subfolders
+  become subgroups. Anything deeper is flattened into that subgroup. Addresses go through the
+  add-link dialog's rules, so no `javascript:` bookmarklet is imported. Titles are cut to the
+  account's limits, and `dateAdded` becomes `createdAt`. The ticked set is checked whole
+  against the limits (`refusalOfImport`). Import stays disabled while it would not fit, and
+  `importGroups` makes everything in one save.
+- **`bookmarks` is an optional permission**, requested on the click
+  (`utils/browserBookmarks.ts`). Nothing may be awaited before `chrome.permissions.request`,
+  because it needs the click that asked for it. Required, it would disable the extension on
+  update until accepted.
 
 ### The strip at the bottom of the new tab page is not ours
 

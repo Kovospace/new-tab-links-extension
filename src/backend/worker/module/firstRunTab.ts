@@ -6,7 +6,8 @@ const LOG = new Logger("firstRunTab");
 
 /**
  *  Opens a new tab once, when the extension is installed, so the first thing a new user sees
- *  is the first-run screen rather than a toolbar icon to guess at (#172). That icon opens the
+ *  is the new tab page - its starter workspace and widget (#182) - rather than a toolbar icon
+ *  to guess at (#172). That icon opens the
  *  bookmarking popup, and clicking it first is what made people think the extension was only
  *  a bookmark form.
  *

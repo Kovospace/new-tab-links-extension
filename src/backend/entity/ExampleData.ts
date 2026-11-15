@@ -1,7 +1,8 @@
 import { Environment, ProfileData, ProfileMeta } from "./AppStateEntity";
 
 /**
- *  Example data: what the first-run screen loads to show what the page does.
+ *  Example data: the example set shown off in screenshots (no longer offered in the page), and the empty
+ *  starter workspace the page makes by itself (#182, `isStarterWorkspace`).
  *
  *  **A flag says it is still the example.** A workspace carries `example`, the fingerprint of
  *  the template it was loaded as; a profile carries `example: true` when it was the seeded
@@ -70,7 +71,7 @@ export function exampleFingerprintOf(data: ProfileData, workspaceId: string): st
 /**
  *  Flags every workspace in freshly built example data as example data.
  *
- *  @param data the template, exactly as the first-run screen is about to store it
+ *  @param data the template, exactly as it is about to be stored
  *  @return the same data, each workspace carrying its fingerprint
  */
 export function markedAsExample(data: ProfileData): ProfileData {
@@ -84,6 +85,25 @@ export function markedAsExample(data: ProfileData): ProfileData {
 /** Whether a workspace is still untouched example data. */
 export function isExampleWorkspace(workspace: Environment | undefined): boolean {
     return typeof workspace?.example === "string";
+}
+
+/**
+ *  Whether a workspace is the untouched starter: the empty workspace the new tab page makes
+ *  by itself when a profile has none (#182, `AppStateRepository.addStarterWorkspace`).
+ *
+ *  It is example data with nothing in it. The examples always come with groups, so an empty
+ *  flagged workspace can only be the starter. It is flagged for the same reasons the examples
+ *  are. It must not be synchronised while it is only the page's own placeholder, or every
+ *  fresh install signing in would hand the account one more empty workspace. And it is removed
+ *  at sign-in, unless the user has made it theirs. Unlike the examples it is not announced
+ *  as an example, because there is nothing in it to call one.
+ *
+ *  @param data        the profile holding the workspace
+ *  @param workspaceId which workspace
+ */
+export function isStarterWorkspace(data: Pick<ProfileData, "environments" | "groups">, workspaceId: string): boolean {
+    return isExampleWorkspace(data.environments[workspaceId])
+        && !Object.values(data.groups).some(group => group.environmentId === workspaceId);
 }
 
 /**

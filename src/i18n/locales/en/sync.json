@@ -72,5 +72,11 @@
     "upgradeTooltip": "Open your account on the website, where premium is bought",
     "audit": "Devices",
     "auditTooltip": "Open the devices page on the website, which shows what each installation holds and synchronises"
+  },
+  "signInDialog": {
+    "title": "Log in or set up sync",
+    "message": "How would you like to connect this browser to your Tabilinks account?",
+    "withPassword": "I have a username and password",
+    "withCode": "I have a sync code"
   }
 }

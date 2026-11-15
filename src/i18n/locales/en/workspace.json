@@ -17,5 +17,34 @@
   "addGroupTooltip": "Add new group",
   "errors": {
     "noName": "A workspace needs a name."
+  },
+  "starterName": "My workspace",
+  "loadingFromAccount": "Loading your links from your account…",
+  "welcome": {
+    "addGroup": "Create new group",
+    "importBookmarks": "Import bookmarks from the browser",
+    "signIn": "Log in / set up sync"
+  },
+  "bookmarkImport": {
+    "title": "Import bookmarks",
+    "message": "Each folder you tick becomes a group. Its subfolders become subgroups, and anything deeper goes into those subgroups.",
+    "folder": {
+      "one": "{name} ({count} link)",
+      "other": "{name} ({count} links)"
+    },
+    "loose": "Bookmarks in no folder",
+    "untitled": "Untitled",
+    "confirm": "Import",
+    "noPermission": "Without access to the browser's bookmarks there is nothing to import. You can try again whenever you like.",
+    "nothing": "The browser has no bookmarks that could be imported.",
+    "tooManyGroups": "That is more groups than a workspace holds ({max}). Untick some folders.",
+    "tooManySubgroups": "One of these folders has more subfolders than a group holds subgroups ({max}). Untick it.",
+    "tooManyLinks": "That is more links than a workspace holds ({max}). Untick some folders."
+  },
+  "workspaceLess": {
+    "title": "No workspace",
+    "message": "Every workspace of this profile has been deleted. Start a new one, bring your links back from a backup, or get them from your account.",
+    "create": "Create workspace",
+    "importBackup": "Import links from a backup"
   }
 }

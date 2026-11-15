@@ -26,7 +26,7 @@ import { devicePreferencesRepository, LogSync } from "../repository/DevicePrefer
 import { LimitRefusal } from "../entity/PlanLimits";
 import { fairUseRefusals, FairUseRefusals } from "../repository/FairUseRefusals";
 import { planLimits$, premiumStanding$ } from "../repository/PremiumStanding";
-import { isExampleProfile, isExampleWorkspace } from "../entity/ExampleData";
+import { isExampleProfile, isExampleWorkspace, isStarterWorkspace } from "../entity/ExampleData";
 import { accountStandingRepository } from "./AccountStandingRepository";
 import {
     AccountInventory, asName, decideSyncScope, inventoryFromLists, inventoryFromSnapshot, LocalProfile,
@@ -1703,9 +1703,15 @@ export class SyncCoordinator {
             .map(profile => profile.id));
     }
 
+    /**
+     *  Whether a profile holds nothing of the user's: no workspace, or only the untouched
+     *  starter the page makes by itself (#182). Sign-in removes the starter before first
+     *  contact (`removeUntouchedExamples`). But a page whose account was slow to answer makes
+     *  one while first contact is still to come, and that profile is still a placeholder.
+     */
     private async isEmpty(profileId: string): Promise<boolean> {
         const data = await this.readProfileData(profileId);
-        return !data || Object.keys(data.environments).length === 0;
+        return !data || Object.keys(data.environments).every(id => isStarterWorkspace(data, id));
     }
 
     private async reloadActiveProfile(): Promise<void> {

@@ -7,30 +7,32 @@ import { accountStandingRepository } from "./backend/sync/AccountStandingReposit
 import { backgroundImageRepository } from "./backend/repository/BackgroundImageRepository";
 import { backgroundLibraryRepository } from "./backend/repository/BackgroundLibraryRepository";
 import { groupSizeRepository } from "./backend/repository/GroupSizeRepository";
-import { syncCoordinator } from "./backend/sync/SyncCoordinator";
+import { workspaceWelcomeRepository } from "./backend/repository/WorkspaceWelcomeRepository";
+import { syncCoordinator, SyncActivity } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
-import { Environment } from "./backend/entity/AppStateEntity";
+import { AppState, Environment } from "./backend/entity/AppStateEntity";
 import { WorkspaceDTO } from "./viewModel/abstract/dtos"
 
 import { WorkspaceViewModel } from "./viewModel/workspaceViewModel"
 import { startFairUseNotices } from "./viewModel/fairUseNoticeViewModel"
-import { openFairUsePage, openPremiumUpgradePage, requestLogIn } from "./viewModel/syncAccountViewModel"
+import { openFairUsePage, openPremiumUpgradePage, requestLogIn, SyncAccountViewModel } from "./viewModel/syncAccountViewModel"
 import { buildWebsiteUrl, WEBSITE_PATHS } from "./backend/sync/SyncConfiguration"
 
-import {FirstRunComponent} from "./ui/components/firstRunComponent";
 import {WorkspaceComponent} from "./ui/components/workspaceComponent";
 import {GroupComponent} from "./ui/components/groupComponent";
 import {LinkComponent} from "./ui/components/linkComponent";
 import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
+import { renderWorkspaceLessPage } from "./ui/partials/workspaceLessPage";
+import { WorkspaceLessViewModel } from "./viewModel/workspaceLessViewModel";
 import { LANGUAGE_CATEGORY } from "./viewModel/settingsViewModel";
 import { PageBackground } from "./ui/partials/pageBackground";
 import { t } from "./i18n/i18n";
 import { sendToWorkerThread } from "./utils/sendToWorker";
 
 import {
-    ELEM_FIRSTRUN, ELEM_GROUP, ELEM_LINK, ELEM_SUBGROUP, ELEM_WORKSPACE
+    ELEM_GROUP, ELEM_LINK, ELEM_SUBGROUP, ELEM_WORKSPACE
 } from "./constants";
 
 /**
@@ -43,7 +45,6 @@ import './ui/styles/__3d_effects.css'
 
 import './ui/styles/reset.css'
 import './ui/styles/main.css'
-import './ui/styles/firstRun.css'
 import './ui/styles/workspace.css'
 import './ui/styles/group.css'
 import './ui/styles/subgroup.css'
@@ -58,6 +59,7 @@ import './ui/styles/_adsBar.css'
 import './ui/styles/_searchBar.css'
 import './ui/styles/_dragAndDrop.css'
 import './ui/styles/_closedTabs.css'
+import './ui/styles/_welcome.css'
 // The aero theme style. Not relied on to load last - see the note at the top of it.
 import './ui/styles/_aero.css'
 
@@ -68,7 +70,6 @@ customElements.define(ELEM_WORKSPACE, WorkspaceComponent);
 customElements.define(ELEM_GROUP, GroupComponent);
 customElements.define(ELEM_SUBGROUP, SubgroupComponent);
 customElements.define(ELEM_LINK, LinkComponent);
-customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
 
 (async () => {
 
@@ -105,6 +106,8 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     void backgroundLibraryRepository.applyInstallDefault();
     // Groups resized by hand (#173), read before any group is drawn so none of them jumps.
     await groupSizeRepository.init();
+    // Which empty workspaces already had their welcome on this browser (#182).
+    await workspaceWelcomeRepository.init();
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();
@@ -129,49 +132,49 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // create custom HTML element ONLY THAT WAY otherwise (innerHTML() method or
     // raw in html file) construction of object happens before initialized "repository"
     // is injected and program crashes
-    const currentEnvironment: Environment | null = appStateRepository.getCurrentEnvironment();
     const rootContainerElem = document.body.getElementsByTagName("main")[0];
+    const currentEnvironment: Environment | null = await environmentToOpen(rootContainerElem);
 
     if (!currentEnvironment) {
-
-        const guideElem = document.createElement(ELEM_FIRSTRUN) as FirstRunComponent;
-        guideElem.initialize(appStateRepository);
-        rootContainerElem.appendChild(guideElem);
-
-        // This screen is chosen once, from the state as it stands right now, but an account
-        // that already has links may still be arriving over the network. When it lands there
-        // is a workspace to show and this screen is the wrong one, so start again.
-        //
-        // Only when it *lands*, though. subscribe() replays the current value to a new
-        // subscriber, and the current value is the very state that chose this screen; acting
-        // on that replay would reload into the same decision and reload again, several times
-        // a second, for as long as the tab was open. So the replay is skipped and the reload
-        // is fired at most once.
-        let replayed = false;
-        let reloading = false;
-        appStateRepository.state$.subscribe(state => {
-            if (!replayed) {
-                replayed = true;
-                return;
-            }
-            if (!reloading && Object.keys(state.environments).length > 0) {
-                reloading = true;
+        // The user deleted every workspace (#182): the page with no workspace, until they make
+        // one, bring one in, or an account's arrive - which reloads into them.
+        renderWorkspaceLessPage(
+            rootContainerElem,
+            new WorkspaceLessViewModel(appStateRepository, workspaceWelcomeRepository),
+            accountViewModelForPage(),
+            sessionRepository.isSignedIn());
+        let arrived = false;
+        appStateRepository.state$.subscribe((state: AppState) => {
+            if (!arrived && Object.keys(state.environments).length > 0) {
+                arrived = true;
                 window.location.reload();
             }
         });
-
-    } else {
-
-        const workspaceDTO: WorkspaceDTO = ({
-            id: currentEnvironment.id,
-            title: currentEnvironment.name,
-            description: currentEnvironment.description
-        }) satisfies WorkspaceDTO;
-
-        const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
-        workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
-        rootContainerElem.appendChild(workspaceElement);
+        return;
     }
+    // A profile emptied by the user that has a workspace again, from any direction.
+    void workspaceWelcomeRepository.clearEmptiedByUser(appStateRepository.getActiveProfileId());
+
+    const workspaceDTO: WorkspaceDTO = ({
+        id: currentEnvironment.id,
+        title: currentEnvironment.name,
+        description: currentEnvironment.description
+    }) satisfies WorkspaceDTO;
+
+    const workspaceElement = document.createElement(ELEM_WORKSPACE) as WorkspaceComponent;
+    workspaceElement.initialize(appStateRepository, workspaceDTO, WorkspaceViewModel);
+    rootContainerElem.appendChild(workspaceElement);
+
+    // The profile was left with no workspace at all: its last one deleted, its untouched
+    // starter removed by a sign-in, a switch to an empty profile. Everything on the page is
+    // drawn for a workspace, so the page starts again and opens with a fresh one.
+    let emptied = false;
+    appStateRepository.state$.subscribe((state: AppState) => {
+        if (!emptied && Object.keys(state.environments).length === 0) {
+            emptied = true;
+            window.location.reload();
+        }
+    });
 
     // Another account's profiles have replaced the ones this page was built from - a sign-in
     // here or in another tab. Everything on the page was drawn from the old set, so it starts
@@ -196,3 +199,78 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     }
 
 })();
+
+
+/** How long a signed-in page waits for its account's workspaces before making its own. */
+const ACCOUNT_ARRIVAL_TIMEOUT_MS = 15000;
+
+/**
+ *  The workspace the page opens on, or null for the page with no workspace. There is no
+ *  first-run screen (#182): a profile with no workspace is given one, the starter
+ *  (`AppStateRepository.addStarterWorkspace`), and the page goes straight into it. The
+ *  widget there offers the ways to fill it. The exception is a profile whose last workspace
+ *  the user deleted on this browser: that one gets the page with no workspace instead.
+ *
+ *  A browser that synchronises waits for its account first. The account's workspaces may be
+ *  on their way, and a starter made before they land would only be one more workspace to
+ *  throw away. So the page says it is loading until the first synchronisation has finished,
+ *  or until a timeout runs out, and makes the starter only if nothing arrived. One made
+ *  anyway is still harmless: untouched, it is never synchronised, and first contact drops it.
+ *
+ *  @param host where the waiting notice is shown meanwhile
+ */
+async function environmentToOpen(host: HTMLElement): Promise<Environment | null> {
+    const existing = appStateRepository.getCurrentEnvironment();
+    if (existing) return existing;
+
+    if (sessionRepository.isSignedIn() && devicePreferencesRepository.preferences$.get().syncEnabled) {
+        const notice = document.createElement("p");
+        notice.classList.add("account-arrival-notice");
+        notice.textContent = t("workspace.loadingFromAccount");
+        host.appendChild(notice);
+        await accountArrival();
+        notice.remove();
+        const arrived = appStateRepository.getCurrentEnvironment();
+        if (arrived) return arrived;
+    }
+
+    if (workspaceWelcomeRepository.wasEmptiedByUser(appStateRepository.getActiveProfileId())) {
+        return null;
+    }
+    await appStateRepository.addStarterWorkspace(t("workspace.starterName"));
+    return appStateRepository.getCurrentEnvironment()!;
+}
+
+/**
+ *  Resolves once the open profile holds a workspace, a synchronisation has started and
+ *  finished, or the timeout ran out - whichever comes first.
+ */
+function accountArrival(): Promise<void> {
+    return new Promise<void>(resolve => {
+        let done = false;
+        let started = false;
+        const finish = (): void => {
+            if (done) return;
+            done = true;
+            resolve();
+        };
+        setTimeout(finish, ACCOUNT_ARRIVAL_TIMEOUT_MS);
+        appStateRepository.state$.subscribe(state => {
+            if (Object.keys(state.environments).length > 0) finish();
+        });
+        syncCoordinator.activity$.subscribe((activity: SyncActivity) => {
+            if (activity === "working") {
+                started = true;
+            } else if (started || activity === "offline") {
+                finish();
+            }
+        });
+    });
+}
+
+/** The account view model the page with no workspace signs in through. */
+function accountViewModelForPage(): SyncAccountViewModel {
+    const account = new SyncAccountViewModel();
+    account.initialize();
+    return account;
+}

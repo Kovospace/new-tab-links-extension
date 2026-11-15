@@ -82,4 +82,41 @@ describe("a fresh install signing in", () => {
         expect(appState.getCurrentEnvironment()?.id).toBe(WORKSPACE_ID);
         expect(account.snapshot().profiles.map(profile => profile.id)).toEqual([PROFILE_ID]);
     });
+
+    // #182: there is no first-run screen any more. The page makes a starter workspace at once,
+    // and a page whose account was slow to answer can make it before first contact runs.
+    it("drops the page's untouched starter workspace instead of handing it to the account", async () => {
+        await appState.addStarterWorkspace("My workspace");
+
+        await sessions.storeTokenPair({
+            accessToken: "access", accessTokenExpiresInSeconds: 900,
+            refreshToken: "refresh", userId: "kovo", username: "kovo"
+        });
+        await coordinator.synchronizeNow();
+
+        expect(profiles.getProfiles().map(profile => profile.name)).toEqual(["Personal"]);
+        expect(appState.getCurrentEnvironment()?.id).toBe(WORKSPACE_ID);
+        expect(account.snapshot().profiles.map(profile => profile.id)).toEqual([PROFILE_ID]);
+        expect(account.snapshot().environments.map(workspace => workspace.name)).toEqual(["Home"]);
+    });
+
+    it("keeps a starter workspace the user has made their own, like any other local data", async () => {
+        await appState.addStarterWorkspace("My workspace");
+        await appState.createGroup("Reading", appState.getCurrentEnvironmentId()!);
+
+        await sessions.storeTokenPair({
+            accessToken: "access", accessTokenExpiresInSeconds: 900,
+            refreshToken: "refresh", userId: "kovo", username: "kovo"
+        });
+        await coordinator.synchronizeNow();
+
+        // Not a placeholder: the profile holding it is still here, under whatever identifier
+        // first contact gave it, and so is the workspace.
+        const names: string[] = [];
+        for (const profile of profiles.getProfiles()) {
+            const data = await appState.readProfileData(profile.id);
+            names.push(...Object.values(data?.environments ?? {}).map(workspace => workspace.name));
+        }
+        expect(names).toContain("My workspace");
+    });
 });

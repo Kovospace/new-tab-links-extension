@@ -82,7 +82,7 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `tips` | hide-tips › home, the tips bar framed | `hide-tips/tipy-lokacia_3x` | Tips shown (`hideTips` off): the page with the tips bar framed |
 | `tips` | hide-tips › the tips bar, its buttons framed | `hide-tips/tipy_3x` | Close-up of the tips bar, its buttons framed |
 | `tips` | hide-tips › settings, hide tips framed | `hide-tips/tipy-obnovit_3x` | Close-up of Settings → UI and behavior, "Hide tips" framed |
-| `tips` | lets-begin › first run | `lets-begin/1_3x` | Profiles, data and the account removed: the first-run screen |
+| `tips` | lets-begin › first run | `lets-begin/1_3x` | Profiles, data and the account removed: the starter workspace and its widget (#182) |
 | `tips` | lets-begin › home with the examples | `lets-begin/2_3x` | The examples with a tip along the bottom |
 | `tips` | lets-begin › closed tabs › side panel open on the closed tabs | `lets-begin/3_3x` | The side panel open on Closed |
 | `tips` | lets-begin › a subgroup's menu | `lets-begin/4_3x` | The AI subgroup's menu open |

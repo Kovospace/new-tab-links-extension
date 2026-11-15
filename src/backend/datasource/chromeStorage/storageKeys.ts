@@ -87,6 +87,19 @@ export const DEVICE_PREFERENCES_KEY = "device_preferences";
 export const GROUP_SIZES_KEY = "group_sizes";
 
 /**
+ *  The empty workspaces whose welcome widget was cancelled on this browser (#182). Only
+ *  identifiers. Never synchronised - see `WorkspaceWelcomeRepository`.
+ */
+export const WORKSPACE_WELCOME_DISMISSED_KEY = "workspace_welcome_dismissed";
+
+/**
+ *  The profiles whose last workspace the user deleted on this browser (#182). Such a profile
+ *  opens on the page with no workspace rather than on a new starter one. Never synchronised -
+ *  see `WorkspaceWelcomeRepository`.
+ */
+export const PROFILES_EMPTIED_KEY = "profiles_emptied_by_user";
+
+/**
  *  New tabs opened and not yet reported, by local day, with when the last report was made and
  *  how long the server asked to wait before the next. Written only by the service worker, so
  *  two new tab pages opening at once cannot lose a count or send one twice.

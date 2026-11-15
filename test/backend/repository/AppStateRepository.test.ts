@@ -7,6 +7,7 @@ import { environment, group, link, profileOf, subgroup } from "../../support/pro
 import { appStateKey } from "../../../src/backend/datasource/chromeStorage/storageKeys";
 import { flushStorageNotifications, readFakeStorage } from "../../support/chromeStorageStub";
 import { AppState } from "../../../src/backend/entity/AppStateEntity";
+import { isExampleWorkspace, isStarterWorkspace } from "../../../src/backend/entity/ExampleData";
 
 const OTHER = "0199bbbb-0000-7000-8000-00000000000b";
 
@@ -1045,5 +1046,102 @@ describe("AppStateRepository.sortLinksInGroup", () => {
 
         const stored = readFakeStorage<AppState>(appStateKey(appState.state$.get().activeProfileId));
         expect(rootOf(stored!, GROUP)).toEqual(["bee", SUB, "cat", "ant"]);
+    });
+});
+
+/** #182: no first-run screen - a profile with no workspace is given an empty starter one. */
+describe("AppStateRepository.addStarterWorkspace", () => {
+
+    it("opens an empty profile on a starter that stays a starter until the user changes it", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+
+        await appState.addStarterWorkspace("My workspace");
+        const id = appState.getCurrentEnvironmentId()!;
+        expect(isStarterWorkspace(appState.state$.get(), id)).toBe(true);
+
+        await appState.createGroup("Reading", id);
+        // The first group makes it the user's: no longer example data, so it synchronises.
+        expect(isExampleWorkspace(appState.state$.get().environments[id])).toBe(false);
+    });
+
+    it("stops being a starter once renamed", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+
+        await appState.addStarterWorkspace("My workspace");
+        const id = appState.getCurrentEnvironmentId()!;
+        await appState.renameWorkspace(id, "Home");
+        expect(isExampleWorkspace(appState.state$.get().environments[id])).toBe(false);
+    });
+
+    it("makes nothing in a profile that already has a workspace", async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.addWorkspace("Work");
+
+        await appState.addStarterWorkspace("My workspace");
+        expect(Object.values(appState.state$.get().environments).map(one => one.name)).toEqual(["Work"]);
+    });
+});
+
+/** #182: bookmarks imported as groups, in one save, checked whole against the limits first. */
+describe("AppStateRepository.importGroups", () => {
+
+    const linkTo = (url: string, createdAt?: number) =>
+        ({ kind: "link" as const, title: url, url, createdAt });
+
+    async function withWorkspace(): Promise<{ appState: AppStateRepository; workspaceId: string }> {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        const appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.addWorkspace("Work");
+        await appState.createGroup("Existing", appState.getCurrentEnvironmentId()!);
+        return { appState, workspaceId: appState.getCurrentEnvironmentId()! };
+    }
+
+    it("makes the groups after the existing ones, links and subgroups in one sequence", async () => {
+        const { appState, workspaceId } = await withWorkspace();
+
+        expect(await appState.importGroups(workspaceId, [{
+            title: "Imported",
+            items: [
+                linkTo("https://a.test", 5),
+                { kind: "subgroup", title: "Tools", links: [linkTo("https://b.test"), linkTo("https://c.test")] },
+                linkTo("https://d.test")
+            ]
+        }])).toBe(true);
+
+        const state = appState.state$.get();
+        const imported = Object.values(state.groups).find(one => one.title === "Imported")!;
+        expect(imported.order).toBe(1);
+        const tools = Object.values(state.subgroups).find(one => one.groupId === imported.id)!;
+        expect(tools).toMatchObject({ title: "Tools", position: 1, collapsed: true });
+        const links = Object.values(state.links).filter(one => one.groupId === imported.id);
+        expect(links.filter(one => !one.subGroupId).map(one => [one.url, one.position]))
+            .toEqual([["https://a.test", 0], ["https://d.test", 2]]);
+        expect(links.filter(one => one.subGroupId === tools.id).map(one => [one.url, one.position]))
+            .toEqual([["https://b.test", 0], ["https://c.test", 1]]);
+        expect(links.find(one => one.url === "https://a.test")!.createdAt).toBe(5);
+        expect(links.every(one => one.environmentId === workspaceId)).toBe(true);
+    });
+
+    it("refuses the whole import when it would not fit, and makes nothing", async () => {
+        const { appState, workspaceId } = await withWorkspace();
+        const tooMany = Array.from({ length: 25 }, (_, index) => ({
+            title: `Folder ${index}`, items: [linkTo(`https://site${index}.test`)]
+        }));
+
+        expect(appState.refusalOfImport(workspaceId, tooMany)?.limit).toBe("GROUPS_PER_WORKSPACE");
+        expect(await appState.importGroups(workspaceId, tooMany)).toBe(false);
+        expect(Object.keys(appState.state$.get().groups)).toHaveLength(1);
+        expect(appState.refusalOfImport(workspaceId, tooMany.slice(0, 24))).toBeNull();
     });
 });

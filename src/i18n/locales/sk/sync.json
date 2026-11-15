@@ -74,5 +74,11 @@
     "upgradeTooltip": "Otvoriť váš účet na webe, kde sa kupuje prémiová verzia",
     "audit": "Zariadenia",
     "auditTooltip": "Otvoriť stránku zariadení na webe, kde vidno, čo každá inštalácia obsahuje a synchronizuje"
+  },
+  "signInDialog": {
+    "title": "Prihlásenie alebo synchronizácia",
+    "message": "Ako chcete pripojiť tento prehliadač k svojmu účtu Tabilinks?",
+    "withPassword": "Mám meno a heslo",
+    "withCode": "Mám kód na synchronizáciu"
   }
 }

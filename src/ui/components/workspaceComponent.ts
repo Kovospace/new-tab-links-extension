@@ -40,6 +40,11 @@ import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
+import {WorkspaceWelcome} from "../partials/workspaceWelcome";
+import {signInStepByStep} from "../partials/signInDialog";
+import {WorkspaceWelcomeViewModel} from "../../viewModel/workspaceWelcomeViewModel";
+import {workspaceWelcomeRepository} from "../../backend/repository/WorkspaceWelcomeRepository";
+import {sessionRepository} from "../../backend/sync/SessionRepository";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -141,12 +146,31 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         ({ groupName, groupDescription }) =>
           this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName, groupDescription));
 
+    /**
+     *  The widget an empty workspace shows where its columns would be (#182). Built when first
+     *  needed, because the repository is only injected after construction.
+     */
+    private welcome: WorkspaceWelcome | null = null;
+
+    private workspaceWelcome(): WorkspaceWelcome {
+        this.welcome ??= new WorkspaceWelcome(
+            new WorkspaceWelcomeViewModel(this.REPOSITORY, workspaceWelcomeRepository),
+            {
+                addGroup: workspaceId => this.actionAddGroup(workspaceId),
+                signIn: () => void signInStepByStep(this.accountViewModel, () => {}),
+                isSignedIn: () => sessionRepository.isSignedIn()
+            });
+        return this.welcome;
+    }
+
     render(parentElem: HTMLElement) {
 
         const headElem: HTMLElement = document.createElement(ELEM_WORKSPACE_HEAD);
         const bodyElem: HTMLElement = document.createElement(ELEM_WORKSPACE_BODY);
         const footElem: HTMLElement = document.createElement(ELEM_WORKSPACE_FOOTER);
         this.appendChild(headElem);
+        // The empty workspace's widget (#182), between the head and the columns it stands in for.
+        this.appendChild(this.workspaceWelcome().element);
         this.appendChild(bodyElem);
         this.appendChild(footElem);
 
@@ -164,11 +188,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
                 this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));
+                this.workspaceWelcome().update(workspace.id);
             });
 
         // page body - groups
         this.VIEW_MODEL.observables.groups
-            .subscribe(groups => this.renderGroups(bodyElem, groups));
+            .subscribe(groups => {
+                this.renderGroups(bodyElem, groups);
+                // The first group puts the widget away; the last one deleted brings it back.
+                if (this.id) this.workspaceWelcome().update(this.id);
+            });
 
         // tips, under the columns and inside the scrolling area rather than in the page
         // footer: the footer never moves, and a line of advice that is always on screen
@@ -500,6 +529,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // switch active class idependently because other sources like human action can trigger this render
         if (!workspaces) {
             return;
+        }
+        // A button is kept by its workspace's id across redraws, so a renamed workspace's
+        // button is told its new name here, or it would keep the old one until a reload.
+        for (const workspace of workspaces) {
+            const button = parentElem.querySelector<HTMLButtonElement>(
+                `button.${ACT_SWITCH_WORKSPACE}[value="${CSS.escape(workspace.id)}"]`);
+            if (button && button.textContent !== workspace.title) {
+                button.textContent = workspace.title;
+                button.title = workspace.title;
+            }
         }
         const activeWorkspace: WorkspaceDTO | undefined =  workspaces
             .find((workspace: WorkspaceDTO) => workspace.active);
