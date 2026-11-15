@@ -13,6 +13,9 @@
    --------------------------------------------------------------------------- */
 
 .ads-bar {
+    /* The banner's width, which the bar and the page in it share. */
+    --ads-slot-width: 728px;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -22,7 +25,11 @@
     align-self: center;
     flex: 0 0 auto;
 
-    width: 100%;
+    /* Only as wide as the banner and its lining (#202), not the whole footer: the
+       space beside a 728px banner was an empty strip of the bar. Fixed rather than
+       fitted to the content, so the slot holds its place while the page in it has not
+       drawn yet; narrowed with the window, never wider than it. */
+    width: calc(var(--ads-slot-width) + 2 * var(--border-lining-width-inset));
     max-width: 100%;
     /* The banner's 64px inside the same inset lining the tips card wears: box-sizing is
        border-box everywhere, so a bare 64px would cut a lining's width off the frame. */
@@ -43,7 +50,7 @@
    the bar is already the frame. `hidden` until the page reports it has drawn:
    see AdsBar. */
 .ads-bar__frame {
-    width: 728px;
+    width: var(--ads-slot-width);
     max-width: 100%;
     height: 64px;
     border: none;
