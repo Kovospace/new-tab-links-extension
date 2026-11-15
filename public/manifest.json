@@ -48,6 +48,13 @@
         "mac": "Alt+Shift+D"
       },
       "description": "__MSG_bookmarkCommand__"
+    },
+    "flash-save": {
+      "suggested_key": {
+        "default": "Alt+Shift+F",
+        "mac": "Alt+Shift+F"
+      },
+      "description": "__MSG_flashSaveCommand__"
     }
   },
   "default_locale": "en",

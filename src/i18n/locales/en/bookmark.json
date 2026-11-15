@@ -13,10 +13,13 @@
   },
   "noSubgroup": "(none)",
   "contextMenu": {
-    "page": "Bookmark this page with {extension}",
-    "link": "Bookmark this link with {extension}",
-    "groupItself": "Directly into {group}",
-    "choose": "Choose a place…"
+    "flashSave": {
+      "page": "Flash save",
+      "link": "Flash save link"
+    },
+    "addBookmark": "Add bookmark…",
+    "saveToGroup": "Save to group",
+    "groupItself": "Directly into {group}"
   },
   "nothingToBookmark": {
     "title": "Nothing to bookmark",
@@ -40,5 +43,10 @@
     "tour": "How it works",
     "saveAnyway": "Save this page",
     "tourPath": "/tour"
+  },
+  "flashSave": {
+    "groupName": "Flash save",
+    "refusedTitle": "Flash save could not save this",
+    "noRoomForGroup": "Flash save keeps links in a group called \"{group}\", and the workspace \"{workspace}\" has no room for another group - it already holds {maximum}. Delete a group, or rename one to \"{group}\" to use it instead."
   }
 }

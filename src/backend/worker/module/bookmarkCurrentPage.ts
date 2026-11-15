@@ -1,8 +1,10 @@
 import {
     BookmarkRequest,
     isBookmarkableUrl,
-    storePendingBookmark
+    storePendingBookmark,
+    storePendingNotice
 } from "../../../utils/bookmarkRequest";
+import { flashSave, FlashSaveOutcome } from "./flashSave";
 import { Logger } from "../../../utils/logger";
 import {
     APP_STATE_PREFIX,
@@ -45,12 +47,16 @@ import {
  *  the page to bookmark is left in session storage for the popup to take - see
  *  `utils/bookmarkRequest.ts` - and the popup opens onto it.
  *
- *  **Each entry is a submenu of the open workspace's groups**, and a group holding subgroups is
- *  a submenu of its own: choosing one saves the link there and then, with nothing to fill in,
- *  and the toolbar icon shows a tick. The popup stays as the last entry ("Choose a place…"),
- *  and is what a click falls back to whenever saving directly cannot be done - a full
- *  workspace, a group deleted since the menu was drawn - because the popup can say why.
- *  With no group to offer the entry is a single item that opens the popup, as it always was.
+ *  **One "Tabilinks" entry, three actions** (#204), for the page or - right-clicked on a link -
+ *  for the link. Only one of the two entries is ever shown, so Chrome draws it as it is rather
+ *  than folding it into a submenu under the extension's long store name:
+ *  - **Flash save**, first: kept there and then, in the open workspace's "Flash save" group,
+ *    made the first time (`flashSave.ts`). Its keyboard shortcut (`flash-save`) needs no menu.
+ *  - **Add bookmark…**: the popup with the form, filled in.
+ *  - **Save to group ▸**: the open workspace's groups, a group holding subgroups a submenu of its
+ *    own. Choosing one saves there and then, with nothing to fill in.
+ *  A save from the menu shows a tick on the toolbar icon. One that cannot be made - a group
+ *  deleted since the menu was drawn, a full workspace - falls back to the popup, which can say why.
  *
  *  Chrome has no "the menu is about to show" moment (Firefox's `menus.onShown` has no Chrome
  *  counterpart), so the menu is built in advance and rebuilt whenever what it shows changes:
@@ -77,8 +83,13 @@ const MENU_ITEM_PAGE = "bookmark-page";
 /** Right-click on a link: keep where that link goes, not the page it sits on. */
 const MENU_ITEM_LINK = "bookmark-link";
 
-/** The last entry of each submenu: the popup, for choosing somewhere else or editing the name. */
-const CHOOSE_SUFFIX = "|choose";
+/** The three actions under each entry (#204). */
+const FLASH_SUFFIX = "|flash";
+const FORM_SUFFIX = "|form";
+const GROUPS_SUFFIX = "|groups";
+
+/** The keyboard command that flash-saves the page in the active tab (#204). */
+const FLASH_SAVE_COMMAND = "flash-save";
 
 /** Session storage key of what the menu was last drawn from - see `rebuildMenuItemsIfChanged`. */
 const MENU_DRAWN_FROM_KEY = "bookmark_menu_drawn_from";
@@ -136,6 +147,15 @@ export function registerBookmarkContextMenu(): void {
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         menuItemClicked(info, tab)
             .catch(error => LOG.error("menuItemClicked", error));
+    });
+
+    // Flash save without the menu (#204): the page in the active tab, from a keyboard shortcut.
+    chrome.commands.onCommand.addListener((command, tab) => {
+        if (command !== FLASH_SAVE_COMMAND) {
+            return;
+        }
+        flashSaveActiveTab(tab)
+            .catch(error => LOG.error("flashSaveActiveTab", error));
     });
 }
 
@@ -211,47 +231,71 @@ async function readActiveProfileId(): Promise<string | null> {
     return registry?.activeProfileId ?? null;
 }
 
-/** The two entries, named after the extension so the menu says who is doing the keeping. */
+/**
+ *  The two entries - the page, a link - each called by the extension's short name and holding
+ *  the three actions. Only one of the two is shown on any right-click, which is what keeps
+ *  Chrome from folding them into a submenu named after the store title.
+ */
 function createMenuItems(source: MenuSource): void {
 
-    // The short name: the full one is the store title ("Tabilinks – grouped links on every
-    // new tab"), and a menu entry reading "Bookmark this page with" all of that is a sentence.
+    // The short name: the full one is the store title, far too long for a menu entry.
     const manifest = chrome.runtime.getManifest();
     const extensionName = manifest.short_name ?? manifest.name;
 
     chrome.contextMenus.create({
         id: MENU_ITEM_PAGE,
-        title: t("bookmark.contextMenu.page", { extension: extensionName }),
+        title: menuLabel(extensionName),
         // Everything but a link: right-clicking an image or a selection still means "this
         // page" to a user, and only a link means something else.
         contexts: ["page", "selection", "image", "video", "audio", "frame", "editable"],
         documentUrlPatterns: BOOKMARKABLE_PATTERNS
     });
-    createTargetItems(MENU_ITEM_PAGE, source);
+    createActionItems(MENU_ITEM_PAGE, source, "page");
 
     chrome.contextMenus.create({
         id: MENU_ITEM_LINK,
-        title: t("bookmark.contextMenu.link", { extension: extensionName }),
+        title: menuLabel(extensionName),
         contexts: ["link"],
         targetUrlPatterns: BOOKMARKABLE_PATTERNS
     });
-    createTargetItems(MENU_ITEM_LINK, source);
+    createActionItems(MENU_ITEM_LINK, source, "link");
 }
 
 /**
- *  The groups under one of the two entries, headed by the workspace they belong to, and the
- *  popup as the last choice.
+ *  Flash save, Add bookmark… and Save to group ▸ under one entry (#204). Flash save is first,
+ *  where the pointer lands when the submenu opens, so it costs the one click.
+ *
+ *  A child inherits nothing from its parent - not the contexts, not the patterns - so each is
+ *  created with `contexts: ["all"]` and is shown wherever its parent is.
+ */
+function createActionItems(parentId: string, source: MenuSource, what: "page" | "link"): void {
+    createChild(parentId, parentId + FLASH_SUFFIX, t(`bookmark.contextMenu.flashSave.${what}`));
+    createChild(parentId, parentId + FORM_SUFFIX, t("bookmark.contextMenu.addBookmark"));
+
+    const groupsId = parentId + GROUPS_SUFFIX;
+    chrome.contextMenus.create({
+        id: groupsId,
+        parentId,
+        title: menuLabel(t("bookmark.contextMenu.saveToGroup")),
+        // Nothing to choose from yet: there, but greyed out, so the menu keeps its shape.
+        enabled: source.groups.length > 0,
+        contexts: ["all"]
+    });
+    createTargetItems(parentId, groupsId, source);
+}
+
+/**
+ *  The groups under "Save to group", headed by the workspace they belong to.
  *
  *  The workspace's name is a disabled entry: it is not somewhere to put a link, only the
  *  answer to "which workspace are these groups from" - the menu is drawn ahead of time, and
  *  the workspace open on this device is whichever was open last, not necessarily the one the
  *  user has in mind.
  *
- *  A child inherits nothing from its parent - not the contexts, not the patterns - so each is
- *  created with `contexts: ["all"]` and is shown wherever its parent is. With no groups the
- *  parent is left childless, and a childless entry is itself clickable: it opens the popup.
+ *  @param prefix   the entry the identifiers are minted under, which says page or link
+ *  @param parentId the "Save to group" submenu
  */
-function createTargetItems(parentId: string, source: MenuSource): void {
+function createTargetItems(prefix: string, parentId: string, source: MenuSource): void {
     const groups = source.groups;
     if (groups.length === 0) {
         return;
@@ -269,15 +313,14 @@ function createTargetItems(parentId: string, source: MenuSource): void {
     }
 
     for (const group of groups) {
-        const groupItemId = targetMenuItemId(parentId, { groupId: group.id });
+        const groupItemId = targetMenuItemId(prefix, { groupId: group.id });
 
         if (group.subgroups.length === 0) {
             createChild(parentId, groupItemId, group.title);
             continue;
         }
 
-        // A group with subgroups is a submenu, and a submenu cannot be clicked - so the group's
-        // own root level is its first entry.
+        // A group with subgroups is a submenu: the group itself first, then its subgroups.
         const submenuId = `${groupItemId}|menu`;
         createChild(parentId, submenuId, group.title);
         createChild(submenuId, groupItemId, t("bookmark.contextMenu.groupItself", { group: group.title }));
@@ -285,13 +328,10 @@ function createTargetItems(parentId: string, source: MenuSource): void {
         for (const subgroup of group.subgroups) {
             createChild(
                 submenuId,
-                targetMenuItemId(parentId, { groupId: group.id, subgroupId: subgroup.id }),
+                targetMenuItemId(prefix, { groupId: group.id, subgroupId: subgroup.id }),
                 subgroup.title);
         }
     }
-
-    createSeparator(parentId, `${parentId}|separator`);
-    createChild(parentId, parentId + CHOOSE_SUFFIX, t("bookmark.contextMenu.choose"));
 }
 
 function createChild(parentId: string, id: string, title: string): void {
@@ -339,11 +379,17 @@ async function menuItemClicked(
         return;
     }
 
-    const target = targetOfMenuItem(menu, menuItemId);
-    if (!target) {
-        // The entry itself (no groups to offer) or "Choose a place…".
+    if (menuItemId === menu + FLASH_SUFFIX) {
+        await flashSaveAndSay(request, tab?.id);
+        return;
+    }
+    if (menuItemId === menu + FORM_SUFFIX) {
         await openFormFor(request);
         return;
+    }
+    const target = targetOfMenuItem(menu, menuItemId);
+    if (!target) {
+        return;     // The entry itself, the "Save to group" heading, the workspace's name.
     }
 
     const saved = new Promise<boolean>(resolve => {
@@ -417,6 +463,41 @@ export async function saveInto(target: BookmarkMenuTarget, request: BookmarkRequ
     return refusal === null;
 }
 
+/** Flash-saves the page in the tab the shortcut was pressed on; anything not a web page is left alone. */
+async function flashSaveActiveTab(tab: chrome.tabs.Tab | undefined): Promise<void> {
+    const active = tab ?? (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+    if (!active || !isBookmarkableUrl(active.url)) {
+        LOG.debug("flashSaveActiveTab", `Nothing to keep in ${active?.url ?? "that tab"}`);
+        return;
+    }
+    await flashSaveAndSay({ url: active.url, title: active.title ?? "", favIconUrl: active.favIconUrl }, active.id);
+}
+
+/**
+ *  Flash-saves, queued behind any other save, and says how it went: a tick on the toolbar icon;
+ *  the popup's form when there is no workspace to save into (it can make one); the popup with a
+ *  notice when a limit refused it - a workspace with no room for the "Flash save" group says so.
+ */
+async function flashSaveAndSay(request: BookmarkRequest, tabId: number | undefined): Promise<void> {
+    const outcome = await new Promise<FlashSaveOutcome | null>(resolve => {
+        saveQueue = saveQueue
+            .then(() => flashSave(request))
+            .then(resolve, error => {
+                LOG.error("flashSave", error);
+                resolve(null);
+            });
+    });
+
+    if (outcome?.kind === "saved") {
+        await showSaved(tabId);
+    } else if (outcome?.kind === "refused") {
+        await storePendingNotice({ title: outcome.title, message: outcome.message });
+        await openPopup();
+    } else {
+        await openFormFor(request);
+    }
+}
+
 /** A tick on the toolbar icon of the tab the link came from, for a moment. */
 async function showSaved(tabId: number | undefined): Promise<void> {
     try {
@@ -441,13 +522,17 @@ async function showSaved(tabId: number | undefined): Promise<void> {
 async function openFormFor(request: BookmarkRequest): Promise<void> {
 
     await storePendingBookmark(request);
+    await openPopup();
+}
 
+/** Opens the action popup, which reads whatever was left for it in session storage. */
+async function openPopup(): Promise<void> {
     try {
         await chrome.action.openPopup();
     } catch (error) {
         // The browser refuses when no window is focused, and says so rather than opening
         // something the user did not ask for. Nothing is left half-done: the request expires
         // on its own, and the toolbar icon still opens the form.
-        LOG.warn("openFormFor", `Could not open the popup: ${String(error)}`);
+        LOG.warn("openPopup", `Could not open the popup: ${String(error)}`);
     }
 }

@@ -256,15 +256,26 @@ feature needs no permission beyond `contextMenus`.
 - **Three ways in, and only one of them is code here.** The toolbar icon and the keyboard
   shortcut (`_execute_action`, suggested Alt+Shift+D) are opened by the browser itself. The
   right-click entries go through `chrome.action.openPopup()`.
-- **The right-click entries are submenus of the open workspace's groups**, and a group with
-  subgroups is a submenu of its own, its first entry being the group's root level. The
-  workspace's name heads the submenu as a disabled entry, so it says where the groups are
-  from. Choosing one
-  saves there and then from the worker (`saveInto`, through `AppStateRepository` and
-  `BookmarkViewModel.save`, so positions and the links limit are the popup's) and puts a tick
-  on the toolbar icon. The popup is the last entry ("Choose a place…") and the fallback for
-  any save that cannot happen - a full workspace, a group deleted since the menu was drawn -
-  because it can say why. With no group to offer, the entry is a single item opening the popup.
+- **The right-click menu is one "Tabilinks" entry with three actions** (#204), for the page or,
+  right-clicked on a link, for the link. Only one of the two entries is ever shown, which is what
+  keeps Chrome from folding them into a submenu titled with the long store name: three entries
+  would be, and Flash save would cost a submenu more.
+  - **Flash save**, first, so it is where the pointer lands: kept at once with no question, in
+    the open workspace's "Flash save" group, made the first time (`flashSave.ts`; the group is
+    found by its name in any language, `flashSaveGroupId`). Its keyboard shortcut
+    (`flash-save`, suggested Alt+Shift+F) needs no menu at all. Refused by a limit - a
+    workspace with no room for the group says so by name - the popup opens on a notice the
+    worker leaves in session storage (`storePendingNotice`): the worker cannot show an alert,
+    and a system notification would need a permission more, which disables the extension on
+    update until accepted. No workspace at all opens the form, which can make one.
+  - **Add bookmark…**: the popup with the form, filled in.
+  - **Save to group ▸**: the open workspace's groups, headed by its name as a disabled entry; a
+    group with subgroups is a submenu of its own, its first entry the group's root level. Greyed
+    out with no group to offer. Choosing one saves there and then from the worker (`saveInto`,
+    through `AppStateRepository` and `BookmarkViewModel.save`, so positions and the links limit
+    are the popup's) and puts a tick on the toolbar icon; a save that cannot happen - a full
+    workspace, a group deleted since the menu was drawn - falls back to the popup, which can
+    say why.
   Chrome has no "menu is about to show" event, so the menu is rebuilt from storage whenever the
   registry, a profile's data or the device preferences change - but only when the tree
   (`bookmarkMenuTree.ts`, pure) differs from the one last drawn, kept in session storage, or

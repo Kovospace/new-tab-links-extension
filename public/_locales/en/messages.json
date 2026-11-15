@@ -18,5 +18,9 @@
   "bookmarkCommand": {
     "message": "Bookmark the current page",
     "description": "What the keyboard shortcut does, shown on the browser's shortcuts page."
+  },
+  "flashSaveCommand": {
+    "message": "Flash save the current page",
+    "description": "What the Flash save keyboard shortcut does, shown on the browser's shortcuts page."
   }
 }
