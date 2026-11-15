@@ -2,6 +2,39 @@ import { buildWebsiteUrl, SYNC_CONFIGURATION, WEBSITE_PATHS } from '../../backen
 import { currentLanguage } from '../../i18n/i18n';
 import { accountStandingRepository } from '../../backend/sync/AccountStandingRepository';
 import { ObservableValue } from '../../utils/observableValue';
+import { devicePreferencesRepository, DevicePreferencesRepository } from '../../backend/repository/DevicePreferencesRepository';
+import { ACCENT_SWATCHES } from '../../viewModel/settingsViewModel';
+
+/**
+ * How the slot page should draw itself to match this page (#180): the theme in force - "auto"
+ * resolved to what the system answers - and the accent colour as six hex digits. The slot page
+ * reads them as `?theme=` and `?accent=`; without them it follows the system and draws blue.
+ */
+export interface SlotLook {
+  theme: 'light' | 'dark';
+  accent: string;
+}
+
+/**
+ * This page's look, kept current: it changes with the theme and accent preferences, from any page,
+ * and - while the theme follows the system - with the system's own light or dark.
+ */
+export function followSlotLook(
+  preferences: Pick<DevicePreferencesRepository, 'preferences$'> = devicePreferencesRepository,
+  systemDark: MediaQueryList | null = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null
+): ObservableValue<SlotLook> {
+  const lookNow = (): SlotLook => {
+    const { theme, accentColor } = preferences.preferences$.get();
+    return {
+      theme: theme === 'light' || theme === 'dark' ? theme : (systemDark?.matches ? 'dark' : 'light'),
+      accent: (ACCENT_SWATCHES[accentColor] ?? ACCENT_SWATCHES.blue).replace('#', '')
+    };
+  };
+  const look$ = new ObservableValue<SlotLook>(lookNow());
+  preferences.preferences$.subscribe(() => look$.set(lookNow()));
+  systemDark?.addEventListener('change', () => look$.set(lookNow()));
+  return look$;
+}
 
 /** What the slot page posts to its parent once it has drawn something worth showing. */
 export const AD_SLOT_READY_MESSAGE = 'tabilinks-ad-slot-ready';
@@ -44,11 +77,15 @@ export class AdsBar {
   private frame: HTMLIFrameElement | null = null;
   private unsubscribe: (() => void) | null = null;
 
+  private unsubscribeLook: (() => void) | null = null;
+
   /**
    * @param premium$ whether the account is premium; the account standing in normal use
+   * @param look$    how the slot page should draw itself to match this page (#180)
    */
   constructor(
-    private readonly premium$: ObservableValue<boolean> = accountStandingRepository.premium$
+    private readonly premium$: ObservableValue<boolean> = accountStandingRepository.premium$,
+    private readonly look$: ObservableValue<SlotLook> = followSlotLook()
   ) {}
 
   /**
@@ -70,6 +107,26 @@ export class AdsBar {
     host.appendChild(this.container);
 
     this.unsubscribe = this.premium$.subscribe(premium => this.showFor(premium));
+    // A changed theme or accent reloads the slot page with the new look; it stays hidden until
+    // it says it has drawn again, so the old look is never seen next to the new one.
+    this.unsubscribeLook = this.look$.subscribe(() => {
+      const wanted = this.slotUrl();
+      // Only on a real change: subscribing replays the current look, which the frame already has.
+      if (this.frame && this.frame.src !== wanted) {
+        this.frame.hidden = true;
+        this.frame.src = wanted;
+      }
+    });
+  }
+
+  /** The slot page's address: its language, and the look it should take (#180). */
+  private slotUrl(): string {
+    const url = new URL(buildWebsiteUrl(WEBSITE_PATHS.adSlot));
+    url.searchParams.set('lang', currentLanguage());
+    const look = this.look$.get();
+    url.searchParams.set('theme', look.theme);
+    url.searchParams.set('accent', look.accent);
+    return url.href;
   }
 
   /** Draws the slot for a free account and takes it away for a premium one. */
@@ -98,9 +155,7 @@ export class AdsBar {
     const frame = document.createElement('iframe');
     frame.classList.add('ads-bar__frame');
 
-    const url = new URL(buildWebsiteUrl(WEBSITE_PATHS.adSlot));
-    url.searchParams.set('lang', currentLanguage());
-    frame.src = url.href;
+    frame.src = this.slotUrl();
 
     frame.setAttribute('sandbox',
       'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox');
@@ -131,6 +186,8 @@ export class AdsBar {
   public dispose(): void {
     this.unsubscribe?.();
     this.unsubscribe = null;
+    this.unsubscribeLook?.();
+    this.unsubscribeLook = null;
     this.removeFrame();
     this.container?.remove();
     this.container = null;
