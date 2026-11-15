@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
     bookmarkMenuTree,
-    bookmarkMenuWorkspaceName,
     targetMenuItemId,
     targetOfMenuItem
 } from "../../../../src/backend/worker/module/bookmarkMenuTree";
@@ -59,19 +58,6 @@ describe("bookmarkMenuTree", () => {
 
     it("offers nothing without a profile, which leaves the entry that opens the popup", () => {
         expect(bookmarkMenuTree(null)).toEqual([]);
-    });
-});
-
-/** The disabled heading of the submenu, naming the workspace its groups come from. */
-describe("bookmarkMenuWorkspaceName", () => {
-
-    it("names the workspace whose groups are offered", () => {
-        expect(bookmarkMenuWorkspaceName(state("env-home"))).toBe("Home");
-        expect(bookmarkMenuWorkspaceName(state("env-deleted"))).toBe("Work");
-    });
-
-    it("names nothing without a profile", () => {
-        expect(bookmarkMenuWorkspaceName(null)).toBeNull();
     });
 });
 

@@ -25,7 +25,6 @@ import {
     BookmarkMenuGroup,
     BookmarkMenuTarget,
     bookmarkMenuTree,
-    bookmarkMenuWorkspaceName,
     targetMenuItemId,
     targetOfMenuItem
 } from "./bookmarkMenuTree";
@@ -121,7 +120,6 @@ interface MenuSource {
     language: string;
     /** The three actions, or Flash save alone at the menu's root (#204). */
     mode: ContextMenuMode;
-    workspaceName: string | null;
     groups: BookmarkMenuGroup[];
 }
 
@@ -192,7 +190,6 @@ async function rebuildMenuItemsIfChanged(always: boolean): Promise<void> {
     const source: MenuSource = {
         language: currentLanguage(),
         mode,
-        workspaceName: bookmarkMenuWorkspaceName(state),
         groups: bookmarkMenuTree(state)
     };
 
@@ -319,12 +316,9 @@ function createActionItems(parentId: string, source: MenuSource, what: "page" | 
 }
 
 /**
- *  The groups under "Save to group", headed by the workspace they belong to.
- *
- *  The workspace's name is a disabled entry: it is not somewhere to put a link, only the
- *  answer to "which workspace are these groups from" - the menu is drawn ahead of time, and
- *  the workspace open on this device is whichever was open last, not necessarily the one the
- *  user has in mind.
+ *  The groups under "Save to group" - the open workspace's - and nothing else in it. There used
+ *  to be a greyed-out heading naming the workspace, and it read as a group that could not be
+ *  chosen (#204), so every entry in the submenu is now something to save into.
  *
  *  @param prefix   the entry the identifiers are minted under, which says page or link
  *  @param parentId the "Save to group" submenu
@@ -333,17 +327,6 @@ function createTargetItems(prefix: string, parentId: string, source: MenuSource)
     const groups = source.groups;
     if (groups.length === 0) {
         return;
-    }
-
-    if (source.workspaceName) {
-        chrome.contextMenus.create({
-            id: `${parentId}|workspace`,
-            parentId,
-            title: menuLabel(source.workspaceName),
-            enabled: false,
-            contexts: ["all"]
-        });
-        createSeparator(parentId, `${parentId}|workspace-separator`);
     }
 
     for (const group of groups) {

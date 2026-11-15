@@ -66,17 +66,6 @@ export function bookmarkMenuTree(state: AppState | null): BookmarkMenuGroup[] {
         }));
 }
 
-/**
- *  The name of the workspace the submenu offers the groups of, shown at its top so it is
- *  clear which workspace a link is going into.
- *
- *  @param state the active profile's stored data, or null when nothing is stored
- */
-export function bookmarkMenuWorkspaceName(state: AppState | null): string | null {
-    const workspaceId = state ? openWorkspaceId(state) : null;
-    return workspaceId ? state!.environments[workspaceId]?.name ?? null : null;
-}
-
 /** The workspace open on this device, or null when the profile has none. */
 export function openWorkspaceId(state: AppState): string | null {
     const environments = state.environments ?? {};

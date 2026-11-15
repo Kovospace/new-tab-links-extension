@@ -269,7 +269,8 @@ feature needs no permission beyond `contextMenus`.
     and a system notification would need a permission more, which disables the extension on
     update until accepted. No workspace at all opens the form, which can make one.
   - **Add bookmark…**: the popup with the form, filled in.
-  - **Save to group ▸**: the open workspace's groups, headed by its name as a disabled entry; a
+  - **Save to group ▸**: the open workspace's groups and nothing else - a greyed-out heading
+    naming the workspace read as a group that could not be chosen, and was removed; a
     group with subgroups is a submenu of its own, its first entry the group's root level. Greyed
     out with no group to offer. Choosing one saves there and then from the worker (`saveInto`,
     through `AppStateRepository` and `BookmarkViewModel.save`, so positions and the links limit
