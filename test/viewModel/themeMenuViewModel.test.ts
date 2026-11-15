@@ -33,9 +33,9 @@ describe("ThemeMenuViewModel", () => {
 
     it("names the theme in force on the button", () => {
         expect(new ThemeMenuViewModel(fakePreferences("auto")).menu$.get().buttonLabel)
-            .toBe("Mode: System");
+            .toBe("Theme: System");
         expect(new ThemeMenuViewModel(fakePreferences("light")).menu$.get().buttonLabel)
-            .toBe("Mode: Light");
+            .toBe("Theme: Light");
     });
 
     it("puts a chosen theme in force and ticks it instead", async () => {

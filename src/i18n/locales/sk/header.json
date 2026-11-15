@@ -5,11 +5,11 @@
   "profilesMenu": "Zoznam profilov",
   "applicationMenu": "Menu aplikácie",
   "themeMenu": "Svetlý alebo tmavý vzhľad",
-  "themeButton": "Režim: {mode}",
+  "themeButton": "Téma: {mode}",
   "themeModes": {
     "auto": "Systém",
-    "light": "Svetlý",
-    "dark": "Tmavý"
+    "light": "Svetlá",
+    "dark": "Tmavá"
   },
   "profileButton": "Profil: {name}",
   "noProfile": "...",

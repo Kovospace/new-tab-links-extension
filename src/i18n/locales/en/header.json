@@ -5,7 +5,7 @@
   "profilesMenu": "User profiles list",
   "applicationMenu": "Application menu",
   "themeMenu": "Light or dark theme",
-  "themeButton": "Mode: {mode}",
+  "themeButton": "Theme: {mode}",
   "themeModes": {
     "auto": "System",
     "light": "Light",

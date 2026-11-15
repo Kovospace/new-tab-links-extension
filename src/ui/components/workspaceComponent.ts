@@ -306,7 +306,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
 
     /**
      *  The theme switcher, before the profiles menu (#155): its button names the theme in force
-     *  ("Mode: Light"), drawn like the profiles button beside it, and each theme is a checkable item - the look of the account menu's
+     *  ("Theme: Light"), drawn like the profiles button beside it, and each theme is a checkable item - the look of the account menu's
      *  "Synchronized" - so the menu says which one is set before anything is picked.
      */
     private renderThemeMenu(parentElem: HTMLElement): void {

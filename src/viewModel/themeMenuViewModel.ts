@@ -14,7 +14,7 @@ export type ThemeOptionDTO = {
 /** What the header's theme menu draws: the themes, and the one this browser is set to. */
 export type ThemeMenuDTO = {
     chosen: ThemeId;
-    /** The menu's button, naming the theme in force: "Mode: Light". */
+    /** The menu's button, naming the theme in force: "Theme: Light". */
     buttonLabel: string;
     options: ThemeOptionDTO[];
 };
