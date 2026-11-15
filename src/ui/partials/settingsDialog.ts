@@ -252,6 +252,11 @@ export class SettingsDialog {
     title.textContent = setting.title;
     title.htmlFor = `settings-choice-${setting.key}`;
 
+    // A choice of colours is a row of swatches, not a dropdown of colour names (#200).
+    if (setting.options.length > 0 && setting.options.every(option => option.swatch)) {
+      return this.buildSwatches(setting, row, text, heading, title);
+    }
+
     const select = document.createElement('select');
     select.id = title.htmlFor;
     select.classList.add('editable', 'input-dialog__input', 'input-dialog__select',
@@ -274,6 +279,48 @@ export class SettingsDialog {
     heading.appendChild(title);
     text.appendChild(heading);
     text.appendChild(select);
+    text.appendChild(explanation);
+    row.appendChild(text);
+    return row;
+  }
+
+  /**
+   * A choice whose answers are colours - the accent (#200): one round swatch per answer, the
+   * chosen one ringed, each named by its tooltip and for a screen reader. A radio group, so the
+   * arrow keys move between them as they would between radio buttons.
+   */
+  private buildSwatches(
+    setting: ChoiceSettingDTO, row: HTMLElement, text: HTMLElement,
+    heading: HTMLElement, title: HTMLLabelElement
+  ): HTMLElement {
+    title.removeAttribute('for');
+    heading.appendChild(title);
+    const swatches = document.createElement('div');
+    swatches.classList.add('settings-dialog__swatches');
+    swatches.setAttribute('role', 'radiogroup');
+    swatches.setAttribute('aria-label', setting.title);
+
+    for (const option of setting.options) {
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      swatch.classList.add('settings-dialog__swatch');
+      swatch.style.setProperty('--swatch-color', option.swatch!);
+      swatch.title = option.label;
+      swatch.setAttribute('role', 'radio');
+      swatch.setAttribute('aria-label', option.label);
+      swatch.setAttribute('aria-checked', String(option.value === setting.value));
+      swatch.dataset.value = option.value;
+      swatch.disabled = Boolean(setting.disabledReason);
+      swatch.addEventListener('click', () => void this.answerChoice(setting, option.value));
+      swatches.appendChild(swatch);
+    }
+
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = setting.disabledReason ?? setting.explanation;
+
+    text.appendChild(heading);
+    text.appendChild(swatches);
     text.appendChild(explanation);
     row.appendChild(text);
     return row;

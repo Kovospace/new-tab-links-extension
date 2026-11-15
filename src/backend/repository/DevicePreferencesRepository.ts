@@ -118,6 +118,13 @@ export interface DevicePreferences {
      *  with the theme, for the same reason: it is a matter of this screen and its background.
      */
     themeStyle: ThemeStyleId;
+
+    /**
+     *  The accent colour (#200): what the active and hovered buttons, the chosen tab and the
+     *  focused field's border are painted in. Blue by default, as it always was. Per device
+     *  with the theme: it is how this screen looks.
+     */
+    accentColor: AccentColorId;
 }
 
 /** Which logs this browser synchronises, as the synchronisation layer reads it. */
@@ -140,6 +147,23 @@ export const DEFAULT_THEME_STYLE: ThemeStyleId = "aero";
 /** The style a stored value names, or the default for anything this version does not know. */
 export function normalizeThemeStyle(value?: string | null): ThemeStyleId {
     return THEME_STYLES.includes(value as ThemeStyleId) ? value as ThemeStyleId : DEFAULT_THEME_STYLE;
+}
+
+/**
+ *  The accent colours on offer (#200). None is red, green or grey, which already mean
+ *  something here - delete, add, inactive - and each is legible under its own text colour in
+ *  both themes. The colours themselves are in `__variables.css`, under `data-accent`.
+ */
+export type AccentColorId = "blue" | "indigo" | "violet" | "magenta" | "teal" | "orange" | "amber";
+export const ACCENT_COLORS: AccentColorId[] =
+    ["blue", "indigo", "violet", "magenta", "teal", "orange", "amber"];
+
+/** Blue, which is what the page was before there was a choice. */
+export const DEFAULT_ACCENT_COLOR: AccentColorId = "blue";
+
+/** The accent a stored value names, or the default for anything this version does not know. */
+export function normalizeAccentColor(value?: string | null): AccentColorId {
+    return ACCENT_COLORS.includes(value as AccentColorId) ? value as AccentColorId : DEFAULT_ACCENT_COLOR;
 }
 
 /** The themes on offer: following the system, or one of the two regardless of it. */
@@ -205,7 +229,8 @@ const DEFAULTS: DevicePreferences = {
     syncClosedTabs: true,
     syncBrowsingHistory: true,
     theme: DEFAULT_THEME,
-    themeStyle: DEFAULT_THEME_STYLE
+    themeStyle: DEFAULT_THEME_STYLE,
+    accentColor: DEFAULT_ACCENT_COLOR
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -568,14 +593,36 @@ export class DevicePreferencesRepository {
         this.publish();
     }
 
+    /** The accent colour of this browser (#200). */
+    public getAccentColor(): AccentColorId {
+        return this.preferences.accentColor;
+    }
+
     /**
-     *  Draws the page in the stored theme and style, now and whenever they change - here or in
-     *  another page of this browser. Called before anything is drawn, beside `applyScale()`.
+     *  Chooses the accent colour, in force at once like the theme (#200).
+     *
+     *  @param accent one of the accents on offer; anything else means the default, blue
+     */
+    public async setAccentColor(accent: string): Promise<void> {
+        const wanted = normalizeAccentColor(accent);
+        if (wanted === this.preferences.accentColor) {
+            return;
+        }
+        this.preferences = { ...this.preferences, accentColor: wanted };
+        this.LOG.debug("setAccentColor", wanted);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
+    /**
+     *  Draws the page in the stored theme, style and accent, now and whenever they change - here
+     *  or in another page of this browser. Called before anything is drawn, beside `applyScale()`.
      */
     public followTheme(): void {
         this.preferences$.subscribe(preferences => {
             applyThemeTo(document.documentElement, preferences.theme);
             applyThemeStyleTo(document.documentElement, preferences.themeStyle);
+            applyAccentTo(document.documentElement, preferences.accentColor);
         });
     }
 
@@ -623,7 +670,8 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
         syncClosedTabs: stored?.syncClosedTabs !== false,
         syncBrowsingHistory: stored?.syncBrowsingHistory !== false,
         theme: normalizeTheme(stored?.theme),
-        themeStyle: normalizeThemeStyle(stored?.themeStyle)
+        themeStyle: normalizeThemeStyle(stored?.themeStyle),
+        accentColor: normalizeAccentColor(stored?.accentColor)
     };
 }
 
@@ -666,6 +714,14 @@ export function applyThemeTo(root: HTMLElement, theme: ThemeId): void {
  */
 export function applyThemeStyleTo(root: HTMLElement, style: ThemeStyleId): void {
     root.dataset.themeStyle = normalizeThemeStyle(style);
+}
+
+/**
+ *  Marks a root element with its accent colour (#200). `__variables.css` keys the accent's
+ *  colours - background, hover, and the text on each - off `data-accent`.
+ */
+export function applyAccentTo(root: HTMLElement, accent: AccentColorId): void {
+    root.dataset.accent = normalizeAccentColor(accent);
 }
 
 export const devicePreferencesRepository = new DevicePreferencesRepository();

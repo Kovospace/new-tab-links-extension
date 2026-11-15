@@ -115,6 +115,19 @@
       "aero": "Aero (priehľadný, rozmazaný)"
     }
   },
+  "accentColor": {
+    "title": "Farba zvýraznenia",
+    "explanation": "Farba aktívnych a zvýraznených tlačidiel, zvolenej karty a aktívneho poľa. Zostáva len na tomto zariadení.",
+    "options": {
+      "blue": "Modrá",
+      "indigo": "Indigová",
+      "violet": "Fialová",
+      "magenta": "Purpurová",
+      "teal": "Tyrkysová",
+      "orange": "Oranžová",
+      "amber": "Jantárová"
+    }
+  },
   "enableFavorites": {
     "title": "Obľúbené",
     "explanation": "Označte odkazy ako obľúbené krúžkom vedľa každého z nich alebo z ponuky odkazu. Obľúbené sa zobrazia v bočnom paneli a v okne ikony na lište, pre otvorenú plochu."

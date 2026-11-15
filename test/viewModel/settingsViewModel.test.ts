@@ -634,6 +634,43 @@ describe("SettingsViewModel, the theme style", () => {
 });
 
 
+/** #200: the accent colour, beside the theme style, drawn as swatches, applied without a reload. */
+describe("SettingsViewModel, the accent colour", () => {
+
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences);
+        settings.refresh();
+    });
+
+    const accent = () => settings.observables.settings.get().categories[0].settings
+        .find(setting => setting.key === "accentColor");
+
+    it("is offered right after the theme style, every answer a swatch, on blue", () => {
+        const keys = settings.observables.settings.get().categories[0].settings.map(setting => setting.key);
+        expect(keys.indexOf("accentColor")).toBe(keys.indexOf("themeStyle") + 1);
+        const setting = accent();
+        expect(setting).toMatchObject({ kind: "choice", value: "blue" });
+        if (setting?.kind === "choice") {
+            expect(setting.options.every(option => option.swatch)).toBe(true);
+            expect(setting.options[0]).toMatchObject({ value: "blue", label: "Blue", swatch: "#0036ff" });
+        }
+    });
+
+    it("stores an accent chosen, without asking for a reload", async () => {
+        expect(await settings.setChoice("accentColor", "amber")).toBe(false);
+
+        expect(devicePreferences.getAccentColor()).toBe("amber");
+        expect(accent()).toMatchObject({ value: "amber" });
+    });
+});
+
 /** The background picture is open to every account: no premium check, nothing greyed out. */
 describe("SettingsViewModel, the background library", () => {
 

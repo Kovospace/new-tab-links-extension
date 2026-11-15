@@ -115,6 +115,19 @@
       "aero": "Aero (transparent, blurred)"
     }
   },
+  "accentColor": {
+    "title": "Accent colour",
+    "explanation": "The colour of active and highlighted buttons, the chosen tab and a focused field. Kept on this device only.",
+    "options": {
+      "blue": "Blue",
+      "indigo": "Indigo",
+      "violet": "Violet",
+      "magenta": "Magenta",
+      "teal": "Teal",
+      "orange": "Orange",
+      "amber": "Amber"
+    }
+  },
   "enableFavorites": {
     "title": "Favorites",
     "explanation": "Mark links as favorites with the circle beside each one, or from a link's menu. Favorites are listed in the side panel and in the toolbar popup, for the open workspace."

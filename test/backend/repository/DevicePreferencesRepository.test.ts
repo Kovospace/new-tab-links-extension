@@ -283,6 +283,45 @@ describe("DevicePreferencesRepository, the theme style", () => {
     });
 });
 
+/** #200: the accent colour, blue unless chosen, on the root as `data-accent`. */
+describe("DevicePreferencesRepository, the accent colour", () => {
+
+    let preferences: DevicePreferencesRepository;
+
+    beforeEach(async () => {
+        preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        delete document.documentElement.dataset.accent;
+    });
+
+    it("is blue on a device nobody has set it on, and on a record from before it existed", async () => {
+        expect(preferences.getAccentColor()).toBe("blue");
+
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { theme: "dark", themeStyle: "flat" });
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getAccentColor()).toBe("blue");
+    });
+
+    it("remembers an accent chosen, and reads one it does not offer as blue", async () => {
+        await preferences.setAccentColor("teal");
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getAccentColor()).toBe("teal");
+
+        await preferences.setAccentColor("corporate-blue");
+        expect(preferences.getAccentColor()).toBe("blue");
+    });
+
+    it("marks the root element at once, and again when the accent changes", async () => {
+        preferences.followTheme();
+        expect(document.documentElement.dataset.accent).toBe("blue");
+
+        await preferences.setAccentColor("violet");
+        expect(document.documentElement.dataset.accent).toBe("violet");
+    });
+});
+
 /**
  *  How long the closed-tabs rail waits for the pointer before it opens. Clamped like the size,
  *  because storage the slider never wrote can say anything.
