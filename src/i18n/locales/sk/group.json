@@ -26,11 +26,20 @@
     "saveTitle": "Uložiť názov skupiny",
     "manageLinks": "Spravovať odkazy",
     "finishManagingLinks": "Ukončiť úpravu odkazov skupiny",
+    "sortLinks": "Zoradiť odkazy",
     "moveLeft": "Posunúť skupinu doľava",
     "moveRight": "Posunúť skupinu doprava",
     "migrate": "Presunúť na inú plochu",
     "delete": "Zmazať skupinu",
     "deleteConfirmation": "Zmažú sa všetky odkazy a podskupiny, ktoré do tejto skupiny patria."
+  },
+  "sortDialog": {
+    "title": "Zoradiť odkazy",
+    "message": "Zoradí odkazy tejto skupiny, aj vo vnútri podskupín. Podskupiny zostanú na svojom mieste.",
+    "newest": "Najnovšie prvé",
+    "oldest": "Najstaršie prvé",
+    "nameAsc": "Názov A–Z",
+    "nameDesc": "Názov Z–A"
   },
   "migrateDialog": {
     "title": "Presunúť skupinu na inú plochu",

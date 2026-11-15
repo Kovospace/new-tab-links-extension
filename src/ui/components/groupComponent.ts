@@ -32,6 +32,8 @@ import {OptionsMenu} from "../partials/optionsMenu";
 import { toggleManageLinksMode } from "../partials/manageLinksMode";
 import {InputDialog} from "../partials/inputDialog";
 import {SelectDialog} from "../partials/selectDialog";
+import { ChoiceDialog } from "../partials/choiceDialog";
+import { LinkSortOrder } from "../../backend/repository/linkSorting";
 import { showNotice } from "../partials/confirmations";
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../backend/sync/SyncContracts";
 import {
@@ -117,6 +119,10 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
                 {
                     actionTitle: t("group.menu.manageLinks"),
                     onClick: () => this.toggleLinksManagementOptions(event?.target as HTMLElement)
+                },
+                {
+                    actionTitle: t("group.menu.sortLinks"),
+                    onClick: () => void this.actionSortLinks()
                 },
                 {
                     actionTitle: t("group.menu.moveLeft"),
@@ -286,6 +292,26 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
      * built at construction time would still be offering a workspace that has since been
      * renamed or deleted.
      */
+    /**
+     * Asks which order, then puts the links in it (#184). One item in the menu and the four
+     * orders in a dialog, rather than four items in a menu that already has eight.
+     */
+    private async actionSortLinks(): Promise<void> {
+        const order = await new ChoiceDialog<LinkSortOrder | 'cancel'>(
+            t("group.sortDialog.title"),
+            t("group.sortDialog.message"),
+            [
+                { label: t("group.sortDialog.newest"), value: "newest" },
+                { label: t("group.sortDialog.oldest"), value: "oldest" },
+                { label: t("group.sortDialog.nameAsc"), value: "nameAsc" },
+                { label: t("group.sortDialog.nameDesc"), value: "nameDesc" },
+                { label: t("common.cancel"), value: "cancel" }
+            ]).ask();
+        if (order && order !== "cancel") {
+            this.VIEW_MODEL.sortLinks(order);
+        }
+    }
+
     private async actionMigrateToWorkspace(): Promise<void> {
         const workspaces: WorkspaceDTO[] = this.VIEW_MODEL.getWorkspacesToMigrateInto();
         if (workspaces.length === 0) {

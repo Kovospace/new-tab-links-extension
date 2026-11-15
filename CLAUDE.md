@@ -930,6 +930,12 @@ subgroup and land on its position. Links inside a subgroup are their own sequenc
 Reordering renumbers the whole scope from index 0 rather than adding one to a position,
 because stored data is not guaranteed to be a clean `0..n-1`: subgroups were once created at
 position 0 whatever the group already held.
+**"Sort links" in a group's menu reorders once** (#184; `AppStateRepository.sortLinksInGroup`,
+`repository/linkSorting.ts`): newest or oldest first by `createdAt`, or by name A-Z / Z-A
+(title, else address; case, accents and numbers read as a person would). It renumbers
+positions and nothing more - no mode is stored, so it synchronises as any drag does and a link
+added later goes to the end. Subgroups keep their slots among the group's own links; each
+subgroup's links are sorted too.
 
 ### UI Component Hierarchy
 
