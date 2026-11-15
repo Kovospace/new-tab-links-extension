@@ -14,6 +14,7 @@ import {
 import {fairUseRefusals, FairUseRefusals} from "./FairUseRefusals";
 import {planLimits$, premiumStanding$} from "./PremiumStanding";
 import {withExampleFlagsSettled} from "../entity/ExampleData";
+import {LinkSortOrder, sortedIntoLinkSlots} from "./linkSorting";
 
 export class AppStateRepository {
 
@@ -401,6 +402,38 @@ export class AppStateRepository {
             }
           }
         };
+        return this.save();
+    }
+
+    /**
+     * Puts a group's links in an order, once (#184): its own links, and each subgroup's.
+     *
+     * A one-off reorder rather than a mode the group keeps: what changes is positions, which
+     * synchronise like any drag does, and a link added afterwards goes to the end as always.
+     * Subgroups keep their places among the group's own links (`sortedIntoLinkSlots`). Every
+     * sequence is renumbered from zero, as every other reorder here is.
+     */
+    sortLinksInGroup(groupId: string, order: LinkSortOrder): Promise<AppState> {
+        if (!this.state.groups[groupId]) return Promise.resolve(this.state);
+
+        const links = { ...this.state.links };
+        const subgroups = { ...this.state.subgroups };
+        const renumber = (sequence: GroupItem[]) => sequence.forEach((item, position) => {
+            if (links[item.id]) {
+                links[item.id] = { ...links[item.id], position };
+            } else {
+                subgroups[item.id] = { ...subgroups[item.id], position };
+            }
+        });
+
+        const isLink = (item: GroupItem) => item.id in this.state.links;
+        renumber(sortedIntoLinkSlots(this.itemsInScope(groupId, undefined), isLink, order));
+        Object.values(this.state.subgroups)
+            .filter(subgroup => subgroup.groupId === groupId)
+            .forEach(subgroup =>
+                renumber(sortedIntoLinkSlots(this.itemsInScope(groupId, subgroup.id), isLink, order)));
+
+        this.state = { ...this.state, links, subgroups };
         return this.save();
     }
 

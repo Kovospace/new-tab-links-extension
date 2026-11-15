@@ -26,11 +26,20 @@
     "saveTitle": "Save group title",
     "manageLinks": "Manage links",
     "finishManagingLinks": "Finish group links editing",
+    "sortLinks": "Sort links",
     "moveLeft": "Move group left",
     "moveRight": "Move group right",
     "migrate": "Migrate to other workspace",
     "delete": "Delete group",
     "deleteConfirmation": "All links and sub-groups associated to that group will be deleted."
+  },
+  "sortDialog": {
+    "title": "Sort links",
+    "message": "Put this group's links in order, inside each subgroup too. Subgroups stay where they are.",
+    "newest": "Newest first",
+    "oldest": "Oldest first",
+    "nameAsc": "Name A–Z",
+    "nameDesc": "Name Z–A"
   },
   "migrateDialog": {
     "title": "Migrate group to another workspace",

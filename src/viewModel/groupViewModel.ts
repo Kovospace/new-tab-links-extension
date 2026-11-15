@@ -9,6 +9,7 @@ import {toSubGroupDTO, toLinkDTO, toWorkspaceDTO} from "../viewModel/abstract/ma
 
 // utils
 import {ObservableValue} from "../utils/observableValue";
+import {LinkSortOrder} from "../backend/repository/linkSorting";
 import {isItemInGroupAndEnv, isRootGroupLink, isSubGroupLink, isSubGroup} from "./groupViewModelUtils"
 
 
@@ -215,6 +216,11 @@ export class GroupViewModel extends AbstractViewModel<GroupDTO> {
 
     public moveGroupDown(): void {
         this.REPOSITORY.moveGroupDown(this.DTO.id);
+    }
+
+    /** Puts this group's links in an order, once (#184). */
+    public sortLinks(order: LinkSortOrder): void {
+        this.REPOSITORY.sortLinksInGroup(this.DTO.id, order);
     }
 
     public addSubGroup(title: string | null, description?: string | null) {

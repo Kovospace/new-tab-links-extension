@@ -962,3 +962,88 @@ describe("AppStateRepository.createLink", () => {
         expect(created.environmentId).toBe("env-other");
     });
 });
+
+/**
+ *  #184: sorting a group's links from its menu - once, by renumbering positions. The group's own
+ *  links share a sequence with its subgroups; the subgroups keep their places, and each
+ *  subgroup's links are sorted too. Other groups are not touched.
+ */
+describe("AppStateRepository.sortLinksInGroup", () => {
+
+    const ENV = "0199aaaa-0000-7000-8000-00000000e184";
+    const GROUP = "0199aaaa-0000-7000-8000-00000000g184";
+    const OTHER_GROUP = "0199aaaa-0000-7000-8000-00000000g185";
+    const SUB = "0199aaaa-0000-7000-8000-0000000s0184";
+
+    let appState: AppStateRepository;
+
+    const added = (id: string, title: string, createdAt: number, groupId: string,
+                   extras: { subGroupId?: string; position?: number } = {}) =>
+        ({ ...link(id, title, `https://${id}.test`, groupId, ENV, extras), createdAt });
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        appState = new AppStateRepository();
+        await appState.init(appStateInit, profiles.getActiveProfileId());
+        await appState.replaceCurrentProfileData(profileOf({
+            environments: [environment(ENV, "Work")],
+            groups: [group(GROUP, "Reading", ENV), group(OTHER_GROUP, "Later", ENV, 1)],
+            subgroups: [subgroup(SUB, "Archive", GROUP, ENV, 1)],
+            links: [
+                // Positions as old data has them: a gap, and not 0..n-1.
+                added("cat", "Cat", 20, GROUP, { position: 0 }),
+                added("ant", "ant", 30, GROUP, { position: 2 }),
+                added("bee", "Bee", 10, GROUP, { position: 5 }),
+                added("yak", "Yak", 1, GROUP, { subGroupId: SUB, position: 0 }),
+                added("emu", "Emu", 2, GROUP, { subGroupId: SUB, position: 1 }),
+                added("zebra", "Zebra", 1, OTHER_GROUP, { position: 0 }),
+                added("aardvark", "Aardvark", 2, OTHER_GROUP, { position: 1 })
+            ],
+            activeEnvironmentId: ENV
+        }));
+    });
+
+    /** The root sequence of a group, in the order it is drawn. */
+    const rootOf = (state: AppState, groupId: string) => [
+        ...Object.values(state.links).filter(l => l.groupId === groupId && !l.subGroupId),
+        ...Object.values(state.subgroups).filter(sg => sg.groupId === groupId)
+    ].sort((one, other) => one.position - other.position).map(item => item.id);
+
+    const insideOf = (state: AppState, subGroupId: string) => Object.values(state.links)
+        .filter(l => l.subGroupId === subGroupId)
+        .sort((one, other) => one.position - other.position).map(l => l.id);
+
+    it("sorts the group's own links around a subgroup that keeps its place", async () => {
+        const state = await appState.sortLinksInGroup(GROUP, "nameAsc");
+
+        expect(rootOf(state, GROUP)).toEqual(["ant", SUB, "bee", "cat"]);
+    });
+
+    it("renumbers the sequence from zero", async () => {
+        const state = await appState.sortLinksInGroup(GROUP, "newest");
+
+        expect(rootOf(state, GROUP)).toEqual(["ant", SUB, "cat", "bee"]);
+        expect(["ant", "cat", "bee"].map(id => state.links[id].position)).toEqual([0, 2, 3]);
+        expect(state.subgroups[SUB].position).toBe(1);
+    });
+
+    it("sorts each subgroup's links as well", async () => {
+        const state = await appState.sortLinksInGroup(GROUP, "nameAsc");
+
+        expect(insideOf(state, SUB)).toEqual(["emu", "yak"]);
+    });
+
+    it("leaves every other group alone", async () => {
+        const state = await appState.sortLinksInGroup(GROUP, "nameAsc");
+
+        expect(rootOf(state, OTHER_GROUP)).toEqual(["zebra", "aardvark"]);
+    });
+
+    it("is stored, so it synchronises like any other reorder", async () => {
+        await appState.sortLinksInGroup(GROUP, "oldest");
+
+        const stored = readFakeStorage<AppState>(appStateKey(appState.state$.get().activeProfileId));
+        expect(rootOf(stored!, GROUP)).toEqual(["bee", SUB, "cat", "ant"]);
+    });
+});
