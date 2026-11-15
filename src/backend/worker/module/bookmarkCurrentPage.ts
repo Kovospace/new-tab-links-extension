@@ -5,6 +5,8 @@ import {
     storePendingNotice
 } from "../../../utils/bookmarkRequest";
 import { flashSave, FlashSaveOutcome } from "./flashSave";
+import { ContextMenuMode, normalizeContextMenuMode } from "../../repository/DevicePreferencesRepository";
+import { FLASH_SAVE_COMMAND } from "../../../utils/extensionShortcuts";
 import { Logger } from "../../../utils/logger";
 import {
     APP_STATE_PREFIX,
@@ -88,8 +90,7 @@ const FLASH_SUFFIX = "|flash";
 const FORM_SUFFIX = "|form";
 const GROUPS_SUFFIX = "|groups";
 
-/** The keyboard command that flash-saves the page in the active tab (#204). */
-const FLASH_SAVE_COMMAND = "flash-save";
+
 
 /** Session storage key of what the menu was last drawn from - see `rebuildMenuItemsIfChanged`. */
 const MENU_DRAWN_FROM_KEY = "bookmark_menu_drawn_from";
@@ -118,6 +119,8 @@ let saveQueue: Promise<void> = Promise.resolve();
 /** What the menu shows, compared between rebuilds. */
 interface MenuSource {
     language: string;
+    /** The three actions, or Flash save alone at the menu's root (#204). */
+    mode: ContextMenuMode;
     workspaceName: string | null;
     groups: BookmarkMenuGroup[];
 }
@@ -184,10 +187,11 @@ function enqueueRebuild(always: boolean): void {
  *  would otherwise leave the old ones beside the new.
  */
 async function rebuildMenuItemsIfChanged(always: boolean): Promise<void> {
-    await adoptDeviceLanguage();
+    const mode = await readMenuPreferences();
     const state = await readActiveProfileState();
     const source: MenuSource = {
         language: currentLanguage(),
+        mode,
         workspaceName: bookmarkMenuWorkspaceName(state),
         groups: bookmarkMenuTree(state)
     };
@@ -204,19 +208,23 @@ async function rebuildMenuItemsIfChanged(always: boolean): Promise<void> {
 }
 
 /**
- *  Reads the language this device is set to, since the worker inherits nothing.
+ *  Reads what the menu depends on in this device's preferences, since the worker inherits
+ *  nothing: the language, which is put in force, and what the menu offers (#204), returned.
  *
  *  A device that has never been asked - or a read that fails - leaves the browser's own
- *  language, which is what `setLanguage` does with nothing.
+ *  language, which is what `setLanguage` does with nothing, and the standard menu.
  */
-async function adoptDeviceLanguage(): Promise<void> {
+async function readMenuPreferences(): Promise<ContextMenuMode> {
     try {
-        const stored: Record<string, { language?: string } | undefined> =
+        const stored: Record<string, { language?: string; contextMenuMode?: string } | undefined> =
             await chrome.storage.local.get(DEVICE_PREFERENCES_KEY);
         setLanguage(stored[DEVICE_PREFERENCES_KEY]?.language);
+        // What the menu offers is this device's choice too (#204), read with the language.
+        return normalizeContextMenuMode(stored[DEVICE_PREFERENCES_KEY]?.contextMenuMode);
     } catch (error) {
-        LOG.warn("adoptDeviceLanguage", String(error));
+        LOG.warn("readMenuPreferences", String(error));
         setLanguage(null);
+        return normalizeContextMenuMode(null);
     }
 }
 
@@ -242,6 +250,11 @@ function createMenuItems(source: MenuSource): void {
     const manifest = chrome.runtime.getManifest();
     const extensionName = manifest.short_name ?? manifest.name;
 
+    if (source.mode === "flashSave") {
+        createFlashSaveOnly(extensionName);
+        return;
+    }
+
     chrome.contextMenus.create({
         id: MENU_ITEM_PAGE,
         title: menuLabel(extensionName),
@@ -259,6 +272,27 @@ function createMenuItems(source: MenuSource): void {
         targetUrlPatterns: BOOKMARKABLE_PATTERNS
     });
     createActionItems(MENU_ITEM_LINK, source, "link");
+}
+
+/**
+ *  Fast-paced link grabbing (#204; Settings → UI and behavior): Flash save alone, straight in
+ *  the menu - one entry per kind of click, so Chrome folds nothing into a submenu. Named with
+ *  the extension, since nothing around it says whose it is. The same identifiers as under the
+ *  "Tabilinks" entry, so a click is handled the same way.
+ */
+function createFlashSaveOnly(extensionName: string): void {
+    chrome.contextMenus.create({
+        id: MENU_ITEM_PAGE + FLASH_SUFFIX,
+        title: menuLabel(t("bookmark.contextMenu.flashSaveAlone.page", { extension: extensionName })),
+        contexts: ["page", "selection", "image", "video", "audio", "frame", "editable"],
+        documentUrlPatterns: BOOKMARKABLE_PATTERNS
+    });
+    chrome.contextMenus.create({
+        id: MENU_ITEM_LINK + FLASH_SUFFIX,
+        title: menuLabel(t("bookmark.contextMenu.flashSaveAlone.link", { extension: extensionName })),
+        contexts: ["link"],
+        targetUrlPatterns: BOOKMARKABLE_PATTERNS
+    });
 }
 
 /**

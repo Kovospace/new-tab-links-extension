@@ -17,6 +17,10 @@
       "page": "Flash save",
       "link": "Flash save link"
     },
+    "flashSaveAlone": {
+      "page": "{extension}: Flash save",
+      "link": "{extension}: Flash save link"
+    },
     "addBookmark": "Add bookmark…",
     "saveToGroup": "Save to group",
     "groupItself": "Directly into {group}"

@@ -5,14 +5,15 @@ import { writeVisits } from "../backend/repository/VisitsRepository";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
-    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP, THEME_STYLES, THEMES, ACCENT_COLORS
+    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP, THEME_STYLES, THEMES, ACCENT_COLORS,
+    CONTEXT_MENU_MODES
 } from "../backend/repository/DevicePreferencesRepository";
 
 import {
     DATE_FORMATS, DateFormatId, sampleOf
 } from "../i18n/dates";
 import { t } from "../i18n/i18n";
-import { openShortcutsPage, readBookmarkShortcut, SHORTCUTS_PAGE } from "../utils/extensionShortcuts";
+import { openShortcutsPage, readBookmarkShortcut, readFlashSaveShortcut, SHORTCUTS_PAGE } from "../utils/extensionShortcuts";
 import { SEARCH_ENGINES } from "../backend/entity/SearchEngines";
 import {
     BackgroundLibraryRepository, backgroundLibraryRepository, BackgroundStorageError, BackgroundUnavailableError
@@ -119,6 +120,11 @@ export interface ChoiceSettingDTO extends SettingCommonDTO {
     key: ChoiceSettingKey;
     value: string;
     options: SettingOptionDTO[];
+    /**
+     *  Radio buttons rather than a dropdown, for a choice of two or three answers that each need
+     *  a sentence to say what they mean (#204).
+     */
+    radio?: boolean;
 }
 
 /** One answer a choice setting offers. */
@@ -185,7 +191,8 @@ export type ImageSettingKey = "backgroundImage";
 export type RangeSettingKey = "uiScale" | "closedTabsOpenDelay";
 
 /** The settings that are a choice out of a list. */
-export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine" | "theme" | "themeStyle" | "accentColor";
+export type ChoiceSettingKey =
+    "language" | "dateFormat" | "searchEngine" | "theme" | "themeStyle" | "accentColor" | "contextMenuMode";
 
 /** A named group of settings, which the dialog draws as one collapsible section. */
 export interface SettingCategoryDTO {
@@ -221,7 +228,7 @@ export interface SettingsDTO {
 type SettingDefinition =
     | { kind: "toggle"; key: ToggleSettingKey; wording: string; confirmOff?: boolean }
     | { kind: "range"; key: RangeSettingKey; wording: string }
-    | { kind: "choice"; key: ChoiceSettingKey; wording: string }
+    | { kind: "choice"; key: ChoiceSettingKey; wording: string; radio?: boolean }
     | { kind: "image"; key: ImageSettingKey; wording: string }
     | { kind: "shortcut"; key: ShortcutSettingKey; wording: string };
 
@@ -258,7 +265,8 @@ const CATEGORIES: CategoryDefinition[] = [
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
             { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
             { kind: "toggle", key: "closeSidePanelOnClick", wording: "closeSidePanelOnClick" },
-            { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" }
+            { kind: "shortcut", key: "bookmarkShortcut", wording: "bookmarkShortcut" },
+            { kind: "choice", key: "contextMenuMode", wording: "contextMenuMode", radio: true }
         ]
     },
     {
@@ -342,9 +350,12 @@ export class SettingsViewModel {
     private readonly devicePreferences: DevicePreferencesRepository;
     private readonly backgrounds: BackgroundLibraryRepository;
     private readonly shortcutReader: () => Promise<string | null>;
+    private readonly flashShortcutReader: () => Promise<string | null>;
 
     /** What saving a page is bound to, as last read; Chrome answers asynchronously. */
     private bookmarkShortcut: string | null = null;
+    /** What Flash save is bound to, as last read (#204). */
+    private flashSaveShortcut: string | null = null;
 
     /** Categories folded away right now; every one of them, until one is opened. */
     private readonly collapsed: Set<string> = new Set(CATEGORIES.map(category => category.key));
@@ -358,14 +369,17 @@ export class SettingsViewModel {
      *  @param devicePreferences what this browser prefers, which the profile has no say in
      *  @param backgrounds       the library of pictures behind the page, kept on this device
      *  @param shortcutReader    reads the bookmarking shortcut; injectable for testing
+     *  @param flashShortcutReader reads the Flash save shortcut (#204); injectable for testing
      */
     constructor(
         profiles: ProfileRepository = profileRepository,
         devicePreferences: DevicePreferencesRepository = devicePreferencesRepository,
         backgrounds: BackgroundLibraryRepository = backgroundLibraryRepository,
-        shortcutReader: () => Promise<string | null> = readBookmarkShortcut
+        shortcutReader: () => Promise<string | null> = readBookmarkShortcut,
+        flashShortcutReader: () => Promise<string | null> = readFlashSaveShortcut
     ) {
         this.shortcutReader = shortcutReader;
+        this.flashShortcutReader = flashShortcutReader;
         this.profiles = profiles;
         this.devicePreferences = devicePreferences;
         this.backgrounds = backgrounds;
@@ -394,6 +408,7 @@ export class SettingsViewModel {
      */
     public async refreshShortcut(): Promise<void> {
         this.bookmarkShortcut = await this.shortcutReader();
+        this.flashSaveShortcut = await this.flashShortcutReader();
         this.refresh();
     }
 
@@ -535,6 +550,13 @@ export class SettingsViewModel {
             return false;
         }
 
+        if (key === "contextMenuMode") {
+            // The worker rebuilds the menu when the device preferences change.
+            await this.devicePreferences.setContextMenuMode(value);
+            this.refresh();
+            return false;
+        }
+
         if (key === "accentColor") {
             // The same again: every accent colour is a variable of the root.
             await this.devicePreferences.setAccentColor(value);
@@ -669,9 +691,15 @@ export class SettingsViewModel {
                 kind: "choice",
                 key: definition.key,
                 title,
-                explanation,
+                // The right-click menu's explanation names the Flash save shortcut as it is set now.
+                explanation: definition.key === "contextMenuMode"
+                    ? t("settings.contextMenuMode.explanation", {
+                        shortcut: this.flashSaveShortcut ?? t("settings.contextMenuMode.noShortcut")
+                    })
+                    : explanation,
                 value: this.choiceValueOf(definition.key),
                 options: choiceOptionsOf(definition.key),
+                ...(definition.radio ? { radio: true } : {}),
                 disabledReason: null
             };
         }
@@ -746,6 +774,8 @@ export class SettingsViewModel {
                 return this.devicePreferences.getThemeStyle();
             case "accentColor":
                 return this.devicePreferences.getAccentColor();
+            case "contextMenuMode":
+                return this.devicePreferences.getContextMenuMode();
             default:
                 return this.devicePreferences.getDateFormat();
         }
@@ -832,6 +862,9 @@ function choiceOptionsOf(key: ChoiceSettingKey): SettingOptionDTO[] {
         case "themeStyle":
             return THEME_STYLES.map(style =>
                 ({ value: style, label: t(`settings.themeStyle.options.${style}`) }));
+        case "contextMenuMode":
+            return CONTEXT_MENU_MODES.map(mode =>
+                ({ value: mode, label: t(`settings.contextMenuMode.options.${mode}`) }));
         case "accentColor":
             return ACCENT_COLORS.map(accent => ({
                 value: accent,

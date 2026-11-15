@@ -283,6 +283,24 @@ describe("DevicePreferencesRepository, the theme style", () => {
     });
 });
 
+/** #204: what the right-click menu offers - the three actions, or Flash save alone. */
+describe("DevicePreferencesRepository, the context menu mode", () => {
+
+    it("is standard on a device nobody has set it on, and remembers fast-paced grabbing", async () => {
+        const preferences = new DevicePreferencesRepository();
+        await preferences.init();
+        expect(preferences.getContextMenuMode()).toBe("standard");
+
+        await preferences.setContextMenuMode("flashSave");
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getContextMenuMode()).toBe("flashSave");
+
+        await preferences.setContextMenuMode("everything");
+        expect(preferences.getContextMenuMode()).toBe("standard");
+    });
+});
+
 /** #200: the accent colour, blue unless chosen, on the root as `data-accent`. */
 describe("DevicePreferencesRepository, the accent colour", () => {
 

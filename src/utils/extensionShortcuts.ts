@@ -18,6 +18,9 @@ export const SHORTCUTS_PAGE = "chrome://extensions/shortcuts";
  */
 const BOOKMARK_COMMAND = "_execute_action";
 
+/** The command that flash-saves the page in the active tab (#204). */
+export const FLASH_SAVE_COMMAND = "flash-save";
+
 /**
  *  What saving the current page is bound to, as Chrome writes it ("Alt+Shift+D").
  *
@@ -43,3 +46,15 @@ export async function readBookmarkShortcut(): Promise<string | null> {
 export function openShortcutsPage(): void {
     void chrome.tabs.create({ url: SHORTCUTS_PAGE });
 }
+
+/** What Flash save is bound to on this browser (#204), or null when nothing is. */
+export async function readFlashSaveShortcut(): Promise<string | null> {
+    try {
+        const commands = await chrome.commands.getAll();
+        const shortcut = commands.find(command => command.name === FLASH_SAVE_COMMAND)?.shortcut;
+        return shortcut ? shortcut : null;
+    } catch {
+        return null;
+    }
+}
+

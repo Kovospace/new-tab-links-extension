@@ -252,6 +252,11 @@ export class SettingsDialog {
     title.textContent = setting.title;
     title.htmlFor = `settings-choice-${setting.key}`;
 
+    // A choice of two or three answers that each need a sentence: radio buttons (#204).
+    if (setting.radio) {
+      return this.buildRadios(setting, row, text, heading, title);
+    }
+
     // A choice of colours is a row of swatches, not a dropdown of colour names (#200).
     if (setting.options.length > 0 && setting.options.every(option => option.swatch)) {
       return this.buildSwatches(setting, row, text, heading, title);
@@ -279,6 +284,50 @@ export class SettingsDialog {
     heading.appendChild(title);
     text.appendChild(heading);
     text.appendChild(select);
+    text.appendChild(explanation);
+    row.appendChild(text);
+    return row;
+  }
+
+  /**
+   * A choice drawn as radio buttons (#204): each answer a line of its own, so it can say what it
+   * means in full. Answered on `change`, like every other setting here.
+   */
+  private buildRadios(
+    setting: ChoiceSettingDTO, row: HTMLElement, text: HTMLElement,
+    heading: HTMLElement, title: HTMLLabelElement
+  ): HTMLElement {
+    title.removeAttribute('for');
+    heading.appendChild(title);
+    const group = document.createElement('div');
+    group.classList.add('settings-dialog__radios');
+    group.setAttribute('role', 'radiogroup');
+    group.setAttribute('aria-label', setting.title);
+
+    for (const option of setting.options) {
+      const label = document.createElement('label');
+      label.classList.add('settings-dialog__radio');
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = `settings-choice-${setting.key}`;
+      input.value = option.value;
+      input.checked = option.value === setting.value;
+      input.disabled = Boolean(setting.disabledReason);
+      input.addEventListener('change', () => {
+        if (input.checked) void this.answerChoice(setting, option.value);
+      });
+      const span = document.createElement('span');
+      span.textContent = option.label;
+      label.append(input, span);
+      group.appendChild(label);
+    }
+
+    const explanation = document.createElement('span');
+    explanation.classList.add('settings-dialog__explanation');
+    explanation.textContent = setting.disabledReason ?? setting.explanation;
+
+    text.appendChild(heading);
+    text.appendChild(group);
     text.appendChild(explanation);
     row.appendChild(text);
     return row;

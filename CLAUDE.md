@@ -276,6 +276,14 @@ feature needs no permission beyond `contextMenus`.
     are the popup's) and puts a tick on the toolbar icon; a save that cannot happen - a full
     workspace, a group deleted since the menu was drawn - falls back to the popup, which can
     say why.
+- **Or Flash save alone, at the menu's root** - Settings → UI and behavior → "Browser context
+  menu actions", radio buttons, `contextMenuMode` (device preference, "standard" by default,
+  "flashSave" for fast-paced link grabbing). Chrome folds an extension's entries into a submenu
+  as soon as more than one applies to a click, and no API turns that off, so the only way to
+  put an action at the root is to make it the only entry: "Tabilinks: Flash save", same
+  identifiers, same handling. The setting's explanation names the Flash save shortcut as Chrome
+  has it bound (`readFlashSaveShortcut`). The worker reads the mode with the language and
+  rebuilds the menu when the device preferences change.
   Chrome has no "menu is about to show" event, so the menu is rebuilt from storage whenever the
   registry, a profile's data or the device preferences change - but only when the tree
   (`bookmarkMenuTree.ts`, pure) differs from the one last drawn, kept in session storage, or

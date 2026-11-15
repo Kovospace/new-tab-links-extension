@@ -17,6 +17,10 @@
       "page": "Rýchle uloženie",
       "link": "Rýchle uloženie odkazu"
     },
+    "flashSaveAlone": {
+      "page": "{extension}: Rýchle uloženie",
+      "link": "{extension}: Rýchle uloženie odkazu"
+    },
     "addBookmark": "Pridať záložku…",
     "saveToGroup": "Uložiť do skupiny",
     "groupItself": "Priamo do skupiny {group}"

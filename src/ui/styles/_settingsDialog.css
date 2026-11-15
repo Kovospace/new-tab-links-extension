@@ -316,3 +316,25 @@ button.settings-dialog__swatch:hover:where(:not(:disabled)) {
 button.settings-dialog__swatch[aria-checked="true"] {
     border-color: var(--color-dialog-text);
 }
+
+/* A choice drawn as radio buttons (#204): one answer a line, the button before its sentence. */
+.settings-dialog__radios {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    margin: 0.25em 0;
+}
+
+.settings-dialog__radio {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
+    cursor: pointer;
+    line-height: 1.35;
+}
+
+.settings-dialog__radio > input {
+    margin: 0.2em 0 0;
+    flex: 0 0 auto;
+    accent-color: var(--color-theme-accent-background);
+}

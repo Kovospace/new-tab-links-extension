@@ -671,6 +671,43 @@ describe("SettingsViewModel, the accent colour", () => {
     });
 });
 
+/** #204: what the right-click menu offers, as two radio buttons, naming the Flash save shortcut. */
+describe("SettingsViewModel, the context menu actions", () => {
+
+    let devicePreferences: DevicePreferencesRepository;
+    let settings: SettingsViewModel;
+
+    beforeEach(async () => {
+        const profiles = new ProfileRepository();
+        await profiles.init();
+        devicePreferences = new DevicePreferencesRepository();
+        await devicePreferences.init();
+        settings = new SettingsViewModel(profiles, devicePreferences, undefined,
+            () => Promise.resolve("Alt+Shift+D"), () => Promise.resolve("Alt+Shift+F"));
+        await settings.refreshShortcut();
+    });
+
+    const mode = () => settings.observables.settings.get().categories[0].settings
+        .find(setting => setting.key === "contextMenuMode");
+
+    it("is offered under UI and behavior as two radio buttons, on standard", () => {
+        expect(mode()).toMatchObject({ kind: "choice", value: "standard", radio: true });
+        if (mode()?.kind === "choice") {
+            expect((mode() as { options: { value: string }[] }).options.map(option => option.value))
+                .toEqual(["standard", "flashSave"]);
+        }
+    });
+
+    it("says what Flash save's keyboard shortcut is set to", () => {
+        expect(mode()?.explanation).toContain("Alt+Shift+F");
+    });
+
+    it("stores fast-paced grabbing without asking for a reload", async () => {
+        expect(await settings.setChoice("contextMenuMode", "flashSave")).toBe(false);
+        expect(devicePreferences.getContextMenuMode()).toBe("flashSave");
+    });
+});
+
 /** The background picture is open to every account: no premium check, nothing greyed out. */
 describe("SettingsViewModel, the background library", () => {
 
