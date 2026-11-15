@@ -22,3 +22,15 @@ dialog.input-dialog {
     z-index: var(--z-index-dialogs);
     box-shadow: 0.5em 0.5em 0.5em var(--color-menu-shadow);
 }
+
+link-group {
+    box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
+}
+
+workspace-plane-head {
+    box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
+}
+
+div.tips-bar {
+    box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
+}

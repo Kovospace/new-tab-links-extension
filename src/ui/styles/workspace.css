@@ -129,13 +129,12 @@ workspace-plane-body {
     flex-direction: row;
     align-items: start;
     padding: 0 1em;
-    /*max-width: 100vw;*/
     /* A group that does not fit the row drops to the next one at its own width (group.css),
        so the columns always fit the screen and none is squeezed to fit. */
     flex-wrap: wrap;
     min-width: 0;
     gap: var(--widgets-spacing);
-    margin-bottom: var(--widgets-spacing);
+    margin-bottom: 1em;
 }
 
 
@@ -160,6 +159,7 @@ workspace-plane-footer {
     flex-basis: auto;
     justify-content: end;
     padding: 0 1em;
+    min-height: 1px;
 }
 
 workspace-plane-footer > div {
