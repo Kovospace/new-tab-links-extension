@@ -459,8 +459,8 @@ export class NewTabPage {
                     || key === "sync_session" || key === "account_standing"));
         });
         await this.page.reload();
-        // No first-run screen since #182: the page opens on a starter workspace and its welcome.
-        await this.page.getByRole("button", { name: this.t("workspace.welcome.loadExamples"), exact: true }).waitFor();
+        // No first-run screen since #182: the page opens on a starter workspace and its widget.
+        await this.page.locator(".workspace-welcome .welcome-tile").first().waitFor();
         await this.pointerAway();
     }
 

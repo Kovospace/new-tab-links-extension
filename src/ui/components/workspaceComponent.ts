@@ -41,6 +41,7 @@ import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
 import {WorkspaceWelcome} from "../partials/workspaceWelcome";
+import {combinedSignInDialog} from "../partials/signInDialog";
 import {WorkspaceWelcomeViewModel} from "../../viewModel/workspaceWelcomeViewModel";
 import {workspaceWelcomeRepository} from "../../backend/repository/WorkspaceWelcomeRepository";
 import {sessionRepository} from "../../backend/sync/SessionRepository";
@@ -146,7 +147,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
           this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName, groupDescription));
 
     /**
-     *  The dialog an empty workspace opens with, once on each browser (#182). Built when first
+     *  The widget an empty workspace shows where its columns would be (#182). Built when first
      *  needed, because the repository is only injected after construction.
      */
     private welcome: WorkspaceWelcome | null = null;
@@ -155,16 +156,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         this.welcome ??= new WorkspaceWelcome(
             new WorkspaceWelcomeViewModel(this.REPOSITORY, workspaceWelcomeRepository),
             {
-                addGroup: async workspaceId => {
-                    this.currentWorkspaceId = workspaceId;
-                    return await this.addGroupDialog.ask() !== null;
-                },
-                signIn: async how => {
-                    const dialog = how === "logIn" ? this.logInDialog : this.syncCodeDialog;
-                    return await dialog.ask() !== null && sessionRepository.isSignedIn();
-                },
-                rename: (workspaceId, name, description) =>
-                    this.VIEW_MODEL.editWorkspaceTitle(workspaceId, name, description),
+                addGroup: workspaceId => this.actionAddGroup(workspaceId),
+                signIn: () => combinedSignInDialog(this.accountViewModel, () => {}).show(),
                 isSignedIn: () => sessionRepository.isSignedIn()
             });
         return this.welcome;
@@ -176,6 +169,8 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         const bodyElem: HTMLElement = document.createElement(ELEM_WORKSPACE_BODY);
         const footElem: HTMLElement = document.createElement(ELEM_WORKSPACE_FOOTER);
         this.appendChild(headElem);
+        // The empty workspace's widget (#182), between the head and the columns it stands in for.
+        this.appendChild(this.workspaceWelcome().element);
         this.appendChild(bodyElem);
         this.appendChild(footElem);
 
@@ -193,12 +188,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
                 this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));
-                void this.workspaceWelcome().offerIfDue(workspace.id);
+                this.workspaceWelcome().update(workspace.id);
             });
 
         // page body - groups
         this.VIEW_MODEL.observables.groups
-            .subscribe(groups => this.renderGroups(bodyElem, groups));
+            .subscribe(groups => {
+                this.renderGroups(bodyElem, groups);
+                // The first group puts the widget away; the last one deleted brings it back.
+                if (this.id) this.workspaceWelcome().update(this.id);
+            });
 
         // tips, under the columns and inside the scrolling area rather than in the page
         // footer: the footer never moves, and a line of advice that is always on screen

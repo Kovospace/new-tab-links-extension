@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
-import { translator } from "./i18n";
+import { buildExampleProfileData } from "../../src/backend/datasource/init/AppStateInit";
+import { markedAsExample } from "../../src/backend/entity/ExampleData";
+import { setLanguage } from "../../src/i18n/i18n";
 
 /** Every picture is taken at this moment, so "2 hours ago" reads the same on every run. */
 const FIXED_TIME = new Date("2026-10-27T10:00:00");
@@ -103,11 +105,14 @@ const FAVICONS_FROM_GOOGLE: Record<string, string> = {
 const LOCAL_MINUTES_AGO = [4, 11, 26, 39];
 
 /**
- *  Opens the new tab page with the language and preferences in place and the "Load examples"
- *  set loaded - the way a new user reaches it, through the welcome dialog the starter
- *  workspace opens with (#182). The preferences are written first, so the page the button
- *  reloads is already drawn with them. Then the examples are made to look used - see
- *  `stageDemoData`.
+ *  Opens the new tab page with the language and preferences in place and the example set
+ *  loaded, then makes the examples look used - see `stageDemoData`.
+ *
+ *  The examples are no longer a button anywhere (#182), so they are built here by the
+ *  extension's own code (`buildExampleProfileData`, in the scene's language) and stored over
+ *  the starter workspace the install tab made, flagged as example data the way loading them
+ *  used to flag them. The preferences are written first, so the page reloaded on them is
+ *  already drawn with them.
  */
 export async function openWithExamples(
     page: Page,
@@ -116,27 +121,30 @@ export async function openWithExamples(
     preferences: StagePreferences
 ): Promise<void> {
     await page.goto(`chrome-extension://${extensionId}/index.html`);
-    // The tab the extension opens on install has already made the starter workspace and shown
-    // its welcome (#182), which is recorded as shown. Forgotten again below, so the reload
-    // offers it once more, in the scene's language.
+    // The install tab and this page have made the starter workspace and stored the profile.
     await page.locator("workspace-plane").waitFor();
+    setLanguage(language);
+    const examples = markedAsExample(buildExampleProfileData());
     // Synchronisation off: the premium session below must never reach for the account.
     await page.evaluate(
-        async stored => {
-            await chrome.storage.local.set({ device_preferences: stored });
-            await chrome.storage.local.remove("workspace_welcome_offered");
+        async ({ stored, examples }) => {
+            const { profile_registry: registry } = await chrome.storage.local.get("profile_registry") as {
+                profile_registry: { activeProfileId: string; profiles: Record<string, { example?: boolean }> };
+            };
+            const profileId = registry.activeProfileId;
+            const key = `app_state_${profileId}`;
+            const { [key]: current } = await chrome.storage.local.get(key);
+            registry.profiles[profileId] = { ...registry.profiles[profileId], example: true };
+            await chrome.storage.local.set({
+                device_preferences: stored,
+                profile_registry: registry,
+                [key]: { ...(current as object), ...examples }
+            });
         },
-        { keepSidePanelOpen: false, ...preferences, language, syncEnabled: false });
+        { stored: { keepSidePanelOpen: false, ...preferences, language, syncEnabled: false }, examples });
     // Before the examples are drawn: the worker remembers a miss, and would not ask again.
     await cacheFavicons(page);
     await page.reload();
-    const loadExamples = page.getByRole("button", {
-        name: translator(language)("workspace.welcome.loadExamples"), exact: true
-    });
-    await Promise.all([
-        page.waitForEvent("load"),
-        loadExamples.click(),
-    ]);
     await page.waitForSelector("workspace-plane link-group");
     await stageDemoData(page, language);
 }

@@ -33,15 +33,8 @@ export class ChoiceDialog<VALUE> {
    * @param title    heading, naming the situation rather than the question
    * @param message  the question itself, in full sentences
    * @param choices  the answers, in the order they should be offered
-   * @param layout   a row of buttons, or a list of them, one per line, for a dialog that
-   *                 offers more ways forward than fit in a row (the workspace welcome, #182)
    */
-  constructor(
-    title: string,
-    message: string,
-    choices: ReadonlyArray<Choice<VALUE>>,
-    private readonly layout: 'row' | 'list' = 'row'
-  ) {
+  constructor(title: string, message: string, choices: ReadonlyArray<Choice<VALUE>>) {
     this.title = title;
     this.message = message;
     this.choices = choices;
@@ -82,7 +75,6 @@ export class ChoiceDialog<VALUE> {
   private build(settle: (value: VALUE | null) => void): HTMLDialogElement {
     const dialog = document.createElement('dialog');
     dialog.classList.add('input-dialog', 'choice-dialog');
-    if (this.layout === 'list') dialog.classList.add('choice-dialog--list');
 
     const heading = document.createElement('h2');
     heading.classList.add('input-dialog__title');

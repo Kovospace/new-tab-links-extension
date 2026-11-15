@@ -204,6 +204,13 @@ export class InputDialog {
       const constraints = constraintsOf(spec);
       const camelKey = keyOf(label, constraints);
 
+      if (constraints.separatorBefore) {
+        const separator = document.createElement('div');
+        separator.classList.add('input-dialog__separator');
+        separator.textContent = constraints.separatorBefore;
+        form.appendChild(separator);
+      }
+
       const wrapper = document.createElement('div');
       wrapper.classList.add('input-dialog__field');
       if (constraints.type === 'checkbox') {

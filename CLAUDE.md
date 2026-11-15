@@ -331,15 +331,32 @@ There is no first-run screen. A profile with no workspace is given one, the **st
   user's, and from then on it synchronises. It carries no "only an example" notice.
 - **A browser that synchronises waits for its account first** (`environmentToOpen`). Until the
   first synchronisation ends (or 15 s pass) the page says it is loading, and makes the starter
-  only if nothing arrived. A profile left with no workspace at all - the last one deleted, the
-  starter removed by a sign-in - reloads the page, which then opens on a new starter.
-- **An empty workspace opens with a welcome dialog, once per workspace on each browser**
-  (`WorkspaceWelcomeViewModel`; shown ids in `workspace_welcome_offered`, never synchronised).
-  It offers: create a group, import the browser's bookmarks, rename the workspace, load the
-  examples (only while this empty workspace is all the profile holds - they replace it), and,
-  signed out, log in / enter a sync code. Last comes Cancel. Any answer marks it shown. A
-  sub-dialog cancelled, or a rename, comes back to the welcome. Importing a backup file is
-  in the profile menu and is not offered here.
+  only if nothing arrived. A profile left with no workspace at all reloads the page.
+- **An empty workspace shows a widget where its columns would be**: part of the page, not a
+  dialog. It has four flat icon tiles, 96x96 icons (6em) over their labels (`welcomeTiles.ts`):
+  - create new group (green);
+  - import bookmarks from the browser;
+  - log in / set up sync (only while signed out);
+  - Cancel (red).
+  It goes away once the workspace has a group. Cancel puts it away for that workspace on this
+  browser (`WorkspaceWelcomeRepository`, `workspace_welcome_dismissed`, never synchronised).
+- **Deleting the last workspace leads to the page with no workspace** (`workspaceLessPage.ts`),
+  not to a new starter: the user asked for it to be empty. `WorkspaceViewModel.deleteWorkspace`
+  marks the profile before deleting (`profiles_emptied_by_user`, per device). The page offers:
+  - create workspace (green);
+  - import links from a backup file;
+  - log in / set up sync (only while signed out);
+  - Cancel (red), which makes the starter after all.
+  The mark is cleared once the profile has a workspace again. Any other empty profile - a
+  fresh install, a new profile, one emptied by a pull - gets the starter.
+- **"Log in / set up sync" is one dialog** (`signInDialog.ts`): username and password, a line
+  saying "or", then a sync code, then the usual device fields. No field is required on its own.
+  The submit check asks for one half or the other, and a code wins when both are filled. The
+  menu keeps its separate log-in and sync-code dialogs. `InputDialog` draws the "or" from a
+  field's `separatorBefore`.
+- **The examples are no longer offered anywhere.** Their code stays: existing example data
+  is still removed at sign-in. The screenshot staging builds them with
+  `buildExampleProfileData` and stores them (`stage.ts`).
 - **Bookmark import** (`viewModel/bookmarkImport.ts`, pure): every folder directly inside a
   browser root (Bookmarks bar, Other, Mobile; Firefox's toolbar, menu, unfiled) is offered as a
   group, plus each root's loose bookmarks under the root's name. All folders start ticked

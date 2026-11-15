@@ -15,7 +15,7 @@ import { WorkspaceDTO } from "./viewModel/abstract/dtos"
 
 import { WorkspaceViewModel } from "./viewModel/workspaceViewModel"
 import { startFairUseNotices } from "./viewModel/fairUseNoticeViewModel"
-import { openFairUsePage, openPremiumUpgradePage, requestLogIn } from "./viewModel/syncAccountViewModel"
+import { openFairUsePage, openPremiumUpgradePage, requestLogIn, SyncAccountViewModel } from "./viewModel/syncAccountViewModel"
 import { buildWebsiteUrl, WEBSITE_PATHS } from "./backend/sync/SyncConfiguration"
 
 import {WorkspaceComponent} from "./ui/components/workspaceComponent";
@@ -24,6 +24,8 @@ import {LinkComponent} from "./ui/components/linkComponent";
 import {SubgroupComponent} from "./ui/components/subgroupComponent";
 
 import { consumeSettingsReopen, SettingsDialog } from "./ui/partials/settingsDialog";
+import { renderWorkspaceLessPage } from "./ui/partials/workspaceLessPage";
+import { WorkspaceLessViewModel } from "./viewModel/workspaceLessViewModel";
 import { LANGUAGE_CATEGORY } from "./viewModel/settingsViewModel";
 import { PageBackground } from "./ui/partials/pageBackground";
 import { t } from "./i18n/i18n";
@@ -57,6 +59,7 @@ import './ui/styles/_adsBar.css'
 import './ui/styles/_searchBar.css'
 import './ui/styles/_dragAndDrop.css'
 import './ui/styles/_closedTabs.css'
+import './ui/styles/_welcome.css'
 // The aero theme style. Not relied on to load last - see the note at the top of it.
 import './ui/styles/_aero.css'
 
@@ -130,7 +133,27 @@ customElements.define(ELEM_LINK, LinkComponent);
     // raw in html file) construction of object happens before initialized "repository"
     // is injected and program crashes
     const rootContainerElem = document.body.getElementsByTagName("main")[0];
-    const currentEnvironment: Environment = await environmentToOpen(rootContainerElem);
+    const currentEnvironment: Environment | null = await environmentToOpen(rootContainerElem);
+
+    if (!currentEnvironment) {
+        // The user deleted every workspace (#182): the page with no workspace, until they make
+        // one, bring one in, or an account's arrive - which reloads into them.
+        renderWorkspaceLessPage(
+            rootContainerElem,
+            new WorkspaceLessViewModel(appStateRepository, workspaceWelcomeRepository),
+            accountViewModelForPage(),
+            sessionRepository.isSignedIn());
+        let arrived = false;
+        appStateRepository.state$.subscribe((state: AppState) => {
+            if (!arrived && Object.keys(state.environments).length > 0) {
+                arrived = true;
+                window.location.reload();
+            }
+        });
+        return;
+    }
+    // A profile emptied by the user that has a workspace again, from any direction.
+    void workspaceWelcomeRepository.clearEmptiedByUser(appStateRepository.getActiveProfileId());
 
     const workspaceDTO: WorkspaceDTO = ({
         id: currentEnvironment.id,
@@ -182,9 +205,11 @@ customElements.define(ELEM_LINK, LinkComponent);
 const ACCOUNT_ARRIVAL_TIMEOUT_MS = 15000;
 
 /**
- *  The workspace the page opens on. There is no first-run screen (#182): a profile with no
- *  workspace is given one, the starter (`AppStateRepository.addStarterWorkspace`), and the
- *  page goes straight into it. The welcome dialog then offers the ways to fill it.
+ *  The workspace the page opens on, or null for the page with no workspace. There is no
+ *  first-run screen (#182): a profile with no workspace is given one, the starter
+ *  (`AppStateRepository.addStarterWorkspace`), and the page goes straight into it. The
+ *  widget there offers the ways to fill it. The exception is a profile whose last workspace
+ *  the user deleted on this browser: that one gets the page with no workspace instead.
  *
  *  A browser that synchronises waits for its account first. The account's workspaces may be
  *  on their way, and a starter made before they land would only be one more workspace to
@@ -194,7 +219,7 @@ const ACCOUNT_ARRIVAL_TIMEOUT_MS = 15000;
  *
  *  @param host where the waiting notice is shown meanwhile
  */
-async function environmentToOpen(host: HTMLElement): Promise<Environment> {
+async function environmentToOpen(host: HTMLElement): Promise<Environment | null> {
     const existing = appStateRepository.getCurrentEnvironment();
     if (existing) return existing;
 
@@ -209,6 +234,9 @@ async function environmentToOpen(host: HTMLElement): Promise<Environment> {
         if (arrived) return arrived;
     }
 
+    if (workspaceWelcomeRepository.wasEmptiedByUser(appStateRepository.getActiveProfileId())) {
+        return null;
+    }
     await appStateRepository.addStarterWorkspace(t("workspace.starterName"));
     return appStateRepository.getCurrentEnvironment()!;
 }
@@ -238,4 +266,11 @@ function accountArrival(): Promise<void> {
             }
         });
     });
+}
+
+/** The account view model the page with no workspace signs in through. */
+function accountViewModelForPage(): SyncAccountViewModel {
+    const account = new SyncAccountViewModel();
+    account.initialize();
+    return account;
 }

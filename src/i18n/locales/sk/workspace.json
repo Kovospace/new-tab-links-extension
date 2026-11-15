@@ -21,14 +21,9 @@
   "starterName": "Moja plocha",
   "loadingFromAccount": "Načítavajú sa odkazy z vášho účtu…",
   "welcome": {
-    "firstTitle": "Vitajte v Tabilinks",
-    "firstMessage": "Toto je vaša prvá plocha. Začnite skupinou odkazov, prineste si záložky z prehliadača alebo jej dajte vlastný názov.",
-    "title": "Nová plocha",
-    "message": "Plocha „{name}“ je prázdna. Ako chcete začať?",
-    "addGroup": "+ Vytvoriť skupinu",
+    "addGroup": "Vytvoriť novú skupinu",
     "importBookmarks": "Importovať záložky z prehliadača",
-    "rename": "Premenovať túto plochu",
-    "loadExamples": "Načítať ukážky"
+    "signIn": "Prihlásiť sa / nastaviť synchronizáciu"
   },
   "bookmarkImport": {
     "title": "Import záložiek",
@@ -47,5 +42,11 @@
     "tooManyGroups": "To je viac skupín, než sa zmestí do jednej plochy ({max}). Odškrtnite niektoré priečinky.",
     "tooManySubgroups": "Jeden z týchto priečinkov má viac podpriečinkov, než môže mať skupina podskupín ({max}). Odškrtnite ho.",
     "tooManyLinks": "To je viac odkazov, než sa zmestí do jednej plochy ({max}). Odškrtnite niektoré priečinky."
+  },
+  "workspaceLess": {
+    "title": "Žiadna plocha",
+    "message": "Všetky plochy tohto profilu sú zmazané. Založte novú, obnovte odkazy zo zálohy alebo si ich prineste zo svojho účtu.",
+    "create": "Vytvoriť plochu",
+    "importBackup": "Importovať odkazy zo zálohy"
   }
 }

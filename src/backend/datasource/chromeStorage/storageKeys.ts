@@ -87,12 +87,17 @@ export const DEVICE_PREFERENCES_KEY = "device_preferences";
 export const GROUP_SIZES_KEY = "group_sizes";
 
 /**
- *  The workspaces this browser has already offered its welcome dialog for (#182): the dialog
- *  that opens the first time an empty workspace is shown. Only identifiers. Never synchronised,
- *  because a workspace still gets its welcome once on each device - see
- *  `WorkspaceWelcomeRepository`.
+ *  The empty workspaces whose welcome widget was cancelled on this browser (#182). Only
+ *  identifiers. Never synchronised - see `WorkspaceWelcomeRepository`.
  */
-export const WORKSPACE_WELCOME_OFFERED_KEY = "workspace_welcome_offered";
+export const WORKSPACE_WELCOME_DISMISSED_KEY = "workspace_welcome_dismissed";
+
+/**
+ *  The profiles whose last workspace the user deleted on this browser (#182). Such a profile
+ *  opens on the page with no workspace rather than on a new starter one. Never synchronised -
+ *  see `WorkspaceWelcomeRepository`.
+ */
+export const PROFILES_EMPTIED_KEY = "profiles_emptied_by_user";
 
 /**
  *  New tabs opened and not yet reported, by local day, with when the last report was made and

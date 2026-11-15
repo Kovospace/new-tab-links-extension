@@ -21,14 +21,9 @@
   "starterName": "My workspace",
   "loadingFromAccount": "Loading your links from your account…",
   "welcome": {
-    "firstTitle": "Welcome to Tabilinks",
-    "firstMessage": "This is your first workspace. Start it with a group of links, bring in your browser's bookmarks, or give it a name of your own.",
-    "title": "A new workspace",
-    "message": "“{name}” is empty. How would you like to start?",
-    "addGroup": "+ Create a group",
-    "importBookmarks": "Import browser bookmarks",
-    "rename": "Rename this workspace",
-    "loadExamples": "Load examples"
+    "addGroup": "Create new group",
+    "importBookmarks": "Import bookmarks from the browser",
+    "signIn": "Log in / set up sync"
   },
   "bookmarkImport": {
     "title": "Import bookmarks",
@@ -45,5 +40,11 @@
     "tooManyGroups": "That is more groups than a workspace holds ({max}). Untick some folders.",
     "tooManySubgroups": "One of these folders has more subfolders than a group holds subgroups ({max}). Untick it.",
     "tooManyLinks": "That is more links than a workspace holds ({max}). Untick some folders."
+  },
+  "workspaceLess": {
+    "title": "No workspace",
+    "message": "Every workspace of this profile has been deleted. Start a new one, bring your links back from a backup, or get them from your account.",
+    "create": "Create workspace",
+    "importBackup": "Import links from a backup"
   }
 }

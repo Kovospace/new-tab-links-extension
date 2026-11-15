@@ -24,7 +24,7 @@ export const emptyProfileData: ProfileData = {
  *  It used to be a developer's test data - two groups and five "test link" entries pointing at
  *  a placeholder address - and because it held a workspace, a fresh install skipped the
  *  first-run screen and showed that to every new user. Empty, a new user meets the starter
- *  workspace and its welcome (#182), which is where the examples are offered.
+ *  workspace and its widget (#182).
  */
 export const appStateInit: AppState = {
     user: DEFAULT_USER,
@@ -39,7 +39,8 @@ interface ExampleLink {
 }
 
 /**
- *  The examples the workspace welcome offers to load (#182), built fresh each time.
+ *  The example set, built fresh each time. No longer offered in the page (#182); the screenshot
+ *  staging stores it, and example data already stored is still recognised and removed at sign-in.
  *
  *  Built rather than declared, so that every record gets a UUID of its own: identifiers are
  *  the backend's primary keys, and fixed ones would be the same on every installation that

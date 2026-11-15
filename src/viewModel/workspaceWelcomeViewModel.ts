@@ -1,8 +1,5 @@
 import { AppStateRepository } from "../backend/repository/AppStateRepository";
 import { WorkspaceWelcomeRepository } from "../backend/repository/WorkspaceWelcomeRepository";
-import { buildExampleProfileData } from "../backend/datasource/init/AppStateInit";
-import { markedAsExample } from "../backend/entity/ExampleData";
-import { profileRepository } from "../backend/repository/ProfileRepository";
 import { ImportedGroup } from "../backend/entity/ImportedGroups";
 import { LimitRefusal } from "../backend/entity/PlanLimits";
 import { t } from "../i18n/i18n";
@@ -10,37 +7,17 @@ import {
     BookmarkFolderChoice, BookmarkNode, bookmarkFolderChoices, groupsToImport
 } from "./bookmarkImport";
 
-/** A way forward the welcome dialog offers. */
-export type WelcomeAction =
-    "addGroup" | "rename" | "importBookmarks" | "loadExamples" | "logIn" | "syncCode" | "cancel";
-
-/** What the welcome dialog says and offers, for one workspace. */
-export interface WelcomeDTO {
-    title: string;
-    message: string;
-    actions: WelcomeAction[];
-}
-
-/** What decides the offer, apart from the workspace itself. */
-export interface WelcomeContext {
-    signedIn: boolean;
-    /** Already renamed from this dialog: offered no second time. */
-    renamed?: boolean;
-}
+/** A way forward the welcome widget offers. */
+export type WelcomeAction = "addGroup" | "importBookmarks" | "signIn" | "cancel";
 
 /**
- *  The dialog an empty workspace opens with, once per workspace on each browser (#182).
+ *  The widget an empty workspace shows where its columns would be (#182).
  *
  *  It replaced the first-run screen. The page no longer asks for a first workspace: it makes
- *  one (`AppStateRepository.addStarterWorkspace`) and opens it, and this offers the ways to
- *  fill it:
- *  - a group, while the workspace has none;
- *  - a new name;
- *  - the browser's bookmarks;
- *  - the examples, while this empty workspace is all the profile holds, since they replace
- *    the whole profile;
- *  - signing in, for somebody not signed in whose links are already in an account.
- *  Cancel leaves it empty. It is not offered again for that workspace, whatever the answer was.
+ *  one (`AppStateRepository.addStarterWorkspace`) and opens it. The widget then offers to fill
+ *  it - a group, or the browser's bookmarks - and, to somebody not signed in, to log in or
+ *  set up synchronisation. Cancel puts it away for that workspace on this browser
+ *  (`WorkspaceWelcomeRepository`). A workspace that has a group never shows it.
  */
 export class WorkspaceWelcomeViewModel {
 
@@ -49,49 +26,15 @@ export class WorkspaceWelcomeViewModel {
         private readonly welcomes: WorkspaceWelcomeRepository
     ) {}
 
-    /** Whether to open the welcome now: the workspace is empty and has never had one here. */
+    /** Whether to show the widget: the workspace is empty and its widget was not cancelled here. */
     public isDue(workspaceId: string): boolean {
         return this.appState.getGroups(workspaceId).length === 0
-            && !this.welcomes.wasOffered(workspaceId);
+            && !this.welcomes.wasDismissed(workspaceId);
     }
 
-    /** Records that it was opened, so it is not again. */
-    public markOffered(workspaceId: string): Promise<void> {
-        return this.welcomes.markOffered(workspaceId);
-    }
-
-    /** What the dialog says and offers for this workspace. */
-    public welcomeFor(workspaceId: string, context: WelcomeContext): WelcomeDTO {
-        const state = this.appState.state$.get();
-        // Nothing in the profile but this empty workspace: a first start, renamed or not. The
-        // examples may be offered, since they would replace nothing of the user's.
-        const starter = Object.keys(state.environments).length === 1
-            && Object.keys(state.groups).length === 0;
-        return {
-            title: starter
-                ? t("workspace.welcome.firstTitle")
-                : t("workspace.welcome.title"),
-            message: starter
-                ? t("workspace.welcome.firstMessage")
-                : t("workspace.welcome.message", { name: state.environments[workspaceId]?.name ?? "" }),
-            actions: welcomeActions({
-                hasGroups: this.appState.getGroups(workspaceId).length > 0,
-                starter,
-                ...context
-            })
-        };
-    }
-
-    /** The current name and description, to start the rename from. */
-    public workspaceText(workspaceId: string): { name: string; description: string } {
-        const workspace = this.appState.state$.get().environments[workspaceId];
-        return { name: workspace?.name ?? "", description: workspace?.description ?? "" };
-    }
-
-    /** Puts the example set in place of the starter. It is flagged as examples (`ExampleData.ts`). */
-    public async loadExamples(): Promise<void> {
-        await this.appState.replaceCurrentProfileData(markedAsExample(buildExampleProfileData()));
-        await profileRepository.markExample(this.appState.getActiveProfileId());
+    /** Cancel: the widget is not shown for this workspace again on this browser. */
+    public dismiss(workspaceId: string): Promise<void> {
+        return this.welcomes.markDismissed(workspaceId);
     }
 
     /** The bookmark folders to offer, out of the browser's tree. */
@@ -117,19 +60,14 @@ export class WorkspaceWelcomeViewModel {
 }
 
 /**
- *  Which ways forward to offer, in the order they are offered. Cancel is always last.
+ *  Which ways forward the widget offers, in order. Cancel is always last.
  *
- *  @param situation the workspace, and who is looking at it
+ *  @param signedIn whether this browser is signed in to an account
  */
-export function welcomeActions(situation: WelcomeContext & { hasGroups: boolean; starter: boolean }): WelcomeAction[] {
-    const actions: WelcomeAction[] = [];
-    if (!situation.hasGroups) actions.push("addGroup");
-    actions.push("importBookmarks");
-    if (!situation.renamed) actions.push("rename");
-    if (situation.starter) actions.push("loadExamples");
-    if (!situation.signedIn && !situation.hasGroups) actions.push("logIn", "syncCode");
-    actions.push("cancel");
-    return actions;
+export function welcomeActions(signedIn: boolean): WelcomeAction[] {
+    return signedIn
+        ? ["addGroup", "importBookmarks", "cancel"]
+        : ["addGroup", "importBookmarks", "signIn", "cancel"];
 }
 
 /** Says which limit an import would break, with the number. */

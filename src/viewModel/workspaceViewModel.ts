@@ -1,5 +1,6 @@
 
 // data layer
+import { workspaceWelcomeRepository } from "../backend/repository/WorkspaceWelcomeRepository";
 import {AppState, Environment, Group, ProfileMeta} from "../backend/entity/AppStateEntity";
 
 // model layer
@@ -137,9 +138,16 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
             .map(toGroupDTO);
     }
 
-    public deleteWorkspace(id: string) {
+    public async deleteWorkspace(id: string): Promise<void> {
         this.LOG.debug("deleteWorskpace", `id: ${id}`);
-        this.REPOSITORY.deleteWorksapce(id);
+        const remaining = Object.keys(this.REPOSITORY.state$.get().environments).filter(other => other !== id);
+        if (remaining.length === 0) {
+            // The user is deleting the last workspace (#182). Remembered before the deletion,
+            // since the page reloads the moment the profile is empty, and it then opens on the
+            // page with no workspace rather than on a new starter one.
+            await workspaceWelcomeRepository.markEmptiedByUser(this.REPOSITORY.getActiveProfileId());
+        }
+        await this.REPOSITORY.deleteWorksapce(id);
     }
 
     // profile actions

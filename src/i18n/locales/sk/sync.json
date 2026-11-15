@@ -74,5 +74,10 @@
     "upgradeTooltip": "Otvoriť váš účet na webe, kde sa kupuje prémiová verzia",
     "audit": "Zariadenia",
     "auditTooltip": "Otvoriť stránku zariadení na webe, kde vidno, čo každá inštalácia obsahuje a synchronizuje"
+  },
+  "signInDialog": {
+    "title": "Prihlásenie alebo synchronizácia",
+    "fillOne": "Vyplňte meno a heslo, alebo kód na pripojenie.",
+    "or": "alebo"
   }
 }
