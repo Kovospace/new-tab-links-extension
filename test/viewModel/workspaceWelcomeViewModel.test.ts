@@ -83,7 +83,7 @@ describe("a profile the user emptied", () => {
 
         expect(await new WorkspaceLessViewModel(appState, welcomes).makeStarter()).toBe(true);
         expect(welcomes.wasEmptiedByUser(profileId)).toBe(false);
-        expect(Object.values(appState.state$.get().environments).map(one => one.name)).toEqual(["My workspace"]);
+        expect(Object.values(appState.state$.get().environments).map(one => one.name)).toEqual(["My space"]);
     });
 
     it("stops counting as emptied once a workspace is made from that page", async () => {

@@ -4,7 +4,7 @@
   "fields": {
     "name": "Name",
     "url": "URL",
-    "workspace": "Workspace",
+    "workspace": "Space",
     "group": "Group",
     "subgroup": "Subgroup",
     "newGroup": "Group name",
@@ -37,12 +37,12 @@
     "option": "New subgroup…"
   },
   "newWorkspace": {
-    "defaultName": "My workspace"
+    "defaultName": "My space"
   },
   "optional": "optional",
   "welcome": {
     "title": "Welcome to Tabilinks",
-    "message": "Tabilinks lives on your new tab page - that is where your links, groups and workspaces are, and where you set it up. This button saves the page you are on into it.",
+    "message": "Tabilinks lives on your new tab page - that is where your links, groups and spaces are, and where you set it up. This button saves the page you are on into it.",
     "open": "Open Tabilinks",
     "tour": "How it works",
     "saveAnyway": "Save this page",
@@ -51,6 +51,6 @@
   "flashSave": {
     "groupName": "Flash save",
     "refusedTitle": "Flash save could not save this",
-    "noRoomForGroup": "Flash save keeps links in a group called \"{group}\", and the workspace \"{workspace}\" has no room for another group - it already holds {maximum}. Delete a group, or rename one to \"{group}\" to use it instead."
+    "noRoomForGroup": "Flash save keeps links in a group called \"{group}\", and the space \"{workspace}\" has no room for another group - it already holds {maximum}. Delete a group, or rename one to \"{group}\" to use it instead."
   }
 }

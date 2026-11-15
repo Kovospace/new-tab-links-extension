@@ -171,14 +171,14 @@ describe("BookmarkForm, choosing the workspace", () => {
         render();
 
         expect(select("bookmark-workspace")).toBeNull();
-        expect(input("bookmark-new-workspace").value).toBe("My workspace");
+        expect(input("bookmark-new-workspace").value).toBe("My space");
         expect(labels("bookmark-group")).toEqual(["New group…"]);
 
         await submit();
 
         const [workspace] = appState.getWorkspaces();
         const [made] = appState.getGroups(workspace.id);
-        expect(workspace.name).toBe("My workspace");
+        expect(workspace.name).toBe("My space");
         expect(made.title).toBe("Ungrouped");
         expect(savedLink()).toMatchObject({ groupId: made.id, environmentId: workspace.id });
     });

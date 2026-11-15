@@ -58,13 +58,13 @@
       "EXAMPLE": "Example data: not synchronised until you change it."
     },
     "workspace": {
-      "LOCAL_ONLY_FREE_LIMIT": "This workspace stays on this device only: the free plan synchronises {maximum} workspaces per profile, and this profile already has them on your account.",
-      "LOCAL_ONLY_FAIR_USE": "This workspace stays on this device only: it is over a fair use limit, or this profile already synchronises as many workspaces as the Fair Use Policy allows.",
-      "EXAMPLE": "Example workspace: not synchronised until you change it, and removed when you log in if you leave it as it is."
+      "LOCAL_ONLY_FREE_LIMIT": "This space stays on this device only: the free plan synchronises {maximum} spaces per profile, and this profile already has them on your account.",
+      "LOCAL_ONLY_FAIR_USE": "This space stays on this device only: it is over a fair use limit, or this profile already synchronises as many spaces as the Fair Use Policy allows.",
+      "EXAMPLE": "Example space: not synchronised until you change it, and removed when you log in if you leave it as it is."
     },
     "workspaceOfProfile": {
-      "LOCAL_ONLY_FREE_LIMIT": "This profile and its workspaces stay on this device only: the free plan synchronises {maximum} profile, and your account already has it.",
-      "LOCAL_ONLY_FAIR_USE": "This profile and its workspaces stay on this device only: your account already synchronises as many profiles as the Fair Use Policy allows."
+      "LOCAL_ONLY_FREE_LIMIT": "This profile and its spaces stay on this device only: the free plan synchronises {maximum} profile, and your account already has it.",
+      "LOCAL_ONLY_FAIR_USE": "This profile and its spaces stay on this device only: your account already synchronises as many profiles as the Fair Use Policy allows."
     },
     "renameAdvice": "Rename it to {names} and it merges with that one on your account at the next synchronisation.",
     "upgrade": "Upgrade",

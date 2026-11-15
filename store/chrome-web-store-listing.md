@@ -16,7 +16,7 @@ entries read "Bookmark this page with Tabilinks".
 | Key | Limit | en | sk |
 |---|---|---|---|
 | `extensionName` | 75 chars (about 45 are visible) | `Tabilinks: grouped links & history on new tab` | `Tabilinks: linky v skupinách na novej karte` |
-| `extensionDescription` | 132 chars | `Your links on every new tab: sorted into groups created inside workspaces, synced across all your devices.` | `Vaše záložky a história na každej novej karte: v skupinách a pracovných priestoroch, synchronizované naprieč Vašimi zariadeniami.` |
+| `extensionDescription` | 132 chars | `Your links on every new tab: sorted into groups created inside spaces, synced across all your devices.` | `Vaše záložky a história na každej novej karte: v skupinách a pracovných priestoroch, synchronizované naprieč Vašimi zariadeniami.` |
 
 ---
 
@@ -30,7 +30,7 @@ entries read "Bookmark this page with Tabilinks".
 ```
 A new tab that finally does something useful.
 
-Tabilinks replaces the empty new tab page with your own links, organised into a logical hierarchical structure of Workspaces, their Groups and optional Subgroups, all within switchable Profiles.
+Tabilinks replaces the empty new tab page with your own links, organised into a logical hierarchical structure of Spaces, their Groups and optional Subgroups, all within switchable Profiles.
 
 As a bonus, the history of visited pages, recently closed tabs and the list of currently open tabs - all accessible without a single click: just hover the mouse over the panel on the right side.
 
@@ -50,7 +50,7 @@ WHY TABILINKS
 
 • A real hierarchy:
   - profiles meant for roles (work, home)
-  - workspaces for topics
+  - spaces for topics
   - groups and subgroups for categories of links within that topic
 • Compatibility:
   - works in every Chromium browser and syncs between them - Chrome, Brave, Edge and others - with a free account
@@ -90,7 +90,7 @@ FREE AND PREMIUM
 FREE VERSION:
 - UNLIMITED* number of links
 - 1 profile
-- 2 workspaces
+- 2 spaces
 - 5 synced installations
 - memory for the last 25 closed tabs
 - memory for the last 50 history entries
@@ -214,7 +214,7 @@ Web: https://tabilinks.app/sk
 
 Screenshots, in this order (the first one is what most people see). Rendered from the example
 data with Playwright, in both languages; the scenes are `screenshots/store.shots.ts`:
-1. `1-home` - the example workspace, light, glass (Aero), background 3
+1. `1-home` - the example space, light, glass (Aero), background 3
 2. `2-recently-closed` - the side panel open on Recently closed, a row from the work computer hovered
 3. `3-search` - "music": saved links, a history entry and "search the web"
 4. `4-subgroup-menu` - dark, glass, background 12: a subgroup's menu
@@ -235,17 +235,17 @@ Small promo tile: the logo, the website's wordmark and "Your bookmarks, grouped,
 
 ### Single purpose
 ```
-Tabilinks replaces the new tab page with the user's own links, organised into profiles, workspaces, groups and subgroups, together with the user's open tabs, recently closed tabs and - when the user turns it on - recently visited pages, and helps open and save them as browser tabs.
+Tabilinks replaces the new tab page with the user's own links, organised into profiles, spaces, groups and subgroups, together with the user's open tabs, recently closed tabs and - when the user turns it on - recently visited pages, and helps open and save them as browser tabs.
 ```
 
 ### Permission justifications
 
 | Permission | Justification to paste |
 |---|---|
-| `storage` | `Stores the user's workspaces, groups, links and settings locally in the browser, and the sign-in session when the user has an account.` |
+| `storage` | `Stores the user's spaces, groups, links and settings locally in the browser, and the sign-in session when the user has an account.` |
 | `tabs` | `Reads the address and title of tabs to: save the current tab as a link; show the tabs open in this browser in a panel on the new tab page, where they can be switched to, closed or saved as links, and offer them as suggestions in the search bar (this list is never stored or sent anywhere); keep the "recently closed tabs" list (address and title of a tab when it closes; on by default); keep the browsing history list (address, title and time of pages visited; off by default, only when the user turns it on); and move a tab opened from a saved link into that link's tab group. Closed tabs and browsing history are synced to the user's account only when signed in, and both can be turned off in Settings → Sync & privacy, which also deletes them.` |
 | `tabGroups` | `Opens a subgroup of links as a Chrome tab group with its name and colour, finds that group again to add newly opened links to it, and repaints it when the user changes the colour.` |
-| `contextMenus` | `Adds "Bookmark this page with Tabilinks" and "Bookmark this link with Tabilinks" to the right-click menu. Each is a submenu listing the groups and subgroups of the user's open workspace; choosing one saves the page or the link there. The last entry opens the extension's bookmarking popup instead.` |
+| `contextMenus` | `Adds "Bookmark this page with Tabilinks" and "Bookmark this link with Tabilinks" to the right-click menu. Each is a submenu listing the groups and subgroups of the user's open space; choosing one saves the page or the link there. The last entry opens the extension's bookmarking popup instead.` |
 | `favicon` | `Shows each saved link with its website icon, using Chrome's own favicon cache.` |
 | `search` | `The search bar on the new tab page can send the query to the browser's default search engine through chrome.search.` |
 | `unlimitedStorage` | `Keeps the background pictures the user chooses or uploads (up to 3840 px, a few megabytes each) in the browser, beside their links. Without it the browser's 10 MB storage quota is shared with the links, closed tabs and history, and a full profile could not store a single large picture. Nothing in this storage is sent anywhere; uploaded pictures are never synchronised.` |
@@ -278,7 +278,7 @@ Then tick all three certifications:
 
 ## 4. Test instructions tab (for the reviewer)
 ```
-The extension works without an account: open a new tab and click "Load examples" on the first screen to get sample workspaces, groups and links.
+The extension works without an account: open a new tab and click "Load examples" on the first screen to get sample spaces, groups and links.
 
 New in this version: fixes only. A dialog no longer closes when text is selected in a field and the mouse is released outside it, the bookmarking popup (toolbar icon) no longer closes when selected text is dragged, and many or wide groups wrap onto further rows instead of scrolling sideways.
 
