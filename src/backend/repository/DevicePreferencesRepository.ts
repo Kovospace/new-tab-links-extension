@@ -125,6 +125,15 @@ export interface DevicePreferences {
      *  with the theme: it is how this screen looks.
      */
     accentColor: AccentColorId;
+
+    /**
+     *  What the browser's right-click menu offers (#204). "standard": one "Tabilinks" entry with
+     *  Flash save, Add bookmark… and Save to group. "flashSave": Flash save alone, straight in
+     *  the menu with no submenu - for grabbing links at speed. Chrome folds an extension's
+     *  entries into a submenu as soon as there is more than one, so a single entry is the only
+     *  way to put an action at the menu's root. Per device, as the menu is the browser's.
+     */
+    contextMenuMode: ContextMenuMode;
 }
 
 /** Which logs this browser synchronises, as the synchronisation layer reads it. */
@@ -164,6 +173,16 @@ export const DEFAULT_ACCENT_COLOR: AccentColorId = "blue";
 /** The accent a stored value names, or the default for anything this version does not know. */
 export function normalizeAccentColor(value?: string | null): AccentColorId {
     return ACCENT_COLORS.includes(value as AccentColorId) ? value as AccentColorId : DEFAULT_ACCENT_COLOR;
+}
+
+/** What the right-click menu offers (#204): the three actions, or Flash save alone at its root. */
+export type ContextMenuMode = "standard" | "flashSave";
+export const CONTEXT_MENU_MODES: ContextMenuMode[] = ["standard", "flashSave"];
+export const DEFAULT_CONTEXT_MENU_MODE: ContextMenuMode = "standard";
+
+/** The mode a stored value names, or the default for anything this version does not know. */
+export function normalizeContextMenuMode(value?: string | null): ContextMenuMode {
+    return CONTEXT_MENU_MODES.includes(value as ContextMenuMode) ? value as ContextMenuMode : DEFAULT_CONTEXT_MENU_MODE;
 }
 
 /** The themes on offer: following the system, or one of the two regardless of it. */
@@ -230,7 +249,8 @@ const DEFAULTS: DevicePreferences = {
     syncBrowsingHistory: true,
     theme: DEFAULT_THEME,
     themeStyle: DEFAULT_THEME_STYLE,
-    accentColor: DEFAULT_ACCENT_COLOR
+    accentColor: DEFAULT_ACCENT_COLOR,
+    contextMenuMode: DEFAULT_CONTEXT_MENU_MODE
 };
 
 /** Smallest and largest the interface may be drawn, and the step between them. */
@@ -593,6 +613,26 @@ export class DevicePreferencesRepository {
         this.publish();
     }
 
+    /** What the right-click menu offers on this browser (#204). */
+    public getContextMenuMode(): ContextMenuMode {
+        return this.preferences.contextMenuMode;
+    }
+
+    /**
+     *  Chooses what the right-click menu offers (#204). The worker rebuilds the menu when the
+     *  device preferences change, so nothing else has to be told.
+     */
+    public async setContextMenuMode(mode: string): Promise<void> {
+        const wanted = normalizeContextMenuMode(mode);
+        if (wanted === this.preferences.contextMenuMode) {
+            return;
+        }
+        this.preferences = { ...this.preferences, contextMenuMode: wanted };
+        this.LOG.debug("setContextMenuMode", wanted);
+        await this.datasource.save(DEVICE_PREFERENCES_KEY, this.preferences);
+        this.publish();
+    }
+
     /** The accent colour of this browser (#200). */
     public getAccentColor(): AccentColorId {
         return this.preferences.accentColor;
@@ -671,7 +711,8 @@ function normalizePreferences(stored?: Partial<DevicePreferences> | null): Devic
         syncBrowsingHistory: stored?.syncBrowsingHistory !== false,
         theme: normalizeTheme(stored?.theme),
         themeStyle: normalizeThemeStyle(stored?.themeStyle),
-        accentColor: normalizeAccentColor(stored?.accentColor)
+        accentColor: normalizeAccentColor(stored?.accentColor),
+        contextMenuMode: normalizeContextMenuMode(stored?.contextMenuMode)
     };
 }
 

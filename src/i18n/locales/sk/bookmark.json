@@ -13,10 +13,17 @@
   },
   "noSubgroup": "(žiadna)",
   "contextMenu": {
-    "page": "Uložiť túto stránku do {extension}",
-    "link": "Uložiť tento odkaz do {extension}",
-    "groupItself": "Priamo do skupiny {group}",
-    "choose": "Vybrať miesto…"
+    "flashSave": {
+      "page": "Rýchle uloženie",
+      "link": "Rýchle uloženie odkazu"
+    },
+    "flashSaveAlone": {
+      "page": "{extension}: Rýchle uloženie",
+      "link": "{extension}: Rýchle uloženie odkazu"
+    },
+    "addBookmark": "Pridať záložku…",
+    "saveToGroup": "Uložiť do skupiny",
+    "groupItself": "Priamo do skupiny {group}"
   },
   "nothingToBookmark": {
     "title": "Nie je čo uložiť",
@@ -40,5 +47,10 @@
     "tour": "Ako to funguje",
     "saveAnyway": "Uložiť túto stránku",
     "tourPath": "/sk/tour"
+  },
+  "flashSave": {
+    "groupName": "Rýchle uloženie",
+    "refusedTitle": "Rýchle uloženie sa nepodarilo",
+    "noRoomForGroup": "Rýchle uloženie ukladá odkazy do skupiny „{group}“ a plocha „{workspace}“ už nemá miesto na ďalšiu skupinu - obsahuje ich {maximum}. Zmažte niektorú skupinu alebo jednu premenujte na „{group}“, aby sa použila namiesto toho."
   }
 }

@@ -66,6 +66,15 @@
     "notSet": "Nenastavená",
     "change": "Zmeniť v Chrome…"
   },
+  "contextMenuMode": {
+    "title": "Akcie v kontextovej ponuke prehliadača",
+    "explanation": "Čo ponúkne kliknutie pravým tlačidlom na stránku alebo odkaz. Rýchle uloženie má aj klávesovú skratku: {shortcut} - zmeníte ju na stránke skratiek prehliadača Chrome. Zostáva len na tomto zariadení.",
+    "noShortcut": "nenastavená",
+    "options": {
+      "standard": "Štandardné - položka Tabilinks s Rýchlym uložením, Pridaním záložky… a Uložením do skupiny",
+      "flashSave": "Rýchle zbieranie odkazov - len Rýchle uloženie, priamo v ponuke, jedným kliknutím"
+    }
+  },
   "recordClosedTabs": {
     "title": "Zaznamenávať zatvorené karty",
     "explanation": "Uchováva zoznam kariet, ktoré zatvoríte, v paneli vpravo a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Vypnutím sa zoznam vymaže.",

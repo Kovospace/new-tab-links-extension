@@ -66,6 +66,15 @@
     "notSet": "Not set",
     "change": "Change in Chrome…"
   },
+  "contextMenuMode": {
+    "title": "Browser context menu actions",
+    "explanation": "What right-clicking a page or a link offers. Flash save also has a keyboard shortcut: {shortcut} - change it on Chrome's shortcuts page. Kept on this device only.",
+    "noShortcut": "none set",
+    "options": {
+      "standard": "Standard - a Tabilinks entry with Flash save, Add bookmark… and Save to group",
+      "flashSave": "Fast-paced link grabbing - Flash save alone, straight in the menu, one click"
+    }
+  },
   "recordClosedTabs": {
     "title": "Record closed tabs",
     "explanation": "Keep a list of the tabs you close in the panel on the right, synced to every device of this profile when you are signed in. Turning it off deletes the list.",

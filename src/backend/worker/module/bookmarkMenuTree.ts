@@ -66,19 +66,8 @@ export function bookmarkMenuTree(state: AppState | null): BookmarkMenuGroup[] {
         }));
 }
 
-/**
- *  The name of the workspace the submenu offers the groups of, shown at its top so it is
- *  clear which workspace a link is going into.
- *
- *  @param state the active profile's stored data, or null when nothing is stored
- */
-export function bookmarkMenuWorkspaceName(state: AppState | null): string | null {
-    const workspaceId = state ? openWorkspaceId(state) : null;
-    return workspaceId ? state!.environments[workspaceId]?.name ?? null : null;
-}
-
 /** The workspace open on this device, or null when the profile has none. */
-function openWorkspaceId(state: AppState): string | null {
+export function openWorkspaceId(state: AppState): string | null {
     const environments = state.environments ?? {};
     if (state.activeEnvironmentId && environments[state.activeEnvironmentId]) {
         return state.activeEnvironmentId;
@@ -112,3 +101,25 @@ export function targetOfMenuItem(prefix: string, menuItemId: string | number): B
         ? { groupId: parts[1], subgroupId: parts[2] }
         : { groupId: parts[1] };
 }
+
+/**
+ *  The open workspace's "Flash save" group (#204), or null when it has none yet.
+ *
+ *  Found by its name in any language the extension speaks, case and surrounding spaces aside:
+ *  the group is named in the reader's language when it is made, and a reader who changes language
+ *  afterwards must not get a second one.
+ *
+ *  @param state the active profile's data
+ *  @param names what the group is called, in every language
+ */
+export function flashSaveGroupId(state: AppState, names: ReadonlyArray<string>): string | null {
+    const workspaceId = openWorkspaceId(state);
+    if (!workspaceId) {
+        return null;
+    }
+    const wanted = new Set(names.map(name => name.trim().toLowerCase()));
+    return Object.values(state.groups ?? {})
+        .filter(group => group.environmentId === workspaceId && wanted.has(group.title.trim().toLowerCase()))
+        .sort((one, other) => (one.order ?? 0) - (other.order ?? 0))[0]?.id ?? null;
+}
+

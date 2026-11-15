@@ -6,7 +6,7 @@ import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { BookmarkViewModel } from "./viewModel/bookmarkViewModel";
 import { BookmarkForm, renderNotice, renderWelcome } from "./ui/partials/bookmarkForm";
 import { buildWebsiteUrl } from "./backend/sync/SyncConfiguration";
-import { requestForActiveTab, takePendingBookmark } from "./utils/bookmarkRequest";
+import { requestForActiveTab, takePendingBookmark, takePendingNotice } from "./utils/bookmarkRequest";
 import { t } from "./i18n/i18n";
 import { favoritesEnabled, favoritesOfWorkspace } from "./viewModel/favorites";
 import { renderPopupFavorites } from "./ui/partials/popupFavorites";
@@ -62,6 +62,14 @@ import './ui/styles/_aero.css'
     document.title = t("bookmark.pageTitle");
 
     const host = document.body.getElementsByTagName("main")[0];
+
+    // A flash save the worker could not make (#204): said here, since the worker cannot say it.
+    const notice = await takePendingNotice();
+    if (notice) {
+        await renderNotice(host, notice.title, notice.message);
+        window.close();
+        return;
+    }
 
     const pending = await takePendingBookmark();
 

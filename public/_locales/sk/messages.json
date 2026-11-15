@@ -18,5 +18,9 @@
   "bookmarkCommand": {
     "message": "Uložiť aktuálnu stránku",
     "description": "What the keyboard shortcut does, shown on the browser's shortcuts page."
+  },
+  "flashSaveCommand": {
+    "message": "Rýchlo uložiť aktuálnu stránku",
+    "description": "What the Flash save keyboard shortcut does, shown on the browser's shortcuts page."
   }
 }

@@ -114,3 +114,35 @@ export async function requestForActiveTab(): Promise<BookmarkRequest | null> {
 
     return { url: tab.url, title: tab.title ?? "", favIconUrl: tab.favIconUrl };
 }
+
+/** Where the worker leaves a notice for the popup - why a flash save could not be made (#204). */
+const PENDING_NOTICE_KEY = "pending_bookmark_notice";
+
+/** What the popup should say instead of drawing the form. */
+export interface BookmarkNotice {
+    title: string;
+    message: string;
+}
+
+/**
+ *  Leaves a notice for the popup that is about to open (#204). The worker cannot show an alert -
+ *  a system notification would need a permission more, which disables the extension on update
+ *  until accepted - so the popup says it, in the extension's own words and style.
+ */
+export async function storePendingNotice(notice: BookmarkNotice): Promise<void> {
+    await chrome.storage.session.set({ [PENDING_NOTICE_KEY]: { ...notice, at: Date.now() } });
+}
+
+/** Takes the notice the worker left, if there is a fresh one; taken, so it is said once. */
+export async function takePendingNotice(): Promise<BookmarkNotice | null> {
+    const stored = await chrome.storage.session.get(PENDING_NOTICE_KEY);
+    const pending = stored[PENDING_NOTICE_KEY] as (BookmarkNotice & { at: number }) | undefined;
+    if (pending) {
+        await chrome.storage.session.remove(PENDING_NOTICE_KEY);
+    }
+    if (!pending || Date.now() - pending.at > PENDING_LIFETIME) {
+        return null;
+    }
+    return { title: pending.title, message: pending.message };
+}
+
