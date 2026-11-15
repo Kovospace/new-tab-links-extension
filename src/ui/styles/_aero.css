@@ -72,7 +72,8 @@
 :root[data-theme-style="aero"] .closed-tabs,
 :root[data-theme-style="aero"] workspace-plane-head,
 :root[data-theme-style="aero"] workspace-plane-body > link-group,
-:root[data-theme-style="aero"] .tips-bar
+:root[data-theme-style="aero"] .tips-bar,
+:root[data-theme-style="aero"] .ads-bar
 {
     background-color: var(--aero-surface);
 }
@@ -100,6 +101,7 @@
 :root[data-theme-style="aero"] footer,
 :root[data-theme-style="aero"] .closed-tabs,
 :root[data-theme-style="aero"] .tips-bar,
+:root[data-theme-style="aero"] .ads-bar,
 :root[data-theme-style="aero"] input.search-bar__input {
     -webkit-backdrop-filter: var(--aero-filter);
     backdrop-filter: var(--aero-filter);

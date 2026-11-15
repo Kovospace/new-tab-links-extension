@@ -31,6 +31,7 @@ workspace-plane-head {
     box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
 }
 
-div.tips-bar {
+div.tips-bar,
+div.ads-bar {
     box-shadow: 0 0.25em 0.5em var(--color-menu-shadow);
 }

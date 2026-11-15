@@ -24,9 +24,12 @@
 
     width: 100%;
     max-width: 100%;
-    height: 64px;
+    /* The banner's 64px inside the same inset lining the tips card wears: box-sizing is
+       border-box everywhere, so a bare 64px would cut a lining's width off the frame. */
+    height: calc(64px + 2 * var(--border-lining-width-inset));
     overflow: hidden;
-    border-radius: var(--radius-normal);
+    border-radius: var(--radius-big);
+    border: var(--border-lining-width-inset) solid var(--border-lining-color-inset);
 }
 
 /* The variable rather than #222 written out, so the slot follows the panels
@@ -44,6 +47,9 @@
     max-width: 100%;
     height: 64px;
     border: none;
+    /* Its own corners as well: the frame is narrower than the bar, so the bar's
+       overflow never reaches it and the ad would stand square inside a rounded slot. */
+    border-radius: var(--radius-big);
     display: block;
 }
 
