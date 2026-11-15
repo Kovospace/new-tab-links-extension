@@ -659,7 +659,7 @@ under the cursor, draw it while it travels, and tell when a drag was abandoned.
   it, because a link names the group it is in as well as the subgroup, and one left behind
   would claim a group that no longer holds its subgroup and be drawn by neither.
 - **A group's bottom-right corner resizes it** (#173; `ui/partials/groupResize.ts`), width and
-  height, with pointer events rather than HTML5 drag: the group itself is draggable, so it is
+  height - always drawn, faint until pointed at - with pointer events rather than HTML5 drag: the group itself is draggable, so it is
   made undraggable while the corner is held, or the browser would carry the column off. Sizes
   are in em, so the size slider still scales them, and **per device** (`GroupSizeRepository`,
   key `group_sizes`, read before the page draws) - a width chosen on a desktop would squeeze a
