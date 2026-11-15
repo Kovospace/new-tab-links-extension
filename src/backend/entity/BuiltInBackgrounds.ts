@@ -37,6 +37,13 @@ export const BUILT_IN_BACKGROUNDS: readonly BuiltInBackground[] = Object.freeze(
         };
     }));
 
+/**
+ *  The picture a fresh install starts with (#175), so a new user's first page is not a bare
+ *  black or white one. Only a fresh install: somebody updating with no picture may have chosen
+ *  none, and older installs cannot tell that from never having chosen.
+ */
+export const DEFAULT_BACKGROUND_ID = "built-in-02";
+
 /** Whether an id names one of the built-in pictures rather than an upload. */
 export function isBuiltInBackground(id: string): boolean {
     return BUILT_IN_BACKGROUNDS.some(background => background.id === id);

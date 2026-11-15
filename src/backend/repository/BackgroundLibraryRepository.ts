@@ -1,8 +1,8 @@
 import { ChromeStorageWrapper } from "../datasource/chromeStorage/chromeStorageWrapper";
 import {
-    BACKGROUND_HIDDEN_BUILT_INS_KEY, BACKGROUND_SELECTED_KEY
+    BACKGROUND_DEFAULT_PENDING_KEY, BACKGROUND_HIDDEN_BUILT_INS_KEY, BACKGROUND_SELECTED_KEY
 } from "../datasource/chromeStorage/storageKeys";
-import { BUILT_IN_BACKGROUNDS, isBuiltInBackground } from "../entity/BuiltInBackgrounds";
+import { BUILT_IN_BACKGROUNDS, DEFAULT_BACKGROUND_ID, isBuiltInBackground } from "../entity/BuiltInBackgrounds";
 import { BackgroundImageRepository, backgroundImageRepository } from "./BackgroundImageRepository";
 import { BackgroundUploadStore, indexedDbBackgroundUploads, StoredBackground } from "./BackgroundUploadStore";
 import { uid } from "./AppStateRepositoryUtils";
@@ -137,6 +137,50 @@ export class BackgroundLibraryRepository {
         this.publish();
     }
 
+    /**
+     *  Puts the default picture behind the page of a fresh install (#175), once.
+     *
+     *  Asked for by the worker on install (`BACKGROUND_DEFAULT_PENDING_KEY`). Not awaited by the
+     *  page: the download is a few megabytes, and the page draws without it and gains the picture
+     *  when it arrives. A failed download leaves the request standing, so the next new tab tries
+     *  again - a fresh install offline still ends up with it.
+     *
+     *  **The user's own choice always wins.** Choosing anything - "none" included - clears the
+     *  request (`select`), and the request is read again after the download, so a choice made
+     *  while it was on its way is not overwritten.
+     */
+    public async applyInstallDefault(): Promise<void> {
+        if (!(await this.defaultPending())) {
+            return;
+        }
+        if (this.images.getImage()) {
+            await this.storage.save(BACKGROUND_DEFAULT_PENDING_KEY, false);
+            return;
+        }
+        let picture: string;
+        try {
+            picture = await this.fetchPicture(BUILT_IN_BACKGROUNDS.find(one => one.id === DEFAULT_BACKGROUND_ID)!.fullUrl);
+        } catch (error) {
+            this.LOG.debug("applyInstallDefault", "Not downloaded, next new tab tries again", error);
+            return;
+        }
+        if (!(await this.defaultPending()) || this.images.getImage()) {
+            return;
+        }
+        try {
+            await this.images.setImage(picture);
+        } catch (error) {
+            this.LOG.warn("applyInstallDefault", "Not stored", error);
+            return;
+        }
+        await this.select(DEFAULT_BACKGROUND_ID);
+        this.publish();
+    }
+
+    private async defaultPending(): Promise<boolean> {
+        return (await this.storage.get<boolean>(BACKGROUND_DEFAULT_PENDING_KEY)) === true;
+    }
+
     /** No picture behind the page; the library keeps every tile. */
     public async chooseNone(): Promise<void> {
         await this.images.clear();
@@ -179,9 +223,11 @@ export class BackgroundLibraryRepository {
         this.publish();
     }
 
+    /** Also settles the install's default (#175): from here on the picture is somebody's choice. */
     private async select(id: string | null): Promise<void> {
         this.selected = id;
         await this.storage.save(BACKGROUND_SELECTED_KEY, id);
+        await this.storage.save(BACKGROUND_DEFAULT_PENDING_KEY, false);
     }
 
     /** The user's own first, newest first - what they added is what they look for - then the built-in ones. */

@@ -4,8 +4,10 @@ import { BackgroundImageRepository } from "../../../src/backend/repository/Backg
 import {
     BackgroundLibraryRepository, BackgroundStorageError, BackgroundUnavailableError
 } from "../../../src/backend/repository/BackgroundLibraryRepository";
-import { BUILT_IN_BACKGROUNDS } from "../../../src/backend/entity/BuiltInBackgrounds";
-import { BACKGROUND_IMAGE_KEY, BACKGROUND_SELECTED_KEY } from "../../../src/backend/datasource/chromeStorage/storageKeys";
+import { BUILT_IN_BACKGROUNDS, DEFAULT_BACKGROUND_ID } from "../../../src/backend/entity/BuiltInBackgrounds";
+import {
+    BACKGROUND_DEFAULT_PENDING_KEY, BACKGROUND_IMAGE_KEY, BACKGROUND_SELECTED_KEY
+} from "../../../src/backend/datasource/chromeStorage/storageKeys";
 import { readFakeStorage, seedFakeStorage } from "../../support/chromeStorageStub";
 import { memoryBackgroundUploads } from "../../support/memoryBackgroundUploads";
 
@@ -145,5 +147,94 @@ describe("downloading a built-in picture", () => {
 
         await expect(fetchAsDataUrl("https://tabilinks.app/backgrounds/01.webp")).rejects.toThrow(/404/);
         vi.unstubAllGlobals();
+    });
+});
+
+/**
+ *  #175: a fresh install starts with built-in picture 02 rather than a bare page. The worker asks
+ *  for it on install; the page downloads it, and any choice the user makes wins.
+ */
+describe("the install's default background", () => {
+
+    let images: BackgroundImageRepository;
+    let fetched: string[];
+    let fetchPicture: (url: string) => Promise<string>;
+    let library: BackgroundLibraryRepository;
+
+    async function open(): Promise<void> {
+        images = new BackgroundImageRepository();
+        await images.init();
+        library = new BackgroundLibraryRepository(images, memoryBackgroundUploads(),
+            url => { fetched.push(url); return fetchPicture(url); }, () => 1000);
+    }
+
+    beforeEach(async () => {
+        fetched = [];
+        fetchPicture = async url => `data:image/webp;base64,${url.slice(-7)}`;
+        await open();
+    });
+
+    it("puts picture 02 behind the page of a fresh install, once", async () => {
+        seedFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY, true);
+
+        await library.applyInstallDefault();
+
+        expect(fetched).toEqual(["https://tabilinks.app/backgrounds/02.webp"]);
+        expect(images.getImage()).toBe("data:image/webp;base64,02.webp");
+        expect(readFakeStorage(BACKGROUND_SELECTED_KEY)).toBe(DEFAULT_BACKGROUND_ID);
+        expect(readFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY)).toBe(false);
+
+        await images.clear();
+        await library.applyInstallDefault();
+        expect(fetched).toHaveLength(1);
+        expect(images.getImage()).toBeNull();
+    });
+
+    it("does nothing where the worker never asked - an update, or an install from before #175", async () => {
+        await library.applyInstallDefault();
+
+        expect(fetched).toEqual([]);
+        expect(images.getImage()).toBeNull();
+    });
+
+    it("keeps asking after a failed download, so an install made offline still gets it", async () => {
+        seedFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY, true);
+        fetchPicture = async () => { throw new Error("offline"); };
+
+        await library.applyInstallDefault();
+        expect(images.getImage()).toBeNull();
+        expect(readFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY)).toBe(true);
+
+        fetchPicture = async url => `data:${url.slice(-7)}`;
+        await open();
+        await library.applyInstallDefault();
+        expect(images.getImage()).toBe("data:02.webp");
+    });
+
+    it("never covers a choice made while the picture was downloading - not even 'none'", async () => {
+        seedFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY, true);
+        let arrive: (picture: string) => void = () => {};
+        fetchPicture = () => new Promise(resolve => { arrive = resolve; });
+
+        const applying = library.applyInstallDefault();
+        await vi.waitFor(() => expect(fetched).toHaveLength(1));
+        await library.chooseNone();
+        arrive("data:late");
+        await applying;
+
+        expect(images.getImage()).toBeNull();
+        expect(readFakeStorage(BACKGROUND_SELECTED_KEY)).toBeNull();
+    });
+
+    it("leaves a picture already behind the page alone", async () => {
+        seedFakeStorage(BACKGROUND_IMAGE_KEY, "data:mine");
+        seedFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY, true);
+        await open();
+
+        await library.applyInstallDefault();
+
+        expect(fetched).toEqual([]);
+        expect(images.getImage()).toBe("data:mine");
+        expect(readFakeStorage(BACKGROUND_DEFAULT_PENDING_KEY)).toBe(false);
     });
 });

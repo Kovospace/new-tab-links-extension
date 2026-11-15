@@ -5,6 +5,7 @@ import { installationIdentity } from "./backend/sync/InstallationIdentity";
 import { sessionRepository } from "./backend/sync/SessionRepository";
 import { accountStandingRepository } from "./backend/sync/AccountStandingRepository";
 import { backgroundImageRepository } from "./backend/repository/BackgroundImageRepository";
+import { backgroundLibraryRepository } from "./backend/repository/BackgroundLibraryRepository";
 import { syncCoordinator } from "./backend/sync/SyncCoordinator";
 import { appStateInit } from "./backend/datasource/init/AppStateInit";
 import { Environment } from "./backend/entity/AppStateEntity";
@@ -99,6 +100,8 @@ customElements.define(ELEM_FIRSTRUN, FirstRunComponent);
     // should not flash in the corner of a page that is about to be covered by a picture.
     await backgroundImageRepository.init();
     new PageBackground().render();
+    // A fresh install's default picture (#175), downloaded while the page draws, not before.
+    void backgroundLibraryRepository.applyInstallDefault();
 
     // initialize profile registry first so we know which profile to load
     await profileRepository.init();

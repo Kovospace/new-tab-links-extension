@@ -848,7 +848,11 @@ and `chrome.storage.local`'s 10 MB was shared with the links, the logs and the p
 full profile the larger pictures could not be stored (Chrome shows no warning for this
 permission). A failure says which it was (`BackgroundOutcome`): not downloaded, no room, or not a
 picture - they once shared one message, which blamed the connection for a full storage. Removing a built-in picture hides it on this device. A picture in use from before the
-library becomes its first upload. Uploads are kept at 3840px as WebP.
+library becomes its first upload. **A fresh install starts on picture 02** (#175): the worker's
+`onInstalled` (`install` only) stores `background_default_pending` before opening the first tab,
+and the page (`applyInstallDefault`, not awaited) downloads it; a failed download retries on the
+next tab, and any choice - "none" included - clears the request, re-read after the download.
+Updates and older installs are left alone: they cannot tell "chose none" from "never chose". Uploads are kept at 3840px as WebP.
 
 **The page-wide button hover weighs nothing extra**: `button:hover:where(:not(:disabled))`.
 A bare `:not(:disabled)` adds a class's worth and beat components' own hovers (`.x:hover`),
