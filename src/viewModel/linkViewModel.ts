@@ -37,6 +37,11 @@ export class LinkViewModel extends AbstractViewModel<LinkDTO> {
         this.observables.link.set(result);
     }
 
+    /** Marks the link as a favorite, or unmarks it (#183). */
+    public setFavorite(favorite: boolean): void {
+        void this.REPOSITORY.setLinkFavorite(this.DTO.id, favorite);
+    }
+
     public deleteLink() {
         this.REPOSITORY.deleteLink(this.DTO.id);
     }

@@ -31,6 +31,7 @@ import { ICON, renderContainer, renderButton, renderTextContainer } from "../../
 import {OptionsMenu, OptionsMenuItem} from "../partials/optionsMenu";
 import { toggleManageLinksMode } from "../partials/manageLinksMode";
 import {InputDialog} from "../partials/inputDialog";
+import {favoriteField, isFavoriteAnswer} from "../partials/favoriteControls";
 import {SelectDialog} from "../partials/selectDialog";
 import { ChoiceDialog } from "../partials/choiceDialog";
 import { LinkSortOrder } from "../../backend/repository/linkSorting";
@@ -62,15 +63,20 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         },
         ({ subgroupTitle, subgroupDescription }) => this.VIEW_MODEL.addSubGroup(subgroupTitle, subgroupDescription));
 
-    private addLinkDialog: InputDialog = new InputDialog(
-        t("group.addLinkDialog.title"),
-        {
-            [t("dialogs.fields.name")]:
-                { type: "string", required: true, maxLength: MAX_TITLE_LENGTH, key: "name" },
-            [t("dialogs.fields.url")]:
-                { type: "url", required: true, maxLength: MAX_URL_LENGTH, key: "url" }
-        },
-        ({ url, name }) => this.VIEW_MODEL.addLink(url, name, this.id));
+    /** Built for each use, so its "Favorite" checkbox follows the setting (#183). */
+    private addLinkDialog(): InputDialog {
+        return new InputDialog(
+            t("group.addLinkDialog.title"),
+            {
+                [t("dialogs.fields.name")]:
+                    { type: "string", required: true, maxLength: MAX_TITLE_LENGTH, key: "name" },
+                [t("dialogs.fields.url")]:
+                    { type: "url", required: true, maxLength: MAX_URL_LENGTH, key: "url" },
+                ...favoriteField()
+            },
+            ({ url, name, favorite }) =>
+                this.VIEW_MODEL.addLink(url, name, this.id, undefined, isFavoriteAnswer(favorite)));
+    }
 
     render(parentElem: HTMLElement): void {
 
@@ -262,7 +268,7 @@ export class GroupComponent extends AbstractComponent<GroupDTO, GroupViewModel> 
         this.LOG.debug(
             "render",
             "add link to group: " + this.title + " with id: " + this.id + " clicked");
-        this.addLinkDialog.show();
+        this.addLinkDialog().show();
     }
 
     /**

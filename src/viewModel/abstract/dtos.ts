@@ -31,6 +31,8 @@ export interface GroupItemDTO extends ViewModelDTO {
 export interface LinkDTO extends GroupItemDTO {
     url: string;
     subGroupId?: string;
+    /** Marked as a favorite (#183). */
+    favorite: boolean;
 }
 
 export interface SubgroupDTO extends GroupItemDTO {

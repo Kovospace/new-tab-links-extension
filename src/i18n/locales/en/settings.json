@@ -4,6 +4,7 @@
   "profileNoteUnnamed": "These apply to the profile you have open.",
   "categories": {
     "uiAndBehavior": "UI and behavior",
+    "functions": "Functions",
     "languageAndLocalCustoms": "Language & local customs",
     "privacy": "Sync & privacy",
     "search": "Search",
@@ -113,5 +114,9 @@
       "flat": "Flat",
       "aero": "Aero (transparent, blurred)"
     }
+  },
+  "enableFavorites": {
+    "title": "Favorites",
+    "explanation": "Mark links as favorites with the circle beside each one, or from a link's menu. Favorites are listed in the side panel and in the toolbar popup, for the open workspace."
   }
 }

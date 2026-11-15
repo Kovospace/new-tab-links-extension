@@ -5,6 +5,8 @@ import { BookmarkViewModel } from '../../viewModel/bookmarkViewModel';
 import { t } from '../../i18n/i18n';
 import { ICON } from './wrappedHtmlElements';
 import { makeDraggable } from '../dragAndDrop/dragAndDrop';
+import { favoriteToggle } from './favoriteControls';
+import { isAddressFavorite, setAddressFavorite } from '../../viewModel/favorites';
 
 /**
  * The rows of the side panel's cards, shared by the cards that draw them.
@@ -115,6 +117,9 @@ export function buildLogRow(entry: LogEntry, wording: LogRowWording, actions: Lo
   }
   buttons.appendChild(rowButton(ICON.ADD, 'add', t(wording.saveAsLink), () => void saveAsLink(entry)));
   buttons.appendChild(rowButton(ICON.DELETE, 'danger', t(wording.forgetOne), () => actions.forget()));
+  // The favorite circle, shown only while the profile uses favorites, by the stylesheet (#183).
+  // Before the "⇉", which stays last for the reason below.
+  buttons.appendChild(addressFavoriteToggle(entry));
   // Last, so it is the rightmost thing in the row. That was chosen while the panel stood on
   // the right and widened leftwards, leaving the pointer at a row's right-hand end - on this.
   // On the left it widens rightwards and the pointer is left on the favicon instead.
@@ -193,7 +198,10 @@ export function buildOffNotice(message: string, buttonLabel: string, onOpen: () 
  * it is the same question - which group, which subgroup, under what name - and asking it a
  * second way here would be a second thing to keep working.
  */
-export async function saveAsLink(entry: { url: string; title: string; faviconUrl?: string }): Promise<void> {
+export async function saveAsLink(
+  entry: { url: string; title: string; faviconUrl?: string },
+  favorite = false
+): Promise<void> {
 
   const viewModel = new BookmarkViewModel();
 
@@ -204,10 +212,26 @@ export async function saveAsLink(entry: { url: string; title: string; faviconUrl
 
   const form = new BookmarkForm(
     { url: entry.url, title: entry.title, favIconUrl: entry.faviconUrl },
-    viewModel);
+    viewModel,
+    favorite);
 
   await form.render(dialog);
 
   dialog.close();
   dialog.remove();
 }
+
+/**
+ * The favorite circle of something that is not a link itself - a closed tab, a visit, a search
+ * suggestion (#183). Golden when the open workspace keeps the address as a favorite. A click
+ * marks or unmarks that link. When the workspace does not keep the address at all, a favorite
+ * has to be a link first, so the click opens the save-as-link form with "Favorite" ticked.
+ */
+export function addressFavoriteToggle(entry: { url: string; title: string; faviconUrl?: string }): HTMLElement {
+  return favoriteToggle(isAddressFavorite(entry.url), favorite => {
+    void setAddressFavorite(entry.url, favorite).then(handled => {
+      if (!handled && favorite) void saveAsLink(entry, true);
+    });
+  });
+}
+

@@ -13,6 +13,7 @@
     "title": "Názov",
     "deviceName": "Názov zariadenia",
     "synchronise": "Synchronizovať tento prehliadač s účtom",
-    "profileName": "Názov profilu"
+    "profileName": "Názov profilu",
+    "favorite": "Obľúbený"
   }
 }

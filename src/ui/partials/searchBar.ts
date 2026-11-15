@@ -1,3 +1,6 @@
+import { favoriteToggle } from './favoriteControls';
+import { addressFavoriteToggle } from './sidePanelRows';
+import { appStateRepository } from '../../backend/repository/AppStateRepository';
 import { SearchBarDTO, SearchBarViewModel, SearchEngineDTO } from '../../viewModel/searchBarViewModel';
 import { SuggestionDTO, SuggestionKind } from '../../viewModel/searchSuggestions';
 import { FaviconsHandler } from '../backgroundWorkerCommands/faviconsHandler';
@@ -310,6 +313,17 @@ export class SearchBar {
     text.append(title, where);
 
     row.append(icon, text);
+    // The favorite circle (#183), shown only while the profile uses favorites. A link is
+    // marked itself; anything else is marked through the link the open workspace keeps under
+    // its address, or saved as one first.
+    if (suggestion.kind === 'link' && suggestion.linkId) {
+      const linkId = suggestion.linkId;
+      row.append(favoriteToggle(suggestion.favorite === true,
+        favorite => void appStateRepository.setLinkFavorite(linkId, favorite)));
+    } else if (suggestion.kind !== 'web' && suggestion.url) {
+      row.append(addressFavoriteToggle(
+        { url: suggestion.url, title: suggestion.title, faviconUrl: suggestion.faviconUrl }));
+    }
     row.title = suggestion.url ?? '';
     row.addEventListener('mouseenter', () => this.highlight(index));
     // Pressing a row must not take the focus out of the field first, or the list would close

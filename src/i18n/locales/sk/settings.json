@@ -4,6 +4,7 @@
   "profileNoteUnnamed": "Tieto nastavenia patria profilu, ktorý máte otvorený.",
   "categories": {
     "uiAndBehavior": "Vzhľad a správanie",
+    "functions": "Funkcie",
     "languageAndLocalCustoms": "Jazyk a miestne zvyklosti",
     "privacy": "Synchronizácia a súkromie",
     "search": "Vyhľadávanie",
@@ -113,5 +114,9 @@
       "flat": "Plochý",
       "aero": "Aero (priehľadný, rozmazaný)"
     }
+  },
+  "enableFavorites": {
+    "title": "Obľúbené",
+    "explanation": "Označte odkazy ako obľúbené krúžkom vedľa každého z nich alebo z ponuky odkazu. Obľúbené sa zobrazia v bočnom paneli a v okne ikony na lište, pre otvorenú plochu."
   }
 }

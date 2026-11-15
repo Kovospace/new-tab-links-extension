@@ -2,6 +2,9 @@ import { ClosedTabDTO, ClosedTabsViewModel } from '../../viewModel/closedTabsVie
 import { OpenTabDTO, OpenTabsViewModel, OpenTabWindowDTO } from '../../viewModel/openTabsViewModel';
 import { HistoryViewModel } from '../../viewModel/historyViewModel';
 import { HistoryCard } from './historyCard';
+import { FavoritesCard } from './favoritesCard';
+import { FavoritesViewModel } from '../../viewModel/favoritesViewModel';
+import { addressFavoriteToggle } from './sidePanelRows';
 import {
   buildLogRow, buildOffNotice, favicon, keptMark, LogRowWording, rowButton, saveAsLink
 } from './sidePanelRows';
@@ -33,7 +36,7 @@ const CLOSED_TAB_WORDING: LogRowWording = {
 
 /** The cards in the order the switcher offers them, with the catalogue file naming each. */
 const CARDS: ReadonlyArray<[SidePanelCard, string]> =
-  [['open', 'openTabs'], ['closed', 'closedTabs'], ['history', 'history']];
+  [['open', 'openTabs'], ['closed', 'closedTabs'], ['history', 'history'], ['favorites', 'favorites']];
 
 const deviceCardPreference: CardPreference = {
   get: () => devicePreferencesRepository.getSidePanelCard(),
@@ -106,6 +109,11 @@ export class ClosedTabsPanel {
   private readonly openTabs: OpenTabsViewModel;
   private readonly cardPreference: CardPreference;
   private readonly history: HistoryCard;
+  private readonly favorites: FavoritesCard;
+  /** Whether the profile uses favorites (#183); the card is not offered while it does not. */
+  private favoritesOn: boolean = false;
+  /** The card chosen, which may be Favorites while favorites are off - and is shown once they are on. */
+  private chosenCard: SidePanelCard = 'closed';
 
   private panelEl: HTMLElement | null = null;
   private titleEl: HTMLElement | null = null;
@@ -163,7 +171,8 @@ export class ClosedTabsPanel {
       cardPreference: CardPreference = deviceCardPreference,
       history: HistoryViewModel = new HistoryViewModel(),
       private readonly keepOpenPreference: KeepOpenPreference = deviceKeepOpenPreference,
-      closeOnClick: () => boolean = () => devicePreferencesRepository.getCloseSidePanelOnClick()
+      closeOnClick: () => boolean = () => devicePreferencesRepository.getCloseSidePanelOnClick(),
+      favorites: FavoritesViewModel = new FavoritesViewModel()
   ) {
     this.viewModel = viewModel;
     this.openDelay = openDelay;
@@ -174,6 +183,10 @@ export class ClosedTabsPanel {
       history,
       () => this.finishErrand(),
       recording => this.panelEl?.classList.toggle('closed-tabs--history-off', !recording));
+    this.favorites = new FavoritesCard(favorites, () => this.finishErrand(), on => {
+      this.favoritesOn = on;
+      this.showCard(this.chosenCard);
+    });
   }
 
   /**
@@ -203,6 +216,7 @@ export class ClosedTabsPanel {
     await this.viewModel.initialize();
     await this.openTabs.initialize();
     await this.history.initialize();
+    this.favorites.initialize();
   }
 
   /** Whether the panel is being held open, until a click or by "Keep open". */
@@ -405,6 +419,7 @@ export class ClosedTabsPanel {
     this.viewModel.dispose();
     this.openTabs.dispose();
     this.history.dispose();
+    this.favorites.dispose();
     this.panelEl?.remove();
     this.panelEl = null;
     this.titleEl = null;
@@ -487,6 +502,7 @@ export class ClosedTabsPanel {
 
     body.appendChild(this.history.listEl);
     body.appendChild(this.history.offEl);
+    body.appendChild(this.favorites.listEl);
 
     return panel;
   }
@@ -526,6 +542,8 @@ export class ClosedTabsPanel {
       const button = document.createElement('button');
       button.type = 'button';
       button.classList.add('closed-tabs__card');
+      // The stylesheet hides the Favorites button while the profile does not use them (#183).
+      button.dataset.card = card;
       button.textContent = t(`${wording}.card`);
       button.title = t(`${wording}.cardTooltip`);
       button.addEventListener('click', () => this.chooseCard(card));
@@ -568,8 +586,11 @@ export class ClosedTabsPanel {
    * Shows one card. Which list, notice and head button go with it is the stylesheet's,
    * keyed off `data-card`, so nothing here has to hide anything by hand.
    */
-  private showCard(card: SidePanelCard): void {
+  private showCard(chosen: SidePanelCard): void {
+    this.chosenCard = chosen;
     if (!this.panelEl) return;
+    // Favorites chosen on a profile that does not use them: the closed tabs stand in.
+    const card: SidePanelCard = chosen === 'favorites' && !this.favoritesOn ? 'closed' : chosen;
     this.panelEl.dataset.card = card;
     if (this.titleEl) {
       const wording = CARDS.find(([key]) => key === card)?.[1] ?? 'closedTabs';
@@ -671,6 +692,8 @@ export class ClosedTabsPanel {
       () => void saveAsLink(tab)));
     actions.appendChild(rowButton(ICON.DELETE, 'danger', t('openTabs.closeTab'),
       () => void this.openTabs.close(tab.id)));
+    // Shown only while the profile uses favorites, by the stylesheet (#183).
+    actions.appendChild(addressFavoriteToggle(tab));
 
     row.appendChild(favicon(tab.faviconUrl));
     row.appendChild(text);

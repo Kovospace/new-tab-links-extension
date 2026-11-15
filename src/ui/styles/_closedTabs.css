@@ -211,7 +211,13 @@
 */
 .closed-tabs:not([data-card="open"]) .closed-tabs__list--open,
 .closed-tabs:not([data-card="closed"]) :is(.closed-tabs__list--closed, .closed-tabs__clear),
-.closed-tabs:not([data-card="history"]) :is(.closed-tabs__list--history, .closed-tabs__clear--history) {
+.closed-tabs:not([data-card="history"]) :is(.closed-tabs__list--history, .closed-tabs__clear--history),
+.closed-tabs:not([data-card="favorites"]) .closed-tabs__list--favorites {
+    display: none;
+}
+
+/* The Favorites card is offered only while the profile uses favorites (#183). */
+:root:not([data-favorites="on"]) .closed-tabs__card[data-card="favorites"] {
     display: none;
 }
 

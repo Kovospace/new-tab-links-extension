@@ -97,6 +97,14 @@ link-container > div > div.cls-link-text > a {
     transition: color var(--time-transition-fast) var(--transition-easing-default);
 }
 
+/* The favorite circle (#183): its colour and its growing under the pointer. */
+button.cls-favorite-toggle {
+    transition:
+            border-color var(--time-transition-fast) var(--transition-easing-default),
+            background-color var(--time-transition-fast) var(--transition-easing-default),
+            transform var(--time-transition-fast) var(--transition-easing-default);
+}
+
 /*link-container > div > div.cls-link-actions-container > button {*/
 /*    transition:*/
 /*            color var(--time-transition-fast) var(--transition-easing-default),*/

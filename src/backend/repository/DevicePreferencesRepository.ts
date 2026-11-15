@@ -155,14 +155,14 @@ export function normalizeTheme(value?: string | null): ThemeId {
 }
 
 /** The cards the side panel can show, one at a time. */
-export type SidePanelCard = "open" | "closed" | "history";
+export type SidePanelCard = "open" | "closed" | "history" | "favorites";
 
 /** Closed tabs, which is what the panel showed before it had a second card. */
 export const DEFAULT_SIDE_PANEL_CARD: SidePanelCard = "closed";
 
 /** The card a stored value names, or the default for anything this version does not know. */
 export function normalizeSidePanelCard(value?: string | null): SidePanelCard {
-    return value === "open" || value === "closed" || value === "history"
+    return value === "open" || value === "closed" || value === "history" || value === "favorites"
         ? value
         : DEFAULT_SIDE_PANEL_CARD;
 }

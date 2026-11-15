@@ -8,6 +8,8 @@ import { BookmarkForm, renderNotice, renderWelcome } from "./ui/partials/bookmar
 import { buildWebsiteUrl } from "./backend/sync/SyncConfiguration";
 import { requestForActiveTab, takePendingBookmark } from "./utils/bookmarkRequest";
 import { t } from "./i18n/i18n";
+import { favoritesEnabled, favoritesOfWorkspace } from "./viewModel/favorites";
+import { renderPopupFavorites } from "./ui/partials/popupFavorites";
 
 /**
  *  CSS files
@@ -86,9 +88,22 @@ import './ui/styles/_aero.css'
         }
     }
 
+    // What the popup shows, and under it the open workspace's favorites (#183) - also when
+    // there is nothing to bookmark, which is when a favorite is the likelier errand. Each in a
+    // box of its own, since the form and the notice empty the box they are drawn in.
+    const mainBox = document.createElement("div");
+    host.replaceChildren(mainBox);
+    const workspaceId = appStateRepository.getCurrentEnvironmentId();
+    const favorites = favoritesEnabled() && workspaceId
+        ? renderPopupFavorites(
+            favoritesOfWorkspace(appStateRepository.state$.get(), workspaceId),
+            url => void chrome.tabs.create({ url }).then(() => window.close()))
+        : null;
+    if (favorites) host.appendChild(favorites);
+
     if (!request) {
         await renderNotice(
-            host,
+            mainBox,
             t("bookmark.nothingToBookmark.title"),
             t("bookmark.nothingToBookmark.message"));
         window.close();
@@ -97,7 +112,7 @@ import './ui/styles/_aero.css'
 
     // A profile with no group yet is not turned away: the form offers to make one, and asks
     // what to call it - see BookmarkForm.
-    await new BookmarkForm(request, new BookmarkViewModel()).render(host);
+    await new BookmarkForm(request, new BookmarkViewModel()).render(mainBox);
     window.close();
 
 })();

@@ -133,3 +133,56 @@ link-subgroup-body.managed > link-container > div > div.cls-link-actions-contain
 
 
 
+
+/* The favorite circle (#183), last in the row. Always built; shown only while the profile uses
+   favorites, which `data-favorites` on the root says (viewModel/favorites.ts). Its slot is
+   wider than the circle, and a click in it that misses the circle does nothing - the row
+   around it opens the link, and a hurried click just beside the circle used to. */
+div.cls-favorite-slot {
+  display: none;
+  flex: 0 0 auto;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5em;
+  cursor: default;
+}
+
+:root[data-favorites="on"] div.cls-favorite-slot {
+  display: flex;
+}
+
+button.cls-favorite-toggle {
+  display: block;
+  box-sizing: border-box;
+  flex: 0 0 1em;
+  width: 1em;
+  min-width: 1em;
+  height: 1em;
+  min-height: 1em;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: 0;
+  border: 0.125em solid var(--color-favorite-rim);
+  border-radius: 50%;
+  background-color: transparent;
+}
+
+
+button.cls-favorite-toggle:hover:where(:not(:disabled)) {
+  border-color: var(--color-favorite-rim-hover);
+  background-color: transparent;
+  transform: scale(1.2);
+}
+
+button.cls-favorite-toggle.is-favorite {
+  border-color: var(--color-favorite);
+  background-color: var(--color-favorite);
+}
+
+button.cls-favorite-toggle.is-favorite:hover:where(:not(:disabled)) {
+  border-color: var(--color-favorite-hover);
+  background-color: var(--color-favorite-hover);
+}

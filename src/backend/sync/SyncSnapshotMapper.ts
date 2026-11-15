@@ -85,7 +85,9 @@ export class SyncSnapshotMapper {
                         recordClosedTabs: profile.recordClosedTabs
                             ?? DEFAULT_PROFILE_SETTINGS.recordClosedTabs,
                         recordBrowsingHistory: profile.recordBrowsingHistory
-                            ?? DEFAULT_PROFILE_SETTINGS.recordBrowsingHistory
+                            ?? DEFAULT_PROFILE_SETTINGS.recordBrowsingHistory,
+                        enableFavorites: profile.enableFavorites
+                            ?? DEFAULT_PROFILE_SETTINGS.enableFavorites
                     }
                 })
             }));
@@ -176,7 +178,9 @@ export class SyncSnapshotMapper {
                 subGroupId: link.parentSubgroupId ?? undefined,
                 type: "link",
                 position: link.position,
-                createdAt: this.toEpochMilliseconds(link.createdAt)
+                createdAt: this.toEpochMilliseconds(link.createdAt),
+                // Only a favorite says so, as locally (#183); the change set sends false for the rest.
+                ...(link.favorite === true ? { favorite: true } : {})
             } satisfies Link;
         }
 

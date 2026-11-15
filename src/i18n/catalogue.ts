@@ -11,6 +11,7 @@ import enFirstRun from "./locales/en/firstRun.json";
 import enGroup from "./locales/en/group.json";
 import enHeader from "./locales/en/header.json";
 import enHistory from "./locales/en/history.json";
+import enFavorites from "./locales/en/favorites.json";
 import enLink from "./locales/en/link.json";
 import enOpenTabs from "./locales/en/openTabs.json";
 import enProfiles from "./locales/en/profiles.json";
@@ -32,6 +33,7 @@ import skFirstRun from "./locales/sk/firstRun.json";
 import skGroup from "./locales/sk/group.json";
 import skHeader from "./locales/sk/header.json";
 import skHistory from "./locales/sk/history.json";
+import skFavorites from "./locales/sk/favorites.json";
 import skLink from "./locales/sk/link.json";
 import skOpenTabs from "./locales/sk/openTabs.json";
 import skProfiles from "./locales/sk/profiles.json";
@@ -75,6 +77,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         group: enGroup,
         header: enHeader,
         history: enHistory,
+        favorites: enFavorites,
         link: enLink,
         openTabs: enOpenTabs,
         profiles: enProfiles,
@@ -98,6 +101,7 @@ export const CATALOGUES: Record<string, Record<string, CatalogueNode>> = {
         group: skGroup,
         header: skHeader,
         history: skHistory,
+        favorites: skFavorites,
         link: skLink,
         openTabs: skOpenTabs,
         profiles: skProfiles,
