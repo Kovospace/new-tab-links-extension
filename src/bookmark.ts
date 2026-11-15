@@ -66,10 +66,11 @@ import './ui/styles/_aero.css'
     await profileRepository.init();
     await appStateRepository.init(appStateInit, profileRepository.getActiveProfileId());
 
-    // Opened from the toolbar icon before anything was set up - the new tab page would show
-    // its first-run screen - this is most likely somebody looking for the application, not a
-    // page to keep (#172). A right-click entry is a deliberate save and goes straight on.
-    const firstRun = !pending && !appStateRepository.getCurrentEnvironment();
+    // Opened from the toolbar icon before anything was set up - no group anywhere in the
+    // profile, at most the empty workspace the new tab page makes by itself (#182) - this is
+    // most likely somebody looking for the application, not a page to keep (#172). A
+    // right-click entry is a deliberate save and goes straight on.
+    const firstRun = !pending && Object.keys(appStateRepository.state$.get().groups).length === 0;
     const request = pending ?? await requestForActiveTab();
 
     if (firstRun) {

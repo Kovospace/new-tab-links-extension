@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { translator } from "./i18n";
 
 /** Every picture is taken at this moment, so "2 hours ago" reads the same on every run. */
 const FIXED_TIME = new Date("2026-10-27T10:00:00");
@@ -103,9 +104,10 @@ const LOCAL_MINUTES_AGO = [4, 11, 26, 39];
 
 /**
  *  Opens the new tab page with the language and preferences in place and the "Load examples"
- *  set loaded - the way a new user reaches it, through the first-run page's button. The
- *  preferences are written first, so the page the button reloads is already drawn with them.
- *  Then the examples are made to look used - see `stageDemoData`.
+ *  set loaded - the way a new user reaches it, through the welcome dialog the starter
+ *  workspace opens with (#182). The preferences are written first, so the page the button
+ *  reloads is already drawn with them. Then the examples are made to look used - see
+ *  `stageDemoData`.
  */
 export async function openWithExamples(
     page: Page,
@@ -114,16 +116,26 @@ export async function openWithExamples(
     preferences: StagePreferences
 ): Promise<void> {
     await page.goto(`chrome-extension://${extensionId}/index.html`);
+    // The tab the extension opens on install has already made the starter workspace and shown
+    // its welcome (#182), which is recorded as shown. Forgotten again below, so the reload
+    // offers it once more, in the scene's language.
+    await page.locator("workspace-plane").waitFor();
     // Synchronisation off: the premium session below must never reach for the account.
     await page.evaluate(
-        stored => chrome.storage.local.set({ device_preferences: stored }),
+        async stored => {
+            await chrome.storage.local.set({ device_preferences: stored });
+            await chrome.storage.local.remove("workspace_welcome_offered");
+        },
         { keepSidePanelOpen: false, ...preferences, language, syncEnabled: false });
     // Before the examples are drawn: the worker remembers a miss, and would not ask again.
     await cacheFavicons(page);
     await page.reload();
+    const loadExamples = page.getByRole("button", {
+        name: translator(language)("workspace.welcome.loadExamples"), exact: true
+    });
     await Promise.all([
         page.waitForEvent("load"),
-        page.click("#act-load-defaults"),
+        loadExamples.click(),
     ]);
     await page.waitForSelector("workspace-plane link-group");
     await stageDemoData(page, language);

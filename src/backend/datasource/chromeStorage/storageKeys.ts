@@ -87,6 +87,14 @@ export const DEVICE_PREFERENCES_KEY = "device_preferences";
 export const GROUP_SIZES_KEY = "group_sizes";
 
 /**
+ *  The workspaces this browser has already offered its welcome dialog for (#182): the dialog
+ *  that opens the first time an empty workspace is shown. Only identifiers. Never synchronised,
+ *  because a workspace still gets its welcome once on each device - see
+ *  `WorkspaceWelcomeRepository`.
+ */
+export const WORKSPACE_WELCOME_OFFERED_KEY = "workspace_welcome_offered";
+
+/**
  *  New tabs opened and not yet reported, by local day, with when the last report was made and
  *  how long the server asked to wait before the next. Written only by the service worker, so
  *  two new tab pages opening at once cannot lose a count or send one twice.

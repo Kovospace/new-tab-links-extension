@@ -1,16 +1,4 @@
 {
-  "heading": "Welcome !",
-  "subheading": "Let's choose how to begin:",
-  "createWorkspace": "Start by creating a workspace",
-  "createWorkspaceButton": "+ Add first workspace",
-  "importPrompt": "... or load links from backup / exported file",
-  "importButton": "> Import",
-  "examplesPrompt": "... or load a set of examples",
-  "examplesButton": "- Load examples",
-  "accountPrompt": "... or bring in the links you already have in your Tabilinks account",
-  "signedInAs": "Signed in as {username}",
-  "defaultWorkspaceDescription": "Default workspace",
-  "titleMandatory": "At least title is mandatory",
   "examples": {
     "workspace": "Examples",
     "search": "Search",

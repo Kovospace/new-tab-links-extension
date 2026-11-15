@@ -279,7 +279,7 @@ feature needs no permission beyond `contextMenus`.
   `chrome.tabs.create`, never as a link.
 - **Before anything is set up, the toolbar icon welcomes rather than asks** (#172). A fresh
   install opens a new tab (`worker/module/firstRunTab.ts`, `onInstalled` with `install` only), and
-  while the active profile has no workspace - the new tab page's first-run test - a popup opened
+  while the active profile has no group - at most the starter workspace (#182) - a popup opened
   from the icon or the shortcut shows `renderWelcome`: "Open Tabilinks", "How it works" (the
   website's tour, per language in `bookmark.welcome.tourPath`) and, when the tab can be kept,
   "Save this page", which goes on to the form. A right-click entry is a deliberate save and skips it.
@@ -316,6 +316,43 @@ feature needs no permission beyond `contextMenus`.
   groups, and the subgroup dropdown is hidden only while a new group is being named. A link
   takes its `environmentId` from its group in `createLink`, never from the open workspace,
   or a link saved into another workspace would claim the wrong one.
+
+### First start: straight into a workspace (#182; `main.ts`, `ui/partials/workspaceWelcome.ts`)
+
+There is no first-run screen. A profile with no workspace is given one, the **starter**
+(`AppStateRepository.addStarterWorkspace`, "My workspace"), and the page opens on it.
+
+- **The starter is example data with nothing in it** (`isStarterWorkspace`): flagged with the
+  fingerprint of an empty workspace. Untouched, it is never synchronised, sign-in removes it
+  (`removeUntouchedExamples`), and first contact counts a profile holding only a starter as
+  empty (`SyncCoordinator.isEmpty`). Without that, every fresh install signing in would give
+  the account one more empty workspace, and a fresh install's "Default" profile would be merged
+  instead of replaced (`freshInstallSignIn.test.ts`). The first group or a rename makes it the
+  user's, and from then on it synchronises. It carries no "only an example" notice.
+- **A browser that synchronises waits for its account first** (`environmentToOpen`). Until the
+  first synchronisation ends (or 15 s pass) the page says it is loading, and makes the starter
+  only if nothing arrived. A profile left with no workspace at all - the last one deleted, the
+  starter removed by a sign-in - reloads the page, which then opens on a new starter.
+- **An empty workspace opens with a welcome dialog, once per workspace on each browser**
+  (`WorkspaceWelcomeViewModel`; shown ids in `workspace_welcome_offered`, never synchronised).
+  It offers: create a group, import the browser's bookmarks, rename the workspace, load the
+  examples (only while this empty workspace is all the profile holds - they replace it), and,
+  signed out, log in / enter a sync code. Last comes Cancel. Any answer marks it shown. A
+  sub-dialog cancelled, or a rename, comes back to the welcome. Importing a backup file is
+  in the profile menu and is not offered here.
+- **Bookmark import** (`viewModel/bookmarkImport.ts`, pure): every folder directly inside a
+  browser root (Bookmarks bar, Other, Mobile; Firefox's toolbar, menu, unfiled) is offered as a
+  group, plus each root's loose bookmarks under the root's name. All folders start ticked
+  (`BookmarkImportDialog`). A folder's bookmarks become the group's links and its subfolders
+  become subgroups. Anything deeper is flattened into that subgroup. Addresses go through the
+  add-link dialog's rules, so no `javascript:` bookmarklet is imported. Titles are cut to the
+  account's limits, and `dateAdded` becomes `createdAt`. The ticked set is checked whole
+  against the limits (`refusalOfImport`). Import stays disabled while it would not fit, and
+  `importGroups` makes everything in one save.
+- **`bookmarks` is an optional permission**, requested on the click
+  (`utils/browserBookmarks.ts`). Nothing may be awaited before `chrome.permissions.request`,
+  because it needs the click that asked for it. Required, it would disable the extension on
+  update until accepted.
 
 ### The strip at the bottom of the new tab page is not ours
 

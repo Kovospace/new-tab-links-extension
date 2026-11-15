@@ -40,6 +40,10 @@ import {AdsBar} from "../partials/adsBar";
 import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
+import {WorkspaceWelcome} from "../partials/workspaceWelcome";
+import {WorkspaceWelcomeViewModel} from "../../viewModel/workspaceWelcomeViewModel";
+import {workspaceWelcomeRepository} from "../../backend/repository/WorkspaceWelcomeRepository";
+import {sessionRepository} from "../../backend/sync/SessionRepository";
 
 export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, WorkspaceViewModel> {
 
@@ -141,6 +145,31 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         ({ groupName, groupDescription }) =>
           this.VIEW_MODEL.addGroup(this.currentWorkspaceId, groupName, groupDescription));
 
+    /**
+     *  The dialog an empty workspace opens with, once on each browser (#182). Built when first
+     *  needed, because the repository is only injected after construction.
+     */
+    private welcome: WorkspaceWelcome | null = null;
+
+    private workspaceWelcome(): WorkspaceWelcome {
+        this.welcome ??= new WorkspaceWelcome(
+            new WorkspaceWelcomeViewModel(this.REPOSITORY, workspaceWelcomeRepository),
+            {
+                addGroup: async workspaceId => {
+                    this.currentWorkspaceId = workspaceId;
+                    return await this.addGroupDialog.ask() !== null;
+                },
+                signIn: async how => {
+                    const dialog = how === "logIn" ? this.logInDialog : this.syncCodeDialog;
+                    return await dialog.ask() !== null && sessionRepository.isSignedIn();
+                },
+                rename: (workspaceId, name, description) =>
+                    this.VIEW_MODEL.editWorkspaceTitle(workspaceId, name, description),
+                isSignedIn: () => sessionRepository.isSignedIn()
+            });
+        return this.welcome;
+    }
+
     render(parentElem: HTMLElement) {
 
         const headElem: HTMLElement = document.createElement(ELEM_WORKSPACE_HEAD);
@@ -164,6 +193,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
                 this.renderWorkspaceHead(headElem, workspace);
                 bodyElem.replaceChildren();
                 this.renderGroups(bodyElem, this.VIEW_MODEL.getGroups(workspace.id));
+                void this.workspaceWelcome().offerIfDue(workspace.id);
             });
 
         // page body - groups
@@ -500,6 +530,16 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
         // switch active class idependently because other sources like human action can trigger this render
         if (!workspaces) {
             return;
+        }
+        // A button is kept by its workspace's id across redraws, so a renamed workspace's
+        // button is told its new name here, or it would keep the old one until a reload.
+        for (const workspace of workspaces) {
+            const button = parentElem.querySelector<HTMLButtonElement>(
+                `button.${ACT_SWITCH_WORKSPACE}[value="${CSS.escape(workspace.id)}"]`);
+            if (button && button.textContent !== workspace.title) {
+                button.textContent = workspace.title;
+                button.title = workspace.title;
+            }
         }
         const activeWorkspace: WorkspaceDTO | undefined =  workspaces
             .find((workspace: WorkspaceDTO) => workspace.active);

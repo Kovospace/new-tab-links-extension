@@ -17,5 +17,35 @@
   "addGroupTooltip": "Pridať novú skupinu",
   "errors": {
     "noName": "Plocha potrebuje názov."
+  },
+  "starterName": "Moja plocha",
+  "loadingFromAccount": "Načítavajú sa odkazy z vášho účtu…",
+  "welcome": {
+    "firstTitle": "Vitajte v Tabilinks",
+    "firstMessage": "Toto je vaša prvá plocha. Začnite skupinou odkazov, prineste si záložky z prehliadača alebo jej dajte vlastný názov.",
+    "title": "Nová plocha",
+    "message": "Plocha „{name}“ je prázdna. Ako chcete začať?",
+    "addGroup": "+ Vytvoriť skupinu",
+    "importBookmarks": "Importovať záložky z prehliadača",
+    "rename": "Premenovať túto plochu",
+    "loadExamples": "Načítať ukážky"
+  },
+  "bookmarkImport": {
+    "title": "Import záložiek",
+    "message": "Každý zaškrtnutý priečinok sa stane skupinou. Jeho podpriečinky sa stanú podskupinami a všetko hlbšie pôjde do týchto podskupín.",
+    "folder": {
+      "one": "{name} ({count} odkaz)",
+      "few": "{name} ({count} odkazy)",
+      "many": "{name} ({count} odkazu)",
+      "other": "{name} ({count} odkazov)"
+    },
+    "loose": "Záložky mimo priečinkov",
+    "untitled": "Bez názvu",
+    "confirm": "Importovať",
+    "noPermission": "Bez prístupu k záložkám prehliadača nie je čo importovať. Skúsiť to môžete kedykoľvek znova.",
+    "nothing": "V prehliadači nie sú žiadne záložky, ktoré by sa dali importovať.",
+    "tooManyGroups": "To je viac skupín, než sa zmestí do jednej plochy ({max}). Odškrtnite niektoré priečinky.",
+    "tooManySubgroups": "Jeden z týchto priečinkov má viac podpriečinkov, než môže mať skupina podskupín ({max}). Odškrtnite ho.",
+    "tooManyLinks": "To je viac odkazov, než sa zmestí do jednej plochy ({max}). Odškrtnite niektoré priečinky."
   }
 }

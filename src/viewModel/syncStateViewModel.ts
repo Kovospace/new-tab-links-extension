@@ -1,5 +1,5 @@
 import { AppState } from "../backend/entity/AppStateEntity";
-import { isExampleWorkspace } from "../backend/entity/ExampleData";
+import { isExampleWorkspace, isStarterWorkspace } from "../backend/entity/ExampleData";
 import { PlanLimits } from "../backend/entity/PlanLimits";
 import { appStateRepository } from "../backend/repository/AppStateRepository";
 import { planLimits$ } from "../backend/repository/PremiumStanding";
@@ -52,6 +52,11 @@ export function workspaceNotSyncedNotice(
     scope: PublishedSyncScope | null, session: SyncSession | null, state: AppState,
     workspaceId: string, limits: PlanLimits
 ): WorkspaceSyncNoticeDTO | null {
+    if (isStarterWorkspace(state, workspaceId)) {
+        // The page's own empty workspace (#182): nothing in it is anybody's yet, so there is
+        // nothing to warn about. The first group makes it the user's, and it synchronises.
+        return null;
+    }
     if (isExampleWorkspace(state.environments[workspaceId])) {
         return { text: t("sync.unsynced.workspace.EXAMPLE"), offerWaysOn: false };
     }

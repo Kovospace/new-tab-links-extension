@@ -21,8 +21,8 @@
    left: when
    it widens, main is given less room and the link columns narrow, which is what
    lets somebody drag a link into a group that the rail would otherwise cover.
-   With no rail on the page - the first-run screen - the first column measures
-   zero and this is the column layout it was before.
+   With no rail on the page - while a signed-in page waits for its account - the
+   first column measures zero and this is the column layout it was before.
 */
 html > body {
     display: grid;
@@ -391,4 +391,10 @@ link-container > div > div.cls-link-icon > img,
 /* 15% of 1.5rem */
 .closed-tabs__favicon {
     padding: 0.125rem;
+}
+
+/* Said while a signed-in page waits for its account's workspaces before making a starter
+   one (#182, main.ts). */
+.account-arrival-notice {
+    padding: 2em;
 }

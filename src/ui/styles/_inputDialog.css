@@ -171,6 +171,39 @@ dialog.choice-dialog {
     padding: 0 0.75em 0.75em;
 }
 
+/* One way forward per line, for a dialog that offers more of them than fit in a row
+   (the workspace welcome, #182). The last button is the way out. */
+dialog.choice-dialog--list .choice-dialog__actions {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* The page's spacing between neighbouring buttons is for a row; the gap spaces the list. */
+dialog.choice-dialog--list .choice-dialog__actions > button {
+    margin: 0;
+}
+
+/* The bookmark import's folder list (#182): ticked folders, headed by the browser's
+   root they are in, scrolling when somebody has many. */
+.bookmark-import-dialog__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 0 0.75em 0.75em;
+}
+
+.bookmark-import-dialog__root {
+    margin: 0.5em 0 0;
+    font-size: 1em;
+}
+
+.bookmark-import-dialog__problem {
+    margin: 0;
+    padding: 0 0.75em 0.75em;
+}
+
 /* ---------------------------------------------------------------------------
    Select dialog
 

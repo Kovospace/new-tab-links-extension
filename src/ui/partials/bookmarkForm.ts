@@ -518,8 +518,8 @@ export interface WelcomeActions {
 }
 
 /**
- *  Shown instead of the form while this browser has no workspace yet (#172) - the state the new
- *  tab page answers with its first-run screen. Somebody who has just installed the extension
+ *  Shown instead of the form while this browser has no group yet (#172) - nothing set up, at
+ *  most the new tab page's empty starter workspace (#182). Somebody who has just installed the extension
  *  reaches for its toolbar icon expecting the application, and was handed a form asking them to
  *  name a workspace and a group for a page they had not decided to keep. This says where the
  *  application is and leads there first; saving stays one click away, offered only when there

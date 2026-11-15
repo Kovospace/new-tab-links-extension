@@ -14,7 +14,6 @@
  *  Custom HTML elements names
  */
 
-export const ELEM_FIRSTRUN: string = 'first-run';
 
 export const ELEM_WORKSPACE = "workspace-plane";
 export const ELEM_WORKSPACE_HEAD = "workspace-plane-head";
@@ -41,12 +40,6 @@ export const ELEM_OPTIONS_MENU_ITEM = "options-menu-item";
  *  Class names bound to some actions triggered by UI elements by user
  */
 
-// "Greetings" screen
-export const ACT_FIRST_WORKSPACE: string = "act-first-workspace";
-export const ACT_IMPORT_LINKS: string = "act-import-links";
-export const ACT_LOAD_DEFAUTLS: string = "act-load-defaults";
-export const ACT_FIRST_RUN_CONNECT_CODE: string = "act-first-run-connect-code";
-export const ACT_FIRST_RUN_LOG_IN: string = "act-first-run-log-in";
 
 // Workspace component
 export const ACT_APP_MENU: string = "action-app-menu";

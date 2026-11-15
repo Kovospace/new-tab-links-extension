@@ -13,8 +13,9 @@ import {
 } from "../entity/PlanLimits";
 import {fairUseRefusals, FairUseRefusals} from "./FairUseRefusals";
 import {planLimits$, premiumStanding$} from "./PremiumStanding";
-import {withExampleFlagsSettled} from "../entity/ExampleData";
+import {exampleFingerprintOf, withExampleFlagsSettled} from "../entity/ExampleData";
 import {LinkSortOrder, sortedIntoLinkSlots} from "./linkSorting";
+import {ImportedGroup} from "../entity/ImportedGroups";
 
 export class AppStateRepository {
 
@@ -271,6 +272,36 @@ export class AppStateRepository {
     // Workspace operations
 
     /**
+     *  Makes the workspace a profile with none is opened on (#182). There is no first-run
+     *  screen any more: the page goes straight into a workspace and offers the ways to fill it.
+     *
+     *  It is flagged as example data, with the fingerprint of an empty workspace under this
+     *  name (`isStarterWorkspace`). Until the user adds to it or renames it, it is never
+     *  synchronised and it is removed at sign-in, exactly as untouched examples are. Without
+     *  that, every fresh install signing in would give the account an empty workspace it never
+     *  asked for. The first change makes it the user's, and from then on it synchronises.
+     *
+     *  No limit applies: it is only made for a profile that holds no workspace.
+     *
+     *  @param name what to call it, in the user's language
+     */
+    addStarterWorkspace(name: string): Promise<AppState> {
+        if (Object.keys(this.state.environments).length > 0) {
+            return Promise.resolve(this.state);
+        }
+        const id = uid();
+        const workspace: Environment = { id, name, createdAt: Date.now(), order: 0 };
+        const environments = { [id]: workspace };
+        const fingerprint = exampleFingerprintOf({ ...this.state, environments }, id);
+        this.state = {
+            ...this.state,
+            activeEnvironmentId: id,
+            environments: { [id]: { ...workspace, example: fingerprint } }
+        };
+        return this.save();
+    }
+
+    /**
      *  Create new workspace
      */
     addWorkspace(title: string, description?: string): Promise<AppState> {
@@ -385,6 +416,91 @@ export class AppStateRepository {
             }
         };
         return this.save();
+    }
+
+    /**
+     *  Why these groups may not all go into a workspace, or null when they may (#182).
+     *
+     *  Checked whole, before anything is made, for the same reason a profile import is: half
+     *  of somebody's bookmarks is a worse result than being asked to tick fewer folders.
+     *  Nothing is published - the import dialog says it, and keeps the import button disabled.
+     *
+     *  @param workspaceId where they would go
+     *  @param groups      what would be made
+     */
+    refusalOfImport(workspaceId: string, groups: ReadonlyArray<ImportedGroup>): LimitRefusal | null {
+        const limits = this.limits();
+        const premium = this.isPremium();
+        const links = groups.reduce((total, group) => total + group.items.reduce(
+            (count, item) => count + (item.kind === "subgroup" ? item.links.length : 1), 0), 0);
+        const mostSubgroups = Math.max(0, ...groups.map(group =>
+            group.items.filter(item => item.kind === "subgroup").length));
+        return refusalOfMoreGroups(this.state, workspaceId, groups.length, limits, premium)
+            // A group that does not exist yet holds no subgroup, so any unused identifier counts from 0.
+            ?? refusalOfMoreSubgroups(this.state, "", mostSubgroups, limits, premium)
+            ?? refusalOfMoreLinks(this.state, workspaceId, links, limits, premium);
+    }
+
+    /**
+     *  Creates groups with their links and subgroups in one save (#182): one redraw and one
+     *  push, not one for every bookmark. Each group goes after the workspace's last one, and
+     *  inside it links and subgroups share one position sequence in the order given. A new
+     *  subgroup is folded and gets a tab group colour, as one made by hand does.
+     *
+     *  @param workspaceId where they go
+     *  @param groups      what to make
+     *  @return false when a limit refused it - published like any other refusal - and nothing was made
+     */
+    async importGroups(workspaceId: string, groups: ReadonlyArray<ImportedGroup>): Promise<boolean> {
+        if (!this.checkEnvironmentExists(workspaceId)
+            || this.refused(this.refusalOfImport(workspaceId, groups))) {
+            return false;
+        }
+        const now = Date.now();
+        const linkOf = (link: ImportedGroup["items"][number] & { kind: "link" },
+                        groupId: string, position: number, subGroupId?: string): Link => ({
+            id: uid(), title: link.title, url: link.url, environmentId: workspaceId,
+            groupId, subGroupId, type: "link", createdAt: link.createdAt ?? now, position
+        });
+
+        for (const imported of groups) {
+            const groupId = uid();
+            const group: Group = {
+                id: groupId, environmentId: workspaceId, title: imported.title,
+                createdAt: now, order: this.getOrderForNewGroup(workspaceId)
+            };
+            const subgroups: Record<string, Subgroup> = {};
+            const links: Record<string, Link> = {};
+            imported.items.forEach((item, position) => {
+                if (item.kind === "link") {
+                    const link = linkOf(item, groupId, position);
+                    links[link.id] = link;
+                    return;
+                }
+                const subgroupId = uid();
+                subgroups[subgroupId] = {
+                    id: subgroupId, groupId, environmentId: workspaceId, title: item.title,
+                    createdAt: now, type: "subgroup", collapsed: true, defaultCollapsed: true,
+                    catchLinksIntoTabGroup: false,
+                    color: chooseTabGroupColor([
+                        ...Object.values(this.state.subgroups), ...Object.values(subgroups)
+                    ].map(subgroup => subgroup.color)),
+                    position
+                };
+                item.links.forEach((subgroupLink, index) => {
+                    const link = linkOf(subgroupLink, groupId, index, subgroupId);
+                    links[link.id] = link;
+                });
+            });
+            this.state = {
+                ...this.state,
+                groups: { ...this.state.groups, [groupId]: group },
+                subgroups: { ...this.state.subgroups, ...subgroups },
+                links: { ...this.state.links, ...links }
+            };
+        }
+        await this.save();
+        return true;
     }
 
     /**
