@@ -4,10 +4,12 @@
    whatever length its content asks for. */
 div.search-bar-wrapper {
     flex: 1 1 32em;
-    /* 16em, unless the head - capped at the window's width - is narrower than that and the
-       bar's own left margin: then all of the line, and not a pixel past it. */
-    min-width: min(24em, 100% - 2em);
-    max-width: 40em;
+    /* Between 16em and 48em (#198). 16em, unless the head - capped at the room beside the side
+       panel - is narrower than that and the bar's own left margin: then all of the line, and
+       not a pixel past it. Below 16em it drops to a line of its own rather than being crushed
+       beside the title, which the head's wrapping does. */
+    min-width: min(16em, 100% - 2em);
+    max-width: 48em;
 }
 
 form.search-bar {

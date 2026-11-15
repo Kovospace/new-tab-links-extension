@@ -628,6 +628,12 @@ to a shorter query. A link, a closed tab or a visit replaces this page, as a lin
 does; an open tab is switched to; the web is searched with the chosen engine. The list is
 translucent with a backdrop blur.
 
+**The bar keeps between 16em and 48em** (#198; `div.search-bar-wrapper`), and drops to a line
+of its own in the workspace head rather than going narrower. The head is fitted to the window
+beside the folded rail - opening the panel on hover must not rewrap it - but beside the open
+panel while the panel is kept open (`closed-tabs--kept-open`): fitted beside the rail, it ran up
+to 300px past the window's edge (`test/ui/styles/searchBarLimits.test.ts`).
+
 ### Tips on the workspace background (`ui/tips/`)
 
 A card at the bottom of the workspace plane, drawn by `TipsBar` into the `<workspace-plane>`

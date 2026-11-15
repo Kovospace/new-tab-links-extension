@@ -261,6 +261,8 @@ export class ClosedTabsPanel {
    */
   private keepOpen(keep: boolean): void {
     this.keptOpen = keep;
+    // The workspace head fits itself beside a panel kept open, not beside the rail (#198).
+    this.panelEl?.classList.toggle('closed-tabs--kept-open', keep);
     if (this.keepOpenBox) {
       this.keepOpenBox.checked = keep;
     }
