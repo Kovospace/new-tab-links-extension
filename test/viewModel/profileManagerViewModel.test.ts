@@ -59,7 +59,7 @@ describe("ProfileManagerViewModel", () => {
         expect(rows.find(row => row.id === OTHER)?.empty).toBe(true);
         expect(rows.find(row => row.id === OTHER)?.contentsLabel).toBe("empty");
         expect(rows.find(row => row.id === THIRD)?.empty).toBe(false);
-        expect(rows.find(row => row.id === THIRD)?.contentsLabel).toBe("1 workspace, 3 links");
+        expect(rows.find(row => row.id === THIRD)?.contentsLabel).toBe("1 space, 3 links");
     });
 
     it("renames a profile without touching its identifier or its data", async () => {

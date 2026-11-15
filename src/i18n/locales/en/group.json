@@ -30,7 +30,7 @@
     "resetSize": "Reset size",
     "moveLeft": "Move group left",
     "moveRight": "Move group right",
-    "migrate": "Migrate to other workspace",
+    "migrate": "Migrate to other space",
     "delete": "Delete group",
     "deleteConfirmation": "All links and sub-groups associated to that group will be deleted."
   },
@@ -43,9 +43,9 @@
     "nameDesc": "Name Z–A"
   },
   "migrateDialog": {
-    "title": "Migrate group to another workspace",
-    "field": "Target workspace",
+    "title": "Migrate group to another space",
+    "field": "Target space",
     "confirm": "Migrate",
-    "nowhereToGo": "There is no other workspace to move this group into. Add one first."
+    "nowhereToGo": "There is no other space to move this group into. Add one first."
   }
 }

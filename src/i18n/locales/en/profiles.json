@@ -17,8 +17,8 @@
     "empty": "empty",
     "summary": "{workspaces}, {links}",
     "workspaces": {
-      "one": "{count} workspace",
-      "other": "{count} workspaces"
+      "one": "{count} space",
+      "other": "{count} spaces"
     },
     "links": {
       "one": "{count} link",
@@ -40,7 +40,7 @@
   "nameMissing": "A profile needs a name.",
   "deleteOne": {
     "title": "Delete this profile?",
-    "message": "\"{name}\" holds {contents}. Deleting it removes its workspaces, groups and links from this browser and from your account, on every device. This cannot be undone.",
+    "message": "\"{name}\" holds {contents}. Deleting it removes its spaces, groups and links from this browser and from your account, on every device. This cannot be undone.",
     "confirm": "Delete it"
   },
   "nothingToDelete": {
@@ -52,8 +52,8 @@
     "phrase": "delete all profiles",
     "confirm": "Yes, delete them",
     "message": {
-      "one": "This deletes {count} profile and everything in it — workspaces, groups and links — from this browser and from your account, on every device. The profile you are looking at now is kept. This cannot be undone.",
-      "other": "This deletes {count} profiles and everything in them — workspaces, groups and links — from this browser and from your account, on every device. The profile you are looking at now is kept. This cannot be undone."
+      "one": "This deletes {count} profile and everything in it — spaces, groups and links — from this browser and from your account, on every device. The profile you are looking at now is kept. This cannot be undone.",
+      "other": "This deletes {count} profiles and everything in them — spaces, groups and links — from this browser and from your account, on every device. The profile you are looking at now is kept. This cannot be undone."
     }
   }
 }

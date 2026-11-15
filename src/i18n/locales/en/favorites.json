@@ -1,8 +1,8 @@
 {
   "card": "Favorites",
   "title": "Favorites",
-  "cardTooltip": "Favorite links of this workspace",
-  "empty": "No favorites in this workspace yet. Click the circle beside a link, or drag a link here.",
+  "cardTooltip": "Favorite links of this space",
+  "empty": "No favorites in this space yet. Click the circle beside a link, or drag a link here.",
   "rowTooltip": "{url}\nOpen this favorite",
   "openInNewTab": "Open in a new tab"
 }

@@ -24,7 +24,7 @@
   {
     "id": "discover-premium-features",
     "text": {
-      "en": "See what premium adds — no ad bar and room for many more profiles and workspaces, among other things.",
+      "en": "See what premium adds — no ad bar and room for many more profiles and spaces, among other things.",
       "sk": "Pozrite sa, čo pridáva prémiová verzia — okrem iného žiadny reklamný pruh a miesto pre oveľa viac profilov a plôch."
     },
     "url": {
@@ -160,7 +160,7 @@
   {
     "id": "workspaces",
     "text": {
-      "en": "A profile can hold several workspaces. Switch between them from the buttons at the top left.",
+      "en": "A profile can hold several spaces. Switch between them from the buttons at the top left.",
       "sk": "Profil môže mať viacero plôch. Prepínate ich tlačidlami vľavo hore."
     },
     "url": {

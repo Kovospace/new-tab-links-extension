@@ -1,24 +1,24 @@
 {
   "pageTitle": "New Card",
   "addDialog": {
-    "title": "Add workspace",
-    "name": "Workspace name",
-    "description": "Workspace description"
+    "title": "Add space",
+    "name": "Space name",
+    "description": "Space description"
   },
   "menu": {
-    "tooltip": "Edit current workspace",
-    "add": "Add workspace",
-    "editTitle": "Edit Workspace title",
-    "saveTitle": "Save Workspace title",
-    "delete": "Delete workspace",
-    "deleteConfirmation": "All groups and links that are associated to that workspace will be deleted as well."
+    "tooltip": "Edit current space",
+    "add": "Add space",
+    "editTitle": "Edit Space title",
+    "saveTitle": "Save Space title",
+    "delete": "Delete space",
+    "deleteConfirmation": "All groups and links that are associated to that space will be deleted as well."
   },
   "addGroup": "Add group",
   "addGroupTooltip": "Add new group",
   "errors": {
-    "noName": "A workspace needs a name."
+    "noName": "A space needs a name."
   },
-  "starterName": "My workspace",
+  "starterName": "My space",
   "loadingFromAccount": "Loading your links from your account…",
   "welcome": {
     "addGroup": "Create new group",
@@ -37,14 +37,14 @@
     "confirm": "Import",
     "noPermission": "Without access to the browser's bookmarks there is nothing to import. You can try again whenever you like.",
     "nothing": "The browser has no bookmarks that could be imported.",
-    "tooManyGroups": "That is more groups than a workspace holds ({max}). Untick some folders.",
+    "tooManyGroups": "That is more groups than a space holds ({max}). Untick some folders.",
     "tooManySubgroups": "One of these folders has more subfolders than a group holds subgroups ({max}). Untick it.",
-    "tooManyLinks": "That is more links than a workspace holds ({max}). Untick some folders."
+    "tooManyLinks": "That is more links than a space holds ({max}). Untick some folders."
   },
   "workspaceLess": {
-    "title": "No workspace",
-    "message": "Every workspace of this profile has been deleted. Start a new one, bring your links back from a backup, or get them from your account.",
-    "create": "Create workspace",
+    "title": "No spaces",
+    "message": "Every space of this profile has been deleted. Start a new one, bring your links back from a backup, or get them from your account.",
+    "create": "Create space",
     "importBackup": "Import links from a backup"
   }
 }
