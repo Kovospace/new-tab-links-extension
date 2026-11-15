@@ -128,8 +128,8 @@ aside.closed-tabs .closed-tabs__row > button > span {
     transition: color var(--time-transition-fast) var(--transition-easing-default);
 }
 
-aside.closed-tabs > div.closed-tabs__head button,
-aside.closed-tabs > div.closed-tabs__head input
+aside.closed-tabs div.closed-tabs__head button,
+aside.closed-tabs div.closed-tabs__head input
 {
     transition:
             color var(--time-transition-fast) var(--transition-easing-default),
@@ -143,7 +143,7 @@ aside.closed-tabs > div.closed-tabs__head input
 /*}*/
 
 /* Search */
-aside.closed-tabs > input {
+aside.closed-tabs input.closed-tabs__search {
     transition:
             border-color var(--time-transition-fast) var(--transition-easing-default),
             background-color var(--time-transition-fast) var(--transition-easing-default);

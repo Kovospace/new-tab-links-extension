@@ -66,7 +66,7 @@ const deviceKeepOpenPreference: KeepOpenPreference = {
  * only reads as something when they are all one kind of thing. The closed tabs card is what
  * the panel showed before it had a second one, and is the default.
  *
- * A rail down the right-hand edge, always there, showing the favicons of what was closed - and
+ * A rail down the left-hand edge, always there, showing the favicons of what was closed - and
  * widening into the full list when the pointer reaches it. No click is needed to look, which is
  * the point: the question this answers ("what was that thing I just closed?") is asked in
  * passing, and a panel that had to be opened first would be slower than pressing Ctrl+Shift+T
@@ -78,11 +78,11 @@ const deviceKeepOpenPreference: KeepOpenPreference = {
  *
  * **Opening is decided from where the pointer is, not by :hover.** Hover closes the panel the
  * instant the pointer crosses onto the scrollbar or into the gap beside it, which is exactly
- * where somebody reaching for the list is about to be. The rule instead is: to the right of the
- * panel's left edge - over it, or past it - is open; to the left of that edge is closed. That
+ * where somebody reaching for the list is about to be. The rule instead is: to the left of the
+ * panel's right edge - over it, or past it - is open; to the right of that edge is closed. That
  * keeps it open while the pointer is anywhere it could still be heading for the list, and it
  * cannot flap, because the edge it is compared against moves with the panel: closing puts the
- * edge to the right of the pointer, which is not a reason to open again.
+ * edge to the left of the pointer, which is not a reason to open again.
  *
  * **Opening waits for the pointer to stay.** Closing is immediate, but the pointer has to rest
  * in that place before the panel widens - 300 ms unless this device's settings say
@@ -259,12 +259,12 @@ export class ClosedTabsPanel {
   /**
    * Follows the pointer, unless the button has taken the decision away.
    *
-   * Two comparisons, and the second one is not optional. At or right of the panel's left edge
-   * keeps it open - over the panel, or past it onto the scrollbar and the window edge, because
+   * Two comparisons, and the second one is not optional. At or left of the panel's right edge
+   * keeps it open - over the panel, or past it onto the window edge, because
    * somebody on their way to the list should not lose it by overshooting. But only between the
    * panel's own top and bottom: the rail is a column of the page's grid and starts below the
-   * header, so "far enough right" on its own is also true of the application menu and the
-   * settings button up in the corner, and reaching for those opened the panel underneath them.
+   * header, so "far enough left" on its own is also true of the header's buttons in that
+   * corner, and reaching for those would open the panel underneath them.
    */
   private followPointer(event: MouseEvent): void {
     this.followPointerAt(event.clientX, event.clientY);
@@ -275,10 +275,10 @@ export class ClosedTabsPanel {
    *
    * In a maximised window the last pixel or two at the screen's edge can belong to the window
    * frame rather than to the page. A pointer flung at that edge sends its last mousemove from
-   * somewhere left of the rail and its next position is already outside the page - so no
+   * somewhere right of the rail and its next position is already outside the page - so no
    * event ever arrived over the rail, nothing in it so much as lit up, and it never opened.
    * Leaving the page is reported, as a mouseout with nowhere to go, and where it left is read
-   * as the nearest point still inside: out through the right edge beside the rail is "on the
+   * as the nearest point still inside: out through the left edge beside the rail is "on the
    * rail", out through the top is "above it".
    */
   private followPointerOut(event: MouseEvent): void {
@@ -300,7 +300,7 @@ export class ClosedTabsPanel {
     // not move, so they need no such care.
     const panel = this.panelEl.getBoundingClientRect();
     const besideIt = clientY >= panel.top && clientY <= panel.bottom;
-    const wantsOpen = besideIt && clientX >= panel.left;
+    const wantsOpen = besideIt && clientX <= panel.right;
 
     if (!wantsOpen) {
       this.cancelPendingOpen();
@@ -453,17 +453,29 @@ export class ClosedTabsPanel {
     head.appendChild(clearBtn);
     head.appendChild(this.history.clearEl);
     head.appendChild(pinBtn);
-    panel.appendChild(head);
-    panel.appendChild(this.buildCardSwitcher());
-    panel.appendChild(this.buildSearch());
+    // The head, the card switcher and the search field are one block above the lists, ruled
+    // off underneath like a group's head - one line under all three rather than one between
+    // each of them.
+    const top = document.createElement('div');
+    top.classList.add('closed-tabs__top');
+    top.appendChild(head);
+    top.appendChild(this.buildCardSwitcher());
+    top.appendChild(this.buildSearch());
+    panel.appendChild(top);
+
+    // Everything under the line: the three cards' lists and the notices that stand in for
+    // two of them. One block, so it can be styled as the panel's body as the head above is.
+    const body = document.createElement('div');
+    body.classList.add('closed-tabs__body');
+    panel.appendChild(body);
 
     this.openListEl = document.createElement('div');
     this.openListEl.classList.add('closed-tabs__list', 'closed-tabs__list--open');
-    panel.appendChild(this.openListEl);
+    body.appendChild(this.openListEl);
 
     this.listEl = document.createElement('div');
     this.listEl.classList.add('closed-tabs__list', 'closed-tabs__list--closed');
-    panel.appendChild(this.listEl);
+    body.appendChild(this.listEl);
 
     // What the panel says while the profile does not record closed tabs. The panel stays
     // rather than going away - a rail that vanished would leave nothing to say where it went.
@@ -471,10 +483,10 @@ export class ClosedTabsPanel {
       t('closedTabs.off.message'),
       t('closedTabs.off.openSettings'),
       () => new SettingsDialog().show(PRIVACY_CATEGORY));
-    panel.appendChild(this.offEl);
+    body.appendChild(this.offEl);
 
-    panel.appendChild(this.history.listEl);
-    panel.appendChild(this.history.offEl);
+    body.appendChild(this.history.listEl);
+    body.appendChild(this.history.offEl);
 
     return panel;
   }

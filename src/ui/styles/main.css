@@ -17,19 +17,20 @@
 */
 /*
    A grid rather than a column, so that a panel can sit *beside* the workspace
-   instead of over it. The recently closed rail is a column of this grid: when
+   instead of over it. The side panel's rail is a column of this grid, on the
+   left: when
    it widens, main is given less room and the link columns narrow, which is what
    lets somebody drag a link into a group that the rail would otherwise cover.
-   With no rail on the page - the first-run screen - the second column measures
+   With no rail on the page - the first-run screen - the first column measures
    zero and this is the column layout it was before.
 */
 html > body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
         "header header"
-        "main   aside"
+        "aside  main"
         "footer footer";
     height: 100%;
     font-family: sans-serif;

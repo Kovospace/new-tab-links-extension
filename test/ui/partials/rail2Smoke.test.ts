@@ -25,13 +25,18 @@ const notKeptOpen: KeepOpenPreference = {
     follow: listener => { listener(false); return () => undefined; }
 };
 
-/** jsdom lays nothing out, so the panel is told where it is. */
+/**
+ *  jsdom lays nothing out, so the panel is told where it is: a column down the left. The
+ *  numbers count from the far side of a 1000-pixel page - 1000 is the left-hand edge, where the
+ *  rail is - which keeps the numbers written while the panel stood on the right meaning the same.
+ */
+const mirrored = (x: number) => 1000 - x;
 function edgeAt(x: number) {
     const panel = document.querySelector('.closed-tabs') as HTMLElement;
-    panel.getBoundingClientRect = () => ({ left: x, right: 1000, top: 0, bottom: 800, width: 1000 - x, height: 800, x, y: 0, toJSON: () => ({}) }) as DOMRect;
+    panel.getBoundingClientRect = () => ({ left: 0, right: mirrored(x), top: 0, bottom: 800, width: mirrored(x), height: 800, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
 }
 const move = (x: number) => {
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: x, bubbles: true }));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: mirrored(x), bubbles: true }));
     vi.advanceTimersByTime(OPEN_DELAY_MS);
 };
 const isOpen = () => document.querySelector('.closed-tabs')!.classList.contains('closed-tabs--open');
@@ -63,7 +68,7 @@ describe("rail pointer logic", () => {
         vi.useRealTimers();
     });
 
-    it("opens over the rail, stays open to the right, closes to the left", () => {
+    it("opens over the rail, stays open further out, closes further in", () => {
         edgeAt(960);                 // collapsed rail starts at 960
         expect(isOpen()).toBe(false);
 

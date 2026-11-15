@@ -128,7 +128,7 @@ export class NewTabPage {
      */
     async openSidePanel(): Promise<void> {
         const viewport = this.page.viewportSize()!;
-        await this.page.mouse.move(viewport.width - 10, viewport.height / 2);
+        await this.page.mouse.move(10, viewport.height / 2);
         await this.page.locator(".closed-tabs.closed-tabs--open").waitFor();
         // The panel widens with a transition; a row measured halfway is somewhere else after.
         await this.page.waitForTimeout(600);
