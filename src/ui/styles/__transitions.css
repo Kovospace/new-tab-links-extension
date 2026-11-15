@@ -51,6 +51,12 @@ link-group {
     transition: background-color var(--time-transition-medium) var(--transition-easing-default);
 }
 
+/* The resize corner (#173) brightening under the pointer and fading back. While it is held,
+   group.css switches every transition in the group off, so the size follows the pointer. */
+link-group > div.cls-group-resize-handle {
+    transition: opacity var(--time-transition-medium) var(--transition-easing-default);
+}
+
 /*link-group-head > div.cls-group-head-actions > button {*/
 /*    transition:*/
 /*            color var(--time-transition-fast) var(--transition-easing-default),*/

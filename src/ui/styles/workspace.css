@@ -36,8 +36,7 @@ workspace-plane:has(> .tips-bar:not([hidden])) {
 workspace-plane-head {
     display: flex;
     align-items: center;
-    margin: var(--widgets-spacing) 0;
-    margin-left: 1em;
+    margin: var(--widgets-spacing) 1em;
     background-color: var(--color-component-background);
     border-radius: 3em;
     width: max-content;
