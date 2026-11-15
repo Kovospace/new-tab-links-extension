@@ -596,6 +596,9 @@ push when the profile does not record it (`emptyHistoryNotRecorded`).
   changes without a release and no remote code runs in the extension. It stays hidden until
   the page posts `tabilinks-ad-slot-ready` from the website's origin - `load` also fires for the
   browser's own offline error page.
+- **The slot is only as wide as the banner** (728px plus its lining, `--ads-slot-width` in
+  `_adsBar.css`; #202), centred, and narrower only when the window is. Fixed rather than fitted
+  to its content, so it holds its place before the page in it has drawn.
 - **A premium account has no slot at all** - no frame, no reserved space.
   `AccountStandingRepository` reads `premium` from `GET /api/v1/users/me`; the server decides,
   the extension never derives it. It is remembered per account and published before the page
