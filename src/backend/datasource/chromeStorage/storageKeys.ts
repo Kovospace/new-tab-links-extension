@@ -109,6 +109,13 @@ export const BACKGROUND_SELECTED_KEY = "background_selected";
 export const BACKGROUND_HIDDEN_BUILT_INS_KEY = "background_hidden_built_ins";
 
 /**
+ *  `true` from a fresh install until the default picture is behind the page or the user has
+ *  chosen for themselves (#175). Written by the worker on install, read and cleared by the page,
+ *  which is what can download the picture.
+ */
+export const BACKGROUND_DEFAULT_PENDING_KEY = "background_default_pending";
+
+/**
  * What this installation last reported to the account about what it holds - the account and a
  * signature of the report - so an unchanged inventory is not sent again. See InventoryReporter.
  */
