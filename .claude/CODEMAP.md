@@ -57,6 +57,7 @@ Keep it current: a new module or a new concern adds a row here.
 | The ads bar — an iframe of the website's slot page | `ui/partials/adsBar.ts` |
 | Anonymous new-tab counts, batched and reported | `backend/stats/NewTabUsageReporter.ts`, `backend/worker/module/usageStatsWorker.ts` |
 | Drag and drop | `ui/dragAndDrop/dragAndDrop.ts` |
+| Resizing a group by its corner (#173), sizes per device | `ui/partials/groupResize.ts`, `backend/repository/GroupSizeRepository.ts`; wired in `ui/components/groupComponent.ts` (`listenerResize`), styles in `ui/styles/group.css` |
 | Tips | `ui/tips/tipsCatalogue.ts`, `ui/tips/tips.json` |
 | Strings | `i18n/locales/{en,sk}/<area>.json`, loader `i18n/i18n.ts` |
 | Screenshots rendered by Playwright, per version (`screenshots/versions/`); what exists in `../screenshots/CATALOGUE.md`; the `screenshot-maker` agent - scenes, the extension-loading fixture, per-language projects | `../screenshots/` (scenes in `store.shots.ts`; `support/test.ts` fixtures, `support/newTabPage.ts` page actions, `support/stage.ts` data and preferences, `support/browser.ts`, `support/i18n.ts`); output in `../screenshots/out/` |
