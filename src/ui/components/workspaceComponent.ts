@@ -41,7 +41,7 @@ import {ClosedTabsPanel} from "../partials/closedTabsPanel";
 import {SearchBar} from "../partials/searchBar";
 import { t } from "../../i18n/i18n";
 import {WorkspaceWelcome} from "../partials/workspaceWelcome";
-import {combinedSignInDialog} from "../partials/signInDialog";
+import {signInStepByStep} from "../partials/signInDialog";
 import {WorkspaceWelcomeViewModel} from "../../viewModel/workspaceWelcomeViewModel";
 import {workspaceWelcomeRepository} from "../../backend/repository/WorkspaceWelcomeRepository";
 import {sessionRepository} from "../../backend/sync/SessionRepository";
@@ -157,7 +157,7 @@ export class WorkspaceComponent extends AbstractComponent<WorkspaceDTO, Workspac
             new WorkspaceWelcomeViewModel(this.REPOSITORY, workspaceWelcomeRepository),
             {
                 addGroup: workspaceId => this.actionAddGroup(workspaceId),
-                signIn: () => combinedSignInDialog(this.accountViewModel, () => {}).show(),
+                signIn: () => void signInStepByStep(this.accountViewModel, () => {}),
                 isSignedIn: () => sessionRepository.isSignedIn()
             });
         return this.welcome;

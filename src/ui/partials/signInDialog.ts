@@ -1,42 +1,71 @@
 import { t } from '../../i18n/i18n';
+import { ChoiceDialog } from './choiceDialog';
 import { InputDialog } from './inputDialog';
 import { signInDeviceFields, wantsSync } from './signInFields';
 import { SyncAccountViewModel } from '../../viewModel/syncAccountViewModel';
 
+/** The two ways into an account. */
+type SignInMethod = 'password' | 'syncCode';
+
 /**
- * One dialog for both ways into an account (#182), opened by "Log in / set up sync" on the
- * empty workspace's widget and on the page shown with no workspace. Username and password,
- * then "or", then a sync code. The device fields follow, as in every sign-in dialog.
+ * "Log in / set up sync" on the empty workspace's widget and on the page with no workspace
+ * (#182), in two steps so nobody has to work out which fields are theirs.
  *
- * No field is required on its own, because either half is enough. The submit check says
- * what is missing when neither half is filled in. A sync code wins when both are, since
- * typing one is the more deliberate act. The menu keeps its two separate dialogs.
+ * 1. The method: "I have a username and password" or "I have a sync code".
+ * 2. That method's form only, with the device fields every sign-in dialog has.
+ *
+ * Cancelling the form goes back to step 1, because a wrong guess at the method is the likely
+ * reason for it. Cancel on step 1 ends it. The menu keeps its two dialogs as they were.
  *
  * @param account  the account view model that signs in
- * @param signedIn what to do once the dialog has closed on a sign-in that worked
+ * @param signedIn what to do once a sign-in has worked and its dialog has closed
  */
-export function combinedSignInDialog(
+export async function signInStepByStep(
   account: SyncAccountViewModel,
   signedIn: () => void
-): InputDialog {
+): Promise<void> {
+  for (;;) {
+    const method = await new ChoiceDialog<SignInMethod | 'cancel'>(
+      t('sync.signInDialog.title'),
+      t('sync.signInDialog.message'),
+      [
+        { label: t('sync.signInDialog.withPassword'), value: 'password' },
+        { label: t('sync.signInDialog.withCode'), value: 'syncCode' },
+        { label: t('common.cancel'), value: 'cancel', danger: true }
+      ]
+    ).ask();
+    if (!method || method === 'cancel') return;
+
+    const finished = await formFor(method, account, signedIn).ask();
+    if (finished) return;
+  }
+}
+
+/** The form of one method. Confirming signs in; the dialog closes only when that worked. */
+function formFor(method: SignInMethod, account: SyncAccountViewModel, signedIn: () => void): InputDialog {
+  const afterSignIn = (): void => void account.finishSignIn().then(signedIn);
+  if (method === 'password') {
+    return new InputDialog(
+      t('sync.logInDialog.title'),
+      {
+        [t('sync.logInDialog.usernameOrEmail')]:
+          { type: 'string', required: true, key: 'usernameOrEmail' },
+        [t('sync.logInDialog.password')]:
+          { type: 'password', required: true, key: 'password' },
+        ...signInDeviceFields()
+      },
+      afterSignIn,
+      ({ usernameOrEmail, password, deviceName, synchronise }) =>
+        account.logIn(usernameOrEmail, password, deviceName, wantsSync(synchronise)));
+  }
   return new InputDialog(
-    t('sync.signInDialog.title'),
+    t('sync.syncCodeDialog.title'),
     {
-      [t('sync.logInDialog.usernameOrEmail')]: { type: 'string', key: 'usernameOrEmail' },
-      [t('sync.logInDialog.password')]: { type: 'password', key: 'password' },
       [t('sync.syncCodeDialog.connectCode')]:
-        { type: 'string', key: 'connectCode', separatorBefore: t('sync.signInDialog.or') },
+        { type: 'string', required: true, key: 'connectCode' },
       ...signInDeviceFields()
     },
-    () => void account.finishSignIn().then(signedIn),
-    async ({ usernameOrEmail, password, connectCode, deviceName, synchronise }) => {
-      const code = connectCode?.trim();
-      if (code) {
-        return account.connectWithCode(code, deviceName, wantsSync(synchronise));
-      }
-      if (usernameOrEmail?.trim() && password) {
-        return account.logIn(usernameOrEmail, password, deviceName, wantsSync(synchronise));
-      }
-      return t('sync.signInDialog.fillOne');
-    });
+    afterSignIn,
+    ({ connectCode, deviceName, synchronise }) =>
+      account.connectWithCode(connectCode, deviceName, wantsSync(synchronise)));
 }

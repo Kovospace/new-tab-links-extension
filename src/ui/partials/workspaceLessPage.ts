@@ -1,6 +1,6 @@
 import { t } from '../../i18n/i18n';
 import { InputDialog } from './inputDialog';
-import { combinedSignInDialog } from './signInDialog';
+import { signInStepByStep } from './signInDialog';
 import { renderTiles } from './welcomeTiles';
 import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from '../../backend/sync/SyncContracts';
 import { WorkspaceLessViewModel } from '../../viewModel/workspaceLessViewModel';
@@ -39,7 +39,7 @@ export function renderWorkspaceLessPage(
 
   // A sign-in reloads, as everything here does: start-up pulls the account's workspaces, so
   // the page comes back on them - or here again, when the account has none.
-  const signInDialog = combinedSignInDialog(account, () => window.location.reload());
+  const signIn = (): void => void signInStepByStep(account, () => window.location.reload());
 
   const page = document.createElement('section');
   page.classList.add('workspace-less');
@@ -56,7 +56,7 @@ export function renderWorkspaceLessPage(
       onClick: () => void viewModel.importBackup().then(reloadIf) },
     // Only while signed out, as on the empty workspace's widget.
     ...(signedIn ? [] : [{ icon: 'sync' as const, tone: 'plain' as const, label: t('workspace.welcome.signIn'),
-      onClick: () => signInDialog.show() }]),
+      onClick: signIn }]),
     { icon: 'cancel', tone: 'danger', label: t('common.cancel'),
       onClick: () => void viewModel.makeStarter().then(reloadIf) }
   ]));

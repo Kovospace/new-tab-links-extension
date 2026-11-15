@@ -77,7 +77,8 @@
   },
   "signInDialog": {
     "title": "Prihlásenie alebo synchronizácia",
-    "fillOne": "Vyplňte meno a heslo, alebo kód na pripojenie.",
-    "or": "alebo"
+    "message": "Ako chcete pripojiť tento prehliadač k svojmu účtu Tabilinks?",
+    "withPassword": "Mám meno a heslo",
+    "withCode": "Mám kód na synchronizáciu"
   }
 }

@@ -12,7 +12,7 @@ import { WelcomeAction, welcomeActions, WorkspaceWelcomeViewModel } from '../../
 export interface WelcomeDoors {
   /** Opens the add group dialog for this workspace. */
   addGroup(workspaceId: string): void;
-  /** Opens the combined sign-in dialog (username and password, or a sync code). */
+  /** Starts the two-step sign-in: the method first, then its form (`signInStepByStep`). */
   signIn(): void;
   isSignedIn(): boolean;
 }

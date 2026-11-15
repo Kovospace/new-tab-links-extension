@@ -349,11 +349,10 @@ There is no first-run screen. A profile with no workspace is given one, the **st
   - Cancel (red), which makes the starter after all.
   The mark is cleared once the profile has a workspace again. Any other empty profile - a
   fresh install, a new profile, one emptied by a pull - gets the starter.
-- **"Log in / set up sync" is one dialog** (`signInDialog.ts`): username and password, a line
-  saying "or", then a sync code, then the usual device fields. No field is required on its own.
-  The submit check asks for one half or the other, and a code wins when both are filled. The
-  menu keeps its separate log-in and sync-code dialogs. `InputDialog` draws the "or" from a
-  field's `separatorBefore`.
+- **"Log in / set up sync" takes two steps** (`signInStepByStep`): first the method, "I have a
+  username and password" or "I have a sync code", then that method's form only, with the usual
+  device fields. Cancelling the form goes back to the choice, since a wrong guess at the method
+  is the likely reason. The menu keeps its separate log-in and sync-code entries.
 - **The examples are no longer offered anywhere.** Their code stays: existing example data
   is still removed at sign-in. The screenshot staging builds them with
   `buildExampleProfileData` and stores them (`stage.ts`).

@@ -75,7 +75,8 @@
   },
   "signInDialog": {
     "title": "Log in or set up sync",
-    "fillOne": "Fill in your username and password, or a sync code.",
-    "or": "or"
+    "message": "How would you like to connect this browser to your Tabilinks account?",
+    "withPassword": "I have a username and password",
+    "withCode": "I have a sync code"
   }
 }

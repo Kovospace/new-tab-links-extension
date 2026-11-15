@@ -54,12 +54,6 @@ export interface FieldConstraints {
      *  going to synchronise is not worth asking.
      */
     enables?: string;
-
-    /**
-     *  A line drawn above the field, carrying this word ("or"): it splits a form into two
-     *  ways of answering it, such as the combined sign-in dialog's password and sync code (#182).
-     */
-    separatorBefore?: string;
 }
 
 /**
