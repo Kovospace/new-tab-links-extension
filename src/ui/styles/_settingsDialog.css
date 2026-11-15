@@ -286,3 +286,33 @@ button.background-library__remove {
 .background-library__tile:focus-within > button.background-library__remove {
     opacity: 1;
 }
+
+/* The accent colours (#200): a row of round swatches, the chosen one ringed in the text
+   colour, so the ring shows whatever the colour under it. */
+.settings-dialog__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin: 0.25em 0;
+}
+
+button.settings-dialog__swatch {
+    width: 2em;
+    height: 2em;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    border: 0.125em solid transparent;
+    background-color: var(--swatch-color);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 0.125em var(--color-dialog-background);
+}
+
+button.settings-dialog__swatch:hover:where(:not(:disabled)) {
+    background-color: var(--swatch-color);
+    transform: scale(1.1);
+}
+
+button.settings-dialog__swatch[aria-checked="true"] {
+    border-color: var(--color-dialog-text);
+}

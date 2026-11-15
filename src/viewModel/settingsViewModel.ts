@@ -5,7 +5,7 @@ import { writeVisits } from "../backend/repository/VisitsRepository";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
-    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP, THEME_STYLES, THEMES
+    MIN_CLOSED_TABS_OPEN_DELAY, MIN_SCALE, SCALE_STEP, THEME_STYLES, THEMES, ACCENT_COLORS
 } from "../backend/repository/DevicePreferencesRepository";
 
 import {
@@ -125,6 +125,11 @@ export interface ChoiceSettingDTO extends SettingCommonDTO {
 export interface SettingOptionDTO {
     value: string;
     label: string;
+    /**
+     *  The colour this answer is, for a choice that is a colour (#200): the dialog draws the
+     *  answers as swatches instead of a dropdown. Any CSS colour, or a `var()`.
+     */
+    swatch?: string;
 }
 
 /** One tile of the background library. */
@@ -180,7 +185,7 @@ export type ImageSettingKey = "backgroundImage";
 export type RangeSettingKey = "uiScale" | "closedTabsOpenDelay";
 
 /** The settings that are a choice out of a list. */
-export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine" | "theme" | "themeStyle";
+export type ChoiceSettingKey = "language" | "dateFormat" | "searchEngine" | "theme" | "themeStyle" | "accentColor";
 
 /** A named group of settings, which the dialog draws as one collapsible section. */
 export interface SettingCategoryDTO {
@@ -248,6 +253,7 @@ const CATEGORIES: CategoryDefinition[] = [
         settings: [
             { kind: "choice", key: "theme", wording: "theme" },
             { kind: "choice", key: "themeStyle", wording: "themeStyle" },
+            { kind: "choice", key: "accentColor", wording: "accentColor" },
             { kind: "range", key: "uiScale", wording: "uiScale" },
             { kind: "range", key: "closedTabsOpenDelay", wording: "closedTabsOpenDelay" },
             { kind: "toggle", key: "keepSidePanelOpen", wording: "keepSidePanelOpen" },
@@ -529,6 +535,13 @@ export class SettingsViewModel {
             return false;
         }
 
+        if (key === "accentColor") {
+            // The same again: every accent colour is a variable of the root.
+            await this.devicePreferences.setAccentColor(value);
+            this.refresh();
+            return false;
+        }
+
         await this.devicePreferences.setDateFormat(value);
         this.refresh();
         return false;
@@ -731,6 +744,8 @@ export class SettingsViewModel {
                 return this.devicePreferences.getTheme();
             case "themeStyle":
                 return this.devicePreferences.getThemeStyle();
+            case "accentColor":
+                return this.devicePreferences.getAccentColor();
             default:
                 return this.devicePreferences.getDateFormat();
         }
@@ -788,6 +803,21 @@ function languageOptions(): SettingOptionDTO[] {
     ];
 }
 
+/**
+ *  What each accent's swatch is painted in: its background colour, as `__variables.css` sets
+ *  it under `data-accent`. Written out because a swatch has to show an accent that is not the
+ *  one in force; `accentColors.test.ts` holds the two lists together.
+ */
+export const ACCENT_SWATCHES: Readonly<Record<string, string>> = {
+    blue: "#0036ff",
+    indigo: "#4338ca",
+    violet: "#7c2fd0",
+    magenta: "#a3177a",
+    teal: "#00707f",
+    orange: "#ad4d00",
+    amber: "#e0a100"
+};
+
 /** The answers a choice setting offers. */
 function choiceOptionsOf(key: ChoiceSettingKey): SettingOptionDTO[] {
     switch (key) {
@@ -802,6 +832,12 @@ function choiceOptionsOf(key: ChoiceSettingKey): SettingOptionDTO[] {
         case "themeStyle":
             return THEME_STYLES.map(style =>
                 ({ value: style, label: t(`settings.themeStyle.options.${style}`) }));
+        case "accentColor":
+            return ACCENT_COLORS.map(accent => ({
+                value: accent,
+                label: t(`settings.accentColor.options.${accent}`),
+                swatch: ACCENT_SWATCHES[accent]
+            }));
         default:
             return dateFormatOptions();
     }

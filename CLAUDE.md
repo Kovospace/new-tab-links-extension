@@ -960,6 +960,16 @@ settles. The flicker's real causes turned out to be elsewhere - the fixed backgr
 the always-composited overlay - but if text flickers at the end of a hover again, a colour
 transition is the first thing to switch off.
 
+**The accent colour is a third** (`accentColor`, device preference, blue by default; #200):
+seven colours chosen as swatches in Settings → UI and behavior, marked as `data-accent` on the
+root by `followTheme`. `__variables.css` redefines `--color-theme-accent-background`, its hover
+and **its own text colours** under `:root[data-accent="…"]` - amber is light and takes dark
+text, every other takes light - and the active buttons' text reads those. None is red, green or
+grey, which mean delete, add and inactive here. `test/ui/styles/accentColors.test.ts` measures
+every one: 4.5:1 against its text at rest, 3:1 under the pointer, in both themes, and the
+swatches (`ACCENT_SWATCHES`) agree with the stylesheet. A new accent is a block there, an id in
+`ACCENT_COLORS`, a swatch and a name in both languages.
+
 **Flat or aero is a second, independent choice** (`themeStyle`, device preference, **aero by
 default**, flat the opt-out; #107), marked as `data-theme-style` on the root by `followTheme`. **The knobs are at the
 top of `__variables.css`** - `--aero-opacity-light`/`-dark` (panels, groups, a hovered
