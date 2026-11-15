@@ -227,7 +227,7 @@ export async function saveAsLink(
  * marks or unmarks that link. When the workspace does not keep the address at all, a favorite
  * has to be a link first, so the click opens the save-as-link form with "Favorite" ticked.
  */
-export function addressFavoriteToggle(entry: { url: string; title: string; faviconUrl?: string }): HTMLButtonElement {
+export function addressFavoriteToggle(entry: { url: string; title: string; faviconUrl?: string }): HTMLElement {
   return favoriteToggle(isAddressFavorite(entry.url), favorite => {
     void setAddressFavorite(entry.url, favorite).then(handled => {
       if (!handled && favorite) void saveAsLink(entry, true);

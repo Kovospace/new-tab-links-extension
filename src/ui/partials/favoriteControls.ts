@@ -1,7 +1,7 @@
 import { t } from '../../i18n/i18n';
 import { FieldMap } from './inputDialog';
 import { favoritesEnabled } from '../../viewModel/favorites';
-import { CLASS_FAVORITE_ON, CLASS_FAVORITE_TOGGLE } from '../../constants';
+import { CLASS_FAVORITE_ON, CLASS_FAVORITE_SLOT, CLASS_FAVORITE_TOGGLE } from '../../constants';
 
 /**
  * The "Favorite" checkbox of a dialog that makes a link (#183), under the key `favorite`, or
@@ -27,10 +27,15 @@ export function isFavoriteAnswer(value: string | undefined): boolean {
  *  favorites (`data-favorites` on the root), so switching them on redraws nothing. A click on
  *  it is the circle's alone: it does not open the link.
  *
+ *  **It sits in a slot wider than itself**, and a click anywhere in the slot is swallowed. The
+ *  circle is small and the whole row around it opens the link, so a click that only just
+ *  missed it - in a hurry - used to leave the page. Around the circle, a miss now does nothing.
+ *
  *  @param favorite whether the link is one now
  *  @param toggle   what to do with the new answer
+ *  @return the slot, holding the circle
  */
-export function favoriteToggle(favorite: boolean, toggle: (favorite: boolean) => void): HTMLButtonElement {
+export function favoriteToggle(favorite: boolean, toggle: (favorite: boolean) => void): HTMLElement {
     const circle = document.createElement("button");
     circle.type = "button";
     circle.draggable = false;
@@ -51,6 +56,18 @@ export function favoriteToggle(favorite: boolean, toggle: (favorite: boolean) =>
         show(favorite);
         toggle(favorite);
     });
-    return circle;
+
+    const slot = document.createElement("div");
+    slot.classList.add(CLASS_FAVORITE_SLOT);
+    slot.draggable = false;
+    // A press here must not take the focus from the search field, nor start a selection.
+    slot.addEventListener("mousedown", event => event.preventDefault());
+    // A near miss: not the circle's, and not the row's either.
+    slot.addEventListener("click", event => {
+        event.stopPropagation();
+        event.preventDefault();
+    });
+    slot.appendChild(circle);
+    return slot;
 }
 

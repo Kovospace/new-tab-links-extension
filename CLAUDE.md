@@ -387,7 +387,9 @@ links keep their marks for when it is turned back on.
   grey on light), golden when marked, slightly recoloured and scaled under the pointer. It is
   always built, and the stylesheet shows it only under `data-favorites="on"` on the root
   (`followFavoritesSwitch`), so switching the setting redraws nothing. A click on it never
-  opens the link.
+  opens the link, and nor does a near miss: the circle sits in a slot wider than itself
+  (`cls-favorite-slot`, the row's full height) that swallows clicks, since the rest of the row
+  opens the link and a hurried click beside the circle used to leave the page.
 - **Other ways to mark a link**: the link's context menu ("Add to favorites" / "Remove from
   favorites"), and the "Favorite" checkbox of every dialog that makes a link (`favoriteField`,
   read each time the dialog is built; the bookmarking form too).
