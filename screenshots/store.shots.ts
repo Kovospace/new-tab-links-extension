@@ -20,7 +20,9 @@ test.describe("light theme", () => {
     });
 
     test.describe("recently closed", () => {
-        test.use({ preferences: { theme: "light", sidePanelCard: "closed" } });
+        // Kept open, as it is by default since 0.5.0 - and then the head fits beside the open
+        // panel (#198); opened by the pointer, the search field ran past the window's edge.
+        test.use({ preferences: { theme: "light", sidePanelCard: "closed", keepSidePanelOpen: true } });
 
         test("side panel, a row hovered", async ({ newTab, shoot }) => {
             await newTab.chooseBackground(BACKGROUND);

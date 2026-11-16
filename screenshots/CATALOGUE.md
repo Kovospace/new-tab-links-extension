@@ -81,7 +81,7 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `tips` | disable-ads › free with the ad bar, premium without it | `disable-ads/odstran-reklamu_3x`, `disable-ads/odstran-reklamu-2_3x` | Signed out (free): the ad bar - the website's slot page - framed; then premium again, the same place framed and empty |
 | `tips` | hide-tips › home, the tips bar framed | `hide-tips/tipy-lokacia_3x` | Tips shown (`hideTips` off): the page with the tips bar framed |
 | `tips` | hide-tips › the tips bar, its buttons framed | `hide-tips/tipy_3x` | Close-up of the tips bar, its buttons framed |
-| `tips` | hide-tips › settings, hide tips framed | `hide-tips/tipy-obnovit_3x` | Close-up of Settings → UI and behavior, "Hide tips" framed |
+| `tips` | hide-tips › settings, hide tips framed | `hide-tips/tipy-obnovit_3x` | Close-up of Settings → Functions (since 0.5.0), "Hide tips" framed |
 | `tips` | lets-begin › first run | `lets-begin/1_3x` | Profiles, data and the account removed: the starter workspace and its widget (#182) |
 | `tips` | lets-begin › home with the examples | `lets-begin/2_3x` | The examples with a tip along the bottom |
 | `tips` | lets-begin › closed tabs › side panel open on the closed tabs | `lets-begin/3_3x` | The side panel open on Closed |
@@ -99,7 +99,7 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `tips` | saving-from-webpage › the bookmarking popup | `saving-from-webpage/2_3x` | The popup as the toolbar button opens it, on a Wikipedia page in the picture's language |
 | `tips` | setup-privacy › settings, sync & privacy | `setup-privacy/nastavenia-sukromie_3x` | `syncEnabled` on: close-up of Settings → Sync & privacy |
 | `tips` | use-drag-and-drop › a link held over another group | `use-drag-and-drop/presun-odkazu_3x` | Spotify picked up and held over LinkedIn: the drop line, the tips bar turned trash, pointer drawn |
-| `tips` | use-drag-and-drop › settings, enable drag & drop framed | `use-drag-and-drop/nastavenia-presun_3x` | Close-up of Settings → UI and behavior, "Enable drag & drop" framed |
+| `tips` | use-drag-and-drop › settings, enable drag & drop framed | `use-drag-and-drop/nastavenia-presun_3x` | Close-up of Settings → Functions (since 0.5.0), "Enable drag & drop" framed |
 | `theme-showcase` | <theme> › home | `1-<theme>_3x` | The example workspace, background 6 |
 | `theme-showcase` | <theme> › recently closed › side panel, a row hovered | `2-<theme>_3x` | As store #2, background 6 |
 | `theme-showcase` | <theme> › search suggestions | `3-<theme>_3x` | As store #3, background 6 |
@@ -116,8 +116,9 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 - **The profile is named in the reader's language** - "Default" / "Predvolený" (`PROFILE_NAME`).
   The extension seeds "Default" everywhere on purpose: first contact pairs profiles by name.
 - **X, LinkedIn and Claude have their icons** - those sites refuse headless Chromium, so their icons are
-  put into the favicon cache from Google's favicon service before the examples are drawn
-  (`FAVICONS_FROM_GOOGLE`). Another refused site goes into that list.
+  put into the favicon cache from Google's favicon service before the examples are even stored
+  (`FAVICONS_FROM_GOOGLE`): an open page draws a storage write at once, and the worker keeps a miss
+  in memory, so an icon cached after that is never read. Another refused site goes into that list.
 - **History and closed tabs** - history recording on; four pages really visited and closed
   (`VISITED_PAGES`, per language), then two more from "Work computer" / "Pracovný počítač"
   (`OTHER_DEVICE_PAGES`), plus Apple Music in the history only - open there, never closed - so
@@ -149,7 +150,7 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `reload()` | Reloads and waits for the groups |
 | `setProfileSettings(changes)` | Merges into the open profile's settings (`{ hideTips: false }`), reloads |
 | `becomeFree()` | Removes the staged premium session, reloads, waits for the ad slot to be ready |
-| `wipeToFirstRun()` | Removes profiles, their data and the session, keeps device preferences and background: the first-run screen |
+| `wipeToFirstRun()` | Removes profiles, their data and the session, keeps device preferences and background: the starter space and its welcome widget (no first-run screen since #182) |
 | `toggleSubgroup(index)` / `subgroupBox(index)` / `subgroupCloseUp(index)` | Folds/unfolds by its heading; its area; a close-up as wide as its group |
 | `settingsRow(key)` / `scrollToMiddle(selector)` | A Settings row's selector by its title key; scrolls it to the middle |
 | `menuItem(key)` | The selector of an open options menu's item by its wording key |

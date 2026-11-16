@@ -254,7 +254,8 @@ test.describe("hide-tips", () => {
     });
 
     test("settings, hide tips framed", async ({ newTab, shoot }) => {
-        await newTab.openSettings("uiAndBehavior");
+        // Under Functions since #183, beside favorites and drag & drop.
+        await newTab.openSettings("functions");
         const row = newTab.settingsRow("hideTips");
         await newTab.outline(row, 4, 4);
         await shoot(shot("tipy-obnovit"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
@@ -467,7 +468,8 @@ test.describe("use-drag-and-drop", () => {
 
     test("settings, enable drag & drop framed", async ({ newTab, shoot }) => {
         await newTab.chooseBackground(BACKGROUND);
-        await newTab.openSettings("uiAndBehavior");
+        // Under Functions since #183, beside favorites and the tips.
+        await newTab.openSettings("functions");
         await newTab.outline(newTab.settingsRow("enableDragAndDrop"), 4, 4);
         await shoot(shot("nastavenia-presun"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
     });

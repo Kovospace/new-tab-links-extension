@@ -10,13 +10,13 @@ tab by tab. English is the default listing; Slovak is added under "Add localized
 The store does **not** let you type the title and the summary. It reads them from
 `public/_locales/<lang>/messages.json` (`extensionName`, `extensionDescription`). They are set to
 the following; change them there, not in the dashboard. `extensionShortName` ("Tabilinks") is
-the manifest's `short_name`, used where the full name does not fit - the right-click menu
-entries read "Bookmark this page with Tabilinks".
+the manifest's `short_name`, used where the full name does not fit - the right-click menu's
+entry is "Tabilinks" (Flash save, Add bookmark…, Save to group), or "Tabilinks: Flash save" alone.
 
 | Key | Limit | en | sk |
 |---|---|---|---|
 | `extensionName` | 75 chars (about 45 are visible) | `Tabilinks: grouped links & history on new tab` | `Tabilinks: linky v skupinách na novej karte` |
-| `extensionDescription` | 132 chars | `Your links on every new tab: sorted into groups created inside spaces, synced across all your devices.` | `Vaše záložky a história na každej novej karte: v skupinách a pracovných priestoroch, synchronizované naprieč Vašimi zariadeniami.` |
+| `extensionDescription` | 132 chars | `Your links on every new tab: sorted into groups created inside spaces, synced across all your devices.` | `Vaše záložky a história na každej novej karte: v skupinách a plochách, synchronizované naprieč Vašimi zariadeniami.` |
 
 ---
 
@@ -32,11 +32,13 @@ A new tab that finally does something useful.
 
 Tabilinks replaces the empty new tab page with your own links, organised into a logical hierarchical structure of Spaces, their Groups and optional Subgroups, all within switchable Profiles.
 
-As a bonus, the history of visited pages, recently closed tabs and the list of currently open tabs - all accessible without a single click: just hover the mouse over the panel on the right side.
+As a bonus, the history of visited pages, recently closed tabs and the list of currently open tabs - all accessible without a single click, in the side panel on the left. Your favorite links sit there too, and in the toolbar popup.
 
 Of course, everything mentioned can be backed up and synchronised across all your browsers and devices.
 
-Make it feel like home: light or dark, flat or see-through glass, with one of sixteen backgrounds or a picture of your own. And the search bar looks through your saved links, open and closed tabs and history before it offers the web.
+Saving is as quick as browsing: right-click any page or link and Flash save keeps it at once, or press Alt+Shift+F. Sort it later.
+
+Make it feel like home: light or dark, flat or see-through glass, your own accent colour, with one of sixteen backgrounds or a picture of your own. And the search bar looks through your saved links, open and closed tabs and history before it offers the web.
 
 WHO IT IS FOR
 
@@ -52,6 +54,11 @@ WHY TABILINKS
   - profiles meant for roles (work, home)
   - spaces for topics
   - groups and subgroups for categories of links within that topic
+• Save in one click, find in one:
+  - right-click any page or link → Tabilinks › Flash save, Add bookmark or Save to group
+  - Alt+Shift+F flash-saves the page you are on - or let Flash save stand alone in the menu
+  - mark favorites with a circle and reach them from the side panel and the toolbar popup
+  - bring in your browser's bookmarks: folders become groups
 • Compatibility:
   - works in every Chromium browser and syncs between them - Chrome, Brave, Edge and others - with a free account
 • Privacy:
@@ -63,6 +70,8 @@ WHY TABILINKS
   - no hidden traps forcing you to give in and buy premium
 • Yours to shape:
   - light and dark theme, each flat or glass (Aero) - light, dark or as the system, one click away in the top bar
+  - seven accent colours instead of the usual corporate blue
+  - resize any group column by its corner, sort a group's links by date or name
   - sixteen built-in backgrounds or your own picture - in the free version too
 • One search for everything:
   - your links, open tabs, closed tabs and history first, the web search last
@@ -106,7 +115,7 @@ PREMIUM VERSION:
 
 PRIVACY
 
-Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Sync & privacy, which also deletes them. Pictures you upload as a background stay in your browser; a built-in one is downloaded from tabilinks.app when you choose it. With an account, your links, closed tabs and (if on) history are stored to sync them - unless you untick "Synchronise this browser" when signing in or in the menu, which keeps everything on this browser while premium still applies. Full policy: https://tabilinks.app/privacy
+Without an account your links never leave your browser; only an anonymous daily count of opened new tabs is sent. Open tabs are never stored or sent. Closed tabs are recorded by default and browsing history only when you turn it on - both can be switched off in Settings → Sync & privacy, which also deletes them. Pictures you upload as a background stay in your browser; a built-in one is downloaded from tabilinks.app when you choose it. Importing your browser's bookmarks reads them in the browser, only when you ask - the permission is requested at that moment. With an account, your links, closed tabs and (if on) history are stored to sync them - unless you untick "Synchronise this browser" when signing in or in the menu, which keeps everything on this browser while premium still applies. Full policy: https://tabilinks.app/privacy
 
 OTHER
 
@@ -119,13 +128,15 @@ Website: https://tabilinks.app
 ```
 Nová karta, ktorá konečne k niečomu je.
 
-Tabilinks nahradí prázdnu novú kartu vašimi vlastnými odkazmi, usporiadanými do logickej hierarchickej štruktúry: pracovné priestory, v nich skupiny a voliteľné podskupiny, a to všetko v rámci prepínateľných profilov.
+Tabilinks nahradí prázdnu novú kartu vašimi vlastnými odkazmi, usporiadanými do logickej hierarchickej štruktúry: plochy, v nich skupiny a voliteľné podskupiny, a to všetko v rámci prepínateľných profilov.
 
-Ako bonus história navštívených stránok, nedávno zatvorené karty a zoznam práve otvorených kariet - všetko dostupné bez jediného kliknutia: stačí prejsť myšou nad panel na pravej strane.
+Ako bonus história navštívených stránok, nedávno zatvorené karty a zoznam práve otvorených kariet - všetko dostupné bez jediného kliknutia, v bočnom paneli vľavo. Sú tam aj vaše obľúbené odkazy - a tiež v okne ikony na lište.
 
 Samozrejme, všetko spomenuté sa dá zálohovať a synchronizovať naprieč všetkými vašimi prehliadačmi a zariadeniami.
 
-Aby ste sa tu cítili ako doma: svetlý alebo tmavý vzhľad, plochý alebo priehľadné sklo, s jedným zo šestnástich pozadí alebo vlastným obrázkom. A vyhľadávacie pole najprv prehľadá vaše uložené odkazy, otvorené a zatvorené karty a históriu, až potom ponúkne web.
+Ukladanie je rovnako rýchle ako prehliadanie: kliknite pravým tlačidlom na stránku alebo odkaz a Rýchle uloženie ho hneď uloží, alebo stlačte Alt+Shift+F. Roztriedite neskôr.
+
+Aby ste sa tu cítili ako doma: svetlý alebo tmavý vzhľad, plochý alebo priehľadné sklo, vlastná farba zvýraznenia, s jedným zo šestnástich pozadí alebo vlastným obrázkom. A vyhľadávacie pole najprv prehľadá vaše uložené odkazy, otvorené a zatvorené karty a históriu, až potom ponúkne web.
 
 PRE KOHO JE
 
@@ -139,8 +150,13 @@ PREČO TABILINKS
 
 • Skutočná hierarchia:
   - profily pre role (práca, domov)
-  - pracovné priestory pre témy
+  - plochy pre témy
   - skupiny a podskupiny pre kategórie odkazov v rámci témy
+• Uložíte jedným klikom, nájdete jedným klikom:
+  - pravým tlačidlom na stránku alebo odkaz → Tabilinks › Rýchle uloženie, Pridať záložku alebo Uložiť do skupiny
+  - Alt+Shift+F rýchlo uloží stránku, na ktorej ste - alebo nechajte Rýchle uloženie v ponuke samotné
+  - obľúbené označíte krúžkom a máte ich v bočnom paneli aj v okne ikony na lište
+  - prinesiete si záložky z prehliadača: priečinky sa stanú skupinami
 • Kompatibilita:
   - funguje vo všetkých prehliadačoch na Chromiu a s bezplatným účtom sa medzi nimi synchronizuje - Chrome, Brave, Edge a ďalšie
 • Súkromie:
@@ -152,6 +168,8 @@ PREČO TABILINKS
   - žiadne skryté pasce, ktoré by vás nútili vzdať sa a kúpiť premium
 • Prispôsobíte si ho:
   - svetlý a tmavý vzhľad, každý plochý alebo sklenený (Aero) - svetlý, tmavý alebo podľa systému, jedným klikom v hornej lište
+  - sedem farieb zvýraznenia namiesto obvyklej korporátnej modrej
+  - stĺpec skupiny zväčšíte ťahaním za roh, odkazy skupiny zoradíte podľa dátumu alebo názvu
   - šestnásť vstavaných pozadí alebo vlastný obrázok - aj v bezplatnej verzii
 • Jedno vyhľadávanie na všetko:
   - najprv vaše odkazy, otvorené a zatvorené karty a história, vyhľadávanie na webe nakoniec
@@ -179,7 +197,7 @@ ZADARMO A PREMIUM
 BEZPLATNÁ VERZIA:
 - NEOBMEDZENÝ* počet odkazov
 - 1 profil
-- 2 pracovné priestory
+- 2 plochy
 - 5 synchronizovaných inštalácií
 - pamäť na posledných 25 zatvorených kariet
 - pamäť na posledných 50 záznamov histórie
@@ -195,7 +213,7 @@ PREMIUM VERZIA:
 
 SÚKROMIE
 
-Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Synchronizácia a súkromie, čím sa aj vymaže. Obrázky, ktoré si nahráte ako pozadie, zostávajú vo vašom prehliadači; vstavaný sa stiahne z tabilinks.app, keď si ho vyberiete. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať - pokiaľ pri prihlásení alebo v menu nezrušíte „Synchronizovať tento prehliadač“; vtedy všetko zostane v tomto prehliadači a premium aj tak platí. Celé zásady: https://tabilinks.app/sk/privacy
+Bez účtu vaše odkazy nikdy neopustia prehliadač; posiela sa len anonymný denný počet otvorených nových kariet. Otvorené karty sa nikdy neukladajú ani neodosielajú. Zatvorené karty sa zaznamenávajú predvolene, história prehliadania len keď ju zapnete - oboje sa dá vypnúť v Nastaveniach → Synchronizácia a súkromie, čím sa aj vymaže. Obrázky, ktoré si nahráte ako pozadie, zostávajú vo vašom prehliadači; vstavaný sa stiahne z tabilinks.app, keď si ho vyberiete. Import záložiek z prehliadača ich číta v prehliadači, len keď o to požiadate - povolenie sa vypýta práve vtedy. S účtom sa vaše odkazy, zatvorené karty a (ak je zapnutá) história ukladajú, aby sa dali synchronizovať - pokiaľ pri prihlásení alebo v menu nezrušíte „Synchronizovať tento prehliadač“; vtedy všetko zostane v tomto prehliadači a premium aj tak platí. Celé zásady: https://tabilinks.app/sk/privacy
 
 ĎALŠIE
 
@@ -245,7 +263,8 @@ Tabilinks replaces the new tab page with the user's own links, organised into pr
 | `storage` | `Stores the user's spaces, groups, links and settings locally in the browser, and the sign-in session when the user has an account.` |
 | `tabs` | `Reads the address and title of tabs to: save the current tab as a link; show the tabs open in this browser in a panel on the new tab page, where they can be switched to, closed or saved as links, and offer them as suggestions in the search bar (this list is never stored or sent anywhere); keep the "recently closed tabs" list (address and title of a tab when it closes; on by default); keep the browsing history list (address, title and time of pages visited; off by default, only when the user turns it on); and move a tab opened from a saved link into that link's tab group. Closed tabs and browsing history are synced to the user's account only when signed in, and both can be turned off in Settings → Sync & privacy, which also deletes them.` |
 | `tabGroups` | `Opens a subgroup of links as a Chrome tab group with its name and colour, finds that group again to add newly opened links to it, and repaints it when the user changes the colour.` |
-| `contextMenus` | `Adds "Bookmark this page with Tabilinks" and "Bookmark this link with Tabilinks" to the right-click menu. Each is a submenu listing the groups and subgroups of the user's open space; choosing one saves the page or the link there. The last entry opens the extension's bookmarking popup instead.` |
+| `contextMenus` | `Adds a "Tabilinks" entry to the right-click menu of a page or a link, with three actions: "Flash save" saves the page or the link at once into a "Flash save" group of the user's open space; "Add bookmark…" opens the extension's bookmarking popup with it filled in; "Save to group" lists the groups and subgroups of the open space, and choosing one saves it there. A setting can reduce the menu to the single "Tabilinks: Flash save" entry.` |
+| `bookmarks` (optional) | `Optional, requested only when the user clicks "Import bookmarks from the browser" on an empty space. The browser's bookmark tree is read once, in the browser, to offer its folders as groups; the chosen ones are saved as the user's links. Nothing is read without that click, and the bookmarks themselves are never sent anywhere - only the links the user chose to import, which are synchronised like any other link when signed in.` |
 | `favicon` | `Shows each saved link with its website icon, using Chrome's own favicon cache.` |
 | `search` | `The search bar on the new tab page can send the query to the browser's default search engine through chrome.search.` |
 | `unlimitedStorage` | `Keeps the background pictures the user chooses or uploads (up to 3840 px, a few megabytes each) in the browser, beside their links. Without it the browser's 10 MB storage quota is shared with the links, closed tabs and history, and a full profile could not store a single large picture. Nothing in this storage is sent anywhere; uploaded pictures are never synchronised.` |
@@ -278,21 +297,25 @@ Then tick all three certifications:
 
 ## 4. Test instructions tab (for the reviewer)
 ```
-The extension works without an account: open a new tab and click "Load examples" on the first screen to get sample spaces, groups and links.
+The extension works without an account. Opening a new tab after installing shows a space called "My space" with four tiles: "Create new group", "Import bookmarks from the browser" (asks for the optional bookmarks permission, then lets you tick which folders become groups), "Log in / set up sync" and "Cancel".
 
-New in this version: fixes only. A dialog no longer closes when text is selected in a field and the mouse is released outside it, the bookmarking popup (toolbar icon) no longer closes when selected text is dragged, and many or wide groups wrap onto further rows instead of scrolling sideways.
+New in this version:
+- Favorites: turn them on in menu (three dots, top right) → Settings → "Functions" → "Favorites". A circle appears beside every link; click it to mark a favorite. Favorites are listed in the side panel's "Favorites" card and in the toolbar popup.
+- Right-click any web page or link → "Tabilinks" → "Flash save" saves it at once into a "Flash save" group (made the first time; the toolbar icon shows a tick), "Add bookmark…" opens the popup, "Save to group" lists the groups. Alt+Shift+F flash-saves the current page. Settings → "UI and behavior" → "Browser context menu actions" → "Fast-paced link grabbing" leaves only "Tabilinks: Flash save" in the menu.
+- Settings → "UI and behavior" → "Accent colour": seven colours.
+- Drag a group's bottom-right corner to resize it; the group's menu (three dots) has "Sort links".
 
-Appearance: menu (three dots, top right) → Settings → "UI and behavior" sets the theme (light/dark) and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen.
+Appearance: Settings → "UI and behavior" sets the theme (light/dark) and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen; a fresh install starts on one of them.
 
 Search: type in the search bar at the top - saved links, open tabs, closed tabs and history are suggested first, the web search last.
 
-The panel on the right edge opens when the pointer rests on it. It has three cards: Open (tabs open in this browser), Closed (recently closed tabs) and History. Browsing history is off by default: turn it on in Settings → "Sync & privacy", then visit a few pages and open a new tab. Turning either recording off there asks for confirmation and deletes what was recorded.
+The side panel on the left is open by default ("Keep open" in its head). Its cards: Open (tabs open in this browser), Closed (recently closed tabs), History and, with favorites on, Favorites. Browsing history is off by default: turn it on in Settings → "Sync & privacy", then visit a few pages and open a new tab. Turning either recording off there asks for confirmation and deletes what was recorded.
 
-To test synchronisation, sign in from the menu with this test account:
+To test synchronisation, use "Log in / set up sync" (on the tile, or in the menu) with this test account:
   username: <reviewer account>
   password: <password>
-Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in dialog has a "Synchronise this browser" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised.
+Choose "I have a username and password". Sign in on a second Chrome profile with the same account to see links, closed tabs and history appear there. The sign-in form has a "Synchronise this browser" checkbox (ticked by default); unticked, the browser is signed in but nothing is synchronised.
 
-The banner at the bottom is our own premium offer, loaded from https://tabilinks.app/slot/workspace-footer.html.
+The note at the bottom is our own premium offer, loaded from https://tabilinks.app/slot/workspace-footer.html.
 ```
 Create a dedicated reviewer account for this, and do not reuse your own.

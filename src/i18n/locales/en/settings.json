@@ -77,7 +77,7 @@
   },
   "recordClosedTabs": {
     "title": "Record closed tabs",
-    "explanation": "Keep a list of the tabs you close in the panel on the right, synced to every device of this profile when you are signed in. Turning it off deletes the list.",
+    "explanation": "Keep a list of the tabs you close in the side panel on the left, synced to every device of this profile when you are signed in. Turning it off deletes the list.",
     "confirmOff": {
       "title": "Stop recording closed tabs?",
       "message": "The list of closed tabs is deleted from this profile, on every device you are signed in on, and no more tabs are recorded until you turn it back on. Links you have already saved stay.",
@@ -86,7 +86,7 @@
   },
   "recordBrowsingHistory": {
     "title": "Record browsing history",
-    "explanation": "Keep a list of the pages you visit in the panel on the right - the most recent 50, or 1000 with premium - synced to every device of this profile when you are signed in. Off by default. Turning it off deletes the history.",
+    "explanation": "Keep a list of the pages you visit in the side panel on the left - the most recent 50, or 1000 with premium - synced to every device of this profile when you are signed in. Off by default. Turning it off deletes the history.",
     "confirmOff": {
       "title": "Stop recording browsing history?",
       "message": "The browsing history is deleted from this profile, on every device you are signed in on, and no more pages are recorded until you turn it back on. Links you have already saved stay.",

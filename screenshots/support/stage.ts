@@ -125,6 +125,10 @@ export async function openWithExamples(
     await page.locator("workspace-plane").waitFor();
     setLanguage(language);
     const examples = markedAsExample(buildExampleProfileData());
+    // Before the examples are stored, not only before the reload: every open page adopts a
+    // write to storage and draws it at once, and the worker remembers a miss in memory too -
+    // an icon put into IndexedDB after that is never read.
+    await cacheFavicons(page);
     // Synchronisation off: the premium session below must never reach for the account.
     await page.evaluate(
         async ({ stored, examples }) => {
@@ -142,8 +146,6 @@ export async function openWithExamples(
             });
         },
         { stored: { keepSidePanelOpen: false, ...preferences, language, syncEnabled: false }, examples });
-    // Before the examples are drawn: the worker remembers a miss, and would not ask again.
-    await cacheFavicons(page);
     await page.reload();
     await page.waitForSelector("workspace-plane link-group");
     await stageDemoData(page, language);
