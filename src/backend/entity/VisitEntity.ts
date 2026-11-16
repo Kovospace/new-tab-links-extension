@@ -1,4 +1,4 @@
-import { PREMIUM_PLAN_LIMITS } from "./PlanLimits";
+import { PlanLimits, PREMIUM_PLAN_LIMITS } from "./PlanLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH } from "../sync/SyncContracts";
 
 /**
@@ -38,10 +38,15 @@ export interface Visit {
 }
 
 /**
- *  The most visits the card ever draws: premium's compiled history length. Not the cap a list
- *  is kept to - that is the plan's (`PlanLimits.browsingHistory`), applied in `recordVisit`.
+ *  The most visits the card draws: the account's cap, never fewer than premium's compiled
+ *  history length - for the reasons `closedTabsDrawnAtMost` gives. Not the cap a list is kept
+ *  to - that is the plan's (`PlanLimits.browsingHistory`), applied in `recordVisit`.
+ *
+ *  @param limits the limits in force (`planLimits$`)
  */
-export const MAX_VISITS: number = PREMIUM_PLAN_LIMITS.browsingHistory;
+export function visitsDrawnAtMost(limits: Pick<PlanLimits, "browsingHistory">): number {
+    return Math.max(PREMIUM_PLAN_LIMITS.browsingHistory, limits.browsingHistory);
+}
 
 /**
  *  One visit cut down to what the account will accept - a title over 200 characters would be

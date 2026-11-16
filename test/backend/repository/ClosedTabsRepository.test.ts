@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
     ClosedTabsRepository, newestFirst, readClosedTabs, recordClosedTab, writeClosedTabs
 } from "../../../src/backend/repository/ClosedTabsRepository";
-import { MAX_CLOSED_TABS } from "../../../src/backend/entity/ClosedTabEntity";
+import { closedTabsDrawnAtMost } from "../../../src/backend/entity/ClosedTabEntity";
 import { FREE_PLAN_LIMITS, PREMIUM_PLAN_LIMITS } from "../../../src/backend/entity/PlanLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../../../src/backend/sync/SyncContracts";
 import { closedTabsKey } from "../../../src/backend/datasource/chromeStorage/storageKeys";
@@ -74,7 +74,7 @@ describe("recordClosedTab", () => {
 
     it("keeps the newest of the plan's maximum, the oldest dropping off as a new one arrives", async () => {
         // Premium's history is the longest the panel draws.
-        expect(MAX_CLOSED_TABS).toBe(PREMIUM_PLAN_LIMITS.closedTabs);
+        expect(closedTabsDrawnAtMost({ closedTabs: 25 })).toBe(PREMIUM_PLAN_LIMITS.closedTabs);
         await fillWith(PREMIUM_PLAN_LIMITS.closedTabs);
 
         await recordClosedTab(PROFILE, closure("https://example.com/new", 100000), PREMIUM_PLAN_LIMITS.closedTabs);

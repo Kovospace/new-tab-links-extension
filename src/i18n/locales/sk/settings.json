@@ -86,7 +86,7 @@
   },
   "recordBrowsingHistory": {
     "title": "Zaznamenávať históriu prehliadania",
-    "explanation": "Uchováva zoznam navštívených stránok v bočnom paneli vľavo - posledných 50, s premium 1000 - a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Predvolene vypnuté. Vypnutím sa história vymaže.",
+    "explanation": "Uchováva zoznam navštívených stránok v bočnom paneli vľavo - toľko, koľko uchováva váš plán, teraz {maximum} - a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Predvolene vypnuté. Vypnutím sa história vymaže.",
     "confirmOff": {
       "title": "Prestať zaznamenávať históriu prehliadania?",
       "message": "História prehliadania sa z tohto profilu vymaže na všetkých zariadeniach, na ktorých ste prihlásení, a ďalšie stránky sa nezaznamenajú, kým to znova nezapnete. Už uložené odkazy zostanú.",
