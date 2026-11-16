@@ -44,3 +44,32 @@ describe("PageReloads", () => {
         expect(reload).toHaveBeenCalledTimes(1);
     });
 });
+
+/**
+ *  The first fix for #210 held the reloads in `main.ts` and missed the one in
+ *  `WorkspaceViewModel`, which reloaded the page outright the moment sign-in removed the
+ *  starter, while the sign-in dialog was still open - so the device-name question never came.
+ *  A hold that some reload ignores does not do its job, so every reload goes through it.
+ */
+describe("reloading the page", () => {
+
+    it("goes through pageReloads everywhere, never straight to the window", async () => {
+        const { readdirSync, readFileSync, statSync } = await import("node:fs");
+        const { join, relative } = await import("node:path");
+        const root = join(__dirname, "../../src");
+        const offenders: string[] = [];
+        const visit = (dir: string): void => {
+            for (const entry of readdirSync(dir)) {
+                const path = join(dir, entry);
+                if (statSync(path).isDirectory()) {
+                    visit(path);
+                } else if (path.endsWith(".ts") && /location\.reload\s*\(/.test(readFileSync(path, "utf8"))) {
+                    offenders.push(relative(root, path));
+                }
+            }
+        };
+        visit(root);
+
+        expect(offenders).toEqual(["utils/pageReload.ts"]);
+    });
+});

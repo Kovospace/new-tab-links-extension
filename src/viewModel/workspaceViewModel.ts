@@ -18,6 +18,7 @@ import {MAX_NAME_LENGTH, isStorableName} from "../backend/sync/SyncContracts";
 // utils
 import {ObservableValue} from "../utils/observableValue";
 import {t} from "../i18n/i18n";
+import {pageReloads} from "../utils/pageReload";
 import {InputDialog} from "../ui/partials/inputDialog";
 import {showNotice} from "../ui/partials/confirmations";
 import {refusedAnotherProfile, refusedUnderFairUse} from "./fairUseNoticeViewModel";
@@ -63,8 +64,10 @@ export class WorkspaceViewModel extends AbstractViewModel<WorkspaceDTO> {
             // the right screen. Returning matters as much as reloading: a reload is a request,
             // not a stop, and the rest of this method dereferences environments[undefined],
             // which threw "Cannot read properties of undefined (reading 'name')" out of a
-            // subscriber on every pass of the reload loop.
-            window.location.reload();
+            // subscriber on every pass of the reload loop. Requested, never forced: signing in
+            // on a fresh install removes the starter and lands here while the sign-in dialog
+            // is still open, and a reload then meant the device-name question never came (#210).
+            pageReloads.request();
             return;
         }
 

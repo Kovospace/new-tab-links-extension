@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const dialog = vi.hoisted(() => ({
     asked: [] as string[],
-    answer: null as null | ((value: string | null) => void)
+    answer: null as null | ((value: string | null) => void),
+    notices: [] as string[],
+    read: null as null | (() => void)
 }));
 
 vi.mock("../../src/ui/partials/choiceDialog", () => ({
@@ -17,7 +19,12 @@ vi.mock("../../src/ui/partials/choiceDialog", () => ({
         }
     }
 }));
-vi.mock("../../src/ui/partials/confirmations", () => ({ showNotice: () => Promise.resolve() }));
+vi.mock("../../src/ui/partials/confirmations", () => ({
+    showNotice: (_title: string, message: string): Promise<void> => {
+        dialog.notices.push(message);
+        return new Promise(resolve => { dialog.read = resolve; });
+    }
+}));
 vi.mock("../../src/backend/sync/ExampleDataRemoval", () => ({ removeUntouchedExamples: () => Promise.resolve() }));
 
 import { ApiResult, UserDeviceDto } from "../../src/backend/sync/BackendApiClient";
@@ -43,7 +50,8 @@ describe("SyncAccountViewModel holding page reloads while a sign-in finishes", (
         accessToken: "access", accessTokenExpiresInSeconds: 900, refreshToken: "refresh",
         userId: "user-1", username: "kovo", deviceId: "this-device"
     };
-    const devices: UserDeviceDto[] = [
+    let devices: UserDeviceDto[];
+    const conflicting: UserDeviceDto[] = [
         { id: "this-device", deviceName: "Work laptop", browserName: "Chrome", lastUsedAt: NOW, firstSeenAt: NOW, signedIn: true },
         { id: "other-device", deviceName: "Work laptop", browserName: "Chrome", lastUsedAt: NOW, firstSeenAt: NOW, signedIn: true }
     ];
@@ -54,6 +62,9 @@ describe("SyncAccountViewModel holding page reloads while a sign-in finishes", (
         await sessions.init();
         dialog.asked.length = 0;
         dialog.answer = null;
+        dialog.notices.length = 0;
+        dialog.read = null;
+        devices = conflicting;
         reload = vi.fn();
         reloads = new PageReloads(reload);
     });
@@ -63,7 +74,9 @@ describe("SyncAccountViewModel holding page reloads while a sign-in finishes", (
             logInWithPassword: (): Promise<ApiResult<TokenPairDto>> =>
                 Promise.resolve({ outcome: "success", data: tokens }),
             listDevices: (): Promise<ApiResult<UserDeviceDto[]>> =>
-                Promise.resolve({ outcome: "success", data: devices })
+                Promise.resolve({ outcome: "success", data: devices }),
+            takeOverDevice: (): Promise<ApiResult<void>> =>
+                Promise.resolve({ outcome: "success", data: undefined })
         };
         const standing = new AccountStandingRepository(
             { getMyAccount: () => Promise.reject(new Error("not asked")) }, sessions);
@@ -97,6 +110,22 @@ describe("SyncAccountViewModel holding page reloads while a sign-in finishes", (
         await model.finishSignIn();
 
         expect(dialog.asked).toEqual([]);
+        expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it("reloads only once the user has read that a returning device was taken over", async () => {
+        // A reinstall: the namesake is signed out and this installation's row is brand new.
+        devices = [conflicting[0], { ...conflicting[1], signedIn: false }];
+        const model = viewModel();
+        expect(await model.logIn("kovo", "secret", "Work laptop")).toBeNull();
+
+        reloads.request();
+        const finishing = model.finishSignIn();
+        await vi.waitFor(() => expect(dialog.notices).toHaveLength(1));
+        expect(reload).not.toHaveBeenCalled();
+
+        dialog.read?.();
+        await finishing;
         expect(reload).toHaveBeenCalledTimes(1);
     });
 });

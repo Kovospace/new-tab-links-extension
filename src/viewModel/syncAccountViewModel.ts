@@ -488,7 +488,7 @@ export class SyncAccountViewModel {
                 // looks like. Nothing is being taken away from anyone, so it is not worth a
                 // question - the row is adopted and the user is simply told.
                 if (await this.deviceNames.takeOver(verdict.to)) {
-                    this.report(t("sync.deviceReturning",
+                    await this.tell(t("sync.deviceReturning",
                         { name: verdict.to.deviceName }));
                 }
                 return;
@@ -529,7 +529,7 @@ export class SyncAccountViewModel {
 
         if (answer === "take-over") {
             if (await this.deviceNames.takeOver(verdict.by)) {
-                this.report(t("sync.deviceTakenOver", { name: takenName }));
+                await this.tell(t("sync.deviceTakenOver", { name: takenName }));
             }
             return;
         }
@@ -577,7 +577,7 @@ export class SyncAccountViewModel {
             return;
         }
         if (!await this.deviceNames.renameThisDevice(chosen)) {
-            this.report(t("sync.deviceNotRenamed"));
+            await this.tell(t("sync.deviceNotRenamed"));
         }
     }
 
@@ -656,5 +656,14 @@ export class SyncAccountViewModel {
      */
     private report(message: string): void {
         void showNotice(t("sync.noticeTitle"), message);
+    }
+
+    /**
+     *  Says something and waits until it has been read. What `finishSignIn` says has to be
+     *  awaited: the page reload a sign-in holds back happens the moment it returns, and would
+     *  take an unread notice with it (#210).
+     */
+    private tell(message: string): Promise<void> {
+        return showNotice(t("sync.noticeTitle"), message);
     }
 }
