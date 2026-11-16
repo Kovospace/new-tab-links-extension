@@ -57,11 +57,11 @@ function hueAndSaturation(hex: string): { hue: number; saturation: number } {
 
 describe("the accent colours", () => {
 
-    it("offers between five and ten, blue first and by default", () => {
+    it("offers between five and ten, amber - the identity colour - first and by default (#211)", () => {
         expect(ACCENT_COLORS.length).toBeGreaterThanOrEqual(5);
         expect(ACCENT_COLORS.length).toBeLessThanOrEqual(10);
-        expect(ACCENT_COLORS[0]).toBe("blue");
-        expect(DEFAULT_ACCENT_COLOR).toBe("blue");
+        expect(ACCENT_COLORS[0]).toBe("amber");
+        expect(DEFAULT_ACCENT_COLOR).toBe("amber");
     });
 
     it.each(ACCENT_COLORS)("keeps %s's text legible in both themes, at rest and under the pointer", accent => {

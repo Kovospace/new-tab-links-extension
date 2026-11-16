@@ -19,13 +19,14 @@
 :root {
     color-scheme: light dark;
 
-    /* The accent colour (#200), blue unless this browser chose another - see the
-       [data-accent] blocks at the end of this file. Its text colours are its own, because a
-       light accent (amber) needs dark text where every other one needs light. */
-    --color-theme-accent-background: light-dark(#0036ff, #0036ff);
-    --color-theme-accent-background-hover: light-dark(#0072ff, #0072ff);
-    --color-theme-accent-text: light-dark(#eee, #eee);
-    --color-theme-accent-text-hover: light-dark(#fff, #fff);
+    /* The accent colour (#200), amber - Tabilinks' identity colour (#211) - unless this
+       browser chose another; see the [data-accent] blocks at the end of this file. Its text
+       colours are its own, because a light accent (amber) needs dark text where every other
+       one needs light. */
+    --color-theme-accent-background: light-dark(#e0a100, #e0a100);
+    --color-theme-accent-background-hover: light-dark(#f5b800, #f5b800);
+    --color-theme-accent-text: light-dark(#111, #111);
+    --color-theme-accent-text-hover: light-dark(#000, #000);
 
     /* AERO Theme setup */
     /* Groups, a subgroup under the pointer, the header, footer and side panel. */
@@ -144,43 +145,53 @@
 }
 
 /*
-   The accent colours a browser can choose instead of blue (#200; Settings → UI and behavior,
+   The accent colours a browser can choose instead of amber (#200, #211; Settings → UI and behavior,
    DevicePreferencesRepository.accentColor, `data-accent` on the root). None is red, green or
    grey, which already mean delete, add and inactive here. Each colour is the same in both
    themes, because it is always a background under its own text. Every pair clears 4.5:1 at
-   rest and 3:1 under the pointer - test/ui/styles/accentColors.test.ts checks it. Blue, the
-   default, is the values above.
+   rest and 3:1 under the pointer - test/ui/styles/accentColors.test.ts checks it. Amber, the
+   default, is the values above; blue was the default until #211.
 */
+
+:root[data-accent="blue"] {
+    --color-theme-accent-background: light-dark(#0036ff, #0036ff);
+    --color-theme-accent-background-hover: light-dark(#0072ff, #0072ff);
+    --color-theme-accent-text: light-dark(#eee, #eee);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
+}
 :root[data-accent="indigo"] {
     --color-theme-accent-background: light-dark(#4338ca, #4338ca);
     --color-theme-accent-background-hover: light-dark(#5b50e6, #5b50e6);
+    --color-theme-accent-text: light-dark(#eee, #eee);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
 }
 
 :root[data-accent="violet"] {
     --color-theme-accent-background: light-dark(#7c2fd0, #7c2fd0);
     --color-theme-accent-background-hover: light-dark(#9346ea, #9346ea);
+    --color-theme-accent-text: light-dark(#eee, #eee);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
 }
 
 :root[data-accent="magenta"] {
     --color-theme-accent-background: light-dark(#a3177a, #a3177a);
     --color-theme-accent-background-hover: light-dark(#c2228f, #c2228f);
+    --color-theme-accent-text: light-dark(#eee, #eee);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
 }
 
 :root[data-accent="teal"] {
     --color-theme-accent-background: light-dark(#00707f, #00707f);
     --color-theme-accent-background-hover: light-dark(#00879a, #00879a);
+    --color-theme-accent-text: light-dark(#eee, #eee);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
 }
 
 :root[data-accent="orange"] {
     --color-theme-accent-background: light-dark(#ad4d00, #ad4d00);
     --color-theme-accent-background-hover: light-dark(#cc5f00, #cc5f00);
+    --color-theme-accent-text: light-dark(#eee, #eee);
+    --color-theme-accent-text-hover: light-dark(#fff, #fff);
 }
 
 /* The light one: dark text on it, at rest and under the pointer. */
-:root[data-accent="amber"] {
-    --color-theme-accent-background: light-dark(#e0a100, #e0a100);
-    --color-theme-accent-background-hover: light-dark(#f5b800, #f5b800);
-    --color-theme-accent-text: light-dark(#111, #111);
-    --color-theme-accent-text-hover: light-dark(#000, #000);
-}
-

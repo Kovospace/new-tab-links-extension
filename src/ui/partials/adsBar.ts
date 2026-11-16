@@ -2,7 +2,7 @@ import { buildWebsiteUrl, SYNC_CONFIGURATION, WEBSITE_PATHS } from '../../backen
 import { currentLanguage } from '../../i18n/i18n';
 import { accountStandingRepository } from '../../backend/sync/AccountStandingRepository';
 import { ObservableValue } from '../../utils/observableValue';
-import { devicePreferencesRepository, DevicePreferencesRepository } from '../../backend/repository/DevicePreferencesRepository';
+import { DEFAULT_ACCENT_COLOR, devicePreferencesRepository, DevicePreferencesRepository } from '../../backend/repository/DevicePreferencesRepository';
 import { ACCENT_SWATCHES } from '../../viewModel/settingsViewModel';
 
 /**
@@ -27,7 +27,7 @@ export function followSlotLook(
     const { theme, accentColor } = preferences.preferences$.get();
     return {
       theme: theme === 'light' || theme === 'dark' ? theme : (systemDark?.matches ? 'dark' : 'light'),
-      accent: (ACCENT_SWATCHES[accentColor] ?? ACCENT_SWATCHES.blue).replace('#', '')
+      accent: (ACCENT_SWATCHES[accentColor] ?? ACCENT_SWATCHES[DEFAULT_ACCENT_COLOR]).replace('#', '')
     };
   };
   const look$ = new ObservableValue<SlotLook>(lookNow());
