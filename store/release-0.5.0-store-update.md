@@ -96,16 +96,20 @@ Also likely out of date (no text change):
 - **Not changed:** the FAQ names only the Chrome Web Store. That matters only once a Firefox
   listing ships.
 
-### 1d. Proposed, not written
-- **Highlight:** an `8-flash-save` home-page point, "Save in one click", with a new SVG. Favorites
-  becomes a bullet in an existing point rather than a point of its own.
-- **New tips:**
-  - "Mark your favorites";
-  - "Flash save: keep a page in one click", or a section of `saving-from-webpage`;
-  - "Choose your accent colour", or a section of `choose-theme`;
-  - "Resize a group and sort its links";
-  - "Import your bookmarks from the browser";
-  - optionally an FAQ entry on bookmark import.
+### 1d. New tips — written, text only
+Five new tips, in English and Slovak, on the same website PR:
+- `favorites`, "Mark your favorites";
+- `flash-save`, "Flash save: keep a page in one click";
+- `accent-colour`, "Choose your accent colour";
+- `resize-and-sort-groups`, "Resize a group and sort its links";
+- `import-bookmarks`, "Import your bookmarks from the browser".
+
+They are linked from "Let's begin", the changelog and the related tips. The extension's tips bar
+teases all five, plus `setup-privacy`, which it never linked before. Each tip's file ends with an
+HTML comment listing the pictures it should get. Most can be rendered as scenes. Browser menus,
+the toolbar tick and the permission prompt have to be taken by hand.
+
+Not written: the "Save in one click" home page highlight for Flash save, which would be a new SVG.
 
 ## 2. Privacy tab
 
