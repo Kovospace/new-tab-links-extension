@@ -35,8 +35,8 @@
   {
     "id": "hide-tips",
     "text": {
-      "en": "Don't need these tips? Turn on \"Hide tips\" in Settings → \"UI and behavior\".",
-      "sk": "Tipy nepotrebujete? Zapnite „Skryť tipy“ v Nastaveniach → „Vzhľad a správanie“."
+      "en": "Don't need these tips? Turn on \"Hide tips\" in Settings → \"Functions\".",
+      "sk": "Tipy nepotrebujete? Zapnite „Skryť tipy“ v Nastaveniach → „Funkcie“."
     },
     "url": {
       "en": "/tips/hide-tips",
@@ -112,8 +112,8 @@
   {
     "id": "bookmark-shortcut",
     "text": {
-      "en": "Right-click any page and choose \"Bookmark this page with Tabilinks\" to save it straight into one of your groups without leaving the site.",
-      "sk": "Kliknite pravým tlačidlom na ktorúkoľvek stránku a zvoľte „Uložiť túto stránku do Tabilinks“ — uložíte ju rovno do niektorej skupiny bez opustenia webu."
+      "en": "Right-click any page or link and choose Tabilinks › \"Save to group\" to put it straight into one of your groups - or \"Flash save\" to keep it at once and sort it later.",
+      "sk": "Kliknite pravým tlačidlom na ľubovoľnú stránku alebo odkaz a zvoľte Tabilinks › „Uložiť do skupiny“ - uloží sa rovno do jednej z vašich skupín. Alebo „Rýchle uloženie“: uloží sa hneď a roztriedite ju neskôr."
     },
     "url": {
       "en": "/tips/saving-from-webpage",
@@ -178,8 +178,8 @@
   {
     "id": "discover-history",
     "text": {
-      "en": "Move the mouse to the right edge of the page and the recently closed tabs unroll — click \"+\" or drag one out to keep it as a link.",
-      "sk": "Posuňte myš k pravému okraju stránky a rozbalia sa naposledy zatvorené karty — tlačidlom „+“ alebo ťahaním ich uložíte ako odkaz."
+      "en": "The side panel on the left keeps your recently closed tabs - click \"+\" or drag one out to keep it, or switch to History or Open tabs.",
+      "sk": "Bočný panel vľavo uchováva nedávno zatvorené karty - kliknite na „+“ alebo jednu vytiahnite, aby ste si ju nechali, či prepnite na Históriu alebo Otvorené karty."
     },
     "url": {
       "en": "/tips/discover-history",
@@ -189,8 +189,8 @@
   {
     "id": "lets-begin",
     "text": {
-      "en": "New here? A short tour of the first screen, the closed tabs on the right edge and the menus behind the three dots.",
-      "sk": "Ste tu nový? Krátka prehliadka prvej obrazovky, zavretých kariet na pravom okraji a menu za tromi bodkami."
+      "en": "New here? A short tour of your first space, the side panel on the left and the menus behind the three dots.",
+      "sk": "Ste tu nový? Krátka prehliadka vašej prvej plochy, bočného panela vľavo a ponúk za tromi bodkami."
     },
     "url": {
       "en": "/tips/lets-begin",
@@ -206,6 +206,72 @@
     "url": {
       "en": "/tips/choose-theme",
       "sk": "/sk/tips/choose-theme"
+    }
+  },
+  {
+    "id": "setup-privacy",
+    "text": {
+      "en": "Decide what is recorded and what is synchronised: Settings → \"Sync & privacy\".",
+      "sk": "Rozhodnite, čo sa zaznamenáva a čo synchronizuje: Nastavenia → „Synchronizácia a súkromie“."
+    },
+    "url": {
+      "en": "/tips/setup-privacy",
+      "sk": "/sk/tips/setup-privacy"
+    }
+  },
+  {
+    "id": "favorites",
+    "text": {
+      "en": "Turn on Favorites in Settings → \"Functions\", then click the circle at the end of a link to keep it one click away.",
+      "sk": "Zapnite Obľúbené v Nastaveniach → „Funkcie“ a kliknutím na krúžok na konci odkazu ho budete mať vždy na jedno kliknutie."
+    },
+    "url": {
+      "en": "/tips/favorites",
+      "sk": "/sk/tips/favorites"
+    }
+  },
+  {
+    "id": "flash-save",
+    "text": {
+      "en": "Right-click a page → \"Tabilinks\" → \"Flash save\", or press Alt+Shift+F, and it is kept at once, no questions asked.",
+      "sk": "Pravým tlačidlom na stránku → „Tabilinks“ → „Rýchle uloženie“ alebo Alt+Shift+F a stránka sa uloží hneď, bez otázok."
+    },
+    "url": {
+      "en": "/tips/flash-save",
+      "sk": "/sk/tips/flash-save"
+    }
+  },
+  {
+    "id": "accent-colour",
+    "text": {
+      "en": "Not a fan of blue? Pick one of seven accent colours in Settings → \"UI and behavior\" → \"Accent colour\".",
+      "sk": "Modrá vám nesedí? Vyberte si jednu zo siedmich farieb v Nastaveniach → „Vzhľad a správanie“ → „Farba zvýraznenia“."
+    },
+    "url": {
+      "en": "/tips/accent-colour",
+      "sk": "/sk/tips/accent-colour"
+    }
+  },
+  {
+    "id": "resize-and-sort-groups",
+    "text": {
+      "en": "Drag a group's bottom-right corner to resize it, and use \"Sort links\" in its menu to put its links in order.",
+      "sk": "Potiahnutím pravého dolného rohu zmeníte veľkosť skupiny a voľbou „Zoradiť odkazy“ v jej ponuke zoradíte jej odkazy."
+    },
+    "url": {
+      "en": "/tips/resize-and-sort-groups",
+      "sk": "/sk/tips/resize-and-sort-groups"
+    }
+  },
+  {
+    "id": "import-bookmarks",
+    "text": {
+      "en": "Bring your browser's bookmarks along: on an empty space, choose \"Import bookmarks from the browser\" and each folder becomes a group.",
+      "sk": "Prineste si záložky z prehliadača: v prázdnej ploche zvoľte „Importovať záložky z prehliadača“ a z každého priečinka bude skupina."
+    },
+    "url": {
+      "en": "/tips/import-bookmarks",
+      "sk": "/sk/tips/import-bookmarks"
     }
   }
 ]

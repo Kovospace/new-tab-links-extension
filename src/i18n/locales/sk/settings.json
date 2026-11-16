@@ -77,7 +77,7 @@
   },
   "recordClosedTabs": {
     "title": "Zaznamenávať zatvorené karty",
-    "explanation": "Uchováva zoznam kariet, ktoré zatvoríte, v paneli vpravo a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Vypnutím sa zoznam vymaže.",
+    "explanation": "Uchováva zoznam kariet, ktoré zatvoríte, v bočnom paneli vľavo a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Vypnutím sa zoznam vymaže.",
     "confirmOff": {
       "title": "Prestať zaznamenávať zatvorené karty?",
       "message": "Zoznam zatvorených kariet sa z tohto profilu vymaže na všetkých zariadeniach, na ktorých ste prihlásení, a ďalšie karty sa nezaznamenajú, kým to znova nezapnete. Už uložené odkazy zostanú.",
@@ -86,7 +86,7 @@
   },
   "recordBrowsingHistory": {
     "title": "Zaznamenávať históriu prehliadania",
-    "explanation": "Uchováva zoznam navštívených stránok v paneli vpravo - posledných 50, s premium 1000 - a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Predvolene vypnuté. Vypnutím sa história vymaže.",
+    "explanation": "Uchováva zoznam navštívených stránok v bočnom paneli vľavo - posledných 50, s premium 1000 - a po prihlásení ho synchronizuje na všetky zariadenia tohto profilu. Predvolene vypnuté. Vypnutím sa história vymaže.",
     "confirmOff": {
       "title": "Prestať zaznamenávať históriu prehliadania?",
       "message": "História prehliadania sa z tohto profilu vymaže na všetkých zariadeniach, na ktorých ste prihlásení, a ďalšie stránky sa nezaznamenajú, kým to znova nezapnete. Už uložené odkazy zostanú.",
