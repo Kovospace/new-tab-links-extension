@@ -301,7 +301,7 @@ describe("DevicePreferencesRepository, the context menu mode", () => {
     });
 });
 
-/** #200: the accent colour, blue unless chosen, on the root as `data-accent`. */
+/** #200: the accent colour, amber unless chosen (#211; blue before), on the root as `data-accent`. */
 describe("DevicePreferencesRepository, the accent colour", () => {
 
     let preferences: DevicePreferencesRepository;
@@ -312,28 +312,35 @@ describe("DevicePreferencesRepository, the accent colour", () => {
         delete document.documentElement.dataset.accent;
     });
 
-    it("is blue on a device nobody has set it on, and on a record from before it existed", async () => {
-        expect(preferences.getAccentColor()).toBe("blue");
+    it("is amber on a device nobody has set it on, and on a record from before it existed", async () => {
+        expect(preferences.getAccentColor()).toBe("amber");
 
         seedFakeStorage(DEVICE_PREFERENCES_KEY, { theme: "dark", themeStyle: "flat" });
+        const reopened = new DevicePreferencesRepository();
+        await reopened.init();
+        expect(reopened.getAccentColor()).toBe("amber");
+    });
+
+    it("keeps a stored blue blue - from when it was the default, or chosen (#211)", async () => {
+        seedFakeStorage(DEVICE_PREFERENCES_KEY, { theme: "dark", accentColor: "blue" });
         const reopened = new DevicePreferencesRepository();
         await reopened.init();
         expect(reopened.getAccentColor()).toBe("blue");
     });
 
-    it("remembers an accent chosen, and reads one it does not offer as blue", async () => {
+    it("remembers an accent chosen, and reads one it does not offer as amber", async () => {
         await preferences.setAccentColor("teal");
         const reopened = new DevicePreferencesRepository();
         await reopened.init();
         expect(reopened.getAccentColor()).toBe("teal");
 
         await preferences.setAccentColor("corporate-blue");
-        expect(preferences.getAccentColor()).toBe("blue");
+        expect(preferences.getAccentColor()).toBe("amber");
     });
 
     it("marks the root element at once, and again when the accent changes", async () => {
         preferences.followTheme();
-        expect(document.documentElement.dataset.accent).toBe("blue");
+        expect(document.documentElement.dataset.accent).toBe("amber");
 
         await preferences.setAccentColor("violet");
         expect(document.documentElement.dataset.accent).toBe("violet");

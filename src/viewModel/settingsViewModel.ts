@@ -844,13 +844,13 @@ function languageOptions(): SettingOptionDTO[] {
  *  one in force; `accentColors.test.ts` holds the two lists together.
  */
 export const ACCENT_SWATCHES: Readonly<Record<string, string>> = {
+    amber: "#e0a100",
     blue: "#0036ff",
     indigo: "#4338ca",
     violet: "#7c2fd0",
     magenta: "#a3177a",
     teal: "#00707f",
-    orange: "#ad4d00",
-    amber: "#e0a100"
+    orange: "#ad4d00"
 };
 
 /** The answers a choice setting offers. */

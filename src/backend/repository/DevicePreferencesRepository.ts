@@ -165,10 +165,14 @@ export function normalizeThemeStyle(value?: string | null): ThemeStyleId {
  */
 export type AccentColorId = "blue" | "indigo" | "violet" | "magenta" | "teal" | "orange" | "amber";
 export const ACCENT_COLORS: AccentColorId[] =
-    ["blue", "indigo", "violet", "magenta", "teal", "orange", "amber"];
+    ["amber", "blue", "indigo", "violet", "magenta", "teal", "orange"];
 
-/** Blue, which is what the page was before there was a choice. */
-export const DEFAULT_ACCENT_COLOR: AccentColorId = "blue";
+/**
+ *  Amber, Tabilinks' identity colour (#211); blue before that. Only a browser with no accent
+ *  stored gets it: a stored "blue" - chosen, or written out with the other preferences while
+ *  blue was the default - stays blue, as the owner decided.
+ */
+export const DEFAULT_ACCENT_COLOR: AccentColorId = "amber";
 
 /** The accent a stored value names, or the default for anything this version does not know. */
 export function normalizeAccentColor(value?: string | null): AccentColorId {

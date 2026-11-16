@@ -652,22 +652,22 @@ describe("SettingsViewModel, the accent colour", () => {
     const accent = () => settings.observables.settings.get().categories[0].settings
         .find(setting => setting.key === "accentColor");
 
-    it("is offered right after the theme style, every answer a swatch, on blue", () => {
+    it("is offered right after the theme style, every answer a swatch, on amber (#211)", () => {
         const keys = settings.observables.settings.get().categories[0].settings.map(setting => setting.key);
         expect(keys.indexOf("accentColor")).toBe(keys.indexOf("themeStyle") + 1);
         const setting = accent();
-        expect(setting).toMatchObject({ kind: "choice", value: "blue" });
+        expect(setting).toMatchObject({ kind: "choice", value: "amber" });
         if (setting?.kind === "choice") {
             expect(setting.options.every(option => option.swatch)).toBe(true);
-            expect(setting.options[0]).toMatchObject({ value: "blue", label: "Blue", swatch: "#0036ff" });
+            expect(setting.options[0]).toMatchObject({ value: "amber", label: "Amber", swatch: "#e0a100" });
         }
     });
 
     it("stores an accent chosen, without asking for a reload", async () => {
-        expect(await settings.setChoice("accentColor", "amber")).toBe(false);
+        expect(await settings.setChoice("accentColor", "teal")).toBe(false);
 
-        expect(devicePreferences.getAccentColor()).toBe("amber");
-        expect(accent()).toMatchObject({ value: "amber" });
+        expect(devicePreferences.getAccentColor()).toBe("teal");
+        expect(accent()).toMatchObject({ value: "teal" });
     });
 });
 

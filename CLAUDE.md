@@ -997,7 +997,8 @@ settles. The flicker's real causes turned out to be elsewhere - the fixed backgr
 the always-composited overlay - but if text flickers at the end of a hover again, a colour
 transition is the first thing to switch off.
 
-**The accent colour is a third** (`accentColor`, device preference, blue by default; #200):
+**The accent colour is a third** (`accentColor`, device preference, amber by default - the
+identity colour since #211, blue before, and a stored blue stays blue; #200):
 seven colours chosen as swatches in Settings → UI and behavior, marked as `data-accent` on the
 root by `followTheme`. `__variables.css` redefines `--color-theme-accent-background`, its hover
 and **its own text colours** under `:root[data-accent="…"]` - amber is light and takes dark
