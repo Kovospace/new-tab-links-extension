@@ -31,6 +31,7 @@ import { LANGUAGE_CATEGORY } from "./viewModel/settingsViewModel";
 import { PageBackground } from "./ui/partials/pageBackground";
 import { t } from "./i18n/i18n";
 import { sendToWorkerThread } from "./utils/sendToWorker";
+import { pageReloads } from "./utils/pageReload";
 
 import {
     ELEM_GROUP, ELEM_LINK, ELEM_SUBGROUP, ELEM_WORKSPACE
@@ -150,7 +151,7 @@ customElements.define(ELEM_LINK, LinkComponent);
         appStateRepository.state$.subscribe((state: AppState) => {
             if (!arrived && Object.keys(state.environments).length > 0) {
                 arrived = true;
-                window.location.reload();
+                pageReloads.request();
             }
         });
         return;
@@ -175,7 +176,7 @@ customElements.define(ELEM_LINK, LinkComponent);
     appStateRepository.state$.subscribe((state: AppState) => {
         if (!emptied && Object.keys(state.environments).length === 0) {
             emptied = true;
-            window.location.reload();
+            pageReloads.request();
         }
     });
 
@@ -188,7 +189,7 @@ customElements.define(ELEM_LINK, LinkComponent);
     profileRepository.owner$.subscribe(owner => {
         const newOwner = owner?.accountId ?? null;
         if (shownOwner !== null && newOwner !== null && newOwner !== shownOwner) {
-            window.location.reload();
+            pageReloads.request();
             return;
         }
         shownOwner = newOwner ?? shownOwner;

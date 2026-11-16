@@ -31,6 +31,7 @@ Keep it current: a new module or a new concern adds a row here.
 | The widget an empty workspace shows (flat icon tiles; Cancel remembered per workspace per browser), the two-step log-in / sync-code flow (#182) | `ui/partials/workspaceWelcome.ts`, `ui/partials/welcomeTiles.ts`, `ui/partials/signInDialog.ts`, `viewModel/workspaceWelcomeViewModel.ts`, `backend/repository/WorkspaceWelcomeRepository.ts`; placed by `workspaceComponent.ts`; styles `ui/styles/_welcome.css` |
 | Importing the browser's bookmarks as groups (#182) - folder choice, mapping, optional permission | `viewModel/bookmarkImport.ts`, `ui/partials/bookmarkImportDialog.ts`, `utils/browserBookmarks.ts`, `AppStateRepository.importGroups` / `refusalOfImport`, `backend/entity/ImportedGroups.ts` |
 | Element, action and class names | `constants.ts` (not `main.ts`) |
+| The page reloading itself (emptied profile, another account's profiles, workspaces arriving) - always through `pageReloads.request()`, held while a sign-in finishes so its device-name question is not torn down (#210) | `utils/pageReload.ts`, held in `SyncAccountViewModel` (`storeIssuedTokens` → `finishSignIn`), requested in `main.ts` |
 | **Sync** — the loop: debounce, push, pull, merge, retry | `backend/sync/SyncCoordinator.ts` — **~1450 lines, read by range** |
 | Sync — the wire contract with the backend | `backend/sync/SyncContracts.ts` |
 | Sync — HTTP calls | `backend/sync/BackendApiClient.ts` |
