@@ -862,6 +862,10 @@ The owner's design is `new-tab-links-frontend/.claude/assignments/account-limits
   values. **The compiled numbers are only the signed-out default** - the account sends its
   effective limits (`GET /users/me/plan-limits`, `planLimits` on the snapshot), published as
   `planLimits$`; the worker reads them from storage (`readStoredPlanLimits`).
+  **No compiled number is a ceiling** (#209): the website's admin sets the Fair Use values for
+  everybody and raises them per user, so an account can keep more than `PREMIUM_PLAN_LIMITS`
+  says. What the panel draws follows `planLimits$`, never below the compiled premium length
+  (`closedTabsDrawnAtMost`, `visitsDrawnAtMost`), and wording quotes the account's number.
 - **Only growth is refused, nothing is ever deleted, hidden or locked.** Every adding door checks
   (`AppStateRepository.refused` / `roomForLinks`, `ProfileRepository.createProfile`, imports whole).
   A refusal's `kind` decides the notice: `FREE_PLAN` offers the upgrade (or, signed out, log in /
