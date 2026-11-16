@@ -1,4 +1,5 @@
 import { t } from '../../i18n/i18n';
+import { pageReloads } from '../../utils/pageReload';
 import { InputDialog } from './inputDialog';
 import { signInStepByStep } from './signInDialog';
 import { renderTiles } from './welcomeTiles';
@@ -23,7 +24,7 @@ export function renderWorkspaceLessPage(
   signedIn: boolean
 ): void {
   const reloadIf = (landed: boolean): void => {
-    if (landed) window.location.reload();
+    if (landed) pageReloads.request();
   };
 
   const createDialog = new InputDialog(
@@ -39,7 +40,7 @@ export function renderWorkspaceLessPage(
 
   // A sign-in reloads, as everything here does: start-up pulls the account's workspaces, so
   // the page comes back on them - or here again, when the account has none.
-  const signIn = (): void => void signInStepByStep(account, () => window.location.reload());
+  const signIn = (): void => void signInStepByStep(account, () => pageReloads.request());
 
   const page = document.createElement('section');
   page.classList.add('workspace-less');

@@ -18,6 +18,7 @@ import { showNotice } from "../ui/partials/confirmations";
 
 // utils
 import { Logger } from "../utils/logger";
+import { pageReloads, PageReloads } from "../utils/pageReload";
 import { ObservableValue } from "../utils/observableValue";
 import { t } from "../i18n/i18n";
 import { FREE_PLAN_LIMITS, LimitRefusal } from "../backend/entity/PlanLimits";
@@ -120,14 +121,21 @@ export class SyncAccountViewModel {
     /** The limit the account refused this device's changes over, while it stands. */
     private fairUseRefusal: LimitRefusal | null = null;
     private profilesOwner: RegistryOwner | null = null;
+    /**
+     *  Releases the hold a successful sign-in puts on reloading the page, which `finishSignIn`
+     *  lets go of once its questions are answered (#210).
+     */
+    private releaseSignInHold: (() => void) | null = null;
 
     private standing: AccountStandingRepository;
     private profiles: ProfileRepository;
     private devicePreferences: Pick<DevicePreferencesRepository, "syncEnabled$" | "setSyncEnabled">;
+    private reloads: Pick<PageReloads, "hold">;
 
     /**
      *  @param apiClient  talks to the backend; the singleton in normal use.
      *  @param sessions   holds the tokens; the singleton in normal use.
+     *  @param reloads    held off while a sign-in is being finished; the page's own in normal use.
      */
     constructor(
         apiClient: BackendApiClient = backendApiClient,
@@ -135,8 +143,10 @@ export class SyncAccountViewModel {
         standing: AccountStandingRepository = accountStandingRepository,
         profiles: ProfileRepository = profileRepository,
         devicePreferences: Pick<DevicePreferencesRepository, "syncEnabled$" | "setSyncEnabled">
-            = devicePreferencesRepository
+            = devicePreferencesRepository,
+        reloads: Pick<PageReloads, "hold"> = pageReloads
     ) {
+        this.reloads = reloads;
         this.devicePreferences = devicePreferences;
         this.apiClient = apiClient;
         this.sessions = sessions;
@@ -384,15 +394,26 @@ export class SyncAccountViewModel {
      *  Nothing at all after a failure the dialog already showed.
      */
     public async finishSignIn(): Promise<void> {
-        const refusal = this.deviceLimitRefusal;
-        this.deviceLimitRefusal = null;
-        if (refusal) {
-            await this.offerDeviceLimitWayOut(refusal);
-            return;
+        try {
+            const refusal = this.deviceLimitRefusal;
+            this.deviceLimitRefusal = null;
+            if (refusal) {
+                await this.offerDeviceLimitWayOut(refusal);
+                return;
+            }
+            if (this.sessions.getSession()) {
+                await this.reconcileDeviceName();
+            }
+        } finally {
+            this.letPageReload();
         }
-        if (this.sessions.getSession()) {
-            await this.reconcileDeviceName();
-        }
+    }
+
+    /** Ends the hold a sign-in put on reloading; a reload asked for meanwhile happens now. */
+    private letPageReload(): void {
+        const release = this.releaseSignInHold;
+        this.releaseSignInHold = null;
+        release?.();
     }
 
     /**
@@ -422,6 +443,12 @@ export class SyncAccountViewModel {
         failureHeadline: string
     ): Promise<string | null> {
         if (result.outcome === "success") {
+            // From here the page may be told to reload: removing the starter below empties a
+            // fresh install's profile, and first contact may swap the profiles shown. A reload
+            // then would take the device-name question `finishSignIn` asks with it (#210), so
+            // it waits until that question is answered.
+            this.letPageReload();
+            this.releaseSignInHold = this.reloads.hold();
             // Untouched example data goes before the account sees anything: it was only ever
             // there to show what the page does, and is never synchronised (`ExampleData.ts`).
             await removeUntouchedExamples(appStateRepository, this.profiles);
@@ -461,7 +488,7 @@ export class SyncAccountViewModel {
                 // looks like. Nothing is being taken away from anyone, so it is not worth a
                 // question - the row is adopted and the user is simply told.
                 if (await this.deviceNames.takeOver(verdict.to)) {
-                    this.report(t("sync.deviceReturning",
+                    await this.tell(t("sync.deviceReturning",
                         { name: verdict.to.deviceName }));
                 }
                 return;
@@ -502,7 +529,7 @@ export class SyncAccountViewModel {
 
         if (answer === "take-over") {
             if (await this.deviceNames.takeOver(verdict.by)) {
-                this.report(t("sync.deviceTakenOver", { name: takenName }));
+                await this.tell(t("sync.deviceTakenOver", { name: takenName }));
             }
             return;
         }
@@ -550,7 +577,7 @@ export class SyncAccountViewModel {
             return;
         }
         if (!await this.deviceNames.renameThisDevice(chosen)) {
-            this.report(t("sync.deviceNotRenamed"));
+            await this.tell(t("sync.deviceNotRenamed"));
         }
     }
 
@@ -629,5 +656,14 @@ export class SyncAccountViewModel {
      */
     private report(message: string): void {
         void showNotice(t("sync.noticeTitle"), message);
+    }
+
+    /**
+     *  Says something and waits until it has been read. What `finishSignIn` says has to be
+     *  awaited: the page reload a sign-in holds back happens the moment it returns, and would
+     *  take an unread notice with it (#210).
+     */
+    private tell(message: string): Promise<void> {
+        return showNotice(t("sync.noticeTitle"), message);
     }
 }

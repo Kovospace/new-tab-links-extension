@@ -6,6 +6,7 @@ import { t } from '../../i18n/i18n';
 import { ICON } from './wrappedHtmlElements';
 import { confirmDestructiveAction } from './confirmations';
 import { dismissOnBackdropClick } from './backdropDismiss';
+import { pageReloads } from '../../utils/pageReload';
 
 /**
  * Where "reopen the settings dialog once the page comes back" is left.
@@ -386,7 +387,7 @@ export class SettingsDialog {
   private async answerChoice(setting: ChoiceSettingDTO, value: string): Promise<void> {
     if (await this.viewModel.setChoice(setting.key, value)) {
       markSettingsForReopen();
-      window.location.reload();
+      pageReloads.request();
     }
   }
 
