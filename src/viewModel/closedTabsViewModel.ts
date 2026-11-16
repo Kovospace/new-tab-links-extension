@@ -2,7 +2,8 @@ import { AppStateRepository, appStateRepository } from "../backend/repository/Ap
 import { BROWSER_PAGE_OPENER, OpenWhere, PageOpener, openPage } from "../utils/pageOpener";
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { ClosedTabsRepository } from "../backend/repository/ClosedTabsRepository";
-import { ClosedTab, MAX_CLOSED_TABS } from "../backend/entity/ClosedTabEntity";
+import { ClosedTab, closedTabsDrawnAtMost } from "../backend/entity/ClosedTabEntity";
+import { planLimits$ } from "../backend/repository/PremiumStanding";
 import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { resolveDeviceName } from "../backend/sync/DeviceName";
@@ -207,7 +208,7 @@ export class ClosedTabsViewModel {
             }
         }
 
-        return [...byAddress.values()].slice(0, MAX_CLOSED_TABS);
+        return [...byAddress.values()].slice(0, closedTabsDrawnAtMost(planLimits$.get()));
     }
 
     /**

@@ -1,4 +1,4 @@
-import { PREMIUM_PLAN_LIMITS } from "./PlanLimits";
+import { PlanLimits, PREMIUM_PLAN_LIMITS } from "./PlanLimits";
 import { MAX_NAME_LENGTH, MAX_TITLE_LENGTH, MAX_URL_LENGTH } from "../sync/SyncContracts";
 
 /**
@@ -37,13 +37,21 @@ export interface ClosedTab {
 }
 
 /**
- *  The most closed tabs the panel ever draws: premium's compiled history length.
+ *  The most closed tabs the panel draws: the account's cap, never fewer than premium's
+ *  compiled history length.
  *
  *  Not the cap a list is kept to - that is the plan's (`PlanLimits.closedTabs`: 25 free, 500
  *  premium, or what the account says), applied where an entry is recorded (`recordClosedTab`).
- *  This is only the bound on drawing, for a list pulled from an account that kept more.
+ *  This is only the bound on drawing, for a list pulled from an account that kept more. It
+ *  follows the account because an account's Fair Use cap can be raised above the compiled
+ *  number, for everybody or for one user (#209), and a fixed 500 would hide what it keeps.
+ *  Never fewer, so a list kept under a premium that has since ended still reads whole.
+ *
+ *  @param limits the limits in force (`planLimits$`)
  */
-export const MAX_CLOSED_TABS: number = PREMIUM_PLAN_LIMITS.closedTabs;
+export function closedTabsDrawnAtMost(limits: Pick<PlanLimits, "closedTabs">): number {
+    return Math.max(PREMIUM_PLAN_LIMITS.closedTabs, limits.closedTabs);
+}
 
 /**
  *  One closed tab cut down to what the account will accept.

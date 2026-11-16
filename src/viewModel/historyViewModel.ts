@@ -2,7 +2,8 @@ import { AppStateRepository, appStateRepository } from "../backend/repository/Ap
 import { BROWSER_PAGE_OPENER, OpenWhere, PageOpener, openPage } from "../utils/pageOpener";
 import { ProfileRepository, profileRepository } from "../backend/repository/ProfileRepository";
 import { sameLocalDay, VisitsRepository } from "../backend/repository/VisitsRepository";
-import { MAX_VISITS, Visit } from "../backend/entity/VisitEntity";
+import { Visit, visitsDrawnAtMost } from "../backend/entity/VisitEntity";
+import { planLimits$ } from "../backend/repository/PremiumStanding";
 import { normalizeUrl } from "../backend/worker/module/linkTabGroupCatcher";
 import { installationIdentity } from "../backend/sync/InstallationIdentity";
 import { resolveDeviceName } from "../backend/sync/DeviceName";
@@ -226,7 +227,7 @@ export class HistoryViewModel {
                 readable.push(visit);
             }
         }
-        return readable.slice(0, MAX_VISITS);
+        return readable.slice(0, visitsDrawnAtMost(planLimits$.get()));
     }
 
     private keptAddresses(): Set<string> {

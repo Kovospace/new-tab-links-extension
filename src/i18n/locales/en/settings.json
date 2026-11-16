@@ -86,7 +86,7 @@
   },
   "recordBrowsingHistory": {
     "title": "Record browsing history",
-    "explanation": "Keep a list of the pages you visit in the side panel on the left - the most recent 50, or 1000 with premium - synced to every device of this profile when you are signed in. Off by default. Turning it off deletes the history.",
+    "explanation": "Keep a list of the pages you visit in the side panel on the left - as many as your plan keeps, now {maximum} - synced to every device of this profile when you are signed in. Off by default. Turning it off deletes the history.",
     "confirmOff": {
       "title": "Stop recording browsing history?",
       "message": "The browsing history is deleted from this profile, on every device you are signed in on, and no more pages are recorded until you turn it back on. Links you have already saved stay.",

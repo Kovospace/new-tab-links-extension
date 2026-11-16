@@ -5,7 +5,8 @@ import { ProfileRepository } from "../../src/backend/repository/ProfileRepositor
 import {
     ClosedTabsRepository, recordClosedTab, writeClosedTabs
 } from "../../src/backend/repository/ClosedTabsRepository";
-import { MAX_CLOSED_TABS } from "../../src/backend/entity/ClosedTabEntity";
+import { PREMIUM_PLAN_LIMITS } from "../../src/backend/entity/PlanLimits";
+import { planLimits$ } from "../../src/backend/repository/PremiumStanding";
 import { appStateInit } from "../../src/backend/datasource/init/AppStateInit";
 import { ClosedTabsViewModel } from "../../src/viewModel/closedTabsViewModel";
 import { environment, group, link, profileOf } from "../support/profileDataFixtures";
@@ -158,17 +159,33 @@ describe("ClosedTabsViewModel", () => {
         expect(rows().map(row => row.title)).toEqual(["From the desktop"]);
     });
 
-    it("shows no more than the list is meant to hold", async () => {
-        // An account two devices have been filling can hold more than one device keeps.
-        const profileId = profiles.getActiveProfileId();
-        await writeClosedTabs(profileId, Object.fromEntries(
-            Array.from({ length: MAX_CLOSED_TABS + 20 }, (_, index) => [`tab-${index}`, {
+    /** Stores `count` closed tabs under the loaded profile, as a pull would. */
+    async function storeClosedTabs(count: number): Promise<void> {
+        await writeClosedTabs(profiles.getActiveProfileId(), Object.fromEntries(
+            Array.from({ length: count }, (_, index) => [`tab-${index}`, {
                 id: `tab-${index}`, url: `https://example.com/${index}`,
                 title: `Page ${index}`, closedAt: index
             }])));
         await flushStorageNotifications();
+    }
 
-        expect(rows()).toHaveLength(MAX_CLOSED_TABS);
+    it("shows no more than the list is meant to hold", async () => {
+        // An account two devices have been filling can hold more than one device keeps.
+        await storeClosedTabs(PREMIUM_PLAN_LIMITS.closedTabs + 20);
+
+        expect(rows()).toHaveLength(PREMIUM_PLAN_LIMITS.closedTabs);
+    });
+
+    it("draws everything an account keeps under a Fair Use cap raised above premium's (#209)", async () => {
+        const before = planLimits$.get();
+        planLimits$.set({ ...before, closedTabs: PREMIUM_PLAN_LIMITS.closedTabs + 100 });
+        try {
+            await storeClosedTabs(PREMIUM_PLAN_LIMITS.closedTabs + 100);
+
+            expect(rows()).toHaveLength(PREMIUM_PLAN_LIMITS.closedTabs + 100);
+        } finally {
+            planLimits$.set(before);
+        }
     });
 
     it("says whether the loaded profile records closed tabs, and follows it", async () => {

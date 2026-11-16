@@ -2,6 +2,7 @@ import { ProfileRepository, profileRepository } from "../backend/repository/Prof
 import { ProfileSettings, ToggleableSetting } from "../backend/entity/ProfileSettings";
 import { writeClosedTabs } from "../backend/repository/ClosedTabsRepository";
 import { writeVisits } from "../backend/repository/VisitsRepository";
+import { planLimits$ } from "../backend/repository/PremiumStanding";
 import {
     DevicePreferencesRepository, devicePreferencesRepository,
     CLOSED_TABS_OPEN_DELAY_STEP, MAX_CLOSED_TABS_OPEN_DELAY, MAX_SCALE,
@@ -662,7 +663,11 @@ export class SettingsViewModel {
     ): SettingDTO {
 
         const title = t(`settings.${definition.wording}.title`);
-        const explanation = t(`settings.${definition.wording}.explanation`);
+        // The history's length is the account's to say (#209): the plan's, or a Fair Use cap
+        // raised for everybody or for this user. A number written into the sentence went stale.
+        const explanation = definition.wording === "recordBrowsingHistory"
+            ? t("settings.recordBrowsingHistory.explanation", { maximum: planLimits$.get().browsingHistory })
+            : t(`settings.${definition.wording}.explanation`);
 
         if (definition.kind === "toggle") {
             return {
