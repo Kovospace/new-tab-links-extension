@@ -5,9 +5,9 @@
     --screenshot=small-promo-tile-raw.png small-promo-tile.html
   then strip the alpha channel (the store wants 24-bit PNG).
 
-  The wordmark is the website's .page-header__title
-  (new-tab-links-frontend/src/app/shared/layout/page-header/page-header.scss),
-  with its colours from design-tokens.scss.
+  The wordmark is drawn in the website's colours: black, and the amber accent with dark
+  text on it (--color-accent, --color-accent-text, --color-text-muted),
+  from new-tab-links-frontend/src/design-tokens.scss. No blue anywhere.
 -->
 <html>
 <head>
@@ -15,14 +15,15 @@
 <style>
   :root {
     --color-text: #fff;
-    --color-accent: #004fff;
+    --color-accent: #e0a100;
+    --color-accent-text: #111;
     --font-family: Arial, Helvetica, sans-serif;
   }
   html, body { margin: 0; width: 440px; height: 280px; overflow: hidden; }
   body {
     font-family: var(--font-family);
     color: var(--color-text);
-    background: radial-gradient(ellipse at 50% 55%, #1b2a44 0%, #0a0d14 75%);
+    background: radial-gradient(ellipse at 50% 55%, #262626 0%, #000 75%);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -32,7 +33,7 @@
   .logo { width: 132px; height: 132px; flex: none; }
   .text { display: flex; flex-direction: column; gap: 18px; }
 
-  /* .page-header__title, as on tabilinks.app */
+  /* the wordmark, in the website's accent */
   .title {
     font-weight: bold;
     font-size: 48px;
@@ -41,7 +42,7 @@
   }
   .title em {
     font-style: normal;
-    color: var(--color-text);
+    color: var(--color-accent-text);
     background-color: var(--color-accent);
     padding: 0 0.125em;
     border-top-left-radius: 0.25em;
@@ -59,7 +60,7 @@
     background-color: var(--color-accent);
   }
 
-  .tagline { font-size: 24px; line-height: 1.25; color: #c7d2e3; }
+  .tagline { font-size: 24px; line-height: 1.25; color: #bbb; }
 </style>
 </head>
 <body>
