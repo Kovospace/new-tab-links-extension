@@ -225,7 +225,7 @@ Web: https://tabilinks.app/sk
 
 | Asset | Size | Status |
 |---|---|---|
-| Store icon | 128×128 PNG | have it: `public/icons/icon-128.png` |
+| Store icon | 128×128 PNG | have it: `store/materials/store-icon/icon-128.png` (96×96 logo with the 16px transparent margin the store asks for; source `public/icons/logo-512.png`) |
 | Screenshots | 1280×800 (or 640×400), 1–5 | rendered (`npm run screenshots`, see `screenshots/CATALOGUE.md`) into `screenshots/versions/<version>/store/<lang>/`; the five uploaded are copied to `store/materials/screenshots/<lang>/1-5.png` (24-bit, no alpha) |
 | Small promo tile | 440×280 | have it: `store/materials/promo/small-promo-tile.png`, Slovak `small-promo-tile-sk.png` (sources: the `.html` beside them) |
 | Marquee promo tile | 1400×560 | optional - skipped for the first release; only used if Google features the extension |
