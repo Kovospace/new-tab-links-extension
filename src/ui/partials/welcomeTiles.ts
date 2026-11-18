@@ -8,7 +8,7 @@
  */
 
 /** The flat icons a tile can carry. */
-export type TileIcon = 'group' | 'bookmarks' | 'sync' | 'cancel' | 'workspace' | 'backup';
+export type TileIcon = 'group' | 'bookmarks' | 'sync' | 'cancel' | 'workspace' | 'backup' | 'examples';
 
 /** How a tile is coloured: green for making something, red for the way out. */
 export type TileTone = 'add' | 'plain' | 'danger';
@@ -35,7 +35,9 @@ const ICON_PATHS: Readonly<Record<TileIcon, readonly string[]>> = {
   // A screen of columns with a plus: a new workspace.
   workspace: ['M2 5h14v14H2z', 'M6.5 5v14', 'M11 5v14', 'M20 9v6', 'M17 12h6'],
   // A document with an arrow coming out of it: links from a backup file.
-  backup: ['M6 3h8l4 4v14H6z', 'M14 3v4h4', 'M12 18v-7', 'M9 14l3-3 3 3']
+  backup: ['M6 3h8l4 4v14H6z', 'M14 3v4h4', 'M12 18v-7', 'M9 14l3-3 3 3'],
+  // Three filled-in columns of links: the example set.
+  examples: ['M3 4h5v16H3z', 'M10 4h5v11h-5z', 'M17 4h4v14h-4z']
 };
 
 /** One flat icon, in the colour of the text around it. */

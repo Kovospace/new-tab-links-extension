@@ -357,8 +357,11 @@ There is no first-run screen. A profile with no workspace is given one, the **st
   - create new group (green);
   - import bookmarks from the browser;
   - log in / set up sync (only while signed out);
+  - on the first run only (the untouched starter, `isFirstRun`): import links from a backup
+    file, and load the example links - both replace the profile's data, which holds nothing
+    but the empty starter then, and reload the page;
   - Cancel (red).
-  It goes away once the workspace has a group. Cancel puts it away for that workspace on this
+  On the first run it is headed "Welcome to Tabilinks!". It goes away once the workspace has a group. Cancel puts it away for that workspace on this
   browser (`WorkspaceWelcomeRepository`, `workspace_welcome_dismissed`, never synchronised).
 - **Deleting the last workspace leads to the page with no workspace** (`workspaceLessPage.ts`),
   not to a new starter: the user asked for it to be empty. `WorkspaceViewModel.deleteWorkspace`
@@ -375,8 +378,9 @@ There is no first-run screen. A profile with no workspace is given one, the **st
   is the likely reason. It is the only way in: the application menu's "Log in", the
   "Signed out of {username}" notice and a limit's notice open it too, and the menu has no
   "Enter sync code" of its own any more.
-- **The examples are no longer offered anywhere.** Their code stays: existing example data
-  is still removed at sign-in. The screenshot staging builds them with
+- **The examples are offered only on the first run** (the welcome widget's "Load example
+  links", `WorkspaceWelcomeViewModel.loadExamples`), flagged as example data: never
+  synchronised, removed at sign-in while untouched. The screenshot staging builds them with
   `buildExampleProfileData` and stores them (`stage.ts`).
 - **Bookmark import** (`viewModel/bookmarkImport.ts`, pure): every folder directly inside a
   browser root (Bookmarks bar, Other, Mobile; Firefox's toolbar, menu, unfiled) is offered as a

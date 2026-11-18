@@ -39,7 +39,7 @@ interface ExampleLink {
 }
 
 /**
- *  The example set, built fresh each time. No longer offered in the page (#182); the screenshot
+ *  The example set, built fresh each time. Offered on the first run only (the welcome widget); the screenshot
  *  staging stores it, and example data already stored is still recognised and removed at sign-in.
  *
  *  Built rather than declared, so that every record gets a UUID of its own: identifiers are

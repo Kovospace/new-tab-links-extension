@@ -21,9 +21,12 @@
   "starterName": "Moja plocha",
   "loadingFromAccount": "Načítavajú sa odkazy z vášho účtu…",
   "welcome": {
-    "addGroup": "Vytvoriť novú skupinu",
+    "title": "Vitajte v Tabilinks!",
+    "addGroup": "Vytvoriť prvú skupinu",
     "importBookmarks": "Importovať záložky z prehliadača",
-    "signIn": "Prihlásiť sa / nastaviť synchronizáciu"
+    "signIn": "Prihlásiť sa / nastaviť synchronizáciu",
+    "importBackup": "Importovať odkazy zo zálohy",
+    "loadExamples": "Načítať ukážkové skupiny a odkazy"
   },
   "bookmarkImport": {
     "title": "Import záložiek",

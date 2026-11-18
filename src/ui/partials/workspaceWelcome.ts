@@ -1,6 +1,7 @@
 import { t } from '../../i18n/i18n';
 import { BookmarkImportDialog } from './bookmarkImportDialog';
 import { showNotice } from './confirmations';
+import { pageReloads } from '../../utils/pageReload';
 import { renderTiles, Tile } from './welcomeTiles';
 import { readBookmarkTree, requestBookmarksAccess } from '../../utils/browserBookmarks';
 import { WelcomeAction, welcomeActions, WorkspaceWelcomeViewModel } from '../../viewModel/workspaceWelcomeViewModel';
@@ -21,6 +22,8 @@ export interface WelcomeDoors {
  * The widget an empty workspace shows where its columns would be (#182). It is part of the
  * page, not a dialog over it. It is four flat icon tiles: create a group (green), import the
  * browser's bookmarks, log in or set up sync (only while signed out), and Cancel (red).
+ * On the first run - the untouched starter workspace - it is headed "Welcome to Tabilinks!" and
+ * offers a backup file and the examples too, before Cancel.
  *
  * It is one element for the page's lifetime, placed by the workspace component, and `update`
  * shows or hides it as the workspace changes. It goes away by itself once the workspace has a
@@ -47,8 +50,17 @@ export class WorkspaceWelcome {
       this.element.replaceChildren();
       return;
     }
-    this.element.replaceChildren(renderTiles(
-      welcomeActions(this.doors.isSignedIn()).map(action => this.tile(action, workspaceId))));
+    const firstRun = this.viewModel.isFirstRun(workspaceId);
+    const tiles = renderTiles(welcomeActions(this.doors.isSignedIn(), firstRun)
+      .map(action => this.tile(action, workspaceId)));
+    if (firstRun) {
+      const heading = document.createElement('h1');
+      heading.classList.add('workspace-welcome__title');
+      heading.textContent = t('workspace.welcome.title');
+      this.element.replaceChildren(heading, tiles);
+    } else {
+      this.element.replaceChildren(tiles);
+    }
     this.element.hidden = false;
   }
 
@@ -64,6 +76,13 @@ export class WorkspaceWelcome {
       case 'signIn':
         return { icon: 'sync', tone: 'plain', label: t('workspace.welcome.signIn'),
           onClick: () => this.doors.signIn() };
+      // Both replace the profile, and the page is drawn around a workspace: reload onto the new one.
+      case 'importBackup':
+        return { icon: 'backup', tone: 'plain', label: t('workspace.welcome.importBackup'),
+          onClick: () => void this.viewModel.importBackup().then(taken => { if (taken) pageReloads.request(); }) };
+      case 'loadExamples':
+        return { icon: 'examples', tone: 'plain', label: t('workspace.welcome.loadExamples'),
+          onClick: () => void this.viewModel.loadExamples().then(() => pageReloads.request()) };
       default:
         return { icon: 'cancel', tone: 'danger', label: t('common.cancel'),
           onClick: () => void this.dismiss(workspaceId) };

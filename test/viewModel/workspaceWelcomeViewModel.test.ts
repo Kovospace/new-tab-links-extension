@@ -53,6 +53,46 @@ describe("the empty workspace's widget", () => {
         expect(welcomeActions(false)).toEqual(["addGroup", "importBookmarks", "signIn", "cancel"]);
         expect(welcomeActions(true)).toEqual(["addGroup", "importBookmarks", "cancel"]);
     });
+
+    it("on the first run adds a backup file and the examples after signing in, before Cancel", () => {
+        expect(welcomeActions(false, true)).toEqual(
+            ["addGroup", "importBookmarks", "signIn", "importBackup", "loadExamples", "cancel"]);
+        expect(welcomeActions(true, true)).toEqual(
+            ["addGroup", "importBookmarks", "importBackup", "loadExamples", "cancel"]);
+    });
+
+    it("counts as the first run only on the untouched starter", async () => {
+        const appState = await started();
+        const welcomes = new WorkspaceWelcomeRepository();
+        await welcomes.init();
+        const viewModel = new WorkspaceWelcomeViewModel(appState, welcomes);
+        await appState.addStarterWorkspace("My space");
+        const starter = appState.getCurrentEnvironmentId()!;
+        expect(viewModel.isFirstRun(starter)).toBe(true);
+
+        await appState.addWorkspace("Work");
+        expect(viewModel.isFirstRun(appState.getCurrentEnvironmentId()!)).toBe(false);
+    });
+
+    it("loads the examples over the starter, flagged as example data", async () => {
+        const appState = await started();
+        const welcomes = new WorkspaceWelcomeRepository();
+        await welcomes.init();
+        const marked: string[] = [];
+        const viewModel = new WorkspaceWelcomeViewModel(appState, welcomes,
+            { markExample: async id => { marked.push(id); } });
+        await appState.addStarterWorkspace("My space");
+
+        await viewModel.loadExamples();
+
+        const state = appState.state$.get();
+        const workspaces = Object.values(state.environments);
+        expect(workspaces).toHaveLength(1);
+        expect(workspaces[0].name).not.toBe("My space");
+        expect(workspaces[0].example).toBeTruthy();
+        expect(Object.keys(state.groups).length).toBeGreaterThan(0);
+        expect(marked).toEqual([appState.getActiveProfileId()]);
+    });
 });
 
 /** #182: deleting the last workspace leads to the page with no workspace, not to a new starter. */

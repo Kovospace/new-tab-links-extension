@@ -1,7 +1,7 @@
 import { Environment, ProfileData, ProfileMeta } from "./AppStateEntity";
 
 /**
- *  Example data: the example set shown off in screenshots (no longer offered in the page), and the empty
+ *  Example data: the example set shown off in screenshots and offered on the first run, and the empty
  *  starter workspace the page makes by itself (#182, `isStarterWorkspace`).
  *
  *  **A flag says it is still the example.** A workspace carries `example`, the fingerprint of
