@@ -45,6 +45,10 @@ from the code.
 - [ ] `npm test`, then `npm run build && rm -f tabilinks.zip && (cd dist && zip -qr -X ../tabilinks.zip .)`.
       Verify: `unzip -p tabilinks.zip manifest.json | grep version`, and `manifest.json` at the
       zip's root (0.1.0's was under `dist/`, and the store refused it).
+- [ ] The five pictures to upload, `store/materials/screenshots/{en,sk}/1-5.png`, are the newest
+      renders of `screenshots/versions/<version>/store/<lang>/` (1280×800, 24-bit, no alpha).
+      A re-render lands in `versions/` only; in 0.5.0 the amber set sat there while the upload
+      folder still held the blue one. Compare dates, or copy them again.
 - [ ] `npx web-ext lint --source-dir dist`: 0 errors. Expected warnings are listed in CLAUDE.md
       (Commands); anything new goes into the tutorial.
 
