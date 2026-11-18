@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 
 /**
  *  #198: the search bar keeps between 16em and 48em, and the workspace head it sits in fits
- *  the window beside the side panel - beside the open panel while it is kept open. Fitted beside
+ *  the window beside the side panel - beside the open panel while it is open, by the pointer
+ *  or kept open. Fitted beside
  *  the rail alone, a kept-open panel pushed the head 74 to 306 pixels past the window's edge
  *  (measured at 1280 to 640 wide) and the page scrolled sideways. jsdom lays nothing out, so the
  *  rules are checked; the widths were measured in Chromium.
@@ -29,9 +30,9 @@ describe("the search bar's limits", () => {
             .toMatch(/max-width:\s*calc\(100vw - var\(--widgets-spacing\) - var\(--closed-tabs-rail\) - 2em\)/);
     });
 
-    it("fits the head beside the open panel while the panel is kept open", () => {
+    it("fits the head beside the open panel while the panel is open, kept open or hovered", () => {
         expect(declarationsOf("src/ui/styles/workspace.css",
-            ":root:has(aside.closed-tabs.closed-tabs--kept-open) workspace-plane-head"))
+            ":root:has(aside.closed-tabs:is(.closed-tabs--open, .closed-tabs--kept-open)) workspace-plane-head"))
             .toMatch(/max-width:\s*calc\(100vw - var\(--widgets-spacing\) - var\(--closed-tabs-open\) - 2em\)/);
     });
 

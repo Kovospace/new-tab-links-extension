@@ -43,9 +43,8 @@ workspace-plane-head {
     /*
        But never wider than the window beside the folded side panel - the rail and its own
        left margin - less the 1em margin on each side, so a long head wraps rather than
-       running off the screen. The folded rail, not the panel as it is now: opening it on
-       hover must not rewrap the head, which then passes under it as the columns do. Not 100%:
-       the plane is as wide as its columns.
+       running off the screen. While the panel is open it is fitted beside the open panel
+       instead (below). Not 100%: the plane is as wide as its columns.
     */
     max-width: calc(100vw - var(--widgets-spacing) - var(--closed-tabs-rail) - 2em);
     box-sizing: border-box;
@@ -66,11 +65,12 @@ workspace-plane-head {
 }
 
 /*
-   A side panel kept open (#198) stays open for good, so the head is fitted beside the open
-   panel instead - beside the rail it ran up to 300px past the window's edge and dragged the
-   page into a horizontal scroll. Hover still leaves it alone, for the reason above.
+   An open side panel - kept open (#198) or opened by the pointer - fits the head beside the
+   open panel instead, so the search bar squeezes as the panel widens. Fitted beside the rail,
+   it ran up to 300px past the window's edge on a small screen: kept open, it dragged the page
+   into a horizontal scroll; opened on hover, the end of the bar went off the screen.
 */
-:root:has(aside.closed-tabs.closed-tabs--kept-open) workspace-plane-head {
+:root:has(aside.closed-tabs:is(.closed-tabs--open, .closed-tabs--kept-open)) workspace-plane-head {
     max-width: calc(100vw - var(--widgets-spacing) - var(--closed-tabs-open) - 2em);
 }
 
