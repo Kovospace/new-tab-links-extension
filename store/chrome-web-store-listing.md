@@ -241,7 +241,7 @@ data with Playwright, in both languages; the scenes are `screenshots/store.shots
 A sixth is rendered, `6-settings-background` (Settings → Background, the library of pictures);
 the store takes five, so it is left out - swap it in for one of the above if wanted.
 
-Small promo tile: the logo, the website's wordmark and "Your bookmarks, grouped, on every new tab".
+Small promo tile, black and amber like the website: the logo, the "Tabilinks" wordmark and "Your bookmarks, grouped, on every new tab".
 
 ### Links
 - Official URL / homepage: `https://tabilinks.app`
@@ -297,12 +297,12 @@ Then tick all three certifications:
 
 ## 4. Test instructions tab (for the reviewer)
 ```
-The extension works without an account. Opening a new tab after installing shows a space called "My space" with four tiles: "Create new group", "Import bookmarks from the browser" (asks for the optional bookmarks permission, then lets you tick which folders become groups), "Log in / set up sync" and "Cancel".
+The extension works without an account. Opening a new tab after installing shows a space called "My space", headed "Welcome to Tabilinks!", with six tiles: "Create first group", "Import bookmarks from the browser" (asks for the optional bookmarks permission, then lets you tick which folders become groups), "Log in / set up sync", "Import links from a backup file", "Load example groups and links" (the quickest way to see everything below) and "Cancel".
 
 New in this version:
 - Favorites: turn them on in menu (three dots, top right) → Settings → "Functions" → "Favorites". A circle appears beside every link; click it to mark a favorite. Favorites are listed in the side panel's "Favorites" card and in the toolbar popup.
 - Right-click any web page or link → "Tabilinks" → "Flash save" saves it at once into a "Flash save" group (made the first time; the toolbar icon shows a tick), "Add bookmark…" opens the popup, "Save to group" lists the groups. Alt+Shift+F flash-saves the current page. Settings → "UI and behavior" → "Browser context menu actions" → "Fast-paced link grabbing" leaves only "Tabilinks: Flash save" in the menu.
-- Settings → "UI and behavior" → "Accent colour": seven colours.
+- Settings → "UI and behavior" → "Accent colour": seven colours; amber, the colour of the new logo, is the default.
 - Drag a group's bottom-right corner to resize it; the group's menu (three dots) has "Sort links".
 
 Appearance: Settings → "UI and behavior" sets the theme (light/dark) and the theme style (flat/Aero); Settings → "Background" chooses one of sixteen pictures or uploads one. Built-in pictures are downloaded from https://tabilinks.app/backgrounds/ when chosen; a fresh install starts on one of them.

@@ -1,5 +1,13 @@
 # Chrome Web Store update — version 0.5.0
 
+> **Re-cut on 2026-11-18, before the first upload.** 0.5.0 was never submitted, so everything merged
+> since it was prepared ships in it too: the **new amber logo** (toolbar, extension icon, store
+> icon, promo tiles), **amber as the default accent**, the **first-run welcome** ("Welcome to
+> Tabilinks!", with a backup file import and the example links), the **device-name dialog fix**
+> (#210) and **per-account Fair Use limits** in the side panel (#209). Same version, new zip -
+> upload this one, not the one from 2026-11-16. Leads chosen for the update: the logo and amber,
+> and the device-name fix.
+
 What 0.5.0 is, in one breath: **save as fast as you browse, and make it yours.** **Favorites**
 one click away - a circle on every link, a Favorites card in the side panel, a list in the
 toolbar popup; **Flash save** from a new right-click menu ("Tabilinks" › Flash save, Add bookmark…,
@@ -25,6 +33,10 @@ a personal message in the page's own colours.
 | First start: default background, popup welcome | #193 (#175), #181 (#172) |
 | Side panel on the left, kept open by default | #192, #188 (#178) |
 | "Space" instead of "Workspace" (English), "plocha" (Slovak) | #206, #185 |
+| New logo, amber default accent, store icon, promo tiles | #221, #218 (#211), #220 (#219) |
+| First-run welcome: heading, backup file import, example links | #222 |
+| Device-name dialog no longer closes after sign-in | #215 (#210) |
+| The side panel follows the account's Fair Use limits | #216 (#209) |
 | Smaller fixes: empty-group hint, red close buttons, settings folded, search bar limits, ads bar width, premium note colours | #190 (#187), #191 (#176), #189, #199 (#198), #203 (#202), #207 (#180) |
 
 **What changes for the store:**
@@ -35,18 +47,23 @@ a personal message in the page's own colours.
 - One more keyboard command, `flash-save` (suggested Alt+Shift+F). Commands need no permission.
 - The summary changed in English ("spaces") and Slovak ("plochách"). It comes from
   `public/_locales`, nothing to type.
+- **New icon.** The package carries it (toolbar, `chrome://extensions`); the **store icon** and the
+  **small promo tiles** are separate uploads on the Store listing tab (section 4).
+- Nothing in the manifest changed since the first 0.5.0 package: no new permission.
 
 ---
 
 ## 0. Order of work
 
-1. **Website first** - the release PR on `feature/release-0.5.0` in `new-tab-links-frontend`:
+1. **Website first** - the release PR on `feature/release-0.5.0` in `new-tab-links-frontend`
+   (merged), then the follow-up on `feature/release-0.5.0-amber`:
    changelog, corrected tips and the claims sweep (section 1). Merge it and deploy the site. The
    reviewer may read the privacy policy, and the slot page is already live with the new note.
 2. **Screenshots** - rendered for 0.5.0 by `screenshot-maker` (section 4); copy the five store
    pictures into `store/materials/screenshots/<lang>/` and look at them.
-3. **Merge this PR** (`feature/release-0.5.0`).
+3. **Merge this PR** (`feature/release-0.5.0`, then `feature/release-0.5.0-amber`).
 4. **Paste** the Privacy tab changes (2b), the descriptions (3) and the test instructions (5).
+   **Upload** the store icon, the two promo tiles and the five screenshots (4).
 5. **Upload** `tabilinks.zip` (6), submit for review. Then move the cards Merged → Deployed (the
    board, below).
 
@@ -110,6 +127,17 @@ HTML comment listing the pictures it should get. Most can be rendered as scenes.
 the toolbar tick and the permission prompt have to be taken by hand.
 
 Not written: the "Save in one click" home page highlight for Flash save, which would be a new SVG.
+
+### 1e. The re-cut — `feature/release-0.5.0-amber` in `new-tab-links-frontend`
+
+- **Changelog** `0.5.0.md` (EN, SK): dated 2026-11-18. Two more lead bullets: the new logo with
+  amber as the default, and the device-name fix. A new section, "A new logo and Tabilinks amber".
+  The accent section names amber as the default. "A new start" gains the backup file import and
+  the example links. "Also" gains the per-account limits.
+- **`accent-colour` tip**: amber is the default and comes first, not blue.
+- **`lets-begin` tip**: the "Welcome to Tabilinks!" heading, the current tile names, and the two new
+  tiles. Picture 1 re-rendered (six tiles), WebP 1x/2x/3x, EN and SK.
+- **Favicons** are already on the website's `main` (PR #100).
 
 ## 2. Privacy tab
 
@@ -179,19 +207,32 @@ Rendered for 0.5.0 by `screenshot-maker`: 124 of 124 scenes, 128 pictures, in
 - Suggested, optional: swap one store picture for favorites on (circles and the Favorites card)
   or for Settings with the accent swatches. Neither has a scene yet.
 
+### 4b. The re-cut's graphics — upload these
+
+| Upload | File |
+|---|---|
+| Store icon | `store/materials/store-icon/icon-128.png` - the new logo, 96×96 in a transparent 128×128 |
+| Small promo tile | `store/materials/promo/small-promo-tile.png`, Slovak `small-promo-tile-sk.png` - black and amber, the new logo |
+| Screenshots 1-5 | `store/materials/screenshots/{en,sk}/1-5.png` - **now the amber renders**. #219 re-rendered them in `screenshots/versions/0.5.0/store/` but they had not been copied here; the ones here until now were blue |
+
+The tips picture `lets-begin/1` is re-rendered with the six-tile welcome. Every other picture is
+from #219 and already amber.
+
 ## 5. Test instructions tab
 
 The text in the listing (section 4 there) is rewritten for 0.5.0: no "Load examples" (gone), the
 welcome tiles, favorites, the right-click menu and Alt+Shift+F, the accent colour, resizing and
 sorting, the side panel on the left, and the two-step sign-in. Paste it whole; replace the
-reviewer account placeholders.
+reviewer account placeholders. **Re-cut:** the welcome now lists six tiles, including "Load
+example groups and links". That is the quickest way for a reviewer to see a filled page, so it is
+named as such. The accent line says amber is the default.
 
 ## 6. Package
 
 - `public/manifest.json` `"version": "0.5.0"`.
-- Built with `npm test` (1080 passed), `npm run build`, then
+- Built with `npm test` (1093 passed), `npm run build`, then
   `rm -f tabilinks.zip && (cd dist && zip -qr -X ../tabilinks.zip .)` - `manifest.json` at the
-  zip's root, version 0.5.0, 438 KB.
+  zip's root, version 0.5.0, 466 KB (re-cut 2026-11-18; the first package was 438 KB).
 - `npx web-ext lint --source-dir dist`: **0 errors**; the three expected warnings only
   (`MANIFEST_PERMISSIONS` for Chrome's `favicon`, `MISSING_DATA_COLLECTION_PERMISSIONS`,
   `BACKGROUND_SERVICE_WORKER_IGNORED`).
@@ -201,7 +242,8 @@ reviewer account placeholders.
 ## The board
 
 Every extension card shipped in 0.5.0 is in **Merged**: #172, #173, #175, #176, #178, #180,
-#182, #183, #184, #187, #198, #200, #202, #204. When the upload is submitted, move them to
+#182, #183, #184, #187, #198, #200, #202, #204, and from the re-cut #209, #210, #211, #219.
+The re-cut released without an issue: the new logo (#221) and the first-run welcome (#222). When the upload is submitted, move them to
 **Deployed**; when review passes, to **Done**. Released without an issue: the side panel move to
 the left (#192), "Settings: every category starts folded" (#189), the Slovak "plocha" wording
 (#185) and the "Space" rename (#206).

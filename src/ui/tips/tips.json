@@ -244,8 +244,8 @@
   {
     "id": "accent-colour",
     "text": {
-      "en": "Not a fan of blue? Pick one of seven accent colours in Settings → \"UI and behavior\" → \"Accent colour\".",
-      "sk": "Modrá vám nesedí? Vyberte si jednu zo siedmich farieb v Nastaveniach → „Vzhľad a správanie“ → „Farba zvýraznenia“."
+      "en": "Prefer another colour than amber? Pick one of seven accent colours in Settings → \"UI and behavior\" → \"Accent colour\".",
+      "sk": "Jantárová vám nesedí? Vyberte si jednu zo siedmich farieb v Nastaveniach → „Vzhľad a správanie“ → „Farba zvýraznenia“."
     },
     "url": {
       "en": "/tips/accent-colour",
