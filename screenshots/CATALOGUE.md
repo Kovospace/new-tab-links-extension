@@ -40,7 +40,7 @@ Status: **ready** = scenes exist and render; **planned** = asked for, no scenes 
 | `demo` | planned | 3× | website `public/images/<lang>/demo/<n>_3x.png` | Numbered. |
 | `theme-showcase` | ready (6 pairs) | 1280×800, 3× | website `public/images/<lang>/theme-showcase/<n>-<dark\|light>_3x.png` | Every scene rendered once per theme (`for (const theme of ["light", "dark"])`), so a pair differs in the theme alone - the home page lays the dark one over the light one and clips it. |
 | `home-features` | planned | 3× | website `public/images/<lang>/home-features/<feature>/` | One folder per feature section. |
-| `install` | planned | 3× | website `public/images/<lang>/install/` | Sign-in forms and the account menu. |
+| `install` | ready (7 of the download page's 9; the other 2 are the website's own "My devices" page) | close-ups, 3× | website `public/images/<lang>/install/<name>_3x.png` | Dark, as the website is. The menu with Log in, the method choice framed on each method, both forms, the signed-in menu. The account's API is refused here, so the signed-in menu's status is rewritten to "Synchronised" - what a user whose account answers sees. |
 | `tour` | planned | - | website tour page | Uses no pictures yet. |
 
 `shootThemeSplit(name, splitAt?)` (a fixture beside `shoot`) saves one picture light left of a
@@ -100,6 +100,12 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `tips` | setup-privacy › settings, sync & privacy | `setup-privacy/nastavenia-sukromie_3x` | `syncEnabled` on: close-up of Settings → Sync & privacy |
 | `tips` | use-drag-and-drop › a link held over another group | `use-drag-and-drop/presun-odkazu_3x` | Spotify picked up and held over LinkedIn: the drop line, the tips bar turned trash, pointer drawn |
 | `tips` | use-drag-and-drop › settings, enable drag & drop framed | `use-drag-and-drop/nastavenia-presun_3x` | Close-up of Settings → Functions (since 0.5.0), "Enable drag & drop" framed |
+| `install` | signed out › the menu, log in hovered | `standart-login-menu_3x` | The application menu signed out, "Log in" hovered and framed |
+| `install` | signed out › the method, username and password pointed at | `standart-login-method_3x` | "Log in or set up sync", the pointer on "I have a username and password", framed |
+| `install` | signed out › the username and password form | `standart-login-form_3x` | The log-in form |
+| `install` | signed out › the method, sync code pointed at | `use-connection-code-3_3x` | The same choice, the pointer on "I have a sync code", framed |
+| `install` | signed out › the sync code form | `use-connection-code-4_3x` | The enter sync code form |
+| `install` | signed in › the menu, signed in and synchronised | `standart-login-menu-logged_3x`, `use-connection-code-5_3x` | The menu signed in as "alex", synchronising, status "Synchronised" |
 | `tips` | favorites › settings, favorites framed | `favorites/1_3x` | Light. Close-up of Settings → Functions, "Favorites" ticked and framed |
 | `tips` | favorites › a group, its circles, one framed | `favorites/2_3x` | Music group: YouTube and Spotify golden, the pointer on SoundCloud's circle, framed |
 | `tips` | favorites › a link's context menu, add to favorites framed | `favorites/3_3x` | Bandcamp's right-click menu, "Add to favorites" hovered and framed |
