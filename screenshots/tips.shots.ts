@@ -474,3 +474,268 @@ test.describe("use-drag-and-drop", () => {
         await shoot(shot("nastavenia-presun"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
     });
 });
+
+/*  The tips new in 0.5.0, light theme as their notes on the website ask. */
+
+test.describe("favorites", () => {
+    const shot = (name: string) => `favorites/${name}_3x`;
+    test.use({ preferences: { theme: "light" } });
+
+    test.beforeEach(async ({ newTab }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.setProfileSettings({ enableFavorites: true });
+    });
+
+    test("settings, favorites framed", async ({ newTab, shoot }) => {
+        await newTab.openSettings("functions");
+        await newTab.outline(newTab.settingsRow("enableFavorites"), 4, 4);
+        await shoot(shot("1"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
+    });
+
+    // Two golden, and the pointer on an empty one, framed.
+    test("a group, its circles, one framed", async ({ newTab, shoot }) => {
+        await newTab.markFavorites(["YouTube", "Spotify"]);
+        await newTab.hoverFavoriteCircle("SoundCloud");
+        await newTab.outline(newTab.favoriteCircle("SoundCloud"), 5, 3);
+        await shoot(shot("2"), { clip: await newTab.areaAround(["link-group >> nth=2"], 24) });
+    });
+
+    test("a link's context menu, add to favorites framed", async ({ newTab, shoot }) => {
+        await newTab.markFavorites(["YouTube", "Spotify"]);
+        await newTab.openLinkContextMenu("Bandcamp");
+        await newTab.hoverMenuItem("link.menu.addFavorite");
+        await newTab.outline(newTab.menuItem("link.menu.addFavorite"), 3, 4);
+        await shoot(shot("3"), { clip: await newTab.areaAround(["link-group >> nth=2", "options-menu.visible"], 24) });
+    });
+
+    test.describe("the favorites card", () => {
+        test.use({ preferences: { theme: "light", sidePanelCard: "favorites" } });
+
+        test("side panel open on favorites", async ({ newTab, shoot }) => {
+            await newTab.markFavorites(["YouTube", "Spotify", "Google", "LinkedIn"]);
+            await newTab.openSidePanel();
+            await newTab.restPointerInSidePanel();
+            await shoot(shot("4"));
+        });
+    });
+
+    test("the toolbar popup, favorites under the form", async ({ newTab, shoot, language }) => {
+        await newTab.markFavorites(["YouTube", "Spotify", "Google", "LinkedIn"]);
+        const popup = await newTab.openBookmarkPopup(PAGE_TO_SAVE[language] ?? PAGE_TO_SAVE.en);
+        await popup.setViewportSize({ width: 520, height: 800 });
+        await popup.locator(".popup-favorites__row").first().waitFor();
+        await popup.mouse.move(5, 5);
+        const panel = (await popup.locator(".bookmark-panel").boundingBox())!;
+        const favorites = (await popup.locator(".popup-favorites").boundingBox())!;
+        await shoot(shot("5"), { page: popup, clip: {
+            x: panel.x, y: panel.y, width: panel.width,
+            height: favorites.y + favorites.height - panel.y + 8 } });
+    });
+});
+
+/** What a fast-paced link grabber kept with Flash save - research for a video, in the picture's language. */
+const FLASH_SAVED: Record<string, { title: string; url: string }[]> = {
+    en: [
+        { title: "Three-point lighting - Wikipedia", url: "https://en.wikipedia.org/wiki/Three-point_lighting" },
+        { title: "Free Music Archive", url: "https://freemusicarchive.org/" },
+        { title: "Wikimedia Commons - free photos", url: "https://commons.wikimedia.org/" },
+        { title: "Shot (filmmaking) - Wikipedia", url: "https://en.wikipedia.org/wiki/Shot_(filmmaking)" },
+        { title: "YouTube Creators", url: "https://www.youtube.com/creators/" },
+    ],
+    sk: [
+        { title: "Trojbodové osvetlenie - Wikipédia", url: "https://sk.wikipedia.org/wiki/Trojbodové_osvetlenie" },
+        { title: "Free Music Archive", url: "https://freemusicarchive.org/" },
+        { title: "Wikimedia Commons - fotografie zadarmo", url: "https://commons.wikimedia.org/" },
+        { title: "Záber (film) - Wikipédia", url: "https://sk.wikipedia.org/wiki/Záber" },
+        { title: "YouTube Creators", url: "https://www.youtube.com/creators/" },
+    ],
+};
+
+test.describe("flash-save", () => {
+    const shot = (name: string) => `flash-save/${name}_3x`;
+    test.use({ preferences: { theme: "light" } });
+
+    test.beforeEach(async ({ newTab }) => {
+        await newTab.chooseBackground(BACKGROUND);
+    });
+
+    // The group Flash save makes, holding what was kept - as the right-click entry and the shortcut leave it.
+    test("the flash save group", async ({ newTab, shoot, t, language }) => {
+        await newTab.addGroup(t("bookmark.flashSave.groupName"), FLASH_SAVED[language] ?? FLASH_SAVED.en);
+        await newTab.outline(await newTab.boxOf("link-group >> nth=3"), 6, 4);
+        await shoot(shot("3"));
+    });
+
+    test("settings, fast-paced link grabbing chosen and framed", async ({ newTab, shoot, t }) => {
+        await newTab.openSettings("uiAndBehavior");
+        const row = newTab.settingsRow("contextMenuMode");
+        await newTab.scrollToMiddle(row);
+        await newTab.page.locator(row).getByText(t("settings.contextMenuMode.options.flashSave")).click();
+        await newTab.pointerAway();
+        await newTab.outline(row, 4, 4);
+        await shoot(shot("4"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
+    });
+});
+
+test.describe("accent-colour", () => {
+    const shot = (name: string) => `accent-colour/${name}_3x`;
+    // The panel kept open, so its card switcher and search field are in the picture.
+    test.use({ preferences: { theme: "light", keepSidePanelOpen: true, sidePanelCard: "closed" } });
+
+    test.beforeEach(async ({ newTab }) => {
+        await newTab.chooseBackground(BACKGROUND);
+    });
+
+    test("settings, the accent swatches framed", async ({ newTab, shoot }) => {
+        await newTab.openSettings("uiAndBehavior");
+        const row = newTab.settingsRow("accentColor");
+        await newTab.scrollToMiddle(row);
+        await newTab.outline(row, 4, 4);
+        await shoot(shot("1"), { clip: await newTab.areaAround(["dialog.settings-dialog"], 16) });
+    });
+
+    /**
+     *  The page's top-left corner three times - amber, blue, magenta: the open space's tab,
+     *  the side panel's chosen card and its search field, focused.
+     */
+    for (const [number, theme] of [[2, "light"], [3, "dark"]] as const) {
+        test(`three accents side by side, ${theme}`, async ({ newTab, shootSideBySide }) => {
+            await newTab.setPreferences({ theme });
+            await newTab.page.locator(`html[data-theme="${theme}"]`).waitFor({ state: "attached" });
+            await newTab.page.locator(".closed-tabs input[type=search], .closed-tabs input").first().focus();
+            const clip = { x: 0, y: 0, width: 300, height: 150 };
+            await shootSideBySide(shot(String(number)), clip, ["amber", "blue", "magenta"].map(accentColor => async () => {
+                await newTab.setPreferences({ accentColor });
+                await newTab.page.locator(`html[data-accent="${accentColor}"]`).waitFor({ state: "attached" });
+            }));
+        });
+    }
+});
+
+/** The examples' second group, Socials - five links, so a resize shows plainly. */
+const SOCIALS = 1;
+
+test.describe("resize-and-sort-groups", () => {
+    const shot = (name: string) => `resize-and-sort-groups/${name}_3x`;
+    test.use({ preferences: { theme: "light" } });
+
+    test.beforeEach(async ({ newTab }) => {
+        await newTab.chooseBackground(BACKGROUND);
+    });
+
+    // Held mid-drag, wider and taller than its neighbours, the corner ringed.
+    test("a group being resized by its corner", async ({ newTab, shoot }) => {
+        const corner = await newTab.dragResizeCorner(SOCIALS, { x: 140, y: 120 }, false);
+        await newTab.outline({ x: corner.x - 12, y: corner.y - 12, width: 24, height: 24 }, 6, 4, true);
+        await shoot(shot("1"));
+        await newTab.page.mouse.up();
+    });
+
+    // Made shorter than its links: it scrolls. Scrolled part way, the corner ringed.
+    test("a group shorter than its links, scrolled", async ({ newTab, shoot }) => {
+        const group = newTab.group(0);
+        const before = (await group.boundingBox())!;
+        await newTab.dragResizeCorner(0, { x: 0, y: -Math.round(before.height * 0.45) });
+        await group.evaluate(element => {
+            const scroller = [element, ...element.querySelectorAll<HTMLElement>("*")]
+                .find(candidate => candidate.scrollHeight > candidate.clientHeight + 4
+                    && getComputedStyle(candidate).overflowY !== "visible");
+            if (scroller) scroller.scrollTop = (scroller.scrollHeight - scroller.clientHeight) / 2;
+        });
+        await newTab.outline(await newTab.boxOf("link-group >> nth=0"), 6, 4);
+        await shoot(shot("2"));
+    });
+
+    // A resized group's menu: Sort links, and Reset size - framed - going back to the automatic size.
+    test("a resized group's menu, reset size framed", async ({ newTab, shoot }) => {
+        await newTab.dragResizeCorner(SOCIALS, { x: 140, y: 60 });
+        await newTab.openGroupMenu(SOCIALS);
+        await newTab.hoverMenuItem("group.menu.resetSize");
+        await newTab.outline(newTab.menuItem("group.menu.resetSize"), 3, 4);
+        await shoot(shot("3"), { clip: await newTab.areaAround(["link-group >> nth=1", "options-menu.visible"], 24) });
+    });
+
+    test("the sort links dialog", async ({ newTab, shoot }) => {
+        await newTab.openGroupMenu(SOCIALS);
+        await newTab.page.locator(newTab.menuItem("group.menu.sortLinks")).click();
+        const dialog = newTab.page.locator("dialog[open]").last();
+        await dialog.waitFor();
+        await newTab.pointerAway();
+        await newTab.page.waitForTimeout(300);
+        await shoot(shot("4"), { clip: await newTab.areaAround(["dialog[open]"], 16) });
+    });
+});
+
+/** A browser's bookmarks, as `chrome.bookmarks.getTree()` gives them - in the picture's language. */
+function bookmarkTree(language: string, foldersInBar = 4): object[] {
+    const sk = language === "sk";
+    let id = 10;
+    const link = (title: string, url: string) => ({ id: String(id++), title, url, dateAdded: Date.UTC(2025, 3, id) });
+    const folder = (title: string, children: object[]) => ({ id: String(id++), title, children });
+    const bar = [
+        folder(sk ? "Správy" : "News", [link("BBC", "https://www.bbc.com/"), link("Wikipedia", "https://www.wikipedia.org/"),
+            link("The Guardian", "https://www.theguardian.com/")]),
+        folder(sk ? "Práca" : "Work", [
+            link("GitHub", "https://github.com/"), link("Jira", "https://www.atlassian.com/software/jira"),
+            folder(sk ? "Dokumentácia" : "Docs", [link("MDN", "https://developer.mozilla.org/"),
+                link("TypeScript", "https://www.typescriptlang.org/docs/")]),
+            folder(sk ? "Nástroje" : "Tools", [link("Figma", "https://www.figma.com/"), link("Notion", "https://www.notion.so/")]),
+        ]),
+        folder(sk ? "Recepty" : "Recipes", [link("BBC Good Food", "https://www.bbcgoodfood.com/"),
+            link("YouTube", "https://www.youtube.com/results?search_query=recipes")]),
+        folder(sk ? "Cestovanie" : "Travel", [link("Booking.com", "https://www.booking.com/"),
+            link("Google Maps", "https://maps.google.com/"), link("Wikivoyage", "https://www.wikivoyage.org/")]),
+    ];
+    for (let extra = bar.length; extra < foldersInBar; extra++) {
+        bar.push(folder(`${sk ? "Priečinok" : "Folder"} ${extra + 1}`, [link("Wikipedia", `https://en.wikipedia.org/wiki/${extra}`)]));
+    }
+    bar.push(link("DuckDuckGo", "https://duckduckgo.com/"));
+    return [{ id: "0", title: "", children: [
+        { id: "1", title: sk ? "Panel so záložkami" : "Bookmarks bar", children: bar },
+        { id: "2", title: sk ? "Ostatné záložky" : "Other bookmarks", children: [
+            folder(sk ? "Na čítanie" : "Reading list", [link("Hacker News", "https://news.ycombinator.com/")]),
+        ] },
+    ] }];
+}
+
+test.describe("import-bookmarks", () => {
+    const shot = (name: string) => `import-bookmarks/${name}_3x`;
+    test.use({ preferences: { theme: "light" } });
+
+    test.beforeEach(async ({ newTab }) => {
+        await newTab.chooseBackground(BACKGROUND);
+        await newTab.wipeToFirstRun();
+    });
+
+    // The first-run welcome, the import tile framed (2, the browser's permission prompt, is by hand).
+    // Then the dialog, every folder ticked, and the space it makes.
+    test("first run, the dialog, the space after it", async ({ newTab, shoot, t, language }) => {
+        const tile = `.welcome-tile:has-text("${t("workspace.welcome.importBookmarks")}")`;
+        await newTab.outline(tile, 6, 4);
+        await shoot(shot("1"));
+        await newTab.page.locator(".screenshot-outline").evaluateAll(frames => frames.forEach(frame => frame.remove()));
+
+        await newTab.standInBrowserBookmarks(bookmarkTree(language));
+        await newTab.page.locator(tile).click();
+        await newTab.page.locator("dialog[open]").last().waitFor();
+        await newTab.pointerAway();
+        await newTab.page.waitForTimeout(300);
+        await shoot(shot("3"), { clip: await newTab.areaAround(["dialog[open]"], 16) });
+
+        await newTab.page.locator("dialog[open]").last()
+            .getByRole("button", { name: t("workspace.bookmarkImport.confirm"), exact: true }).click();
+        await newTab.page.locator("workspace-plane link-group").first().waitFor();
+        await newTab.pointerAway();
+        await shoot(shot("5"));
+    });
+
+    // More folders than a space holds groups: the dialog says which limit, and Import is disabled.
+    test("the dialog over a limit", async ({ newTab, shoot, t, language }) => {
+        await newTab.standInBrowserBookmarks(bookmarkTree(language, 30));
+        await newTab.page.locator(`.welcome-tile:has-text("${t("workspace.welcome.importBookmarks")}")`).click();
+        await newTab.page.locator("dialog[open]").last().waitFor();
+        await newTab.pointerAway();
+        await newTab.page.waitForTimeout(300);
+        await shoot(shot("4"), { clip: await newTab.areaAround(["dialog[open]"], 16) });
+    });
+});

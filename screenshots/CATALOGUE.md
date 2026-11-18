@@ -100,6 +100,21 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `tips` | setup-privacy › settings, sync & privacy | `setup-privacy/nastavenia-sukromie_3x` | `syncEnabled` on: close-up of Settings → Sync & privacy |
 | `tips` | use-drag-and-drop › a link held over another group | `use-drag-and-drop/presun-odkazu_3x` | Spotify picked up and held over LinkedIn: the drop line, the tips bar turned trash, pointer drawn |
 | `tips` | use-drag-and-drop › settings, enable drag & drop framed | `use-drag-and-drop/nastavenia-presun_3x` | Close-up of Settings → Functions (since 0.5.0), "Enable drag & drop" framed |
+| `tips` | favorites › settings, favorites framed | `favorites/1_3x` | Light. Close-up of Settings → Functions, "Favorites" ticked and framed |
+| `tips` | favorites › a group, its circles, one framed | `favorites/2_3x` | Music group: YouTube and Spotify golden, the pointer on SoundCloud's circle, framed |
+| `tips` | favorites › a link's context menu, add to favorites framed | `favorites/3_3x` | Bandcamp's right-click menu, "Add to favorites" hovered and framed |
+| `tips` | favorites › the favorites card › side panel open on favorites | `favorites/4_3x` | The whole page, the side panel open on the Favorites card, four favorites |
+| `tips` | favorites › the toolbar popup, favorites under the form | `favorites/5_3x` | The bookmarking popup with the favorites list under its form |
+| `tips` | flash-save › the flash save group | `flash-save/3_3x` | Light. A "Flash save" group of research pages for a video, staged into storage, framed |
+| `tips` | flash-save › settings, fast-paced link grabbing chosen and framed | `flash-save/4_3x` | Close-up of Settings → UI and behavior, "Browser context menu actions" on fast-paced, framed |
+| `tips` | accent-colour › settings, the accent swatches framed | `accent-colour/1_3x` | Light, panel kept open. Close-up of Settings, the "Accent colour" row framed |
+| `tips` | accent-colour › three accents side by side, light / dark | `accent-colour/2_3x`, `3_3x` | The page's top-left corner in amber, blue and magenta, joined side by side (`shootSideBySide`) |
+| `tips` | resize-and-sort-groups › a group being resized by its corner | `resize-and-sort-groups/1_3x` | Light. Socials held mid-drag, wider and taller, the corner ringed under the pointer |
+| `tips` | resize-and-sort-groups › a group shorter than its links, scrolled | `resize-and-sort-groups/2_3x` | The first group made shorter than its links and scrolled half way, framed |
+| `tips` | resize-and-sort-groups › a resized group's menu, reset size framed | `resize-and-sort-groups/3_3x` | Socials resized, its menu open, "Reset size" hovered and framed |
+| `tips` | resize-and-sort-groups › the sort links dialog | `resize-and-sort-groups/4_3x` | Close-up of the "Sort links" dialog |
+| `tips` | import-bookmarks › first run, the dialog, the space after it | `import-bookmarks/1_3x`, `3_3x`, `5_3x` | Light. The first-run welcome with the import tile framed; the dialog, every folder ticked; the space after Import. The browser's bookmarks are stood in (`standInBrowserBookmarks`) |
+| `tips` | import-bookmarks › the dialog over a limit | `import-bookmarks/4_3x` | 30 folders: the dialog names the groups limit, Import disabled |
 | `theme-showcase` | <theme> › home | `1-<theme>_3x` | The example workspace, background 6 |
 | `theme-showcase` | <theme> › recently closed › side panel, a row hovered | `2-<theme>_3x` | As store #2, background 6 |
 | `theme-showcase` | <theme> › search suggestions | `3-<theme>_3x` | As store #3, background 6 |
@@ -165,6 +180,12 @@ names each picture `<name>_3x`: the website derives the smaller densities itself
 | `hoverHistoryEntry(title)` | Hovers the history row whose title starts so, pointer drawn |
 | `historyRowsAround(title)` | That row and its neighbours' area - a `clip` for `shoot(name, { clip })` |
 | `chooseBackground(number)` | Settings → Background → that built-in tile, waits for the picture, closes Settings |
+| `favoriteCircle(title)` / `markFavorites(titles)` / `hoverFavoriteCircle(title)` | A link's favorite circle; clicks circles to mark links; rests the pointer on one, drawn |
+| `group(index)` / `openGroupMenu(index)` | A group's column by its place from 0 (names differ per language); opens its ⋮ menu |
+| `resizeCorner(index)` / `dragResizeCorner(index, by, release?)` | A group's resize corner; drags it by `{x, y}` and returns where it ended - `release: false` holds it mid-drag, so touch nothing else before shooting |
+| `addGroup(title, links)` | Appends a group with links to the open space, straight into storage, and reloads |
+| `standInBrowserBookmarks(tree)` | Makes the bookmarks permission answer yes and `chrome.bookmarks.getTree()` return this tree - the test browser has none, and Chrome's prompt cannot be clicked |
+| `shootSideBySide(name, clip, steps)` (fixture) | Takes the same area once per step and joins the takes side by side with a narrow gap |
 
 ## Not yet possible
 
