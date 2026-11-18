@@ -60,9 +60,18 @@ export class NewTabPage {
      */
     async chooseBackground(number: number): Promise<void> {
         await this.openSettings("background");
+        // What is drawn now - often the fresh install's default picture, already downloaded. Waiting
+        // only for "a picture is drawn" passed at once then, and a scene reloading straight after
+        // cut the chosen picture's download short: the default stayed behind every later picture.
+        const pictureBefore = await this.page.evaluate(() =>
+            getComputedStyle(document.documentElement).getPropertyValue("--page-background-image"));
         await this.page.getByRole("option",
             { name: this.t("settings.backgroundImage.tile", { number: String(number) }), exact: true }).click();
         await this.page.locator("html.has-custom-background").waitFor({ state: "attached", timeout: 30_000 });
+        await this.page.waitForFunction(before => {
+            const now = getComputedStyle(document.documentElement).getPropertyValue("--page-background-image");
+            return now.trim() !== "" && now !== before;
+        }, pictureBefore, { timeout: 30_000 });
         await this.page.getByRole("button", { name: this.t("common.close"), exact: true }).click();
         await this.pointerAway();
     }
@@ -554,6 +563,118 @@ export class NewTabPage {
         await this.page.mouse.move(to.x + to.width * 0.4, to.y + to.height * 0.75, { steps: 12 });
         await this.page.waitForTimeout(400);
         await this.movePointerTo(to.x + to.width * 0.4, to.y + to.height * 0.75);
+    }
+
+    /** A link's row, found by its title. */
+    private linkRow(title: string) {
+        return this.page.locator("link-container").filter({ hasText: title }).first();
+    }
+
+    /** The favorite circle at the end of a link's row (#183). */
+    favoriteCircle(title: string): string {
+        return `link-container:has-text("${title}") >> nth=0 >> .cls-favorite-toggle`;
+    }
+
+    /** Marks links as favorites the way a user does - a click on each one's circle. */
+    async markFavorites(titles: string[]): Promise<void> {
+        for (const title of titles) {
+            await this.linkRow(title).locator(".cls-favorite-toggle").click();
+            await this.page.locator(`${this.favoriteCircle(title)}.is-favorite`).waitFor();
+        }
+        await this.pointerAway();
+    }
+
+    /** Rests the pointer on a link's favorite circle, drawn there, so the circle shows its hover. */
+    async hoverFavoriteCircle(title: string): Promise<void> {
+        const box = (await this.page.locator(this.favoriteCircle(title)).boundingBox())!;
+        await this.movePointerTo(box.x + box.width / 2, box.y + box.height / 2);
+    }
+
+    /** A group's column, by its place on the page from 0 - groups are named in the picture's language. */
+    group(index: number) {
+        return this.page.locator("link-group").nth(index);
+    }
+
+    /** Opens a group's options menu from its ⋮ button. */
+    async openGroupMenu(index: number): Promise<void> {
+        await this.group(index).locator("link-group-head button:has(> options-menu)").first().click();
+        await this.page.locator("options-menu.visible").waitFor();
+        await this.page.waitForTimeout(300);
+    }
+
+    /** Where a group's resize corner is (#173). */
+    async resizeCorner(index: number): Promise<Box> {
+        const corner = this.group(index).locator(".cls-group-resize-handle");
+        await this.group(index).hover();
+        return (await corner.boundingBox())!;
+    }
+
+    /**
+     *  Drags a group's bottom-right corner by this much, as a hand does.
+     *
+     *  @param release false to stay holding it, mid-drag, for a picture - and touch nothing
+     *                 else meanwhile: any pointer move while held resizes the group to it
+     *  @returns where the pointer let go, or is holding - the corner's new place
+     */
+    async dragResizeCorner(index: number, by: { x: number; y: number }, release = true): Promise<{ x: number; y: number }> {
+        const corner = await this.resizeCorner(index);
+        const startX = corner.x + corner.width / 2;
+        const startY = corner.y + corner.height / 2;
+        await this.page.mouse.move(startX, startY);
+        await this.page.mouse.down();
+        await this.page.mouse.move(startX + by.x, startY + by.y, { steps: 15 });
+        await this.page.waitForTimeout(200);
+        if (release) {
+            await this.page.mouse.up();
+            await this.pointerAway();
+        } else {
+            await this.movePointerTo(startX + by.x, startY + by.y);
+        }
+        return { x: startX + by.x, y: startY + by.y };
+    }
+
+    /**
+     *  Adds a group with links at the end of the open workspace, straight into storage - as
+     *  if it had been filled over time - and reloads.
+     */
+    async addGroup(title: string, links: { title: string; url: string }[]): Promise<void> {
+        await this.page.evaluate(async ({ title, links }) => {
+            const { profile_registry: registry } = await chrome.storage.local.get("profile_registry") as {
+                profile_registry: { activeProfileId: string } };
+            const key = `app_state_${registry.activeProfileId}`;
+            const { [key]: state } = await chrome.storage.local.get(key) as { [key: string]: {
+                activeEnvironmentId: string;
+                groups: Record<string, { environmentId: string; order?: number }>;
+                links: Record<string, object> } };
+            const environmentId = state.activeEnvironmentId;
+            const order = Math.max(-1, ...Object.values(state.groups)
+                .filter(group => group.environmentId === environmentId).map(group => group.order ?? 0)) + 1;
+            const groupId = crypto.randomUUID();
+            const now = Date.now();
+            state.groups[groupId] = { id: groupId, title, environmentId, createdAt: now, order } as never;
+            links.forEach((link, position) => {
+                const id = crypto.randomUUID();
+                state.links[id] = { id, ...link, groupId, subGroupId: "", environmentId, type: "link",
+                    position, createdAt: now - (links.length - position) * 60_000 };
+            });
+            await chrome.storage.local.set({ [key]: state });
+        }, { title, links });
+        await this.reload();
+    }
+
+    /**
+     *  Stands the browser's bookmarks in for the page (#182): the permission request answers
+     *  yes and the bookmark tree is the one given. The test browser has no bookmarks, and
+     *  Chrome's own permission prompt cannot be clicked from here - it is pictured by hand.
+     */
+    async standInBrowserBookmarks(tree: object[]): Promise<void> {
+        await this.page.evaluate(tree => {
+            const api = chrome as unknown as Record<string, unknown>;
+            Object.defineProperty(chrome.permissions, "request",
+                { configurable: true, value: async () => true });
+            Object.defineProperty(api, "bookmarks",
+                { configurable: true, value: { getTree: async () => tree } });
+        }, tree);
     }
 
     /** Opens the search engine dropdown, the button at the search bar's left end. */
